@@ -170,6 +170,7 @@ PgSetConnectionId(Tcl_Interp *interp, PGconn *conn)
 	Tcl_Channel conn_chan;
 	Pg_ConnectionId *connid;
 	int			i;
+        CONST   char      *ns = "::";
 
 	connid = (Pg_ConnectionId *) ckalloc(sizeof(Pg_ConnectionId));
 	connid->conn = conn;
@@ -185,7 +186,11 @@ PgSetConnectionId(Tcl_Interp *interp, PGconn *conn)
 	connid->notify_list = NULL;
 	connid->notifier_running = 0;
 
-	sprintf(connid->id, "pgsql%d", PQsocket(conn));
+        Tcl_Eval(interp, "if {[namespace current] != \"::\"} {namespace current}");
+        
+        ns = Tcl_GetStringResult(interp);
+
+	sprintf(connid->id, "%s::pgsql%d", ns, PQsocket(conn));
 
 	connid->notifier_channel = Tcl_MakeTcpClientChannel((ClientData)PQsocket(conn));
 	/* Code  executing  outside  of  any Tcl interpreter can call
@@ -206,7 +211,117 @@ PgSetConnectionId(Tcl_Interp *interp, PGconn *conn)
 	Tcl_SetChannelOption(interp, conn_chan, "-buffering", "line");
 	Tcl_SetResult(interp, connid->id, TCL_VOLATILE);
 	Tcl_RegisterChannel(interp, conn_chan);
+
+        Tcl_CreateObjCommand(interp, connid->id, PgConnCmd, NULL,NULL);
+
 }
+
+int
+PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+{
+    int    optIndex;
+    int    objvxi;
+    Tcl_Obj    **objvx;
+    Tcl_Obj    *tmp;
+
+    static CONST char *options[] = {
+    "disconnect", "exec", "sqlexec", "execute", "select", "listen",
+    "on_connection_loss", "lo_creat", "lo_open", "lo_close", 
+    "lo_read", "lo_write", "lo_lseek", "lo_tell", "lo_unlink",
+    "lo_import", "lo_export", (char *)NULL
+    };
+
+    enum options
+    {
+        DISCONNECT,EXEC, SQLEXEC, EXECUTE, SELECT, LISTEN, ON_CONNECTION_LOSS,
+        LO_CREAT, LO_OPEN, LO_CLOSE, LO_READ, LO_WRITE, LO_LSEEK, LO_TELL,
+        LO_UNLINK, LO_IMPORT, LO_EXPORT
+    };
+
+    for (objvxi=1; objvxi < objc; objvxi++) {
+        objvx[objvxi] = objv[objvxi];
+    }
+
+    tmp = objvx[0];
+    objvx[0] = objvx[1];
+    objvx[1] = tmp;
+
+
+    if (Tcl_GetIndexFromObj(interp, objv[1], options, "switch", TCL_EXACT, &optIndex) != TCL_OK)
+                    return TCL_ERROR;
+
+    switch ((enum options) optIndex)
+    {
+        case DISCONNECT:
+        {
+            return Pg_disconnect(cData, interp, objc, objvx);
+        }
+        case EXEC:
+        case SQLEXEC:
+        {
+            return Pg_exec(cData, interp, objc, objvx);
+        }
+        case EXECUTE:
+        {
+            return Pg_execute(cData, interp, objc, objvx);
+        }
+        case SELECT:
+        {
+            return Pg_select(cData, interp, objc, objvx);
+        }
+        case LISTEN:
+        {
+            return Pg_listen(cData, interp, objc, objvx);
+        }
+        case ON_CONNECTION_LOSS:
+        {
+            return Pg_listen(cData, interp, objc, objvx);
+        }
+        case LO_CREAT:
+        {
+            return Pg_lo_creat(cData, interp, objc, objvx);
+        }
+        case LO_OPEN:
+        {
+            return Pg_lo_open(cData, interp, objc, objvx);
+        }
+        case LO_CLOSE:
+        {
+            return Pg_lo_close(cData, interp, objc, objvx);
+        }
+        case LO_READ:
+        {
+            return Pg_lo_read(cData, interp, objc, objvx);
+        }
+        case LO_WRITE:
+        {
+            return Pg_lo_write(cData, interp, objc, objvx);
+        }
+        case LO_LSEEK:
+        {
+            return Pg_lo_lseek(cData, interp, objc, objvx);
+        }
+        case LO_TELL:
+        {
+            return Pg_lo_tell(cData, interp, objc, objvx);
+        }
+        case LO_UNLINK:
+        {
+            return Pg_lo_unlink(cData, interp, objc, objvx);
+        }
+        case LO_IMPORT:
+        {
+            return Pg_lo_import(cData, interp, objc, objvx);
+        }
+        case LO_EXPORT:
+        {
+            return Pg_lo_export(cData, interp, objc, objvx);
+        }
+
+    }
+
+}
+
 
 
 /*
