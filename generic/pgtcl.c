@@ -92,152 +92,152 @@ Pgtcl_Init(Tcl_Interp *interp)
 	Tcl_CreateObjCommand(interp,
 						 "pg_conndefaults",
 						 Pg_conndefaults,
-						 (ClientData)NULL,
-						 (Tcl_CmdDeleteProc *)NULL);
+						 NULL,
+						 NULL);
 
 	Tcl_CreateObjCommand(interp,
 						 "pg_connect",
 						 Pg_connect,
-						 (ClientData)NULL,
-						 (Tcl_CmdDeleteProc *)NULL);
+						 NULL,
+						 NULL);
 
 	Tcl_CreateObjCommand(interp,
 						 "pg_disconnect",
 						 Pg_disconnect,
-						 (ClientData)NULL,
-						 (Tcl_CmdDeleteProc *)NULL);
+						 NULL,
+						 NULL);
 
 	Tcl_CreateObjCommand(interp,
 						 "pg_exec",
 						 Pg_exec,
-						 (ClientData)NULL,
-						 (Tcl_CmdDeleteProc *)NULL);
+						 NULL,
+						 NULL);
 
 	Tcl_CreateObjCommand(interp,
 						 "pg_select",
 						 Pg_select,
-						 (ClientData)NULL,
-						 (Tcl_CmdDeleteProc *)NULL);
+						 NULL,
+						 NULL);
 
 	Tcl_CreateObjCommand(interp,
 						 "pg_result",
 						 Pg_result,
-						 (ClientData)NULL,
-						 (Tcl_CmdDeleteProc *)NULL);
+						 NULL,
+						 NULL);
 
 	Tcl_CreateObjCommand(interp,
 						 "pg_execute",
 						 Pg_execute,
-						 (ClientData)NULL,
-						 (Tcl_CmdDeleteProc *)NULL);
+						 NULL,
+						 NULL);
 
 	Tcl_CreateObjCommand(interp,
 						 "pg_lo_open",
 						 Pg_lo_open,
-						 (ClientData)NULL,
-						 (Tcl_CmdDeleteProc *)NULL);
+						 NULL,
+						 NULL);
 
 	Tcl_CreateObjCommand(interp,
 						 "pg_lo_close",
 						 Pg_lo_close,
-						 (ClientData)NULL,
-						 (Tcl_CmdDeleteProc *)NULL);
+						 NULL,
+						 NULL);
 
 	Tcl_CreateObjCommand(interp,
 						 "pg_lo_read",
 						 Pg_lo_read,
-						 (ClientData)NULL,
-						 (Tcl_CmdDeleteProc *)NULL);
+						 NULL,
+						 NULL);
 
 	Tcl_CreateObjCommand(interp,
 						 "pg_lo_write",
 						 Pg_lo_write,
-						 (ClientData)NULL,
-						 (Tcl_CmdDeleteProc *)NULL);
+						 NULL,
+						 NULL);
 
 	Tcl_CreateObjCommand(interp,
 						 "pg_lo_lseek",
 						 Pg_lo_lseek,
-						 (ClientData)NULL,
-						 (Tcl_CmdDeleteProc *)NULL);
+						 NULL,
+						 NULL);
 
 	Tcl_CreateObjCommand(interp,
 						 "pg_lo_creat",
 						 Pg_lo_creat,
-						 (ClientData)NULL,
-						 (Tcl_CmdDeleteProc *)NULL);
+						 NULL,
+						 NULL);
 
 	Tcl_CreateObjCommand(interp,
 						 "pg_lo_tell",
 						 Pg_lo_tell,
-						 (ClientData)NULL,
-						 (Tcl_CmdDeleteProc *)NULL);
+						 NULL,
+						 NULL);
 
 	Tcl_CreateObjCommand(interp,
 						 "pg_lo_unlink",
 						 Pg_lo_unlink,
-						 (ClientData)NULL,
-						 (Tcl_CmdDeleteProc *)NULL);
+						 NULL,
+						 NULL);
 
 	Tcl_CreateObjCommand(interp,
 						 "pg_lo_import",
 						 Pg_lo_import,
-						 (ClientData)NULL,
-						 (Tcl_CmdDeleteProc *)NULL);
+						 NULL,
+						 NULL);
 
 	Tcl_CreateObjCommand(interp,
 						 "pg_lo_export",
 						 Pg_lo_export,
-						 (ClientData)NULL,
-						 (Tcl_CmdDeleteProc *)NULL);
+						 NULL,
+						 NULL);
 
 	Tcl_CreateObjCommand(interp,
 						 "pg_listen",
 						 Pg_listen,
-						 (ClientData)NULL,
-						 (Tcl_CmdDeleteProc *)NULL);
+						 NULL,
+						 NULL);
 
 	Tcl_CreateObjCommand(interp,
 						 "pg_sendquery",
 						 Pg_sendquery,
-						 (ClientData)NULL,
-						 (Tcl_CmdDeleteProc *)NULL);
+						 NULL,
+						 NULL);
 
 	Tcl_CreateObjCommand(interp,
 						 "pg_getresult",
 						 Pg_getresult,
-						 (ClientData)NULL,
-						 (Tcl_CmdDeleteProc *)NULL);
+						 NULL,
+						 NULL);
 
 	Tcl_CreateObjCommand(interp,
 						 "pg_isbusy",
 						 Pg_isbusy,
-						 (ClientData)NULL,
-						 (Tcl_CmdDeleteProc *)NULL);
+						 NULL,
+						 NULL);
 
 	Tcl_CreateObjCommand(interp,
 						 "pg_blocking",
 						 Pg_blocking,
-						 (ClientData)NULL,
-						 (Tcl_CmdDeleteProc *)NULL);
+						 NULL,
+						 NULL);
 
 	Tcl_CreateObjCommand(interp,
 						 "pg_cancelrequest",
 						 Pg_cancelrequest,
-						 (ClientData)NULL,
-						 (Tcl_CmdDeleteProc *)NULL);
+						 NULL,
+						 NULL);
 
 	Tcl_CreateObjCommand(interp,
 						  "pg_on_connection_loss",
 						  Pg_on_connection_loss,
-						  (ClientData) NULL, 
-						  (Tcl_CmdDeleteProc *) NULL);
+						  NULL, 
+						  NULL);
 
 	Tcl_CreateObjCommand(interp,
 						  "pg_escape_string",
 						  Pg_escape_string,
-						  (ClientData) NULL, 
-						  (Tcl_CmdDeleteProc *) NULL);
+						  NULL, 
+						  NULL);
 
 	Tcl_PkgProvide(interp, "Pgtcl", "1.4");
 
