@@ -3307,7 +3307,7 @@ Pg_conninfo(ClientData cData, Tcl_Interp *interp, int objc,
    
     listObj = Tcl_NewListObj(0, (Tcl_Obj **) NULL);
 
-    Tcl_GetChannelNamesEx(interp, (char *) NULL);
+    Tcl_GetChannelNames(interp);
 
 
     Tcl_ListObjGetElements(interp, Tcl_GetObjResult(interp), &count, &elemPtrs);
