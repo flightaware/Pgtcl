@@ -24,7 +24,7 @@ REL="STYLESHEET"
 TYPE="text/css"
 HREF="stylesheet.css"><META
 NAME="creation"
-CONTENT="2004-11-30T08:31:09"></HEAD
+CONTENT="2004-11-30T16:48:46"></HEAD
 ><BODY
 CLASS="REFENTRY"
 ><DIV
@@ -212,8 +212,16 @@ CLASS="LITERAL"
 CLASS="FUNCTION"
 >pg_connect</CODE
 >,
-       with the new-style usage the parameter set can be extended without changing 
-       the function signature, so use of the new style (or its nonexistent
+       with the new-style usage the parameter set can be extended without 
+       requiring changes to either <TT
+CLASS="FILENAME"
+>libpgtcl</TT
+> or the underlying
+      <SPAN
+CLASS="APPLICATION"
+>libpq</SPAN
+> library,
+       so use of the new style (or its nonexistent
        nonblocking analogues <CODE
 CLASS="FUNCTION"
 >pg_connect_start</CODE
@@ -221,8 +229,8 @@ CLASS="FUNCTION"
        and <CODE
 CLASS="FUNCTION"
 >pg_connect_poll</CODE
->) is preferred for new application 
-       programming.
+>) is preferred for new 
+       application programming.
        </P
 ><P
 >       The passed string
@@ -264,7 +272,7 @@ CLASS="LITERAL"
 ><DD
 ><P
 >	  Name of host to connect to.<A
-NAME="AEN251"
+NAME="AEN253"
 ></A
 >
 	  If this begins with a slash, it specifies Unix-domain
@@ -275,7 +283,7 @@ NAME="AEN251"
 CLASS="FILENAME"
 >/tmp</TT
 >.<A
-NAME="AEN254"
+NAME="AEN256"
 ></A
 >
 	 </P
@@ -292,7 +300,11 @@ CLASS="LITERAL"
 CLASS="LITERAL"
 >172.28.40.9</TT
 >.  If
-	  your machine supports IPv6, you can also use those addresses.
+	  your machine supports IPv6, you can also use IPv6 address
+	  format, e.g., <TT
+CLASS="LITERAL"
+>fe80::203:93ff:fedb:49bc</TT
+>.
 	  TCP/IP communication is
 	  always used when a nonempty string is specified for this parameter.
 	 </P
@@ -382,7 +394,7 @@ CLASS="LITERAL"
 >	  Port number to connect to at the server host, or socket file
 	  name extension for Unix-domain
 	  connections.<A
-NAME="AEN286"
+NAME="AEN289"
 ></A
 >
 	 </P
@@ -529,7 +541,7 @@ CLASS="ACRONYM"
 >SSL</ACRONYM
 >
 	   connection.<A
-NAME="AEN342"
+NAME="AEN345"
 ></A
 >
 	  </P
@@ -709,7 +721,7 @@ CLASS="PARAMETER"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN403"
+NAME="AEN406"
 ></A
 ><H2
 >Return Value</H2

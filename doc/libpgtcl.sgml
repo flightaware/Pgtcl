@@ -317,11 +317,13 @@ pg_connect <parameter>dbName</parameter> <optional role="tcl">-host <parameter>h
        <function>pg_connect</function> opens a new database connection using the 
        parameters taken from the <literal>connectOptions</literal> string.  Unlike 
        the old-style usage of <function>pg_connect</>,
-       with the new-style usage the parameter set can be extended without changing 
-       the function signature, so use of the new style (or its nonexistent
+       with the new-style usage the parameter set can be extended without 
+       requiring changes to either <filename>libpgtcl</> or the underlying
+      <application>libpq</application> library,
+       so use of the new style (or its nonexistent
        nonblocking analogues <function>pg_connect_start</>
-       and <function>pg_connect_poll</function>) is preferred for new application 
-       programming.
+       and <function>pg_connect_poll</function>) is preferred for new 
+       application programming.
        </para>
 
        <para>
@@ -362,13 +364,14 @@ pg_connect <parameter>dbName</parameter> <optional role="tcl">-host <parameter>h
 	 <para>
 	  Numeric IP address of host to connect to.  This should be in the
 	  standard IPv4 address format, e.g., <literal>172.28.40.9</>.  If
-	  your machine supports IPv6, you can also use those addresses.
+	  your machine supports IPv6, you can also use IPv6 address
+	  format, e.g., <literal>fe80::203:93ff:fedb:49bc</>.
 	  TCP/IP communication is
 	  always used when a nonempty string is specified for this parameter.
 	 </para>
 	 <para>
 	  Using <literal>hostaddr</> instead of <literal>host</> allows the
-	  application to avoid a host name look-up, which may be important in
+	  application to avoid a host name lookup, which may be important in
 	  applications with time constraints. However, Kerberos authentication
 	  requires the host name. The following therefore applies: If
 	  <literal>host</> is specified without <literal>hostaddr</>, a host name
