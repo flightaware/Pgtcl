@@ -1,6 +1,9 @@
 
 $Id$
 
+2004-06-29 Brett Schwarz <brett_schwarz@yahoo.com>
+    * Added proper Tcl namespace support (i.e. ::pg::connect)
+
 2004-06-28 Karl Lehenbauer <karl-pg@sc.com>
     * Version 1.4 released
 
