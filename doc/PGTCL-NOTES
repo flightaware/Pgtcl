@@ -17,6 +17,19 @@ pg_connect -conninfo conninfoString
     the connection (host, port, database, user, password, etc.) is
     specified in the connect info string.
 
+pg_connect -connlist name_value_list
+    This was added to better suit Tcl style of data structures. You can set
+    an array with the connection info, such as:
+
+        array set myinfo {host myhost port 5000}
+
+    And then do:
+       
+        pg_connect -connlist [array get myinfo]
+
+
+pg_conninfo
+    This returns the currect connection handles
 
 pg_disconnect connection
 
@@ -104,6 +117,11 @@ pg_result
 	-clear		clear the result buffer. Do not reuse after this
 
 
+pg_results
+    returns a list of result handles for a particular connection
+
+    syntax:
+        pg_results connhandle
 
 pg_execute
 
@@ -212,4 +230,21 @@ pg_listen
    This is the normal idle loop in Tk; in plain tclsh applications,
    vwait or update can be used to enter the Tcl event loop.
 
+pg_quote
+    quotes a string suitable for SQL statements to the backend
+   
+    syntax:
+        pg_quote string
 
+
+pg_escape_bytea
+    escapes a binary string suitable for SQL statements to the backend
+
+    syntax:
+        pg_escape_bytea binaryStrin
+
+pg_unescape_bytea
+    unescapes a binary string that was stored in the backend
+
+    syntax:
+        pg_unescape_bytea binaryString
