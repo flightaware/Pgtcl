@@ -3,7 +3,7 @@
  * pgtclCmds.c
  *	  C functions which implement pg_* tcl commands
  *
- * Portions Copyright (c) 1996-2003, PostgreSQL Global Development Group
+ * Portions Copyright (c) 1996-2004, PostgreSQL Global Development Group
  * Portions Copyright (c) 1994, Regents of the University of California
  *
  *
@@ -758,6 +758,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	Tcl_Obj    *appendstrObj;
 	char	   *queryResultString;
 	int			optIndex;
+	int			errorOptIndex;
 
 	Tcl_Obj* listObj;
 	Tcl_Obj* subListObj;
@@ -776,6 +777,25 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		OPT_NUMTUPLES, OPT_CMDTUPLES, OPT_NUMATTRS, OPT_ASSIGN, OPT_ASSIGNBYIDX,
 		OPT_GETTUPLE, OPT_TUPLEARRAY, OPT_ATTRIBUTES, OPT_LATTRIBUTES,
 		OPT_CLEAR, OPT_LIST, OPT_LLIST
+	};
+
+	static CONST char *errorOptions[] = {
+		"severity", "sqlstate", "primary", "detail",
+		"hint", "position", "context", "file", "line",
+		"function", (char *)NULL
+	};
+
+	static CONST char pgDiagCodes[] = {
+		PG_DIAG_SEVERITY,
+		PG_DIAG_SQLSTATE, 
+		PG_DIAG_MESSAGE_PRIMARY,
+		PG_DIAG_MESSAGE_DETAIL, 
+		PG_DIAG_MESSAGE_HINT, 
+		PG_DIAG_STATEMENT_POSITION, 
+		PG_DIAG_CONTEXT,
+		PG_DIAG_SOURCE_FILE, 
+		PG_DIAG_SOURCE_LINE, 
+		PG_DIAG_SOURCE_FUNCTION
 	};
 
 	if (objc < 3 || objc > 5)
@@ -818,14 +838,28 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 		case OPT_ERROR:
 			{
-				if (objc != 3)
+				if (objc < 3 || objc > 4)
 				{
-					Tcl_WrongNumArgs(interp, 3, objv, "");
+					Tcl_WrongNumArgs(interp, 3, objv, "[subcode]");
 					return TCL_ERROR;
 				}
 
-				Tcl_SetObjResult(interp,
-					 Tcl_NewStringObj(PQresultErrorMessage(result), -1));
+				/* if there's no subfield (objc == 3), just get the result
+				 * error message */
+				if (objc == 3) {
+					Tcl_SetObjResult(interp,
+						 Tcl_NewStringObj(PQresultErrorMessage(result), -1));
+					return TCL_OK;
+				}
+
+				if (Tcl_GetIndexFromObj(interp, objv[3], options, 
+				    "errorOption", TCL_EXACT, &errorOptIndex) != TCL_OK) {
+					return TCL_ERROR;
+				}
+
+				Tcl_SetStringObj(Tcl_GetObjResult(interp), 
+				    PQresultErrorField (result, pgDiagCodes[errorOptIndex]), -1);
+
 				return TCL_OK;
 			}
 
