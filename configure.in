@@ -174,28 +174,6 @@ AC_DEFINE(USE_TCL_STUBS)
 #AC_DEFINE(USE_TK_STUBS)
 
 #--------------------------------------------------------------------
-# Get the path to the Postgres installation.
-#--------------------------------------------------------------------
-
-AC_PATH_PROGS(PG_CONFIG, pg_config)
-
-LIBPG=""
-AC_ARG_WITH(postgres-include,[ --with-postgres-include=DIR	Postgres includes are in DIR],
-	PG_INC_DIR=$withval, PG_INC_DIR="")
-AC_ARG_WITH(postgres-lib,[  --with-postgres-lib=DIR	Postgres libraries are in DIR],
-	PG_LIB_DIR=$withval, PG_LIB_DIR="")
-PG_INCLUDES="-I$PG_INC_DIR"
-PG_LIBS="-L$PG_LIB_DIR -lpq"
-if test ! "$PG_LIB_DIR" = ""; then
-  LIBPG="libpq${SHLIB_SUFFIX}"
-fi
-
-AC_SUBST(LIBPG)
-AC_SUBST(PG_INCLUDES)
-AC_SUBST(PG_LIBS)
-AC_SUBST(PG_LIB_DIR)
-
-#--------------------------------------------------------------------
 # This macro generates a line to use when building a library.  It
 # depends on values set by the TEA_ENABLE_SHARED, TEA_ENABLE_SYMBOLS,
 # and TEA_LOAD_TCLCONFIG macros above.
@@ -222,8 +200,38 @@ TEA_MAKE_LIB
 TEA_PROG_TCLSH
 #TEA_PROG_WISH
 
-AC_CHECK_FUNC(PQexecParams, [AC_DEFINE(HAVE_PQEXECPARAMS)])
-AC_CHECK_FUNC(PQexecPrepared, [AC_DEFINE(HAVE_PQEXECPREPARED)])
+#--------------------------------------------------------------------
+# Get the path to the Postgres installation.
+#--------------------------------------------------------------------
+
+AC_PATH_PROGS(PG_CONFIG, pg_config)
+if test "$PG_CONFIG" = ""; then
+  AC_MSG_ERROR([Cannot locate program pg_config to determine PostgreSQL paths.  Make sure pg_config is in PATH or set PG_CONFIG env var to path to pg_config.])
+fi
+
+PG_INC_DIR="`$PG_CONFIG --includedir`"
+AC_MSG_RESULT([using pg_config-reported PostgreSQL include dir of... "$PG_INC_DIR"])
+PG_LIB_DIR="`$PG_CONFIG --libdir`"
+AC_MSG_RESULT([using pg_config-reported PostgreSQL lib dir of... "$PG_LIB_DIR"])
+
+LIBPG=""
+PG_INCLUDES="-I$PG_INC_DIR"
+PG_LIBS="-L$PG_LIB_DIR -lpq"
+if test ! "$PG_LIB_DIR" = ""; then
+  LIBPG="libpq${SHLIB_SUFFIX}"
+fi
+
+AC_SUBST(LIBPG)
+AC_SUBST(PG_INC_DIR)
+AC_SUBST(PG_INCLUDES)
+AC_SUBST(PG_LIBS)
+AC_SUBST(PG_LIB_DIR)
+
+LIBS="$PG_LIBS $LIBS"
+AC_CHECK_LIB(pq, PQexecParams)
+AC_CHECK_LIB(pq, PQexecPrepared)
+#AC_CHECK_FUNC(PQexecParams, [AC_DEFINE(HAVE_PQEXECPARAMS)])
+#AC_CHECK_FUNC(PQexecPrepared, [AC_DEFINE(HAVE_PQEXECPREPARED)])
 
 #--------------------------------------------------------------------
 # Finally, substitute all of the various values into the Makefile.
