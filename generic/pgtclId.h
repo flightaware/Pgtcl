@@ -20,7 +20,7 @@
 #endif
 
 
-extern void PgSetConnectionId(Tcl_Interp *interp, PGconn *conn);
+extern void PgSetConnectionId(Tcl_Interp *interp, PGconn *conn, char *connhandle);
 
 #define DRIVER_OUTPUT_PROTO ClientData cData, CONST84 char *buf, int bufSize, \
 	int *errorCodePtr

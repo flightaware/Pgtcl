@@ -422,7 +422,7 @@ Pg_connect_old(ClientData cData, Tcl_Interp *interp, int objc,
 
 	if (PQstatus(conn) == CONNECTION_OK)
 	{
-		PgSetConnectionId(interp, conn);
+		PgSetConnectionId(interp, conn, NULL);
 		return TCL_OK;
 	}
 	else
@@ -459,27 +459,23 @@ int
 Pg_connect(ClientData cData, Tcl_Interp *interp, int objc,
 		   Tcl_Obj *CONST objv[])
 {
-    const char	   *pghost = NULL;
-    const char	   *pgtty = NULL;
-    const char	   *pgport = NULL;
-    const char	   *pgoptions = NULL;
-    const char	   *dbName;
     PGconn	   *conn;
     char	   *firstArg;
     char	   *conninfoString;
-    int            optIndex, i, connlist = 0;
+    char	   *connhandle = NULL;
+    int            optIndex, i, skip = 0;
     Tcl_DString    ds;
         
 
     static CONST char *options[] = {
     	"-host", "-port", "-tty", "-options", "-user", 
-        "-password", "-conninfo", "-connlist", (char *)NULL
+        "-password", "-conninfo", "-connlist", "-connhandle", (char *)NULL
     };
 
     enum options
     {
     	OPT_HOST, OPT_PORT, OPT_TTY, OPT_OPTIONS, OPT_USER, 
-        OPT_PASSWORD, OPT_CONNINFO, OPT_CONNLIST
+        OPT_PASSWORD, OPT_CONNINFO, OPT_CONNLIST, OPT_CONNHANDLE
     };
 
     if (objc == 1)
@@ -512,25 +508,20 @@ Pg_connect(ClientData cData, Tcl_Interp *interp, int objc,
         {
             case OPT_HOST:
             {
-                //snprintf(pghost, 50, "host=%s", nextArg);
                 Tcl_DStringAppend(&ds, " host=", -1);
-                //Tcl_DStringAppend(&ds, nextArg, -1);
                 i += 2;
                 break;
             }
 
             case OPT_PORT:
                 {
-                //    pgport = nextArg;
                 Tcl_DStringAppend(&ds, " port=", -1);
-                //Tcl_DStringAppend(&ds, nextArg, -1);
                     i += 2;
                     break;
                 }
 
             case OPT_TTY:
                 {
-                //    pgtty = nextArg;
                 Tcl_DStringAppend(&ds, " tty=", -1);
                     i += 2;
                     break;
@@ -538,7 +529,6 @@ Pg_connect(ClientData cData, Tcl_Interp *interp, int objc,
 
             case OPT_OPTIONS:
                 {
-                //    pgoptions = nextArg;
                 Tcl_DStringAppend(&ds, " options=", -1);
                     i += 2;
                     break;
@@ -584,17 +574,24 @@ Pg_connect(ClientData cData, Tcl_Interp *interp, int objc,
                         Tcl_DStringAppend(&ds, val, -1);
                     }
                     i += 2;
-                    connlist = 1;
+                    skip = 1;
+                    break;
                 }
-		}
+            case OPT_CONNHANDLE:
+                {
+                    connhandle = nextArg;
+                    i += 2;
+                    skip = 1;
+                }
+        }
 
-            if (!connlist)
-            {
-                Tcl_DStringAppend(&ds, nextArg, -1);
-            }
-            connlist = 0;
+        if (!skip)
+        {
+            Tcl_DStringAppend(&ds, nextArg, -1);
+        }
+        skip = 0;
 
-	} /* end while */
+    } /* end while */
 
     /*
      *    if even numbered args, then assume connect dbname ?option val? ...
@@ -619,7 +616,7 @@ Pg_connect(ClientData cData, Tcl_Interp *interp, int objc,
 
 	if (PQstatus(conn) == CONNECTION_OK)
 	{
-		PgSetConnectionId(interp, conn);
+		PgSetConnectionId(interp, conn, connhandle);
 		return TCL_OK;
 	}
 	else

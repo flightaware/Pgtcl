@@ -165,7 +165,7 @@ Tcl_ChannelType Pg_ConnType = {
  * Create and register a new channel for the connection
  */
 void
-PgSetConnectionId(Tcl_Interp *interp, PGconn *conn)
+PgSetConnectionId(Tcl_Interp *interp, PGconn *conn, char *chandle)
 {
 	Tcl_Channel conn_chan;
 	Pg_ConnectionId *connid;
@@ -192,7 +192,14 @@ PgSetConnectionId(Tcl_Interp *interp, PGconn *conn)
         
         ns = Tcl_GetStringResult(interp);
 
-	sprintf(connid->id, "%spgsql%d", ns, PQsocket(conn));
+        if (chandle == NULL)
+        {
+	    sprintf(connid->id, "%spgsql%d", ns, PQsocket(conn));
+        }
+        else
+        {
+	    sprintf(connid->id, "%s%s", ns, chandle);
+        }
 
 	connid->notifier_channel = Tcl_MakeTcpClientChannel((ClientData)PQsocket(conn));
 	/* Code  executing  outside  of  any Tcl interpreter can call
