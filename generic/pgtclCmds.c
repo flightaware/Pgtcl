@@ -2563,3 +2563,47 @@ Pg_on_connection_loss(ClientData cData, Tcl_Interp *interp, int objc,
 
 	return TCL_OK;
 }
+
+/***********************************
+Pg_escape_string
+	escape string for inclusion in SQL queries
+
+ syntax:
+   pg_escape_string string
+
+***********************************/
+int
+Pg_escape_string(ClientData cData, Tcl_Interp *interp, int objc,
+				 Tcl_Obj *CONST objv[])
+{
+	char	   *fromString;
+	char	   *toString;
+	int         fromStringLen;
+
+	if (objc != 2)
+	{
+		Tcl_WrongNumArgs(interp, 1, objv, "string");
+		return TCL_ERROR;
+	}
+
+	/*
+	 * Get the "from" string.
+	 */
+	fromString = Tcl_GetStringFromObj(objv[1], &fromStringLen);
+
+	/* 
+	 * allocate the "to" string, max size is documented in the
+	 * postgres docs as 2 * fromStringLen + 1 
+	 */
+	toString = (char *) ckalloc((2 * fromStringLen) + 1);
+
+	/*
+	 * call the library routine to escape the string, use
+	 * Tcl_SetResult to set the command result to be that string,
+	 * with TCL_DYNAMIC, we tell Tcl to free the memory when it's
+	 * done with it */
+	PQescapeString (toString, fromString, fromStringLen);
+	Tcl_SetResult(interp, toString, TCL_DYNAMIC);
+	return TCL_OK;
+}
+

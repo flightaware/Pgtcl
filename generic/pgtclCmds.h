@@ -145,4 +145,7 @@ extern int Pg_cancelrequest(
 extern int Pg_on_connection_loss(
   ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 
+extern int Pg_escape_string(
+  ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+
 #endif   /* PGTCLCMDS_H */

@@ -233,6 +233,12 @@ Pgtcl_Init(Tcl_Interp *interp)
 						  (ClientData) NULL, 
 						  (Tcl_CmdDeleteProc *) NULL);
 
+	Tcl_CreateObjCommand(interp,
+						  "pg_escape_string",
+						  Pg_escape_string,
+						  (ClientData) NULL, 
+						  (Tcl_CmdDeleteProc *) NULL);
+
 	Tcl_PkgProvide(interp, "Pgtcl", "1.4");
 
 	return TCL_OK;
