@@ -160,6 +160,7 @@ tcl_value(char *value)
 	if (!value)
 		return NULL;
 
+
 #ifdef TCL_ARRAYS_DEBUG
 	printf("pq_value  = '%s'\n", value);
 #endif
@@ -303,157 +304,24 @@ Pg_conndefaults(ClientData cData, Tcl_Interp *interp, int objc,
 }
 
 
-/**********************************
- * pg_connect
- make a connection to a backend.
-
- syntax:
- pg_connect dbName [-host hostName] [-port portNumber] [-tty pqtty]]
-
- the return result is either an error message or a handle for a database
- connection.  Handles start with the prefix "pgsql"
-
- **********************************/
-
-int
-Pg_connect_old(ClientData cData, Tcl_Interp *interp, int objc,
-		   Tcl_Obj *CONST objv[])
-{
-	const char	   *pghost = NULL;
-	const char	   *pgtty = NULL;
-	const char	   *pgport = NULL;
-	const char	   *pgoptions = NULL;
-  	const char	   *dbName;
-	int			i;
-	PGconn	   *conn;
-	char	   *firstArg;
-	char	   *conninfoString;
-	int			optIndex;
-
-	static CONST char *options[] = {
-		"-host", "-port", "-tty", "-options", (char *)NULL
-	};
-
-	enum options
-	{
-		OPT_HOST, OPT_PORT, OPT_TTY, OPT_OPTIONS
-	};
-
-	if (objc == 1)
-	{
-		Tcl_AppendResult(interp, "pg_connect: database name missing\n", 0);
-		Tcl_AppendResult(interp, "pg_connect databaseName [-host hostName] [-port portNumber] [-tty pgtty]\n", 0);
-		Tcl_AppendResult(interp, "pg_connect -conninfo conninfoString", 0);
-		return TCL_ERROR;
-	}
-
-	firstArg = Tcl_GetStringFromObj(objv[1], NULL);
-	if (strcmp(firstArg, "-conninfo") == 0)
-	{
-		/*
-		 * Establish a connection using the new PQconnectdb() interface
-		 */
-		if (objc != 3)
-		{
-			Tcl_WrongNumArgs(interp, 2, objv, "conninfoString");
-			return TCL_ERROR;
-		}
-		conninfoString = Tcl_GetStringFromObj(objv[2], NULL);
-		conn = PQconnectdb(conninfoString);
-	}
-	else
-	{
-		/*
-		 * Establish a connection using the old PQsetdb() interface
-		 */
-		if (objc > 2)
-		{
-			/* parse for pg environment settings */
-			i = 2;
-			while (i + 1 < objc)
-			{
-				char	   *nextArg = Tcl_GetStringFromObj(objv[i + 1], NULL);
-
-				/* process command options */
-				if (Tcl_GetIndexFromObj(interp, objv[i], options,
-							   "switch", TCL_EXACT, &optIndex) != TCL_OK)
-					return TCL_ERROR;
-
-				switch ((enum options) optIndex)
-				{
-					case OPT_HOST:
-						{
-							pghost = nextArg;
-							i += 2;
-							break;
-						}
-
-					case OPT_PORT:
-						{
-							pgport = nextArg;
-							i += 2;
-							break;
-						}
-
-					case OPT_TTY:
-						{
-							pgtty = nextArg;
-							i += 2;
-							break;
-						}
-
-					case OPT_OPTIONS:
-						{
-							pgoptions = nextArg;
-							i += 2;
-						}
-				}
-			}
-
-			if ((i % 2 != 0) || i != objc)
-			{
-				Tcl_WrongNumArgs(interp, 1, objv, "databaseName ?-host hostName? ?-port portNumber? ?-tty pgtty? ?-options pgoptions?");
-				return TCL_ERROR;
-			}
-		}
-		dbName = Tcl_GetStringFromObj(objv[1], NULL);
-		conn = PQsetdb(pghost, pgport, pgoptions, pgtty, dbName);
-	}
-
-	if (PQstatus(conn) == CONNECTION_OK)
-	{
-		PgSetConnectionId(interp, conn, NULL);
-		return TCL_OK;
-	}
-	else
-	{
-		Tcl_AppendResult(interp, "Connection to database failed\n",
-						 PQerrorMessage(conn), 0);
-		PQfinish(conn);
-		return TCL_ERROR;
-	}
-}
-
-
-
-
-
-
-
-
-
-
-/**********************************
- * pg_connect
- make a connection to a backend.
-
- syntax:
- pg_connect dbName [-host hostName] [-port portNumber] [-tty pqtty]]
-
- the return result is either an error message or a handle for a database
- connection.  Handles start with the prefix "pgsql"
-
- **********************************/
+/*
+ *----------------------------------------------------------------------
+ *
+ * Pg_connect --
+ *
+ *    make a connection to a backend.
+ *    
+ * Syntax:
+ *    pg_connect dbName [-host hostName] [-port portNumber] [-tty pqtty]]
+ *    pg_connect -conninfo "dbname=myydb host=myhost ..."
+ *    pg_connect -connlist [list dbname mydb host myhost ...]
+ *
+ * Results:
+ *    the return result is either an error message or a handle for 
+ *    a database connection.  Handles start with the prefix "pgsql"
+ *
+ *----------------------------------------------------------------------
+ */
 
 int
 Pg_connect(ClientData cData, Tcl_Interp *interp, int objc,
@@ -485,13 +353,13 @@ Pg_connect(ClientData cData, Tcl_Interp *interp, int objc,
         Tcl_DStringAppend(&ds, "pg_connect: database name missing\n", -1);
         Tcl_DStringAppend(&ds, "pg_connect databaseName [-host hostName] [-port portNumber] [-tty pgtty]\n", -1);
         Tcl_DStringAppend(&ds, "pg_connect -conninfo conninfoString", -1);
+        Tcl_DStringAppend(&ds, "pg_connect -connlist [connlist]", -1);
         Tcl_DStringResult(interp, &ds);
-	    return TCL_ERROR;
+
+        return TCL_ERROR;
     }
 
 
-
-    /* parse for pg environment settings */
 
     i = objc%2 ? 1 : 2;
 
@@ -500,9 +368,8 @@ Pg_connect(ClientData cData, Tcl_Interp *interp, int objc,
         char	   *nextArg = Tcl_GetStringFromObj(objv[i + 1], NULL);
 
 
-		/* process command options */
-	    if (Tcl_GetIndexFromObj(interp, objv[i], options,
-		   "switch", TCL_EXACT, &optIndex) != TCL_OK)
+        if (Tcl_GetIndexFromObj(interp, objv[i], options,
+		   "option", TCL_EXACT, &optIndex) != TCL_OK)
 		    return TCL_ERROR;
 
         switch ((enum options) optIndex)
@@ -515,76 +382,77 @@ Pg_connect(ClientData cData, Tcl_Interp *interp, int objc,
             }
 
             case OPT_PORT:
-                {
+            {
                 Tcl_DStringAppend(&ds, " port=", -1);
-                    i += 2;
-                    break;
-                }
+                i += 2;
+                break;
+            }
 
             case OPT_TTY:
-                {
+            {
                 Tcl_DStringAppend(&ds, " tty=", -1);
-                    i += 2;
-                    break;
-                }
+                i += 2;
+                break;
+            }
 
             case OPT_OPTIONS:
-                {
+            {
                 Tcl_DStringAppend(&ds, " options=", -1);
-                    i += 2;
-                    break;
-                }
+                i += 2;
+                break;
+            }
             case OPT_USER:
-                {
+            {
                 Tcl_DStringAppend(&ds, " user=", -1);
-                    i += 2;
-                    break;
-                }
+                i += 2;
+                break;
+            }
             case OPT_PASSWORD:
-                {
+            {
                 Tcl_DStringAppend(&ds, " password=", -1);
-                    i += 2;
-                    break;
-                }
+                i += 2;
+                break;
+            }
             case OPT_CONNINFO:
-                {
+            {
                     i += 2;
                     break;
-                }
+            }
             case OPT_CONNLIST:
+            {
+                Tcl_Obj    **elemPtrs;
+                int        count, lelem;
+
+                Tcl_ListObjGetElements(interp, objv[i + 1], &count, &elemPtrs);
+
+                if (count % 2 != 0)
                 {
-                   Tcl_Obj    **elemPtrs;
-                   int        count, lelem;
+	            Tcl_WrongNumArgs(interp,1,objv,"-connlist {opt val ...}");
+                    Tcl_DStringFree(&ds);
 
-                   Tcl_ListObjGetElements(interp, objv[i + 1], &count, &elemPtrs);
-
-                    if (count % 2 != 0)
-                    {
-		        Tcl_WrongNumArgs(interp, 1, objv, "-connlist {opt val ...}");
-                        Tcl_DStringFree(&ds);
-		        return TCL_ERROR;
-                    }
-
-                    for (lelem = 0; lelem < count; lelem=lelem+2) {
-
-                        char *opt = Tcl_GetStringFromObj(elemPtrs[lelem], NULL);
-                        char *val = Tcl_GetStringFromObj(elemPtrs[lelem+1], NULL);
-                        Tcl_DStringAppend(&ds, " ", -1);
-                        Tcl_DStringAppend(&ds, opt, -1);
-                        Tcl_DStringAppend(&ds, "=", -1);
-                        Tcl_DStringAppend(&ds, val, -1);
-                    }
-                    i += 2;
-                    skip = 1;
-                    break;
+		    return TCL_ERROR;
                 }
+
+                for (lelem = 0; lelem < count; lelem=lelem+2) {
+
+                    Tcl_DStringAppend(&ds, " ", -1);
+                    Tcl_DStringAppend(&ds, 
+                        Tcl_GetStringFromObj(elemPtrs[lelem], NULL), -1);
+                    Tcl_DStringAppend(&ds, "=", -1);
+                    Tcl_DStringAppend(&ds, 
+                        Tcl_GetStringFromObj(elemPtrs[lelem+1], NULL), -1);
+                }
+                i += 2;
+                skip = 1;
+                break;
+            }
             case OPT_CONNHANDLE:
-                {
-                    connhandle = nextArg;
-                    i += 2;
-                    skip = 1;
-                }
-        }
+            {
+                connhandle = nextArg;
+                i += 2;
+                skip = 1;
+            }
+        } /** end switch **/
 
         if (!skip)
         {
@@ -602,31 +470,34 @@ Pg_connect(ClientData cData, Tcl_Interp *interp, int objc,
     {
 	    if ((i % 2 != 0) || i != objc)
 	    {
-	     Tcl_WrongNumArgs(interp, 1, objv, "databaseName ?-host hostName? ?-port portNumber? ?-tty pgtty? ?-options pgoptions?");
-            Tcl_DStringFree(&ds);
-	     return TCL_ERROR;
+	        Tcl_WrongNumArgs(interp, 1, objv, 
+                    "databaseName ?-host hostName? ?-port portNumber? ?-tty pgtty? ?-options pgoptions?");
+                Tcl_DStringFree(&ds);
+
+	        return TCL_ERROR;
 	    }
+
         Tcl_DStringAppend(&ds, " dbname=", -1);
         Tcl_DStringAppend(&ds, Tcl_GetStringFromObj(objv[1], NULL), -1);
     }
 
-	conn = PQconnectdb(Tcl_DStringValue(&ds));
+    conn = PQconnectdb(Tcl_DStringValue(&ds));
 
  
     Tcl_DStringFree(&ds);
 
-	if (PQstatus(conn) == CONNECTION_OK)
-	{
-		PgSetConnectionId(interp, conn, connhandle);
-		return TCL_OK;
-	}
-	else
-	{
-		Tcl_AppendResult(interp, "Connection to database failed\n",
+    if (PQstatus(conn) == CONNECTION_OK)
+    {
+        PgSetConnectionId(interp, conn, connhandle);
+        return TCL_OK;
+    }
+    else
+    {
+        Tcl_AppendResult(interp, "Connection to database failed\n",
 						 PQerrorMessage(conn), 0);
-		PQfinish(conn);
-		return TCL_ERROR;
-	}
+        PQfinish(conn);
+        return TCL_ERROR;
+    }
 }
 
 
@@ -1016,7 +887,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	}
 
 	/* process command options */
-	if (Tcl_GetIndexFromObj(interp, objv[2], options, "switch", TCL_EXACT,
+	if (Tcl_GetIndexFromObj(interp, objv[2], options, "option", TCL_EXACT,
 							&optIndex) != TCL_OK)
 		return TCL_ERROR;
 
@@ -1170,6 +1041,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 						Tcl_SetIntObj(fieldNameObj, tupno);
 						Tcl_AppendToObj(fieldNameObj, ",", 1);
 						Tcl_AppendToObj(fieldNameObj, PQfname(result, i), -1);
+
 
 						if (Tcl_ObjSetVar2(interp, arrVarObj, fieldNameObj,
 										   Tcl_NewStringObj(

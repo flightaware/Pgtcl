@@ -249,27 +249,25 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
     Pg_ConnectionId *connid;
 
     static CONST char *options[] = {
-    "disconnect", "exec", "sqlexec", "execute", "select", "listen",
-    "on_connection_loss", "lo_creat", "lo_open", "lo_close", 
-    "lo_read", "lo_write", "lo_lseek", "lo_tell", "lo_unlink",
-    "lo_import", "lo_export", "sendquery", "exec_prepared", "sendquery_prepared",  (char *)NULL
+        "disconnect", "exec", "sqlexec", "execute", "select", "listen",
+        "on_connection_loss", "lo_creat", "lo_open", "lo_close", 
+        "lo_read", "lo_write", "lo_lseek", "lo_tell", "lo_unlink",
+        "lo_import", "lo_export", "sendquery", "exec_prepared", 
+        "sendquery_prepared",  (char *)NULL
     };
 
     enum options
     {
-        DISCONNECT,EXEC, SQLEXEC, EXECUTE, SELECT, LISTEN, ON_CONNECTION_LOSS,
-        LO_CREAT, LO_OPEN, LO_CLOSE, LO_READ, LO_WRITE, LO_LSEEK, LO_TELL,
-        LO_UNLINK, LO_IMPORT, LO_EXPORT, SENDQUERY, EXEC_PREPARED, SENDQUERY_PREPARED
+        DISCONNECT,EXEC, SQLEXEC, EXECUTE, SELECT, LISTEN, 
+        ON_CONNECTION_LOSS, LO_CREAT, LO_OPEN, LO_CLOSE, LO_READ, 
+        LO_WRITE, LO_LSEEK, LO_TELL, LO_UNLINK, LO_IMPORT, LO_EXPORT, 
+        SENDQUERY, EXEC_PREPARED, SENDQUERY_PREPARED
     };
 
     /*
      *    this assigns the args array with an offset, since
      *    the command handle args looks is offset
      */
-
-/*
-objvx = (Tcl_Obj **) ckalloc((unsigned) sizeof(Tcl_Obj *) * objc);
-*/
     for (objvxi=0; objvxi < objc; objvxi++) {
         objvx[objvxi] = objv[objvxi];
     }
@@ -286,7 +284,7 @@ objvx = (Tcl_Obj **) ckalloc((unsigned) sizeof(Tcl_Obj *) * objc);
 
 
     objvx[1] = Tcl_NewStringObj(connid->id, -1);
-    if (Tcl_GetIndexFromObj(interp, objv[1], options, "switch", TCL_EXACT, &optIndex) != TCL_OK)
+    if (Tcl_GetIndexFromObj(interp, objv[1], options, "command", TCL_EXACT, &optIndex) != TCL_OK)
                     return TCL_ERROR;
 
     switch ((enum options) optIndex)
@@ -430,7 +428,6 @@ PgResultCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[
 
     res = (Tcl_Obj *)info.objClientData;
 
-
     objvx[1] = res;
 
     return Pg_result(cData, interp, objc, objvx);
@@ -549,67 +546,93 @@ PgDelConnectionId(DRIVER_DEL_PROTO)
  * a factor of 2.  However, do not expand past the hard max, as the client
  * is probably just not clearing result handles like they should.
  */
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * PgResultId --
+ *
+ *    Find a slot for a new result id.  If the table is full, expand 
+ *    it by a factor of 2.  However, do not expand past the hard max, 
+ *    as the client is probably just not clearing result handles like 
+ *    they should.
+ *
+ * Results:
+ *    Returns the result id. If the an error occurs, TCL_ERROR is 
+ *    returned. The result handle is put into the interp result.
+ *
+ *----------------------------------------------------------------------
+ */
+
 int
 PgSetResultId(Tcl_Interp *interp, CONST84 char *connid_c, PGresult *res)
 {
-	Tcl_Channel conn_chan;
-	Pg_ConnectionId *connid;
-	int			resid,
-				i;
-	char		buf[32];
-        Tcl_Obj         *cmd;
+    Tcl_Channel     conn_chan;
+    Pg_ConnectionId *connid;
+    int             resid,
+                    i;
+    char            buf[32];
+    Tcl_Obj         *cmd;
 
 
-	conn_chan = Tcl_GetChannel(interp, connid_c, 0);
-	if (conn_chan == NULL)
-		return TCL_ERROR;
-	connid = (Pg_ConnectionId *) Tcl_GetChannelInstanceData(conn_chan);
+    conn_chan = Tcl_GetChannel(interp, connid_c, 0);
+    if (conn_chan == NULL)
+        return TCL_ERROR;
+    connid = (Pg_ConnectionId *) Tcl_GetChannelInstanceData(conn_chan);
 
-	/* search, starting at slot after the last one used */
-	resid = connid->res_last;
-	for (;;)
-	{
-		/* advance, with wraparound */
-		if (++resid >= connid->res_max)
-			resid = 0;
-		/* this slot empty? */
-		if (!connid->results[resid])
-		{
-			connid->res_last = resid;
-			break;				/* success exit */
-		}
-		/* checked all slots? */
-		if (resid == connid->res_last)
-			break;				/* failure exit */
-	}
+    /* search, starting at slot after the last one used */
+    resid = connid->res_last;
+    for (;;)
+    {
+	/* advance, with wraparound */
+        if (++resid >= connid->res_max)
+            resid = 0;
 
-printf("SETRES1\n");
-	if (connid->results[resid])
-	{
-		/* no free slot found, so try to enlarge array */
-		if (connid->res_max >= connid->res_hardmax)
-		{
-			Tcl_SetResult(interp, "hard limit on result handles reached",
-						  TCL_STATIC);
-			return TCL_ERROR;
-		}
-		connid->res_last = resid = connid->res_max;
-		connid->res_max *= 2;
-		if (connid->res_max > connid->res_hardmax)
-			connid->res_max = connid->res_hardmax;
-		connid->results = (PGresult **)ckrealloc((void *)connid->results,
-								   sizeof(PGresult *) * connid->res_max);
-		for (i = connid->res_last; i < connid->res_max; i++)
-			connid->results[i] = NULL;
-	}
+            /* this slot empty? */
+        if (!connid->results[resid])
+        {
+            connid->res_last = resid;
+            break;	/* success exit */
+        }
 
-	connid->results[resid] = res;
-	sprintf(buf, "%s.%d", connid_c, resid);
-        cmd = Tcl_NewStringObj(buf, -1);
-        Tcl_CreateObjCommand(interp, Tcl_GetStringFromObj(cmd, NULL), PgResultCmd, (ClientData) cmd,NULL);
-	Tcl_SetObjResult(interp, cmd);
+	/* checked all slots? */
+        if (resid == connid->res_last)
+            break;	/* failure exit */
+    }
 
-	return resid;
+    if (connid->results[resid])
+    {
+        /* no free slot found, so try to enlarge array */
+        if (connid->res_max >= connid->res_hardmax)
+        {
+            Tcl_SetResult(interp, "hard limit on result handles reached",
+					  TCL_STATIC);
+            return TCL_ERROR;
+        }
+
+        connid->res_last = resid = connid->res_max;
+        connid->res_max *= 2;
+
+        if (connid->res_max > connid->res_hardmax)
+            connid->res_max = connid->res_hardmax;
+
+        connid->results = (PGresult **)ckrealloc((void *)connid->results,
+            sizeof(PGresult *) * connid->res_max);
+
+        for (i = connid->res_last; i < connid->res_max; i++)
+            connid->results[i] = NULL;
+
+    }
+
+    connid->results[resid] = res;
+    sprintf(buf, "%s.%d", connid_c, resid);
+    cmd = Tcl_NewStringObj(buf, -1);
+
+    Tcl_CreateObjCommand(interp, Tcl_GetStringFromObj(cmd, NULL), 
+        PgResultCmd, (ClientData) cmd,NULL);
+    Tcl_SetObjResult(interp, cmd);
+
+    return resid;
 }
 
 
