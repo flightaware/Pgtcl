@@ -168,6 +168,7 @@ void
 PgSetConnectionId(Tcl_Interp *interp, PGconn *conn, char *chandle)
 {
 	Tcl_Channel conn_chan;
+        Tcl_Obj     *nsstr;
 	Pg_ConnectionId *connid;
 	int			i;
         CONST   char      *ns = "";
@@ -187,9 +188,15 @@ PgSetConnectionId(Tcl_Interp *interp, PGconn *conn, char *chandle)
 	connid->notifier_running = 0;
 	connid->interp = interp;
 
+        nsstr = Tcl_NewStringObj("if {[namespace current] != \"::\"} {set k [namespace current]::}", -1);
+
+
+        Tcl_EvalObjEx(interp, nsstr, 0);
+/*
         Tcl_Eval(interp, "if {[namespace current] != \"::\"} {\
                               set k [namespace current]::\
                            }");
+*/
         
         ns = Tcl_GetStringResult(interp);
         Tcl_ResetResult(interp);
