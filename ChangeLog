@@ -1,6 +1,11 @@
 
 $Id$
 
+2004-09-20 Brett Schwarz <brett_schwarz@yahoo.com>
+    * added preliminary support for dicts in pg_result. Need to have
+      Tcl 8.5 or the dicts package extension. Need to set            
+      HAVETCL_NEWDICTOBJ manually for now.
+
 2004-08-23 Brett Schwarz <brett_schwarz@yahoo.com>
     * added tcltest script of testing pgtcl.
 
