@@ -155,7 +155,7 @@ TEA_ENABLE_SHARED
 # can be taken from the tclConfig.sh file, but this figures it all out.
 #--------------------------------------------------------------------
 
-TEA_CONFIG_CFLAGS
+PGTCL_CONFIG_CFLAGS
 
 #--------------------------------------------------------------------
 # Set the default compiler switches based on the --enable-symbols option.
@@ -191,6 +191,7 @@ fi
 AC_SUBST(LIBPG)
 AC_SUBST(PG_INCLUDES)
 AC_SUBST(PG_LIBS)
+AC_SUBST(PG_LIB_DIR)
 
 #--------------------------------------------------------------------
 # This macro generates a line to use when building a library.  It

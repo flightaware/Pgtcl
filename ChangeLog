@@ -1,6 +1,11 @@
 
 $Id$
 
+2002-11-06  Karl Lehenbauer <karl@procplace.com>
+
+    * Create the libpgtcl shared library in a way where it can find both 
+      the Postgres shared library it needs (libpq) and the Tcl shared
+      library it needs (libtcl).
 
 2002-11-05  Brett Schwarz <brett_schwarz@yahoo.com>
 

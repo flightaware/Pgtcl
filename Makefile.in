@@ -71,6 +71,7 @@ GENERIC_HDRS	= $(srcdir)/generic/libpgtcl.h
 LIBPG	= @LIBPG@
 PG_INCLUDES	= @PG_INCLUDES@
 PG_LIBS	= @PG_LIBS@
+LIB_PGTCL_RUNTIME_DIR	= @PG_LIB_DIR@
 
 #========================================================================
 # Nothing of the variables below this line need to be changed.  Please
@@ -97,6 +98,9 @@ libdir		= @libdir@
 datadir		= @datadir@
 mandir		= @mandir@
 includedir	= @includedir@
+
+# Path to use at runtime when linking shared lib dir
+LIB_RUNTIME_DIR		= $(libdir)
 
 DESTDIR		=
 
