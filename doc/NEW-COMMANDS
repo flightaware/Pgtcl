@@ -35,13 +35,17 @@ pg_cancelrequest connection
     anything, and handle (and discard) all of the returned result handles.
 
 
-pg_escape_string 
+pg_quote 
 
     This escapes a string by making it Postgres-safe.  It quotes single
     quotes and backslashes.  If you're doing something like
     pg_exec "insert into foo(name='$name');" and name contains a single
-    quote, it'll fail.  Passign value strings through pg_escape_string
+    quote, it'll fail.  Passign value strings through pg_quote
     make sure they can be used as values and stuff in Postgres.
+
+    pg_exec "insert into foo(name=[pg_quote $name]);" will make
+    sure that any special characters that occur in name, such as
+    single quote or backslash, will be properly quoted.
 
 pg_exec 
 

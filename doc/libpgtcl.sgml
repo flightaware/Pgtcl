@@ -94,7 +94,7 @@ $Header$
   </row>
   <row>
     <entry><function>pg_quote</function></entry>
-    <entry>escape a string for inclusion into SQL queries</entry>
+    <entry>escape a string for inclusion into SQL statements</entry>
   </row>
   <row>
     <entry><function>pg_listen</function></entry>
@@ -1498,7 +1498,7 @@ pg_cancelrequest <parameter>conn</parameter>
 
  <refnamediv>
   <refname>pg_quote</refname>
-  <refpurpose>escapes a string for inclusion into SQL queries
+  <refpurpose>escapes a string for inclusion into SQL statements
  </refpurpose>
   <indexterm ID="IX-PGTCL-PGESCAPE-STRING-2"><primary>pg_quote</primary></indexterm>
  </refnamediv>
@@ -1513,8 +1513,26 @@ pg_quote <parameter>string</parameter>
   <title>Description</title>
 
   <para>
-   <function>pg_quote</function> escapes a string for inclusion
-   into SQL queries.
+   <function>pg_quote</function> quotes a string and escapes single
+quotes and backslashes within the string, making it safe for inclusion 
+into SQL statements.
+  </para>
+
+  <para>
+If you're doing something like
+<programlisting>
+    pg_exec $conn "insert into foo(name='$name');" 
+</programlisting>
+and <varname>name</varname> contains a single
+quote, it'll fail.  Passing value strings through 
+<function>pg_quote</function>
+make sure they can be used as values and stuff in Postgres.
+
+<programlisting>
+    pg_exec $conn "insert into foo(name=[pg_quote $name]);" 
+</programlisting>
+will make sure that any special characters that occur in name, such as
+single quote or backslash, will be properly quoted.
   </para>
  </refsect1>
 
