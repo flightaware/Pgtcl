@@ -13,8 +13,20 @@ DONE Support for asynchronous operation.
 
 Stubify the build.
 
-Make the build TEA-compliant.
+Make the build TEA-compliant, including
 
 Document pg_execute.
 
+Document pg_on_connection_loss.
+
 Document new asynchronous operation stuff.
+
+Fix up new asynchronous operation stuff to use applicable Tcl internals.
+
+Make a new command that uses the async interface but waits behind your
+back through the tcl event loop, something like
+
+    pg_query $conn query resultVar {resultCode}
+
+It iterates the resultCode for each result found, automatically clearing
+the result at the end of each iteration.
