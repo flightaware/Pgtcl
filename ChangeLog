@@ -1,6 +1,9 @@
 
 $Id$
 
+2004-08-23 Brett Schwarz <brett_schwarz@yahoo.com>
+    * added tcltest script of testing pgtcl.
+
 2004-08-21 Brett Schwarz <brett_schwarz@yahoo.com>
     * Made the result handle into a command, and added associated command
       dispatcher.
