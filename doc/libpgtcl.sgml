@@ -81,8 +81,16 @@ $Header$
     <entry>send a command to the server</entry>
   </row>
   <row>
+    <entry><function>pg_exec_prepared</function></entry>
+    <entry>send a request to execute a prepared statement, with parameters</entry>
+  </row>
+  <row>
     <entry><function>pg_result</function></entry>
     <entry>get information about a command result</entry>
+  </row>
+  <row>
+    <entry><function>pg_results</function></entry>
+    <entry>return a list of all the uncleared result handles for a connection</entry>
   </row>
   <row>
     <entry><function>pg_select</function></entry>
@@ -487,7 +495,7 @@ pg_conndefaults
 
  <refsynopsisdiv>
 <synopsis>
-pg_exec <parameter>conn</parameter> <parameter>commandString</parameter>
+pg_exec <parameter>conn</parameter> <parameter>commandString</parameter> <optional role="tcl"><parameter>args</parameter></optional>
 </synopsis>
  </refsynopsisdiv>
 
@@ -530,6 +538,18 @@ pg_exec <parameter>conn</parameter> <parameter>commandString</parameter>
      </para>
     </listitem>
    </varlistentry>
+
+   <varlistentry>
+    <term><parameter>args</parameter></term>
+    <listitem>
+     <para>
+      For <productname>PostgreSQL</> versions greater than 7.4, <parameter>args</parameter>
+      consists of zero or more optional values that can be inserted,
+      unquoted, into the SQL statement using $-style substitution.
+     </para>
+    </listitem>
+   </varlistentry>
+
   </variablelist>
  </refsect1>
 
@@ -545,8 +565,116 @@ pg_exec <parameter>conn</parameter> <parameter>commandString</parameter>
    command.
   </para>
  </refsect1>
+
+ <refsect1>
+  <title>Example</title>
+
+  <para>
+<programlisting>
+pg_exec $conn {select * from table1 where id = $1 and user = $2} $id $user
+</programlisting>
+  </para>
+ </refsect1>
+
 </refentry>
 
+<refentry ID="PGTCL-PGEXECPREPARED">
+ <refmeta>
+  <refentrytitle>pg_exec_prepared</refentrytitle>
+ </refmeta>
+
+ <refnamediv>
+  <refname>pg_exec_prepared</refname>
+  <refpurpose>send a request to execute a prepared SQL statement to the server</refpurpose>
+  <indexterm ID="IX-PGTCL-PGEXECPREPARED-2"><primary>pg_exec_prepared</primary></indexterm>
+ </refnamediv>
+
+ <refsynopsisdiv>
+<synopsis>
+pg_exec_prepared <parameter>conn</parameter> <parameter>statementName</parameter> <optional role="tcl"><parameter>args</parameter></optional>
+</synopsis>
+ </refsynopsisdiv>
+
+ <refsect1>
+  <title>Description</title>
+
+  <para>
+   <function>pg_exec_prepared</function> submits a command to the
+   <productname>PostgreSQL</productname> server and returns a result.
+  </para>
+
+  <para>
+   <function>pg_exec_prepared</function> functions identically to
+   <function>pg_exec</function>, except that it operates using
+   statements prepared by the <command>PREPARE</command> SQL command.
+  </para>
+
+  <para>
+  Note that prepared statements are only support under <productname>PostgreSQL</> 7.4
+  and later.
+  </para>
+ </refsect1>
+
+ <refsect1>
+  <title>Arguments</title>
+
+  <variablelist>
+
+   <varlistentry>
+    <term><parameter>conn</parameter></term>
+    <listitem>
+     <para>
+      The handle of the connection on which to execute the command.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><parameter>statementName</parameter></term>
+    <listitem>
+     <para>
+      The name of the prepared statement to execute.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><parameter>args</parameter></term>
+    <listitem>
+     <para>
+      <parameter>args</parameter>
+      consists of zero or more optional values that can be inserted,
+      unquoted, into the SQL statement using $-style substitution.
+     </para>
+    </listitem>
+   </varlistentry>
+
+  </variablelist>
+ </refsect1>
+
+ <refsect1>
+  <title>Return Value</title>
+
+  <para>
+   A result handle. See <function>pg_exec</function> for details.
+  </para>
+ </refsect1>
+
+ <refsect1>
+  <title>Example</title>
+
+  <para>
+<programlisting>
+pg_exec $conn {prepare insert_people 
+    (varchar, varchar, varchar, varchar, varchar, varchar) 
+    as insert into people values ($1, $2, $3, $4, $5, $6);}
+
+pg_exec_prepared $conn insert_people $email $name $address $city $state $zip
+</programlisting>
+  </para>
+ </refsect1>
+
+</refentry>
 
 <refentry ID="PGTCL-PGRESULT">
  <refmeta>
@@ -645,7 +773,7 @@ pg_result <parameter>resultHandle</parameter> <parameter>resultOption</parameter
 	    <listitem>
 	     <para>
 	      The <literal>SQLSTATE</literal> code for the error.
-	      (See PostgreSQL manual Appendix A).
+	      (See <productname>PostgreSQL</> manual Appendix A).
 	     </para>
 	    </listitem>
 	   </varlistentry>
@@ -1213,6 +1341,63 @@ pg_execute $pgconn "SELECT max(value) AS max, min(value) AS min FROM mytable;"
  </refsect1>
 </refentry>
 
+<refentry ID="PGTCL-PGRESULTS">
+ <refmeta>
+  <refentrytitle>pg_results</refentrytitle>
+ </refmeta>
+
+ <refnamediv>
+  <refname>pg_results</refname>
+  <refpurpose>return a list of all the uncleared result handles for a connection</refpurpose>
+  <indexterm ID="IX-PGTCL-PGRESULTS-2"><primary>pg_results</primary></indexterm>
+ </refnamediv>
+
+ <refsynopsisdiv>
+<synopsis>
+pg_results <parameter>conn</parameter>
+</synopsis>
+ </refsynopsisdiv>
+
+ <refsect1>
+  <title>Description</title>
+
+  <para>
+   <function>pg_results</function> returns a list off all of the
+   <productname>PostgreSQL</> result handles returned by
+   <function>pg_exec</function>, <function>pg_exec_prepared</function>,
+   <function>pg_sendquery</function>, 
+   <function>pg_sendquery_prepared</function>, etc.
+  </para>
+ </refsect1>
+
+ <refsect1>
+  <title>Arguments</title>
+
+  <variablelist>
+   <varlistentry>
+    <term><parameter>conn</parameter></term>
+    <listitem>
+     <para>
+      The handle of the connection on which to listen for notifications.
+     </para>
+    </listitem>
+   </varlistentry>
+
+  </variablelist>
+ </refsect1>
+
+ <refsect1>
+  <title>Return Value</title>
+
+  <para>
+   A list of all of the result handles that haven't been cleared with
+   <function>pg_result</function> <parameter>-clear</parameter>.
+  </para>
+  <para>
+  The list can be empty if there are no uncleared result handles.
+  </para>
+ </refsect1>
+</refentry>
 
 <refentry ID="PGTCL-PGLISTEN">
  <refmeta>
@@ -1733,7 +1918,7 @@ If you're doing something like
 and <varname>name</varname> contains text includeing an unescaped single
 quote, such as <literal>Bob's House</literal>, the insert will fail.  
 Passing value strings through <function>pg_quote</function>
-make sure they can be used as values and stuff in Postgres.
+make sure they can be used as values and stuff in PostgreSQL.
 
 <programlisting>
     pg_exec $conn "insert into foo values ([pg_quote $name]);" 

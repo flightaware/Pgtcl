@@ -2,6 +2,13 @@
 $Id$
 
 2004-11-30 Karl Lehenbauer <karl-pg@sc.com>
+    * Document pg_exec_prepared.
+
+    * Document pg_results.
+
+    * Document pg_exec's ability to take optional arguments for 
+      $-substitution in PostgreSQL 7.4+.
+
     * Documented pg_getresult and pg_result -error suboptions.  
 
     * Regenerated pdf and html documentation.
