@@ -1,6 +1,10 @@
 
 $Id$
 
+2004-08-15 Brett Schwarz <brett_schwarz@yahoo.com>
+    * Added new command pg::conninfo that returns a list of PG connection
+      handles
+
 2004-07-02 Brett Schwarz <brett_schwarz@yahoo.com>
     * added basic capability to use the connection handle as a command
     * since connection handle can be a command now, I made the returned
