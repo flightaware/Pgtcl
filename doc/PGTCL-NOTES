@@ -1,0 +1,207 @@
+
+
+Commands:
+
+pg_conndefaults
+
+pg_connect dbName [-host hostName] [-port portNumber] [-tty pqtty]
+
+    The result is either an error message or a handle for a database 
+    connection.  Handles start with the prefix "pgp".  
+
+    (DEPRECATED, use pg_connect -conninfo instead.)
+
+pg_connect -conninfo conninfoString
+
+    The modern way to connect, all necessary information required for
+    the connection (host, port, database, user, password, etc.) is
+    specified in the connect info string.
+
+
+pg_disconnect connection
+
+    Close a backend connection.
+
+pg_exec connection query
+
+    Send a query string to the backend connection.
+
+    The return result is either an error message or a handle for a query result.
+    Handles start with the prefix "pgp".
+
+
+pg_select
+
+    send a select query string to the backend connection
+
+     syntax:
+	 pg_select connection query var proc
+
+     The query must be a select statement
+     The var is used in the proc as an array
+     The proc is run once for each row found
+ 
+ The return is either TCL_OK, TCL_ERROR or TCL_RETURN and interp->result
+ may contain more information.
+
+
+pg_result
+
+    Get information about the results of a query.
+
+    pg_result result ?option?
+
+ the options are:
+
+	-status		the status of the result
+
+	-error		the error message, if the status indicates error; 
+                             otherwise an empty string
+
+	-conn		the connection that produced the result
+
+	-oid		if command was an INSERT, the OID of the inserted tuple
+
+	-numTuples	the number of tuples in the query
+
+	-numAttrs	returns the number of attributes returned by the query
+
+	-assign arrayName
+			assign the results to an array, using 
+			    subscripts of the form (tupno,attributeName)
+
+	-assignbyidx arrayName ?appendstr?
+			assign the results to an array using the first 
+                            field's value as a key.
+
+			All but the first field of each tuple are stored, 
+                            using subscripts of the form 
+                            (field0value,attributeNameappendstr)
+
+	-getTuple tupleNumber
+			returns the values of the tuple in a list
+
+	-tupleArray tupleNumber arrayName
+			stores the values of the tuple in array arrayName, 
+                            indexed by the attributes returned
+
+	-attributes     returns a list of the name/type pairs of the tuple 
+                            attributes
+
+	-lAttributes    returns a list of the {name type len} entries of the 
+                            tuple attributes
+
+	-clear		clear the result buffer. Do not reuse after this
+
+
+
+The options are
+
+pg_execute
+
+     Send a query string to the backend connection and process the result.
+
+     syntax:
+       pg_execute ?-array name? ?-oid varname? connection query ?loop_body?
+
+     The return result is the number of tuples processed. If the query
+     returns tuples (i.e. a SELECT statement), the result is placed into
+     variables.
+
+
+pg_lo_open
+
+    Open a large object
+
+    syntax:
+
+	pg_lo_open conn objOid mode
+
+	...where mode can be either 'r', 'w', or 'rw'
+
+pg_lo_close
+
+    close a large object
+
+    syntax:
+
+	pg_lo_close conn fd
+
+pg_lo_read
+
+    reads at most len bytes from a large object into a variable named bufVar
+
+    syntax:
+
+	pg_lo_read conn fd bufVar len
+
+    bufVar is the name of a variable in which to start the contents of the read
+
+pg_lo_write
+    write at most len bytes to a large object
+
+    pg_lo_write conn fd buf len
+
+pg_lo_seek
+    seek to a certain position in a large object
+
+    syntax
+	pg_lo_seek conn fd offset whence
+
+    whence can be either
+	"SEEK_CUR", "SEEK_END", or "SEEK_SET"
+
+pg_lo_creat
+
+    create a new large object with mode
+
+    syntax:
+	pg_lo_creat conn mode
+
+    mode can be any OR'ing together of INV_READ, INV_WRITE.
+    For now, we don't support any additional storage managers.
+
+pg_lo_tell
+    returns the current seek location of the large object
+
+    syntax:
+	pg_lo_tell conn fd
+
+
+pg_lo_creat
+
+pg_lo_unlink
+    unlink a file based on lobject id
+
+    syntax:
+	pg_lo_unlink conn lobjId
+
+pg_lo_import
+    import a UNIX file into an (inversion) large object
+    returns the oid of that object upon success
+    returns InvalidOid upon failure
+
+    syntax:
+	pg_lo_import conn filename
+
+pg_lo_export
+    export an inversion large object to a UNIX file
+
+    syntax:
+	pg_lo_export conn lobjId filename
+
+
+pg_listen
+        create or remove a callback request for notifies on a given name
+
+ syntax:
+   pg_listen conn notifyname ?callbackcommand?
+                 
+   With a fourth arg, creates or changes the callback command for
+   notifies on the given name; without, cancels the callback request.
+
+   Callbacks can occur whenever Tcl is executing its event loop.
+   This is the normal idle loop in Tk; in plain tclsh applications,
+   vwait or update can be used to enter the Tcl event loop.
+
+

@@ -1,0 +1,5 @@
+$Id$
+
+libpgtcl.sgml is the documentation from the PostgreSQL package.  It needs
+to be updated and man pages, HTML, etc., generated.
+
