@@ -223,6 +223,8 @@ tcl_value(char *value)
 #endif
 	return value;
 }
+#else /* TCL_ARRAYS */
+#define tcl_value(x) x
 #endif   /* TCL_ARRAYS */
 
 
@@ -764,12 +766,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 						Tcl_AppendToObj(fieldNameObj, PQfname(result, i), -1);
 
 						if (Tcl_ObjSetVar2(interp, arrVarObj, fieldNameObj,
-										   Tcl_NewStringObj(
-#ifdef TCL_ARRAYS
-								 tcl_value(PQgetvalue(result, tupno, i)),
-#else
-											PQgetvalue(result, tupno, i),
-#endif
+										   Tcl_NewStringObj( tcl_value(PQgetvalue(result, tupno, i)),
 										 -1), TCL_LEAVE_ERR_MSG) == NULL)
 							return TCL_ERROR;
 					}
@@ -805,13 +802,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				for (tupno = 0; tupno < PQntuples(result); tupno++)
 				{
 					Tcl_Obj    *fieldNameObj;
-					const char *field0 =
-#ifdef TCL_ARRAYS
-					tcl_value(PQgetvalue(result, tupno, 0));
-
-#else
-					PQgetvalue(result, tupno, 0);
-#endif
+					const char *field0 = tcl_value(PQgetvalue(result, tupno, 0));
 
 					fieldNameObj = Tcl_NewStringObj(field0, -1);
 
@@ -825,11 +816,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 						if (Tcl_ObjSetVar2(interp, arrVarObj, fieldNameObj,
 										   Tcl_NewStringObj(
-#ifdef TCL_ARRAYS
-								 tcl_value(PQgetvalue(result, tupno, i)),
-#else
-											PQgetvalue(result, tupno, i),
-#endif
+											 tcl_value(PQgetvalue(result, tupno, i)),
 										 -1), TCL_LEAVE_ERR_MSG) == NULL)
 							return TCL_ERROR;
 					}
@@ -865,11 +852,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				{
 					char	   *value;
 
-#ifdef TCL_ARRAYS
 					value = tcl_value(PQgetvalue(result, tupno, i));
-#else
-					value = PQgetvalue(result, tupno, i);
-#endif
 					if (Tcl_ListObjAppendElement(interp, resultObj,
 							   Tcl_NewStringObj(value, -1)) == TCL_ERROR)
 						return TCL_ERROR;
@@ -901,11 +884,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				for (i = 0; i < PQnfields(result); i++)
 				{
 					if (Tcl_SetVar2(interp, arrayName, PQfname(result, i),
-#ifdef TCL_ARRAYS
 								 tcl_value(PQgetvalue(result, tupno, i)),
-#else
-									PQgetvalue(result, tupno, i),
-#endif
 									TCL_LEAVE_ERR_MSG) == NULL)
 						return TCL_ERROR;
 				}
@@ -1986,11 +1965,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		{
 			Tcl_Obj    *valueObj;
 
-#ifdef TCL_ARRAYS
 			valueObj = Tcl_NewStringObj(tcl_value(PQgetvalue(result, tupno, column)), -1);
-#else
-			valueObj = Tcl_NewStringObj(PQgetvalue(result, tupno, column), -1);
-#endif
 			Tcl_ObjSetVar2(interp, varNameObj, columnNameObjs[column],
 						   valueObj,
 						   0);
