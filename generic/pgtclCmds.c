@@ -2200,8 +2200,9 @@ Pg_lo_unlink(ClientData cData, Tcl_Interp *interp, int objc,
 	retval = lo_unlink(conn, lobjId);
 	if (retval == -1)
 	{
-		sprintf(interp->result, "unlink of '%d' failed", lobjId);
-		return TCL_ERROR;
+            Tcl_AppendStringsToObj(Tcl_GetObjResult(interp),
+                "unlink of '", lobjId, "' failed", (char *) NULL);
+            return TCL_ERROR;
 	}
 
 	Tcl_SetObjResult(interp, Tcl_NewIntObj(retval));
