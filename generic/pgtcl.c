@@ -130,13 +130,11 @@ Pgtcl_Init(Tcl_Interp *interp)
 						 NULL,
 						 NULL);
 
-#ifdef HAVE_PQEXECPREPARED
 	Tcl_CreateObjCommand(interp,
 						 "pg_exec_prepared",
 						 Pg_exec_prepared,
 						 NULL,
 						 NULL);
-#endif /* HAVE_PQEXECPREPARED */
 
 	Tcl_CreateObjCommand(interp,
 						 "pg_select",

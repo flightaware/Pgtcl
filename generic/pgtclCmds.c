@@ -595,7 +595,6 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
  result.  Handles start with the prefix "pgp"
  **********************************/
 
-#ifdef HAVE_PQEXECPREPARED
 int
 Pg_exec_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
@@ -608,6 +607,10 @@ Pg_exec_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 
 	int         nParams;
 
+#ifndef HAVE_PQEXECPREPARED
+	Tcl_AppendResult(interp, "function unavailable with this version of the postgres libpq library", 0);
+	return TCL_ERROR;
+#else
 	if (objc < 3)
 	{
 		Tcl_WrongNumArgs(interp, 1, objv, "connection statementName [parm...]");
@@ -675,8 +678,8 @@ Pg_exec_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 		Tcl_SetObjResult(interp, Tcl_NewStringObj(PQerrorMessage(conn), -1));
 		return TCL_ERROR;
 	}
-}
 #endif /* HAVE_PQEXECPREPARED */
+}
 
 
 /**********************************

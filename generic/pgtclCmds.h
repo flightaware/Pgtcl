@@ -85,10 +85,8 @@ extern int Pg_disconnect(
 extern int Pg_exec(
   ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 
-#ifdef HAVE_PQEXECPREPARED
 extern int Pg_exec_prepared(
   ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
-#endif /* HAVE_PQEXECPREPARED */
 
 extern int Pg_execute(
   ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
