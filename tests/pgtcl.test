@@ -83,3 +83,81 @@ test pgtcl-0.5 {use connection as command} {
 
     set res
 } pgsql3.0
+
+#
+#
+#
+test pgtcl-0.6 {test getting connection handles} {
+
+    foreach C [list 1 2 3] {
+        set myconn($C) [pg::connect -connlist [array get ::conninfo]]
+    }
+
+    set conns [lsort [pg::conninfo]]
+
+    foreach C [list 1 2 3] {
+        pg::disconnect $myconn($C)
+    }
+
+    set conns
+} [lsort [list pgsql3 pgsql4 pgsql5]]
+
+#
+#
+#
+test pgtcl-0.7 {test getting connection handles, after disconnect} {
+
+    foreach C [list 1 2 3] {
+        set myconn($C) [pg::connect -connlist [array get ::conninfo]]
+    }
+
+    foreach C [list 1 2 3] {
+        pg::disconnect $myconn($C)
+    }
+
+    pg::conninfo
+} [list]
+
+#
+#
+#
+test pgtcl-0.7 {test renaming of connection handle command} {
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+
+    rename $conn MYCONN
+    set res [MYCONN exec "SELECT * FROM Pg_class LIMIT 5"]
+
+    pg_result $res -clear
+
+    pg_disconnect $conn
+
+    set res
+
+} pgsql3.0
+
+#
+#
+#
+test pgtcl-0.8 {get result handles} {
+
+    unset res
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+
+    foreach R [list 1 2 3 4] {
+        set res($R) [$conn exec "SELECT * FROM Pg_class LIMIT $R"]
+    }
+
+    set results [lsort [pg::results $conn]]
+
+    foreach R [list 1 2 3 4] {
+
+        pg_result $res($R) -clear
+    }
+
+    pg_disconnect $conn
+
+    set results
+
+} [lsort [list pgsql3.0 pgsql3.1 pgsql3.2 pgsql3.3]]
