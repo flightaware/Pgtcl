@@ -1351,6 +1351,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 			}
 	
 			Tcl_SetObjResult(interp, listObj);
+			
 			return TCL_OK;
 
 		}
@@ -1399,6 +1400,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 			}
 	
 			Tcl_SetObjResult(interp, listObj);
+		
 			return TCL_OK;
 		}
 		case OPT_DICT: 
@@ -3432,6 +3434,8 @@ Pg_dbinfo(ClientData cData, Tcl_Interp *interp, int objc,
         }
 
     }
+	ckfree(connString);
+	ckfree(buf);
     Tcl_SetObjResult(interp, listObj);
     return TCL_OK;
 

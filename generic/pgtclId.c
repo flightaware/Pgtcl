@@ -489,7 +489,9 @@ PgDelConnectionId(DRIVER_DEL_PROTO)
 		if (connid->results[i])
 			PQclear(connid->results[i]);
 	}
+	
 	ckfree((void *)connid->results);
+	ckfree((void *)connid->resultids);
 
 	/* Release associated notify info */
 	while ((notifies = connid->notify_list) != NULL)
@@ -552,11 +554,6 @@ PgDelConnectionId(DRIVER_DEL_PROTO)
 }
 
 
-/*
- * Find a slot for a new result id.  If the table is full, expand it by
- * a factor of 2.  However, do not expand past the hard max, as the client
- * is probably just not clearing result handles like they should.
- */
 
 /*
  *----------------------------------------------------------------------
@@ -1192,9 +1189,9 @@ PgDelCmdHandle(ClientData cData)
 		}
     }
         
-
     
     Tcl_UnregisterChannel(connid->interp, conn_chan);
+
     return;
 }
 
@@ -1212,6 +1209,7 @@ PgDelResultHandle(ClientData cData)
 
     PgDelResultId(resultid->interp, resstr);
     PQclear(result);
+    ckfree(resstr);
 
     return;
 }
