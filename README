@@ -1,20 +1,109 @@
-libpgtcl is a library that implements Tcl commands for front-end
-clients to interact with Postgresql backends.  
+README file for Pgtcl/libpgtcl
 
-Thank you for downloading Pgtcl, a package that adds Postgres interface
-extensions to the Tcl programming language, an open source project that's 
+$Id$
+
+Thank you for downloading Pgtcl, a package that adds PostgreSQL interface
+extensions to the Tcl programming language... an open source project that's 
 been in existence for more than ten years.
+
+CONFIGURING
+
+Pgtcl is now Tcl Extension Architecture (TEA) compliant, shipping with
+a standard "configure" script.  It no longer needs to reside in a specific
+place within the Postgres source tree in order to build.  
+
+For standard builds to put things in subdirectories of /usr/local, you
+can often simply execute configure with no arguments at all...
+
+./configure
+
+The configure script will attempt to find where the Postgres includes and
+libraries are using pg_config, a program built and installed as part of
+Postgres.  Alternatively, you can specify a path to the Postgres 
+include files using --with-postgres-include and to the Postgres libraries 
+using --with-postgres-lib.  
+
+If you had PostgreSQL installed into /usr/postgres and a Tcl build in
+/usr/pptcl, you might use something like
+
+./configure --prefix=/usr/pptcl
+
+With this style of configure command, you'll need to make sure pg_config
+(and the correct pg_config if you have postgres installed in multiple
+places) is in the PATH.
+
+Alternatively you can still explicitly specify where the Postgres includes
+and libraries are found:
+
+./configure --prefix=/usr/pptcl --with-postgres-include=/usr/postgres/include --with-postgres-lib=/usr/postgres/lib
+
+The other configure parameters that may need tweaking are where Tcl's
+includes and libraries (and tclConfig.sh) are.  Although normally they
+will be in /usr/local/include and /usr/local/lib, in some cases they
+may reside elsewhere.  If Tcl is built and installed from the FreeBSD ports 
+tree, for example, they'll be in versioned subdirectories...
+
+./configure  --with-tcl=/usr/local/lib/tcl8.4 --with-tclinclude=/usr/local/inclu
+de/tcl8.4
+
+
+BUILDING
+
+Do a "make".  If all goes well, libpgtcl will be compiled and linked.
+
+INSTALLING
+
+Do a "make install".
+
+USING IT
+
+With version 1.4, Pgtcl is a standard package and can be loaded with
+"package require" instead of the shared library load routine, "load".
+
+Fire up your tclsh:
+
+tclsh8.4
+% package require Pgtcl
+1.4
+
+It's a good idea to switch to using the "package require' instead of "load"
+to pick up Pgtcl, because there will be additional Tcl code shipped in future 
+versions of Pgtcl, and using "package require" will make that code available 
+to your application.  Also it keeps you from hard-coding the path to the
+library and hard-coding a dependency on a specific version.
+
+IF IT COMPILES AND INSTALLS OK BUT "PACKAGE REQUIRE" DOESN'T WORK
+
+...it probably didn't install into the search path Tcl uses to find
+extensions.  You might have more than one Tclsh installed.  Try adding
+a path to the parent directory of where the thing installed, for example,
+if it installed into /opt/local/bin
+
+tclsh8.4
+% lappend auto_path /opt/local/lib
+...
+% package require Pgtcl
+1.4
+
+CREDITS
 
 Pgtcl was originally written by Jolly Chen.  Many people have contributed to 
 the further development of Pgtcl over the years, including Randy Kunkee,
 who added the channel handler code, among other things, and we intend to
 identify the rest of them and give them credit as well.
 
-This release was carved by by Brett Schwartz and Karl Lehenbauer.
+Development and maintenance of Pgtcl since version 1.3 has been done by Brett 
+Schwartz and Karl Lehenbauer.
 
 VERSION 1.5
 
-Documentation
+Connection handles and result handles are now executable commands in their
+own right, while maintaining compatible with their former usage as strictly
+handles.
+
+Upgraded to TEA 3.1 compliant build.
+
+Documentation overhauled and brought current with the code.
 
 VERSION 1.4
 
@@ -92,76 +181,6 @@ syntatically incorrect pg_* commands will now fail until fixed.
 pg_result -assign and pg_result -assignbyidx used to return the array
 name, which was superfluous because the array name was specified on the
 command line.  They now return nothing.  *** POTENTIAL INCOMPATIBILITY ***
-
-CONFIGURING
-
-Pgtcl is now Tcl Extension Architecture (TEA) compliant, shipping with
-a standard "configure" script.  It no longer needs to reside in a specific
-place within the Postgres source tree in order to build.  
-
-The configure script will attempt to find where the Postgres includes and
-libraries are using pg_config, a program built and installed as part of
-Postgres.  Alternatively, you can specify a path to the Postgres 
-include files using --with-postgres-include and to the Postgres libraries 
-using --with-postgres-lib.  
-
-If you had PostgreSQL installed into /usr/postgres and a Tcl build in
-/usr/pptcl, you might use something like
-
-./configure --prefix=/usr/pptcl
-
-With this style of configure command, you'll need to make sure pg_config
-(and the correct pg_config if you have postgres installed in multiple
-places) is in the PATH.
-
-Alternatively you can still explicitly specify where the Postgres includes
-and libraries are found:
-
-./configure --prefix=/usr/pptcl --with-postgres-include=/usr/postgres/include --with-postgres-lib=/usr/postgres/lib
-
-
-For standard builds to put things in subdirectories of /usr/local,
-
-./configure
-
-
-BUILDING
-
-Do a "make".  If all goes well, libpgtcl will be compiled and linked.
-
-INSTALLING
-
-Do a "make install".
-
-USING IT
-
-With version 1.4, Pgtcl is a standard package and can be loaded with
-"package require" instead of the shared library load routine, "load".
-
-Fire up your tclsh:
-
-tclsh8.4
-% package require Pgtcl
-1.4
-
-It's a good idea to switch to using the "package require' instead of "load"
-to pick up Pgtcl, because there will be additional Tcl code shipped in future 
-versions of Pgtcl, and using "package require" will make that code available 
-to your application.  Also it keeps you from hard-coding the path to the
-library and hard-coding a dependency on a specific version.
-
-IF IT COMPILES AND INSTALLS OK BUT "PACKAGE REQUIRE" DOESN'T WORK
-
-...it probably didn't install into the search path Tcl uses to find
-extensions.  You might have more than one Tclsh installed.  Try adding
-a path to the parent directory of where the thing installed, for example,
-if it installed into /opt/local/bin
-
-tclsh8.4
-% lappend auto_path /opt/local/lib
-...
-% package require Pgtcl
-1.4
 
 OLDER CHANGES
 
