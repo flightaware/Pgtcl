@@ -221,7 +221,7 @@ PgGetConnectionId(Tcl_Interp *interp, char *id, Pg_ConnectionId ** connid_p)
 		Tcl_AppendResult(interp, id, " is not a valid postgresql connection", 0);
 		if (connid_p)
 			*connid_p = NULL;
-		return (PGconn *) NULL;
+		return NULL;
 	}
 
 	connid = (Pg_ConnectionId *) Tcl_GetChannelInstanceData(conn_chan);
