@@ -660,7 +660,7 @@ getresid(Tcl_Interp *interp, CONST84 char *id, Pg_ConnectionId ** connid_p)
 	int			resid;
 	Pg_ConnectionId *connid;
 
-	if (!(mark = strchr(id, '.')))
+	if (!(mark = strrchr(id, '.')))
 	{
 		return -1;
 	}
