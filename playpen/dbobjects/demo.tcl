@@ -7,12 +7,16 @@
 #
 #
 
+package require Pgtcl
+
 source gen_db_objects.tcl
 
+set conn [pg_connect www]
+
 if 0 {
-set baseClass [gen_table_base_class pg_type]
+set baseClass [gen_table_base_class $conn pg_type]
 } else {
-set baseClass [gen_table_base_class pp_users]
+set baseClass [gen_table_base_class $conn pp_users]
 }
 puts $baseClass
 eval $baseClass

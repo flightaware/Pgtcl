@@ -4,6 +4,8 @@
 # $Id$
 #
 
+package require Itcl
+
 ::itcl::class db_table {
 
     constructor {args} {
