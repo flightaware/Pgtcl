@@ -1318,6 +1318,73 @@ pg_sendquery <parameter>conn</parameter> <parameter>commandString</parameter>
  </refsect1>
 </refentry>
 
+<refentry ID="PGTCL-PGGETRESULT">
+ <refmeta>
+  <refentrytitle>pg_getresult</refentrytitle>
+ </refmeta>
+
+ <refnamediv>
+  <refname>pg_getresult</refname>
+  <refpurpose>process asychronous results</refpurpose>
+  <indexterm ID="IX-PGTCL-PGGETRESULT-2"><primary>pg_getresult</primary></indexterm>
+ </refnamediv>
+
+ <refsynopsisdiv>
+<synopsis>
+pg_getresult <parameter>conn</parameter>
+</synopsis>
+ </refsynopsisdiv>
+
+ <refsect1>
+  <title>Description</title>
+
+  <para>
+   <function>pg_getresult</function> checks to see if any commands
+   issued by <function>pg_sendquery</function> have completed.
+  </para>
+  <para>
+   This will return the same sort of result handle that 
+   <function>pg_exec</function> returns.
+  </para>
+  <para>
+   If there is no query currently being processed or all of the results
+   have been obtained, <function>pg_getresult</function> returns
+   nothing.
+  </para>
+ </refsect1>
+
+ <refsect1>
+  <title>Arguments</title>
+
+  <variablelist>
+   <varlistentry>
+    <term><parameter>conn</parameter></term>
+    <listitem>
+     <para>
+      The handle of a connection to the database to which asynchronous
+      requests are being issued.
+     </para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+ </refsect1>
+
+ <refsect1>
+  <title>Return Value</title>
+
+  <para>
+   If a query result is available, a command result object is returned.
+   This handle can be passed to <function>pg_result</function> to
+   obtain the results of the command.
+  </para>
+
+  <para>
+   If there is no query currently being processed or all of the results
+   have been obtained, <function>pg_getresult</function> returns nothing.
+  </para>
+ </refsect1>
+</refentry>
+
 <refentry ID="PGTCL-PGISBUSY">
  <refmeta>
   <refentrytitle>pg_isbusy</refentrytitle>
