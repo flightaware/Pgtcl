@@ -1,6 +1,9 @@
 
 $Id$
 
+2003-01-14  Brett Schwarz <brett_schwarz@yahoo.com>
+    * added -cmdTuples to pg_result (code submitted by Artur Trzewik)
+
 2002-11-19  Brett Schwarz <brett_schwarz@yahoo.com>
 
     * Improved the performance of -list a little bit
