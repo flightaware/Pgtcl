@@ -113,6 +113,7 @@ STLIB_LD	= @STLIB_LD@
 TCL_DEFS	= @TCL_DEFS@
 TCL_BIN_DIR	= @TCL_BIN_DIR@
 TCL_SRC_DIR	= @TCL_SRC_DIR@
+TCL_LIB_SPEC    = @TCL_LIB_SPEC@
 # This is necessary for packages that use private Tcl headers
 #TCL_TOP_DIR_NATIVE	= @TCL_TOP_DIR_NATIVE@
 # Not used, but retained for reference of what libs Tcl required
@@ -246,6 +247,12 @@ $(PKG_STUB_LIB_FILE): $(PKG_STUB_OBJECTS)
 	-rm -f $(PKG_STUB_LIB_FILE)
 	${MAKE_STUB_LIB}
 	$(RANLIB_STUB) $(PKG_STUB_LIB_FILE)
+
+pgtclsh: pgtclAppInit.o $(BINARIES)
+	-rm -f pgtclsh
+	$(CC) $(CFLAGS) $(DEFS) -o $@ pgtclAppInit.o \
+        $(PKG_LIB_FILE) ${LIBS} $(TCL_LIB_SPEC) $(LDFLAGS_DEFAULT)
+	
 
 #========================================================================
 # We need to enumerate the list of .c to .o lines here.
