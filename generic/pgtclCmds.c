@@ -153,7 +153,7 @@ tcl_value(char *value)
 	char	   *p;
 
 	if (!value)
-		return (char *)NULL;
+		return NULL;
 
 #ifdef TCL_ARRAYS_DEBUG
 	printf("pq_value  = '%s'\n", value);
@@ -464,8 +464,8 @@ Pg_disconnect(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
 	}
 
 	/* Check that it is a PG connection and not something else */
-	conn = PgGetConnectionId(interp, connString, (Pg_ConnectionId **) NULL);
-	if (conn == (PGconn *) NULL)
+	conn = PgGetConnectionId(interp, connString, NULL);
+	if (conn == NULL)
 		return TCL_ERROR;
 
 	return Tcl_UnregisterChannel(interp, conn_chan);
@@ -500,7 +500,7 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	connString = Tcl_GetStringFromObj(objv[1], NULL);
 
 	conn = PgGetConnectionId(interp, connString, &connid);
-	if (conn == (PGconn *)NULL)
+	if (conn == NULL)
 		return TCL_ERROR;
 
 	if (connid->res_copyStatus != RES_COPY_NONE)
@@ -1195,7 +1195,7 @@ Pg_execute(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 	 */
 	connString = Tcl_GetStringFromObj(objv[i++], NULL);
 	conn = PgGetConnectionId(interp, connString, &connid);
-	if (conn == (PGconn *)NULL)
+	if (conn == NULL)
 		return TCL_ERROR;
 
 	if (connid->res_copyStatus != RES_COPY_NONE)
@@ -1417,8 +1417,8 @@ Pg_lo_open(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 	}
 
 	connString = Tcl_GetStringFromObj(objv[1], NULL);
-	conn = PgGetConnectionId(interp, connString, (Pg_ConnectionId **) NULL);
-	if (conn == (PGconn *)NULL)
+	conn = PgGetConnectionId(interp, connString,  NULL);
+	if (conn == NULL)
 		return TCL_ERROR;
 
 	if (Tcl_GetIntFromObj(interp, objv[2], &lobjId) == TCL_ERROR)
@@ -1490,8 +1490,8 @@ Pg_lo_close(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[
 	}
 
 	connString = Tcl_GetStringFromObj(objv[1], NULL);
-	conn = PgGetConnectionId(interp, connString, (Pg_ConnectionId **) NULL);
-	if (conn == (PGconn *)NULL)
+	conn = PgGetConnectionId(interp, connString, NULL);
+	if (conn == NULL)
 		return TCL_ERROR;
 
 	if (Tcl_GetIntFromObj(interp, objv[2], &fd) != TCL_OK)
@@ -1532,8 +1532,8 @@ Pg_lo_read(ClientData cData, Tcl_Interp *interp, int objc,
 	}
 
 	conn = PgGetConnectionId(interp, Tcl_GetStringFromObj(objv[1], NULL),
-							 (Pg_ConnectionId **) NULL);
-	if (conn == (PGconn *)NULL)
+							 NULL);
+	if (conn == NULL)
 		return TCL_ERROR;
 
 	if (Tcl_GetIntFromObj(interp, objv[2], &fd) != TCL_OK)
@@ -1598,8 +1598,8 @@ Pg_lo_write(ClientData cData, Tcl_Interp *interp, int objc,
 	}
 
 	conn = PgGetConnectionId(interp, Tcl_GetStringFromObj(objv[1], NULL),
-							 (Pg_ConnectionId **) NULL);
-	if (conn == (PGconn *)NULL)
+							 NULL);
+	if (conn == NULL)
 		return TCL_ERROR;
 
 	if (Tcl_GetIntFromObj(interp, objv[2], &fd) != TCL_OK)
@@ -1652,8 +1652,8 @@ Pg_lo_lseek(ClientData cData, Tcl_Interp *interp, int objc,
 	}
 
 	connString = Tcl_GetStringFromObj(objv[1], NULL);
-	conn = PgGetConnectionId(interp, connString, (Pg_ConnectionId **) NULL);
-	if (conn == (PGconn *)NULL)
+	conn = PgGetConnectionId(interp, connString, NULL);
+	if (conn == NULL)
 		return TCL_ERROR;
 
 	if (Tcl_GetIntFromObj(interp, objv[2], &fd) != TCL_OK)
@@ -1709,8 +1709,8 @@ Pg_lo_creat(ClientData cData, Tcl_Interp *interp, int objc,
 	}
 
 	connString = Tcl_GetStringFromObj(objv[1], NULL);
-	conn = PgGetConnectionId(interp, connString, (Pg_ConnectionId **) NULL);
-	if (conn == (PGconn *)NULL)
+	conn = PgGetConnectionId(interp, connString, NULL);
+	if (conn == NULL)
 		return TCL_ERROR;
 
 	modeStr = Tcl_GetStringFromObj(objv[2], NULL);
@@ -1727,7 +1727,7 @@ Pg_lo_creat(ClientData cData, Tcl_Interp *interp, int objc,
 		return TCL_ERROR;
 	}
 
-	while ((modeWord = strtok((char *)NULL, "|")) != NULL)
+	while ((modeWord = strtok(NULL, "|")) != NULL)
 	{
 		if (strcmp(modeWord, "INV_READ") == 0)
 			mode |= INV_READ;
@@ -1768,8 +1768,8 @@ Pg_lo_tell(ClientData cData, Tcl_Interp *interp, int objc,
 	}
 
 	connString = Tcl_GetStringFromObj(objv[1], NULL);
-	conn = PgGetConnectionId(interp, connString, (Pg_ConnectionId **) NULL);
-	if (conn == (PGconn *)NULL)
+	conn = PgGetConnectionId(interp, connString, NULL);
+	if (conn == NULL)
 		return TCL_ERROR;
 
 	if (Tcl_GetIntFromObj(interp, objv[2], &fd) != TCL_OK)
@@ -1804,8 +1804,8 @@ Pg_lo_unlink(ClientData cData, Tcl_Interp *interp, int objc,
 	}
 
 	connString = Tcl_GetStringFromObj(objv[1], NULL);
-	conn = PgGetConnectionId(interp, connString, (Pg_ConnectionId **) NULL);
-	if (conn == (PGconn *)NULL)
+	conn = PgGetConnectionId(interp, connString, NULL);
+	if (conn == NULL)
 		return TCL_ERROR;
 
 	if (Tcl_GetIntFromObj(interp, objv[2], &lobjId) == TCL_ERROR)
@@ -1849,8 +1849,8 @@ Pg_lo_import(ClientData cData, Tcl_Interp *interp, int objc,
 	}
 
 	connString = Tcl_GetStringFromObj(objv[1], NULL);
-	conn = PgGetConnectionId(interp, connString, (Pg_ConnectionId **) NULL);
-	if (conn == (PGconn *)NULL)
+	conn = PgGetConnectionId(interp, connString, NULL);
+	if (conn == NULL)
 		return TCL_ERROR;
 
 	filename = Tcl_GetStringFromObj(objv[2], NULL);
@@ -1893,8 +1893,8 @@ Pg_lo_export(ClientData cData, Tcl_Interp *interp, int objc,
 	}
 
 	connString = Tcl_GetStringFromObj(objv[1], NULL);
-	conn = PgGetConnectionId(interp, connString, (Pg_ConnectionId **) NULL);
-	if (conn == (PGconn *)NULL)
+	conn = PgGetConnectionId(interp, connString, NULL);
+	if (conn == NULL)
 		return TCL_ERROR;
 
 	if (Tcl_GetIntFromObj(interp, objv[2], &lobjId) == TCL_ERROR)
@@ -1966,7 +1966,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	procStringObj = objv[4];
 
 	conn = PgGetConnectionId(interp, connString, &connid);
-	if (conn == (PGconn *)NULL)
+	if (conn == NULL)
 		return TCL_ERROR;
 
 	if ((result = PQexec(conn, queryString)) == 0)
@@ -2116,7 +2116,7 @@ Pg_listen(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	 */
 	connString = Tcl_GetStringFromObj(objv[1], NULL);
 	conn = PgGetConnectionId(interp, connString, &connid);
-	if (conn == (PGconn *)NULL)
+	if (conn == NULL)
 		return TCL_ERROR;
 
 	/*
@@ -2290,7 +2290,7 @@ Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
 	connString = Tcl_GetStringFromObj(objv[1], NULL);
 
 	conn = PgGetConnectionId(interp, connString, &connid);
-	if (conn == (PGconn *)NULL)
+	if (conn == NULL)
 		return TCL_ERROR;
 
 	if (connid->res_copyStatus != RES_COPY_NONE)
@@ -2345,7 +2345,7 @@ Pg_getresult(ClientData cData, Tcl_Interp *interp, int objc,
 	connString = Tcl_GetStringFromObj(objv[1], NULL);
 
 	conn = PgGetConnectionId(interp, connString, &connid);
-	if (conn == (PGconn *)NULL)
+	if (conn == NULL)
 		return TCL_ERROR;
 
 	result = PQgetResult(conn);
@@ -2396,7 +2396,7 @@ Pg_isbusy(ClientData cData, Tcl_Interp *interp, int objc,
 	connString = Tcl_GetStringFromObj(objv[1], NULL);
 
 	conn = PgGetConnectionId(interp, connString, &connid);
-	if (conn == (PGconn *)NULL)
+	if (conn == NULL)
 		return TCL_ERROR;
 
 	PQconsumeInput(conn);
@@ -2436,7 +2436,7 @@ Pg_blocking(ClientData cData, Tcl_Interp *interp, int objc,
 	connString = Tcl_GetStringFromObj(objv[1], NULL);
 
 	conn = PgGetConnectionId(interp, connString, &connid);
-	if (conn == (PGconn *)NULL)
+	if (conn == NULL)
 		return TCL_ERROR;
 
 	if (objc == 2)
@@ -2482,7 +2482,7 @@ Pg_cancelrequest(ClientData cData, Tcl_Interp *interp, int objc,
 	connString = Tcl_GetStringFromObj(objv[1], NULL);
 
 	conn = PgGetConnectionId(interp, connString, &connid);
-	if (conn == (PGconn *)NULL)
+	if (conn == NULL)
 		return TCL_ERROR;
 
 	if (PQrequestCancel(conn) == 0)
@@ -2529,7 +2529,7 @@ Pg_on_connection_loss(ClientData cData, Tcl_Interp *interp, int objc,
 	 */
 	connString = Tcl_GetStringFromObj(objv[1], NULL);
 	conn = PgGetConnectionId(interp, connString, &connid);
-	if (conn == (PGconn *) NULL)
+	if (conn == NULL)
 		return TCL_ERROR;
 
 	if (objc > 2)
