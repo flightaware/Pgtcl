@@ -23,5 +23,22 @@ transaction using
 
 time tclsh8.4 import_sampledata_onetransaction.tcl
 
+You can time importing the 5,000 sample data items as single
+transaction but using a pre-prepared statement using
+
+time tclsh8.4 import_sampledata_prepared_onetransaction.tcl
+
+
+You will see that batching lots of inserts into a single transaction is
+much faster, and although even batching prepared statements as a single
+transaction is much faster than separate transactions, its still slower
+than import_sampledata_onetransaction, since it communicates each
+insert separately to the server.
+
+The trouble with doing tons of inserts as one transaction is that any error
+in any insert will abort the entire transaction.  Postgres 8 is supposed
+to have powerful new capabilities to handle errors in the middle of a
+transaction without aborting the transaction.
+
 The data set is in sampledata.txt.
 
