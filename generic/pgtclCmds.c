@@ -21,6 +21,10 @@
 #include "pgtclId.h"
 #include "libpq/libpq-fs.h"		/* large-object interface */
 
+#ifndef CONST84
+#     define CONST84
+#endif
+
 /*
  * Local function forward declarations
  */
@@ -2731,11 +2735,11 @@ Pg_on_connection_loss(ClientData cData, Tcl_Interp *interp, int objc,
 }
 
 /***********************************
-Pg_auote
+Pg_quote
 	escape string for inclusion in SQL queries
 
  syntax:
-   pg_auote string
+   pg_quote string
 
 ***********************************/
 int

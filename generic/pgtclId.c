@@ -25,6 +25,9 @@
 #include "pgtclCmds.h"
 #include "pgtclId.h"
 
+#ifndef CONST84
+#     define CONST84
+#endif
 
 static int
 PgEndCopy(Pg_ConnectionId * connid, int *errorCodePtr)

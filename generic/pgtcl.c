@@ -20,6 +20,11 @@
 #include "pgtclCmds.h"
 #include "pgtclId.h"
 
+#ifdef WIN32
+#include <c.h>
+#endif
+
+
 /* BEGIN STUBS MUMBO JUMBO http://mini.net/tcl/1687 */
 /* We need at least the Tcl_Obj interface that was started in 8.0 */
 #if TCL_MAJOR_VERSION < 8
@@ -62,18 +67,22 @@
  *
  */
 
-int
+EXTERN int
 Pgtcl_Init(Tcl_Interp *interp)
 {
 	double		tclversion;
 	Tcl_Obj    *tclVersionObj;
+
+        #ifdef WIN32
+        WSADATA wsaData;
+        #endif
 
 #ifdef USE_TCL_STUBS
 	if (Tcl_InitStubs(interp, "8.1", 0) == NULL)
 		return TCL_ERROR;
 #endif
 
-        #ifdef WIN32
+        #ifdef WIN32X
         /*
         * On Windows, need to explicitly load the libpq library to
         * force the call to WSAStartup.
@@ -81,14 +90,23 @@ Pgtcl_Init(Tcl_Interp *interp)
         if (LoadLibrary("libpq.dll") == NULL) {
         char buf[32];
         sprintf(buf, "%d", GetLastError());
-        Tcl_AppendResult(interp,
-        "Cannot load "libpq.dll" (or dependant), error was ",
-        buf,
-        NULL);
+        Tcl_AppendResult(interp, "Cannot load "libpq.dll" (or dependant), error was ", buf, NULL);
         return TCL_ERROR;
         }
         #endif
         
+    #ifdef WIN32
+
+            if (WSAStartup(MAKEWORD(1, 1), &wsaData))
+            {
+                   /*
+                    * No really good way to do error handling here, since we
+                    * don't know how we were loaded
+                    */
+                    return FALSE;
+            }
+
+    #endif
 
 	/*
 	 * Tcl versions >= 8.1 use UTF-8 for their internal string

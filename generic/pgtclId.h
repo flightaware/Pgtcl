@@ -15,6 +15,11 @@
  *-------------------------------------------------------------------------
  */
 
+#ifndef CONST84
+#     define CONST84
+#endif
+
+
 extern void PgSetConnectionId(Tcl_Interp *interp, PGconn *conn);
 
 #define DRIVER_OUTPUT_PROTO ClientData cData, CONST84 char *buf, int bufSize, \
