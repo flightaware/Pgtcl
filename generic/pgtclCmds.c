@@ -979,6 +979,8 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 			*/
 			for (tupno = 0; tupno < PQntuples(result); tupno++)
 			{
+				subListObj = Tcl_NewListObj(0, (Tcl_Obj **) NULL);
+
 				/*
 				**	Loop over the attributes for the tuple, 
 				**	and append them to the list
@@ -988,13 +990,19 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				    fieldObj = Tcl_NewObj();
 
 				    Tcl_SetStringObj(fieldObj, PQgetvalue(result, tupno, i), -1);
-				    if (Tcl_ListObjAppendElement(interp, listObj, fieldObj) != TCL_OK)
+				    if (Tcl_ListObjAppendElement(interp, subListObj, fieldObj) != TCL_OK)
 					{
 						Tcl_DecrRefCount(listObj);
 						Tcl_DecrRefCount(fieldObj);
 						return TCL_ERROR;
 					}
 	
+				}
+				if (Tcl_ListObjAppendList(interp, listObj, subListObj) != TCL_OK)
+				{
+					Tcl_DecrRefCount(listObj);
+					Tcl_DecrRefCount(fieldObj);
+					return TCL_ERROR;
 				}
 			}
 	
