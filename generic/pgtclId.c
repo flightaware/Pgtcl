@@ -209,7 +209,7 @@ PgSetConnectionId(Tcl_Interp *interp, PGconn *conn)
  * Get back the connection from the Id
  */
 PGconn *
-PgGetConnectionId(Tcl_Interp *interp, char *id, Pg_ConnectionId ** connid_p)
+PgGetConnectionId(Tcl_Interp *interp, CONST84 char *id, Pg_ConnectionId ** connid_p)
 {
 	Tcl_Channel conn_chan;
 	Pg_ConnectionId *connid;
@@ -317,7 +317,7 @@ PgDelConnectionId(DRIVER_DEL_PROTO)
  * is probably just not clearing result handles like they should.
  */
 int
-PgSetResultId(Tcl_Interp *interp, char *connid_c, PGresult *res)
+PgSetResultId(Tcl_Interp *interp, CONST84 char *connid_c, PGresult *res)
 {
 	Tcl_Channel conn_chan;
 	Pg_ConnectionId *connid;
@@ -375,7 +375,7 @@ PgSetResultId(Tcl_Interp *interp, char *connid_c, PGresult *res)
 }
 
 static int
-getresid(Tcl_Interp *interp, char *id, Pg_ConnectionId ** connid_p)
+getresid(Tcl_Interp *interp, CONST84 char *id, Pg_ConnectionId ** connid_p)
 {
 	Tcl_Channel conn_chan;
 	char	   *mark;
@@ -417,7 +417,7 @@ getresid(Tcl_Interp *interp, char *id, Pg_ConnectionId ** connid_p)
  * Get back the result pointer from the Id
  */
 PGresult *
-PgGetResultId(Tcl_Interp *interp, char *id)
+PgGetResultId(Tcl_Interp *interp, CONST84 char *id)
 {
 	Pg_ConnectionId *connid;
 	int			resid;
@@ -435,7 +435,7 @@ PgGetResultId(Tcl_Interp *interp, char *id)
  * Remove a result Id from the hash tables
  */
 void
-PgDelResultId(Tcl_Interp *interp, char *id)
+PgDelResultId(Tcl_Interp *interp, CONST84 char *id)
 {
 	Pg_ConnectionId *connid;
 	int			resid;
@@ -451,7 +451,7 @@ PgDelResultId(Tcl_Interp *interp, char *id)
  * Get the connection Id from the result Id
  */
 int
-PgGetConnByResultId(Tcl_Interp *interp, char *resid_c)
+PgGetConnByResultId(Tcl_Interp *interp, CONST84 char *resid_c)
 {
 	char	   *mark;
 	Tcl_Channel conn_chan;
@@ -463,7 +463,7 @@ PgGetConnByResultId(Tcl_Interp *interp, char *resid_c)
 	*mark = '.';
 	if (conn_chan && Tcl_GetChannelType(conn_chan) == &Pg_ConnType)
 	{
-		Tcl_SetResult(interp, Tcl_GetChannelName(conn_chan), TCL_VOLATILE);
+		Tcl_SetResult(interp, (char *)Tcl_GetChannelName(conn_chan), TCL_VOLATILE);
 		return TCL_OK;
 	}
 
