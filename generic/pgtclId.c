@@ -17,9 +17,9 @@
  *
  *-------------------------------------------------------------------------
  */
-#include "internal/postgres_fe.h"
 
 #include <errno.h>
+#include <libpq-fe.h>
 
 #include "pgtclCmds.h"
 #include "pgtclId.h"
@@ -274,7 +274,7 @@ PgDelConnectionId(DRIVER_DEL_PROTO)
 	 * Turn off the Tcl event source for this connection, and delete any
 	 * pending notify and connection-loss events.
 	 */
-	PgStopNotifyEventSource(connid, true);
+	PgStopNotifyEventSource(connid, 1);
 
 	/* Close the libpq connection too */
 	PQfinish(connid->conn);
@@ -674,7 +674,7 @@ PgConnLossTransferEvents(Pg_ConnectionId * connid)
 	 * unprocessed notify events ... but not, of course, the
 	 * connection-loss event.
 	 */
-	PgStopNotifyEventSource(connid, false);
+	PgStopNotifyEventSource(connid, 0);
 }
 
 /*
@@ -805,7 +805,7 @@ PgStartNotifyEventSource(Pg_ConnectionId * connid)
 }
 
 void
-PgStopNotifyEventSource(Pg_ConnectionId * connid, bool allevents)
+PgStopNotifyEventSource(Pg_ConnectionId * connid, pqbool allevents)
 {
 	/* Remove the event source */
 	if (connid->notifier_running)

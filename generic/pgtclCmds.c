@@ -12,9 +12,10 @@
  *
  *-------------------------------------------------------------------------
  */
-#include "internal/postgres_fe.h"
 
 #include <ctype.h>
+#include <string.h>
+#include <libpq-fe.h>
 
 #include "pgtclCmds.h"
 #include "pgtclId.h"
@@ -2213,10 +2214,10 @@ Pg_have_listener(Pg_ConnectionId * connid, const char *relname)
 		if (entry == NULL)
 			continue;			/* no pg_listen in this interpreter */
 
-		return TRUE;			/* OK, there is a listener */
+		return 1;			/* OK, there is a listener */
 	}
 
-	return FALSE;				/* Found no listener */
+	return 0;				/* Found no listener */
 }
 
 /***********************************

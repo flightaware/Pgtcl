@@ -177,6 +177,8 @@ AC_DEFINE(USE_TCL_STUBS)
 # Get the path to the Postgres installation.
 #--------------------------------------------------------------------
 
+AC_PATH_PROGS(PG_CONFIG, pg_config)
+
 LIBPG=""
 AC_ARG_WITH(postgres-include,[ --with-postgres-include=DIR	Postgres includes are in DIR],
 	PG_INC_DIR=$withval, PG_INC_DIR="")
@@ -221,6 +223,7 @@ TEA_PROG_TCLSH
 #TEA_PROG_WISH
 
 AC_CHECK_FUNC(PQexecParams, [AC_DEFINE(HAVE_PQEXECPARAMS)])
+AC_CHECK_FUNC(PQexecPrepared, [AC_DEFINE(HAVE_PQEXECPREPARED)])
 
 #--------------------------------------------------------------------
 # Finally, substitute all of the various values into the Makefile.

@@ -2,29 +2,19 @@
 
 $Id$
 
-There are a couple of tweaks that need to be done to build and install and
-run under Mac OS X.  We'd love some help in making this a port in the Mac
-OS X darwinports tree, so this could be automatic.
+Configuration of libpgtcl under Mac OS X no longer requires any tweaks.
+
+We'd love some help in making this a port in the Mac OS X darwinports tree, 
+so this build can be even more automatic.
 
 For now, you need to build and install Tcl and Postgres
 
     port install tcl
     port install postgresql
 
-
 Then run configure in this directory with the following parameters:
 
-./configure --prefix=/opt/local  --with-postgres-include=/opt/local/include/postgresql --includedir=/opt/local/include --with-postgres-lib=/opt/local/lib
-
-Finally, and this is gross,
-edit the Makefile to add /opt/local/include to the list of includes:
-
-Add
-
-    -I/opt/local/include
-
-to INCLUDES line
-
+./configure --prefix=/opt/local --with-postgres-include=/opt/local/include --with-postgres-lib=/opt/local/lib
 
 Here's one way to start it up:
 
