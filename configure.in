@@ -99,7 +99,7 @@ AC_SUBST(PG_LIB_DIR)
 PACKAGE=pgtcl
 
 MAJOR_VERSION=1
-MINOR_VERSION=4
+MINOR_VERSION=5
 PATCHLEVEL=
 
 VERSION=${MAJOR_VERSION}.${MINOR_VERSION}${PATCHLEVEL}
@@ -132,6 +132,13 @@ TEA_INIT
 
 TEA_PATH_TCLCONFIG
 TEA_LOAD_TCLCONFIG
+
+
+
+SAVE_LIBS=$LIBS
+LIBS="$TCL_LIB_SPEC $LIBS"
+AC_CHECK_FUNCS(Tcl_NewDictObj)
+LIBS=$SAVE_LIBS
 
 #--------------------------------------------------------------------
 # Load the tkConfig.sh file if necessary (Tk extension)
