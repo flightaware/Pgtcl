@@ -3,7 +3,13 @@ if {[lsearch [namespace children] ::tcltest] == -1} {
     namespace import -force ::tcltest::*
 }
 
-load [file join .. libpgtcl1.4.so]
+foreach F [list ../libpgtcl1.4.so libpgtcl1.4.so] {
+
+    if {[file exists $F]} {
+
+        load $F
+    }
+}
 
 #
 #   set this to your specific location
@@ -73,16 +79,16 @@ test pgtcl-0.4 {connect to db using -connhandle option} {
 #
 test pgtcl-0.5 {use connection as command} {
 
-    set conn [pg::connect -connlist [array get ::conninfo]]
+    set conn [pg::connect -connlist [array get ::conninfo] -connhandle myhan]
 
-    set res [$conn exec "SELECT * FROM Pg_class LIMIT 5"]
+    set res [myhan exec "SELECT * FROM Pg_class LIMIT 5"]
 
     pg_result $res -clear
 
     pg_disconnect $conn
 
     set res
-} pgsql3.0
+} myhan.0
 
 #
 #
