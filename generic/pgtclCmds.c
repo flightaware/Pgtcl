@@ -539,7 +539,7 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	 * are included, we maintain compatibility for code that doesn't
 	 * use params and might have had multiple statements in a single 
 	 * request */
-	if (nParams == 0} {
+	if (nParams == 0) {
 	    result = PQexec(conn, execString);
 	} else {
 	    result = PQexecParams(conn, execString, nParams, NULL, paramValues, NULL, NULL, 1);
