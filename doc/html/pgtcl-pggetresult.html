@@ -2,7 +2,7 @@
 <HTML
 ><HEAD
 ><TITLE
->pg_lo_export</TITLE
+>pg_getresult</TITLE
 ><META
 NAME="GENERATOR"
 CONTENT="Modular DocBook HTML Stylesheet Version 1.7"><LINK
@@ -15,11 +15,11 @@ REL="UP"
 TITLE="pgtcl Command Reference"
 HREF="libpgtcl-ref.html"><LINK
 REL="PREVIOUS"
-TITLE="pg_lo_import"
-HREF="pgtcl-pgloimport.html"><LINK
+TITLE="pg_sendquery"
+HREF="pgtcl-pgsendquery.html"><LINK
 REL="NEXT"
-TITLE="Example Program"
-HREF="pgtcl-examplesect.html"><LINK
+TITLE="pg_isbusy"
+HREF="pgtcl-pgisbusy.html"><LINK
 REL="STYLESHEET"
 TYPE="text/css"
 HREF="stylesheet.css"><META
@@ -48,7 +48,7 @@ WIDTH="10%"
 ALIGN="left"
 VALIGN="top"
 ><A
-HREF="pgtcl-pgloimport.html"
+HREF="pgtcl-pgsendquery.html"
 ACCESSKEY="P"
 >Prev</A
 ></TD
@@ -57,7 +57,7 @@ WIDTH="10%"
 ALIGN="left"
 VALIGN="top"
 ><A
-HREF="pgtcl-pgloimport.html"
+HREF="pgtcl-pgsendquery.html"
 >Fast Backward</A
 ></TD
 ><TD
@@ -70,7 +70,7 @@ WIDTH="10%"
 ALIGN="right"
 VALIGN="top"
 ><A
-HREF="libpgtcl.html"
+HREF="pgtcl-pgisbusy.html"
 >Fast Forward</A
 ></TD
 ><TD
@@ -78,7 +78,7 @@ WIDTH="10%"
 ALIGN="right"
 VALIGN="top"
 ><A
-HREF="pgtcl-examplesect.html"
+HREF="pgtcl-pgisbusy.html"
 ACCESSKEY="N"
 >Next</A
 ></TD
@@ -89,59 +89,71 @@ ALIGN="LEFT"
 WIDTH="100%"></DIV
 ><H1
 ><A
-NAME="PGTCL-PGLOEXPORT"
+NAME="PGTCL-PGGETRESULT"
 ></A
->pg_lo_export</H1
+>pg_getresult</H1
 ><DIV
 CLASS="REFNAMEDIV"
 ><A
-NAME="AEN1307"
+NAME="AEN785"
 ></A
 ><H2
 >Name</H2
->pg_lo_export&nbsp;--&nbsp;export a large object to a file<A
-NAME="IX-PGTCL-PGLOEXPORT-2"
+>pg_getresult&nbsp;--&nbsp;process asychronous results<A
+NAME="IX-PGTCL-PGGETRESULT-2"
 ></A
 ></DIV
 ><DIV
 CLASS="REFSYNOPSISDIV"
 ><A
-NAME="AEN1312"
+NAME="AEN790"
 ></A
 ><H2
 >Synopsis</H2
 ><PRE
 CLASS="SYNOPSIS"
->pg_lo_export <VAR
+>pg_getresult <VAR
 CLASS="PARAMETER"
 >conn</VAR
-> <VAR
-CLASS="PARAMETER"
->loid</VAR
-> <VAR
-CLASS="PARAMETER"
->filename</VAR
 ></PRE
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN1317"
+NAME="AEN793"
 ></A
 ><H2
 >Description</H2
 ><P
 >   <CODE
 CLASS="FUNCTION"
->pg_lo_export</CODE
-> writes the specified large object
-   into a file.
+>pg_getresult</CODE
+> checks to see if any commands
+   issued by <CODE
+CLASS="FUNCTION"
+>pg_sendquery</CODE
+> have completed.
+  </P
+><P
+>   This will return the same sort of result handle that 
+   <CODE
+CLASS="FUNCTION"
+>pg_exec</CODE
+> returns.
+  </P
+><P
+>   If there is no query currently being processed or all of the results
+   have been obtained, <CODE
+CLASS="FUNCTION"
+>pg_getresult</CODE
+> returns
+   nothing.
   </P
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN1321"
+NAME="AEN802"
 ></A
 ><H2
 >Arguments</H2
@@ -157,28 +169,8 @@ CLASS="PARAMETER"
 ></DT
 ><DD
 ><P
->      The handle of a connection to the database in which the large object
-      exists.
-     </P
-></DD
-><DT
-><VAR
-CLASS="PARAMETER"
->loid</VAR
-></DT
-><DD
-><P
->      The OID of the large object.
-     </P
-></DD
-><DT
-><VAR
-CLASS="PARAMETER"
->filename</VAR
-></DT
-><DD
-><P
->      Specifies the file into which the data is to be exported.
+>      The handle of a connection to the database to which asynchronous
+      requests are being issued.
      </P
 ></DD
 ></DL
@@ -187,33 +179,24 @@ CLASS="PARAMETER"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN1339"
+NAME="AEN810"
 ></A
 ><H2
 >Return Value</H2
 ><P
->   None
-  </P
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN1342"
-></A
-><H2
->Notes</H2
-><P
->   <CODE
+>   If a query result is available, a command result object is returned.
+   This handle can be passed to <CODE
 CLASS="FUNCTION"
->pg_lo_export</CODE
-> must be called within a
-   <TT
-CLASS="COMMAND"
->BEGIN</TT
->/<TT
-CLASS="COMMAND"
->COMMIT</TT
-> transaction block.
+>pg_result</CODE
+> to
+   obtain the results of the command.
+  </P
+><P
+>   If there is no query currently being processed or all of the results
+   have been obtained, <CODE
+CLASS="FUNCTION"
+>pg_getresult</CODE
+> returns nothing.
   </P
 ></DIV
 ><DIV
@@ -232,7 +215,7 @@ WIDTH="33%"
 ALIGN="left"
 VALIGN="top"
 ><A
-HREF="pgtcl-pgloimport.html"
+HREF="pgtcl-pgsendquery.html"
 ACCESSKEY="P"
 >Prev</A
 ></TD
@@ -250,7 +233,7 @@ WIDTH="33%"
 ALIGN="right"
 VALIGN="top"
 ><A
-HREF="pgtcl-examplesect.html"
+HREF="pgtcl-pgisbusy.html"
 ACCESSKEY="N"
 >Next</A
 ></TD
@@ -260,7 +243,7 @@ ACCESSKEY="N"
 WIDTH="33%"
 ALIGN="left"
 VALIGN="top"
->pg_lo_import</TD
+>pg_sendquery</TD
 ><TD
 WIDTH="34%"
 ALIGN="center"
@@ -274,7 +257,7 @@ ACCESSKEY="U"
 WIDTH="33%"
 ALIGN="right"
 VALIGN="top"
->Example Program</TD
+>pg_isbusy</TD
 ></TR
 ></TABLE
 ></DIV

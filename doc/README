@@ -8,7 +8,11 @@ It has been updated to document the latest capabilities of Pgtcl.
 The release ships with documentation in HTML and PDF form.
 
 To build your own docs from the sgml source is beyond the scope of this
-document.
+document.  For starters, though, you'll need openjade, pdfjadetex,
+docbook 4.2, DSSSL Docbook (cygnus), and probably some other stuff.
+
+"make" should make libpgtcl.pdf.  make dohtml should make the html subdirectory
+and (re)populate it with html files documenting libpgtcl.
 
 If you're using FreeBSD, it's pretty easy.
 

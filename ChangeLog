@@ -1,6 +1,11 @@
 
 $Id$
 
+2004-11-30 Karl Lehenbauer <karl-pg@sc.com>
+    * Documented pg_getresult and pg_result -error suboptions.  
+
+    * Regenerated pdf and html documentation.
+
 2004-11-29 Karl Lehenbauer <karl-pg@sc.com>
     * Added library of useful PostreSQL helper functions to the playpen.
 

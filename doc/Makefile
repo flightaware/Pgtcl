@@ -22,6 +22,7 @@ SGMLSOURCE=libpgtcl.sgml
 all:	libpgtcl.pdf
 
 dohtml:
+	-rm html/*.html
 	-openjade -V draft-mode -wall -wno-unused-param -wno-empty -D . -c $(DOCBOOKDIR) -d $(STYLESHEET) -i output-html -t sgml $(SGMLSOURCE)
 	-mkdir html
 	mv *.html html
@@ -32,4 +33,4 @@ libpgtcl.pdf:	$(SGMLSOURCE)
 	rm -f libpgtcl.tex-pdf
 
 clean:
-	rm -f libpgtcl.aux libpgtcl.log libpgtcl.out HTML.index libpgtcl.tex-pdf
+	rm -f libpgtcl.aux libpgtcl.log libpgtcl.out HTML.index libpgtcl.tex-pdf libpgtcl.fot
