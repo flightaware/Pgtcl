@@ -907,9 +907,8 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	result = PgGetResultId(interp, queryResultString);
 	if (result == (PGresult *)NULL)
 	{
-            tresult = Tcl_NewStringObj("\n", -1);
-            Tcl_AppendStringsToObj(tresult, queryResultString, -1);
-            Tcl_AppendStringsToObj(tresult, " is not a valid query result", -1);
+            tresult = Tcl_NewStringObj(queryResultString, -1);
+            Tcl_AppendStringsToObj(tresult, " is not a valid query result", NULL);
             Tcl_SetObjResult(interp, tresult);
        /*
         Tcl_AppendStringsToObj(Tcl_GetObjResult(interp), "\n", 
@@ -927,7 +926,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 #ifndef HAVE_TCL_NEWDICTOBJ
     if ((enum options) optIndex == OPT_DICT)
     {
-        Tcl_SetObjResult(interp, Tcl_NewStringObj("You need a Tcl version that supports dicts in order to use the -dict option", -1));
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("You need a Tcl version (8.5+)that supports dicts in order to use the -dict option", -1));
 	    return TCL_ERROR;
     }
 
@@ -1171,7 +1170,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				if (tupno < 0 || tupno >= PQntuples(result))
 				{
                     tresult = Tcl_NewStringObj("argument to getTuple cannot exceed ", -1);
-                    Tcl_AppendStringsToObj(tresult, "number of tuples - 1", -1);
+                    Tcl_AppendStringsToObj(tresult, "number of tuples - 1", NULL);
                     Tcl_SetObjResult(interp, tresult);
 /*
                     Tcl_AppendStringsToObj(Tcl_GetObjResult(interp),
@@ -1214,7 +1213,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				if (tupno < 0 || tupno >= PQntuples(result))
 				{
                     tresult = Tcl_NewStringObj("argument to tupleArray cannot exceed ", -1);
-                    Tcl_AppendStringsToObj(tresult, "number of tuples - 1", -1);
+                    Tcl_AppendStringsToObj(tresult, "number of tuples - 1", NULL);
                     Tcl_SetObjResult(interp, tresult);
 
 /*
@@ -1392,6 +1391,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		case OPT_DICT: 
                 {
 
+#ifdef HAVE_TCL_NEWDICTOBJ
 			listObj = Tcl_NewDictObj();
 	
 			/*
@@ -1439,6 +1439,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 			Tcl_SetObjResult(interp, listObj);
 			return TCL_OK;
 
+#endif /* HAVE_TCL_NEWDICTOBJ */
                 }
 		default:
 			{
@@ -1462,10 +1463,11 @@ Pg_result_errReturn:
 					 "\t-tupleArray tupleNumber arrayVarName\n",
 					 "\t-attributes\n"
 					 "\t-lAttributes\n"
-                                        "\t-list\n",
-                                        "\t-llist\n",
+					 "\t-list\n",
+					 "\t-llist\n",
 					 "\t-clear\n",
-					 -1);
+					 "\t-dict\n",
+					 (char *)NULL);
         Tcl_SetObjResult(interp, tresult);
 	return TCL_ERROR;
 }

@@ -6467,24 +6467,16 @@ test "x$exec_prefix" = xNONE && exec_prefix='${prefix}'
 # ${srcdir} and @srcdir@ from VPATH if srcdir is ".", strip leading and
 # trailing colons and then remove the whole line if VPATH becomes empty
 # (actually we leave an empty line to preserve line numbers).
-###if test "x$srcdir" = x.; then
-###  ac_vpsub='/^[ 	]*VPATH[ 	]*=/{
-###s/:*\$(srcdir):*/:/;
-###s/:*\${srcdir}:*/:/;
-###s/:*@srcdir@:*/:/;
-###s/^\([^=]*=[ 	]*\):*/\1/;
-###s/:*$//;
-###s/^[^=]*=[ 	]*$//;
-###}'
-###fi
-
-# NOTE: commented out the above, and put the below in since it was
-# generating the wrong VPATH (at least on Linux)
-#
 if test "x$srcdir" = x.; then
-  ac_vpsub='/^[         ]*VPATH[        ]*=[^:]*$/d'
+  ac_vpsub='/^[ 	]*VPATH[ 	]*=/{
+s/:*\$(srcdir):*/:/;
+s/:*\${srcdir}:*/:/;
+s/:*@srcdir@:*/:/;
+s/^\([^=]*=[ 	]*\):*/\1/;
+s/:*$//;
+s/^[^=]*=[ 	]*$//;
+}'
 fi
-
 
 # Transform confdefs.h into DEFS.
 # Protect against shell expansion while executing Makefile rules.

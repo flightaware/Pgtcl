@@ -1,6 +1,16 @@
 
 $Id$
 
+2004-11-16 Karl Lehenbauer <karl-pg@sc.com>
+    * libpgtcl will again build with versions of Tcl < 8.5 thanks to a little
+      extra checking for HAVETCL_NEWDICTOBJ
+
+    * Fixed several calls to Tcl_AppendStringsToObj whose arguments were 
+      terminated with -1 instead of NULL, eliminating several segmentation
+      violations that could occur while preparing error messages.
+
+    * Removed spurious newline at the start of the error message when
+      the query result handle passed to pg_result is invalid.
 
 2004-11-05 Brett Schwarz <brett_schwarz@yahoo.com>
     * added delete proc for result handle cleanup
