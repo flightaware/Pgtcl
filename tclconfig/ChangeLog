@@ -1,3 +1,167 @@
+2004-09-07  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl.m4 (TEA_CONFIG_CFLAGS): support eVC4 Win/CE builds
+
+2004-08-10  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl.m4 (TEA_INIT, TEA_PREFIX): update handling of exec_prefix to
+	work around subdir configures since autoconf only propagates the
+	prefix (not exec_prefix).
+
+2004-07-23  Daniel Steffen  <das@users.sourceforge.net>
+
+	* tcl.m4 (TEA_CONFIG_CFLAGS): Darwin section: brought inline with
+	Tcl 8.5 HEAD config, removed core specific & obsolete settings.
+
+2004-07-22  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl.m4 (TEA_PATH_X): check in TK_DEFS for MAC_OSX_TK to see if
+	we are compiling on Aqua.  Add TEA_WINDOWINGSYSTEM var that
+	reflects 'tk windowingsystem' value.
+
+2004-07-16  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl.m4 (TEA_ENABLE_THREADS): force a threaded build when
+	building against a threaded core.
+	(CFLAGS_WARNING): Remove -Wconversion for gcc builds
+	(TEA_CONFIG_CFLAGS): Reorder configure.in for better 64-bit build
+	configuration, replacing EXTRA_CFLAGS with CFLAGS.  [Bug #874058]
+	Update to latest Tcl 8.5 head config settings.
+	Call this TEA version 3.1.
+
+2004-04-29  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl.m4 (TEA_TCL_64BIT_FLAGS): replace AC_TRY_RUN test with
+	AC_TRY_COMPILE for the long vs. long long check. (kenny)
+
+2004-04-26  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl.m4 (TEA_TCL_64BIT_FLAGS): update against core tcl.m4 to
+	define TCL_WIDE_INT_IS_LONG if 'using long'.
+
+2004-03-19  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl.m4: correct Windows builds getting LDFLAGS info in MAKE_LIB
+
+2004-02-11  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl.m4: correct TCL_INCLUDES for private headers on Windows - it
+	doesn't need the eval.
+
+2004-02-10  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl.m4: don't require TK_INCLUDES and TCL_INCLUDES to have the
+	DIR_NATIVE vars defined when using private headers on unix.
+	Allow $... to TEA_ADD_SOURCES for constructs like
+	TEA_ADD_SOURCES([\$(WIN_OBJECTS)]), that allow the developer to
+	place more in the Makefile.in.
+	tkUnixPort.h checks for HAVE_LIMITS_H, so do both HAVE and
+	CHECK on limits.h
+
+2003-12-10  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* Makefile.in:      added TEA_ADD_LIBS, TEA_ADD_INCLUDES and
+	* configure:        TEA_ADD_CFLAGS to configurable parameters with
+	* configure.in:     PKG_* equivs in the Makefile.  This allows the
+	* tclconfig/tcl.m4: user to worry less about actual magic VAR names.
+	Corrected Makefile.in to note that TEA_ADD_TCL_SOURCES requires
+	exact file names.
+
+2003-12-09  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl.m4: updated OpenBSD support based on [Patch #775246] (cassoff)
+
+2003-12-05  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* configure:
+	* configure.in:
+	* Makefile.in (VPATH): readd $(srcdir) to front of VPATH as the
+	first part of VPATH can get chopped off.
+	Change .c.$(OBJEXT) rule to .c.@OBJEXT@ to support more makes.
+	* tclconfig/tcl.m4: add TEA_ADD_STUB_SOURCES to support libstub
+	generation and TEA_ADD_TCL_SOURCES to replace RUNTIME_SOURCES as
+	the way the user specifies library files.
+
+2003-12-03  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* configure:           Update of TEA spec to (hopefully) simplify
+	* configure.in:        some aspects of TEA by making use of more
+	* Makefile.in:         AC 2.5x features.  Use PACKAGE_NAME (instead
+	* generic/tclsample.c: of PACKAGE) and PACKAGE_VERSION (instead of
+	* tclconfig/tcl.m4:    VERSION) arguments to AC_INIT as the TEA
+	package name and version.
+	Provide a version argument to TEA_INIT - starting with 3.0.
+	Drop all use of interior shell substs that older makefiles didn't
+	like.  Use PKG_* naming convention instead.
+	Move specification of source files and public headers into
+	configure.in with TEA_ADD_SOURCES and TEA_ADD_HEADERS.  These will
+	be munged during ./configure into the right obj file names (no
+	$(SOURCES:.c=.obj) needed).
+	There is almost nothing that should be touched in Makefile.in now
+	for the developer.  May want to add a TEA_ADD_TCL_SOURCES for the
+	RUNTIME_SOURCES that remains.
+	Use SHLID_LD_FLAGS (instead of SHLID_LDFLAGS) as Tcl does.
+	Only specify the user requested LDFLAGS/CFLAGS in the Makefile,
+	don't mention the _OPTIMIZE/_DEBUG variants.
+
+2003-10-15  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl.m4: create a TEA_SETUP_COMPILER_CC the precedes the
+	TEA_SETUP_COMPILER macro.  They are split so the check for CC
+	occurs before any use of CC.  Also add AC_PROG_CPP to the compiler
+	checks.
+
+2003-10-06  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl.m4: Updated for autoconf 2.5x prereq.
+	Where TCL_WIDE_INT_TYPE would be __int64, defer to the code checks
+	in tcl.h, which also handles TCL_LL_MODIFIER* properly.
+
+2003-04-22  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl.m4: correct default setting of ARCH for WinCE builds.
+	Correct \ escaping for CE sed macros.
+
+2003-04-10  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl.m4: replace $(syscal) construct with older `syscall` for
+	systems where sh != bash.
+
+2003-04-09  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl.m4 (TEA_WITH_CELIB): add --enable-wince and --with-celib
+	options for Windows/CE compilation support.  Requires the
+	Microsoft eMbedded SDK and Keuchel's celib emulation layer.
+
+2003-02-18  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl.m4 (TEA_ENABLE_THREADS): Make sure -lpthread gets passed on
+	the link line when checking for the pthread_attr_setstacksize
+	symbol. (dejong)
+
+	* tcl.m4 (TEA_SETUP_COMPILER): added default calls to
+	TEA_TCL_EARLY_FLAGS, TEA_TCL_64BIT_FLAGS,
+	TEA_MISSING_POSIX_HEADERS and TEA_BUGGY_STRTOD.
+
+2003-02-14  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl.m4: correct HP-UX ia64 --enable-64bit build flags
+
+2003-01-29  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl.m4: check $prefix/lib as well as $exec_prefix/lib when
+	looking for tcl|tkConfig.sh, as this check is done before we would
+	set exec_prefix when the user does not define it.
+
+2003-01-21  Mo DeJong  <mdejong@users.sourceforge.net>
+
+	* tcl.m4 (TEA_CONFIG_CFLAGS): Fix build support
+	for mingw, the previous implementation would
+	use VC++ when compiling with mingw gcc. Don't
+	pass -fPIC since gcc always compiles pic code
+	under win32. Change some hard coded cases
+	of gcc to ${CC}.
+
 2002-10-15  Jeff Hobbs  <jeffh@ActiveState.com>
 
 	* tcl.m4: move the CFLAGS definition from TEA_ENABLE_SHARED to
