@@ -1521,17 +1521,17 @@ into SQL statements.
   <para>
 If you're doing something like
 <programlisting>
-    pg_exec $conn "insert into foo(name='$name');" 
+    pg_exec $conn "insert into foo values ('$name');" 
 </programlisting>
-and <varname>name</varname> contains a single
-quote, it'll fail.  Passing value strings through 
-<function>pg_quote</function>
+and <varname>name</varname> contains text includeing an unescaped single
+quote, such as <literal>Bob's House</literal>, the insert will fail.  
+Passing value strings through <function>pg_quote</function>
 make sure they can be used as values and stuff in Postgres.
 
 <programlisting>
-    pg_exec $conn "insert into foo(name=[pg_quote $name]);" 
+    pg_exec $conn "insert into foo values ([pg_quote $name]);" 
 </programlisting>
-will make sure that any special characters that occur in name, such as
+...will make sure that any special characters that occur in name, such as
 single quote or backslash, will be properly quoted.
   </para>
  </refsect1>
