@@ -852,8 +852,8 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 					return TCL_OK;
 				}
 
-				if (Tcl_GetIndexFromObj(interp, objv[3], options, 
-				    "errorOption", TCL_EXACT, &errorOptIndex) != TCL_OK) {
+				if (Tcl_GetIndexFromObj(interp, objv[3], errorOptions, 
+				    "error suboption", TCL_EXACT, &errorOptIndex) != TCL_OK) {
 					return TCL_ERROR;
 				}
 

@@ -1,6 +1,28 @@
 
 $Id$
 
+2004-06-22 Karl Lehenbauer <karl-pg@sc.com>
+    * Added new optional subidentifiers to pg_result $resultID -error. 
+      You can specify one of "severity", "sqlstate", "primary", "detail",
+      "hint", "position", "context", "file", "line", or "function" to
+      get the severity (ERROR, FATAL, PANIC, WARNING, NOTICE, DEBUG,
+      INFO, or LOG or a localized translation of one of these), the
+      SQLSTATE code (see Appendix A of the Postgres manual), the
+      primary human-readable error message, the optional secondary
+      error message carrying more detail about the problem, the hint,
+      an optional suggestion about what to do, the position, an error
+      cursor position as an index into the original statement string
+      starting from 1 (in characters, not bytes), the context,
+      the source file where the error was reported, the line number of
+      the source code where the error was reported, and the name
+      of the source code function reporting the error, respectively.
+
+      With newer versions of Postgres, $-variable substitution is now
+      supported in pg_sendquery as it is in pg_exec.
+
+    * Added a new function, pg_sendquery_prepared, that supports
+      asynchronous invocation of prepared statements.
+
 2004-06-21 Karl Lehenbauer <karl-pg@sc.com>
     * Added parameter support to the asynchronous pg_sendquery function.
       With newer versions of Postgres, $-variable substitution is now
