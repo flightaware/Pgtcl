@@ -53,7 +53,7 @@ fi
 
 SAVE_LIBS=$LIBS
 LIBS="$PG_LIBS $LIBS"
-AC_CHECK_FUNCS(PQexecParams PQexecPrepared)
+AC_CHECK_FUNCS(PQexecParams PQexecPrepared PQsendQueryParams PQsendQueryPrepared)
 LIBS=$SAVE_LIBS
 
 AC_SUBST(LIBPG)

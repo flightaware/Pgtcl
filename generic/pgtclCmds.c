@@ -497,6 +497,7 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	char	   *execString;
 	const char **paramValues = NULL;
 
+	/* THIS CODE IS REPLICATED IN Pg_sendquery AND SHOULD BE FACTORED */
 #ifdef HAVE_PQEXECPARAMS
 	int         nParams;
 
@@ -612,6 +613,7 @@ Pg_exec_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 
 	int         nParams;
 
+    /* THIS CODE IS REPLICATED IN Pg_sendquery_prepared AND NEEDS TO BE FACTORED */
 #ifndef HAVE_PQEXECPREPARED
 	Tcl_AppendResult(interp, "function unavailable with this version of the postgres libpq library", 0);
 	return TCL_ERROR;
@@ -2432,11 +2434,42 @@ Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
 	char	   *execString;
 	int			status;
 
+	/* THIS CODE IS REPLICATED IN Pg_exec AND SHOULD BE FACTORED */
+#ifdef HAVE_PQSENDQUERYPARAMS
+	int         nParams;
+	const char **paramValues = NULL;
+
+	if (objc < 3)
+	{
+		Tcl_WrongNumArgs(interp, 1, objv, "connection queryString [parm...]");
+		return TCL_ERROR;
+	}
+
+	/* extra params will substitute for $1, $2, etc, in the statement */
+	/* objc must be 3 or greater at this point */
+	nParams = objc - 3;
+
+	/* If there are any extra params, allocate paramValues and fill it
+	 * with the string representations of all of the extra parameters
+	 * substituted on the command line.  Otherwise nParams will be 0,
+	 * and PQexecParams will work just like PQexec (no $-substitutions).
+	 */
+	if (nParams > 0) {
+	    int param;
+
+	    paramValues = (const char **)ckalloc (nParams * sizeof (char *));
+
+	    for (param = 0; param < nParams; param++) {
+		paramValues[param] = Tcl_GetStringFromObj (objv[3+param], NULL);
+	    }
+	}
+#else /* HAVE_PQSENDQUERYPARAMS */
 	if (objc != 3)
 	{
 		Tcl_WrongNumArgs(interp, 1, objv, "connection queryString");
 		return TCL_ERROR;
 	}
+#endif /* HAVE_PQSENDQUERYPARAMS */
 
 	connString = Tcl_GetStringFromObj(objv[1], NULL);
 
@@ -2452,7 +2485,15 @@ Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
 
 	execString = Tcl_GetStringFromObj(objv[2], NULL);
 
-	status = PQsendQuery(conn, execString);
+#ifdef HAVE_PQSENDQUERYPARAMS
+	if (nParams == 0) {
+#endif
+		status = PQsendQuery(conn, execString);
+#ifdef HAVE_PQSENDQUERYPARAMS
+	} else {
+	    status = PQsendQueryParams(conn, execString, nParams, NULL, paramValues, NULL, NULL, 1);
+	}
+#endif
 
 	/* Transfer any notify events from libpq to Tcl event queue. */
 	PgNotifyTransferEvents(connid);
@@ -2466,6 +2507,94 @@ Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
 		return TCL_ERROR;
 	}
 }
+
+/**********************************
+ * pg_sendquery_prepared
+ send a request to executed a prepared statement with given parameters  
+ to the backend connection, asynchronously
+
+ syntax:
+ pg_sendquery_prepared connection statement_name [var1] [var2]...
+
+ the return result is either an error message or a handle for a query
+ result.  Handles start with the prefix "pgp"
+ **********************************/
+
+int
+Pg_sendquery_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+{
+	Pg_ConnectionId *connid;
+	PGconn	   *conn;
+	char	   *connString;
+	char	   *statementNameString;
+	const char **paramValues = NULL;
+
+	int         nParams;
+	int         status;
+
+    /* THIS CODE IS REPLICATED IN Pg_exec_prepared AND NEEDS TO BE FACTORED */
+#ifndef HAVE_PQSENDQUERYPREPARED
+	Tcl_AppendResult(interp, "function unavailable with this version of the postgres libpq library", 0);
+	return TCL_ERROR;
+#else /* HAVE_PQSENDQUERYPREPARED */
+	if (objc < 3)
+	{
+		Tcl_WrongNumArgs(interp, 1, objv, "connection statementName [parm...]");
+		return TCL_ERROR;
+	}
+
+	/* extra params will substitute for $1, $2, etc, in the statement */
+	/* objc must be 3 or greater at this point */
+	nParams = objc - 3;
+
+	/* If there are any extra params, allocate paramValues and fill it
+	 * with the string representations of all of the extra parameters
+	 * substituted on the command line.  Otherwise nParams will be 0,
+	 * and we don't need to allocate space, paramValues will be NULL.
+	 * However, prepared statements that don't take any parameters aren't
+	 * generally real useful.
+	 */
+	if (nParams > 0) {
+	    int param;
+
+	    paramValues = (const char **)ckalloc (nParams * sizeof (char *));
+
+	    for (param = 0; param < nParams; param++) {
+		paramValues[param] = Tcl_GetStringFromObj (objv[3+param], NULL);
+	    }
+	}
+
+	/* figure out the connect string and get the connection ID */
+
+	connString = Tcl_GetStringFromObj(objv[1], NULL);
+	conn = PgGetConnectionId(interp, connString, &connid);
+	if (conn == NULL)
+		return TCL_ERROR;
+
+	if (connid->res_copyStatus != RES_COPY_NONE)
+	{
+		Tcl_SetResult(interp, "Attempt to query while COPY in progress", TCL_STATIC);
+		return TCL_ERROR;
+	}
+
+	statementNameString = Tcl_GetStringFromObj(objv[2], NULL);
+
+	status = PQsendQueryPrepared(conn, statementNameString, nParams, paramValues, NULL, NULL, 1);
+
+	/* Transfer any notify events from libpq to Tcl event queue. */
+	PgNotifyTransferEvents(connid);
+
+	if (status)
+		return TCL_OK;
+	else
+	{
+		/* error occurred during the query */
+		Tcl_SetObjResult(interp, Tcl_NewStringObj(PQerrorMessage(conn), -1));
+		return TCL_ERROR;
+	}
+#endif /* HAVE_PQSENDQUERYPREPARED */
+}
+
 
 /**********************************
  * pg_getresult

@@ -625,7 +625,7 @@ fi
 
 SAVE_LIBS=$LIBS
 LIBS="$PG_LIBS $LIBS"
-for ac_func in PQexecParams PQexecPrepared
+for ac_func in PQexecParams PQexecPrepared PQsendQueryParams PQsendQueryPrepared
 do
 echo $ac_n "checking for $ac_func""... $ac_c" 1>&6
 echo "configure:632: checking for $ac_func" >&5

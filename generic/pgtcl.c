@@ -245,6 +245,12 @@ Pgtcl_Init(Tcl_Interp *interp)
 						 NULL);
 
 	Tcl_CreateObjCommand(interp,
+						 "pg_sendquery_prepared",
+						 Pg_sendquery_prepared,
+						 NULL,
+						 NULL);
+
+	Tcl_CreateObjCommand(interp,
 						 "pg_getresult",
 						 Pg_getresult,
 						 NULL,
