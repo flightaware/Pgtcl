@@ -548,10 +548,18 @@ Pg_disconnect(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
     if (connid->conn == NULL)
 	return TCL_ERROR;
 
+    /*
+     *    We use to call Tcl_UnregisterChannel here, but since
+     *    we have a command deletion callback now, that gets
+     *    taken care of there (PgDelCmdHandle), by deleting the command
+     *    here.
+     */
     if (connid->cmd_token != NULL)
+    {
         Tcl_DeleteCommandFromToken(interp, connid->cmd_token);
+    }
 
-    return Tcl_UnregisterChannel(interp, conn_chan);
+    return TCL_OK;
 }
 
 /**********************************

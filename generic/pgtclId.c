@@ -185,12 +185,14 @@ PgSetConnectionId(Tcl_Interp *interp, PGconn *conn, char *chandle)
 		connid->results[i] = NULL;
 	connid->notify_list = NULL;
 	connid->notifier_running = 0;
+	connid->interp = interp;
 
         Tcl_Eval(interp, "if {[namespace current] != \"::\"} {\
                               set k [namespace current]::\
                            }");
         
         ns = Tcl_GetStringResult(interp);
+        Tcl_ResetResult(interp);
 
         if (chandle == NULL)
         {
@@ -221,7 +223,7 @@ PgSetConnectionId(Tcl_Interp *interp, PGconn *conn, char *chandle)
 	Tcl_SetResult(interp, connid->id, TCL_VOLATILE);
 	Tcl_RegisterChannel(interp, conn_chan);
 
-        connid->cmd_token=Tcl_CreateObjCommand(interp, connid->id, PgConnCmd, (ClientData) connid,NULL);
+        connid->cmd_token=Tcl_CreateObjCommand(interp, connid->id, PgConnCmd, (ClientData) connid, PgDelCmdHandle);
 
 }
 
@@ -509,6 +511,7 @@ PgDelConnectionId(DRIVER_DEL_PROTO)
 	 * pending notify and connection-loss events.
 	 */
 	PgStopNotifyEventSource(connid, 1);
+ 
 
 	/* Close the libpq connection too */
 	PQfinish(connid->conn);
@@ -526,9 +529,12 @@ PgDelConnectionId(DRIVER_DEL_PROTO)
 	 * small) amount of memory taken for the channel state representation.
 	 * Note we are not leaking a socket, since libpq closed that already.
 	 */
+
 #if TCL_MAJOR_VERSION >= 8
 	if (connid->notifier_channel != NULL && interp != NULL)
+        {
 		Tcl_UnregisterChannel(NULL, connid->notifier_channel);
+         }
 #endif
 
 	/*
@@ -1104,3 +1110,28 @@ PgStopNotifyEventSource(Pg_ConnectionId * connid, pqbool allevents)
                Tcl_DeleteEvents(NotifyEventDeleteProc, (ClientData) connid);
 }
 
+
+void
+PgDelCmdHandle(ClientData cData)
+{
+    Pg_ConnectionId *connid = (Pg_ConnectionId *) cData;
+    Tcl_Channel conn_chan;
+    Tcl_Obj         *tresult;
+
+    conn_chan = Tcl_GetChannel(connid->interp, connid->id, 0);
+
+    if (conn_chan == NULL)
+    {
+        tresult = Tcl_NewStringObj("conn->id", -1);
+        Tcl_AppendStringsToObj(tresult, " is not a valid connection", NULL);
+        Tcl_SetObjResult(connid->interp, tresult);
+
+        return;
+    }
+
+    if (connid->conn == NULL)
+        return;
+
+    Tcl_UnregisterChannel(connid->interp, conn_chan);
+    return;
+}

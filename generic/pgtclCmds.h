@@ -46,6 +46,8 @@ typedef struct Pg_TclNotifies_s
 	char	   *conn_loss_cmd;	/* pg_on_connection_loss cmd, or NULL */
 }	Pg_TclNotifies;
 
+
+
 typedef struct Pg_ConnectionId_s
 {
 	char		id[32];
@@ -63,6 +65,7 @@ typedef struct Pg_ConnectionId_s
 	Tcl_Channel notifier_channel;		/* Tcl_Channel on which notifier
 										 * is listening */
 	Tcl_Command cmd_token;               /* handle command token */
+	Tcl_Interp *interp;               /* save Interp info */
 }	Pg_ConnectionId;
 
 /* Values of res_copyStatus */
