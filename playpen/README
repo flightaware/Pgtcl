@@ -4,4 +4,12 @@ $Id$
 This is the playpen directory, where we put stuff to play with, mess with,
 and evolve... stuff that isn't (yet) ready for prime time.
 
-datatypes - code for playing with data type oids and names
+    datatypes - code for playing with data type oids and names
+
+    dbobjects - code for creating and populating Itcl objects from Postgres
+
+    pggrok - code for introspecting into postgres, finding out tables, users,
+    etc.
+
+    pghelpers - utility code for generating insert statements from arrays
+    of key-value pairs and stuff like that
