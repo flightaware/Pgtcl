@@ -557,6 +557,8 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 	-numTuples	the number of tuples in the query
 
+	-cmdTuples	Same as -numTuples, but for DELETE and UPDATE
+
 	-numAttrs	returns the number of attributes returned by the query
 
 	-assign arrayName
@@ -610,7 +612,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 	static CONST char *options[] = {
 		"-status", "-error", "-conn", "-oid",
-		"-numTuples", "-numAttrs", "-assign", "-assignbyidx",
+		"-numTuples", "-cmdTuples", "-numAttrs", "-assign", "-assignbyidx",
 		"-getTuple", "-tupleArray", "-attributes", "-lAttributes",
 		"-clear", "-list", "-llist", (char *)NULL
 	};
@@ -618,7 +620,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	enum options
 	{
 		OPT_STATUS, OPT_ERROR, OPT_CONN, OPT_OID,
-		OPT_NUMTUPLES, OPT_NUMATTRS, OPT_ASSIGN, OPT_ASSIGNBYIDX,
+		OPT_NUMTUPLES, OPT_CMDTUPLES, OPT_NUMATTRS, OPT_ASSIGN, OPT_ASSIGNBYIDX,
 		OPT_GETTUPLE, OPT_TUPLEARRAY, OPT_ATTRIBUTES, OPT_LATTRIBUTES,
 		OPT_CLEAR, OPT_LIST, OPT_LLIST
 	};
@@ -719,6 +721,17 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				}
 
 				Tcl_SetIntObj(Tcl_GetObjResult(interp), PQntuples(result));
+				return TCL_OK;
+			}
+		case OPT_CMDTUPLES:
+			{
+				if (objc != 3)
+				{
+					Tcl_WrongNumArgs(interp, 3, objv, "");
+					return TCL_ERROR;
+				}
+
+				Tcl_SetStringObj(Tcl_GetObjResult(interp), PQcmdTuples(result), -1);
 				return TCL_OK;
 			}
 
