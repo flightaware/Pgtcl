@@ -3069,22 +3069,33 @@ Pg_conninfo(ClientData cData, Tcl_Interp *interp, int objc,
 
 }
 
-/***********************************
-Pg_results
-
- syntax:
-***********************************/
+/*
+ *----------------------------------------------------------------------
+ *
+ * Pg_results --
+ *
+ *    returns the current result handles for a connection
+ *
+ * Syntax:
+ *    pg_result conn 
+ *
+ * Results:
+ *    the return result is either an error message or a list of
+ *    the result handles for connection 'conn'.
+ *
+ *----------------------------------------------------------------------
+ */
 int
 Pg_results(ClientData cData, Tcl_Interp *interp, int objc,
 				 Tcl_Obj *CONST objv[])
 {
 
     Pg_ConnectionId *connid;
-    PGconn	   *conn;
-    char	   *connString;
-    char	   buf[32];
-    Tcl_Channel    conn_chan;
-    int            i;
+    PGconn	    *conn;
+    char	    *connString;
+    char	    buf[32];
+    Tcl_Channel     conn_chan;
+    int             i;
     Tcl_Obj         *listObj;
 
     listObj = Tcl_NewListObj(0, (Tcl_Obj **) NULL);
@@ -3094,13 +3105,13 @@ Pg_results(ClientData cData, Tcl_Interp *interp, int objc,
         Tcl_WrongNumArgs(interp, 1, objv, "connection");
         return TCL_ERROR;
     }
+
     connString = Tcl_GetStringFromObj(objv[1], NULL);
     conn_chan = Tcl_GetChannel(interp, connString, 0);
     if (conn_chan == NULL)
     {
-	    Tcl_ResetResult(interp);
-	    Tcl_AppendResult(interp, connString, " is not a valid connection", 0);
-	    return TCL_ERROR;
+        Tcl_AppendStringsToObj(Tcl_GetObjResult(interp), "... not a valid connection", NULL);
+        return TCL_ERROR;
     }
 
 
@@ -3108,7 +3119,7 @@ Pg_results(ClientData cData, Tcl_Interp *interp, int objc,
     connid = (Pg_ConnectionId *) Tcl_GetChannelInstanceData(conn_chan);
 
     if (connid->conn == NULL)
-	    return TCL_ERROR;
+        return TCL_ERROR;
 
     for (i = 0; i <= connid->res_last; i++)
     {
@@ -3120,11 +3131,8 @@ Pg_results(ClientData cData, Tcl_Interp *interp, int objc,
         }
     }
 
-
-    Tcl_ResetResult(interp);
     Tcl_SetObjResult(interp, listObj);
     return TCL_OK;
-
 }
 
 
