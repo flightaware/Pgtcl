@@ -1,6 +1,10 @@
 
 $Id$
 
+2004-02-14  Brett Schwarz <brett_schwarz@yahoo.com>
+    * Updated with the fixes that went into the -core libpgtcl release
+    * Also added fix for WSAStartup posted by anonymous on the bug list
+
 2003-01-14  Brett Schwarz <brett_schwarz@yahoo.com>
     * added -cmdTuples to pg_result (code submitted by Artur Trzewik)
 
