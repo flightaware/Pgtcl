@@ -672,8 +672,6 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 		ExecStatusType rStat = PQresultStatus(result);
 
-		printf("RESULT IS NOT NULL IN PG_EXEC\n");
-
 		if (rStat == PGRES_COPY_IN || rStat == PGRES_COPY_OUT)
 		{
 			connid->res_copyStatus = RES_COPY_INPROGRESS;
@@ -3435,8 +3433,6 @@ Pg_dbinfo(ClientData cData, Tcl_Interp *interp, int objc,
 
     }
     Tcl_SetObjResult(interp, listObj);
-    ckfree(buf);
-
     return TCL_OK;
 
 }

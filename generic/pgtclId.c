@@ -589,8 +589,6 @@ PgSetResultId(Tcl_Interp *interp, CONST84 char *connid_c, PGresult *res)
         return TCL_ERROR;
     connid = (Pg_ConnectionId *) Tcl_GetChannelInstanceData(conn_chan);
 
-	printf("ID in pgsetresid: %s\n", connid_c);
-
     /* search, starting at slot after the last one used */
     resid = connid->res_last;
     for (;;)
@@ -610,7 +608,6 @@ PgSetResultId(Tcl_Interp *interp, CONST84 char *connid_c, PGresult *res)
         if (resid == connid->res_last)
             break;	/* failure exit */
     }
-	printf("1\n");
     if (connid->results[resid])
     {
         /* no free slot found, so try to enlarge array */
@@ -640,31 +637,17 @@ PgSetResultId(Tcl_Interp *interp, CONST84 char *connid_c, PGresult *res)
 		}
 
     }
-printf("2\n");
-	if (res == NULL)
-	{
-	printf("RES IS NULL IN PGSETRESULT\n");
-	}
-printf("3\n");
     connid->results[resid] = res;
-	printf("4\n");
     sprintf(buf, "%s.%d", connid_c, resid);
-	printf("5\n");
     cmd = Tcl_NewStringObj(buf, -1);
-printf("6\n");
     resultid = (Pg_resultid *) ckalloc(sizeof(Pg_resultid));
-	printf("7\n");
     resultid->interp = interp;
     resultid->id     = resid;
     resultid->str = Tcl_NewStringObj(buf, -1);
-printf("8\n");
     resultid->cmd_token = Tcl_CreateObjCommand(interp, 
         Tcl_GetStringFromObj(cmd, NULL), PgResultCmd, (ClientData) resultid, PgDelResultHandle);
-printf("9\n");
 	connid->resultids[resid] = resultid;
-printf("10\n");
     Tcl_SetObjResult(interp, cmd);
-printf("RESID in setresid: %d\n", resid);
     return resid;
 }
 
@@ -677,10 +660,8 @@ getresid(Tcl_Interp *interp, CONST84 char *id, Pg_ConnectionId ** connid_p)
 	int			resid;
 	Pg_ConnectionId *connid;
 
-	printf("ID in getresid: %s\n", id);
 	if (!(mark = strchr(id, '.')))
 	{
-		printf("GOT MARK BAD: %d\n", resid);
 		return -1;
 	}
 	*mark = '\0';
@@ -688,32 +669,25 @@ getresid(Tcl_Interp *interp, CONST84 char *id, Pg_ConnectionId ** connid_p)
 	*mark = '.';
 	if (conn_chan == NULL || Tcl_GetChannelType(conn_chan) != &Pg_ConnType)
 	{
-		printf("INV CONNECTION\n");
 		Tcl_SetResult(interp, "Invalid connection handle", TCL_STATIC);
 		return -1;
 	}
 
 	if (Tcl_GetInt(interp, mark + 1, &resid) == TCL_ERROR)
 	{
-		printf("BAD FORMAT\n");
 		Tcl_SetResult(interp, "Poorly formated result handle", TCL_STATIC);
 		return -1;
 	}
 
 	connid = (Pg_ConnectionId *) Tcl_GetChannelInstanceData(conn_chan);
-	printf("ID: %d RESCOUNT: %d RESLAST %d\n", connid->id, connid->res_count, connid->res_last);
 
 	if (resid < 0 || resid >= connid->res_max || connid->results[resid] == NULL)
 	{
-		printf("INV RES HANDLE ID: %d MAX: %d\n", resid, connid->res_max);
 		
-		if (connid->results[resid] == NULL)
-			printf("CONNID IS NULL\n");
 		Tcl_SetResult(interp, "Invalid result handle", TCL_STATIC);
 		return -1;
 	}
 
-	printf("RESID in getresid: %d\n", resid);
 	*connid_p = connid;
 
 	return resid;
@@ -732,7 +706,6 @@ PgGetResultId(Tcl_Interp *interp, CONST84 char *id)
 	if (!id)
 		return NULL;
 	resid = getresid(interp, id, &connid);
-	printf("RESID in pggetresid: %d\n", resid);
 	if (resid == -1)
 		return NULL;
 	return connid->results[resid];
