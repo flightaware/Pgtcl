@@ -3434,9 +3434,9 @@ Pg_dbinfo(ClientData cData, Tcl_Interp *interp, int objc,
         }
 
     }
-	ckfree(connString);
-	ckfree(buf);
     Tcl_SetObjResult(interp, listObj);
+    ckfree(buf);
+
     return TCL_OK;
 
 }
