@@ -613,14 +613,131 @@ pg_result <parameter>resultHandle</parameter> <parameter>resultOption</parameter
        </varlistentry>
 
        <varlistentry>
-        <term><option>-error</option></term>
+        <term><option>-error</option> <optional role="tcl"><parameter>diagCode</parameter></optional></term>
         <listitem>
          <para>
           The error message, if the status indicates an error,
           otherwise an empty string.
          </para>
-        </listitem>
-       </varlistentry>
+	 <para>
+	 <parameter>diagCode</parameter>, if specified, requests data
+	 for a specific diagnostic code:
+	 </para>
+	  <variablelist>
+
+	   <varlistentry>
+	    <term><option>severity</option></term>
+	    <listitem>
+	     <para>
+	      The severity; the field contents are <literal>ERROR</literal>,
+	      <literal>FATAL</literal>, or <literal>PANIC</literal>, in
+	      an error message, or <literal>WARNING</literal>,
+	      <literal>NOTICE</literal>, <literal>DEBUG</literal>,
+	      <literal>INFO</literal>, or <literal>LOG</literal>,
+	      in a notice message, or a localized translation of one of
+	      these.
+	     </para>
+	    </listitem>
+          </varlistentry>
+
+	   <varlistentry>
+	    <term><option>sqlstate</option></term>
+	    <listitem>
+	     <para>
+	      The <literal>SQLSTATE</literal> code for the error.
+	      (See PostgreSQL manual Appendix A).
+	     </para>
+	    </listitem>
+	   </varlistentry>
+
+	   <varlistentry>
+	    <term><option>primary</option></term>
+	    <listitem>
+	     <para>
+	      The primary human-readable error message (typically one line).
+	     </para>
+	    </listitem>
+	   </varlistentry>
+
+	   <varlistentry>
+	    <term><option>detail</option></term>
+	    <listitem>
+	     <para>
+	      An optional secondary error message carrying more detail
+	      abhout the problem, which may run to multiple lines.
+	     </para>
+	    </listitem>
+	   </varlistentry>
+
+	   <varlistentry>
+	    <term><option>hint</option></term>
+	    <listitem>
+	     <para>
+	      An optional suggestion about what to do about the problem.
+	      This is intended to differ from detail in that it offers
+	      advice (potentially inappropriate) rather than hard facts.
+	     </para>
+	     <para>
+	      The result may run to multiple lines.
+	     </para>
+            </listitem>
+           </varlistentry>
+
+	   <varlistentry>
+	    <term><option>position</option></term>
+	    <listitem>
+	     <para>
+	      A string containing a decimal integer indicating an error 
+	      cursor position as an index into the original statement string.
+	     </para>
+	     <para>
+	      The first character has index <literal>1</literal>, and 
+	      positions are measured in characters not bytes. 
+	     </para>
+	    </listitem>
+	   </varlistentry>
+
+	   <varlistentry>
+	    <term><option>context</option></term>
+	    <listitem>
+	     <para>
+	      An indication of the context in which the error occurred. 
+	      Presently this includes a call stack traceback of active PL 
+	      functions. The trace is one entry per line, most recent first. 
+	     </para>
+	    </listitem>
+	   </varlistentry>
+
+	   <varlistentry>
+	    <term><option>file</option></term>
+	    <listitem>
+	     <para>
+	      The filename of the source code location where the error
+	      was reported.
+	     </para>
+	    </listitem>
+	   </varlistentry>
+
+	   <varlistentry>
+	    <term><option>line</option></term>
+	    <listitem>
+	     <para>
+	      The line number of the source code location where the error
+	      was reported.
+	     </para>
+	    </listitem>
+	   </varlistentry>
+
+	   <varlistentry>
+	    <term><option>function</option></term>
+	    <listitem>
+	     <para>
+	       The name of the source code function reporting the error.
+	     </para>
+	    </listitem>
+	   </varlistentry>
+
+        </variablelist>
 
        <varlistentry>
         <term><option>-conn</option></term>
@@ -655,6 +772,9 @@ pg_result <parameter>resultHandle</parameter> <parameter>resultOption</parameter
         <listitem>
          <para>
           The number of rows (tuples) affected by the command.
+	  (This is similar to <option>-numTuples</option> but
+	  relevant to <command>INSERT</command> and
+	  <command>UPDATE</command> commands.)
          </para>
         </listitem>
        </varlistentry>
@@ -728,6 +848,26 @@ pg_result <parameter>resultHandle</parameter> <parameter>resultOption</parameter
          <para>
           Returns a list of sublists, <literal>{name typeOid
           typeSize}</literal> for each column.
+         </para>
+        </listitem>
+       </varlistentry>
+
+       <varlistentry>
+        <term><option>-list</option></term>
+        <listitem>
+         <para>
+          Returns one list containing all the data
+	  returned by the query.
+         </para>
+        </listitem>
+       </varlistentry>
+
+       <varlistentry>
+        <term><option>-llist</option></term>
+        <listitem>
+         <para>
+          Returns a list of lists, where each embedded list represents
+	  a tuple in the result.
          </para>
         </listitem>
        </varlistentry>
