@@ -449,31 +449,33 @@ Pg_connect(ClientData cData, Tcl_Interp *interp, int objc,
 int
 Pg_disconnect(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
-	PGconn	   *conn;
-	Tcl_Channel conn_chan;
-	char	   *connString;
+    PGconn	   *conn;
+    Tcl_Channel conn_chan;
+    char	   *connString;
 
-	if (objc != 2)
-	{
-		Tcl_WrongNumArgs(interp, 1, objv, "connection");
-		return TCL_ERROR;
-	}
+    if (objc != 2)
+    {
+	Tcl_WrongNumArgs(interp, 1, objv, "connection");
+	return TCL_ERROR;
+    }
 
-	connString = Tcl_GetStringFromObj(objv[1], NULL);
-	conn_chan = Tcl_GetChannel(interp, connString, 0);
-	if (conn_chan == NULL)
-	{
-		Tcl_ResetResult(interp);
-		Tcl_AppendResult(interp, connString, " is not a valid connection", 0);
-		return TCL_ERROR;
-	}
+    connString = Tcl_GetStringFromObj(objv[1], NULL);
+    conn_chan = Tcl_GetChannel(interp, connString, 0);
+    if (conn_chan == NULL)
+    {
+	Tcl_ResetResult(interp);
+	Tcl_AppendResult(interp, connString, " is not a valid connection", 0);
+	return TCL_ERROR;
+    }
 
-	/* Check that it is a PG connection and not something else */
-	conn = PgGetConnectionId(interp, connString, NULL);
-	if (conn == NULL)
-		return TCL_ERROR;
+    /* Check that it is a PG connection and not something else */
+    conn = PgGetConnectionId(interp, connString, NULL);
+    if (conn == NULL)
+	return TCL_ERROR;
 
-	return Tcl_UnregisterChannel(interp, conn_chan);
+    Tcl_DeleteCommand(interp, connString);
+
+    return Tcl_UnregisterChannel(interp, conn_chan);
 }
 
 /**********************************

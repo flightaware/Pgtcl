@@ -238,7 +238,11 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
         LO_UNLINK, LO_IMPORT, LO_EXPORT
     };
 
-    for (objvxi=1; objvxi < objc; objvxi++) {
+    /*
+     *    this assigns the args array with an offset, since
+     *    the command handle args looks is offset
+     */
+    for (objvxi=0; objvxi < objc; objvxi++) {
         objvx[objvxi] = objv[objvxi];
     }
 
