@@ -23,7 +23,7 @@
 /*
  * Local function forward declarations
  */
-static int execute_put_values(Tcl_Interp *interp, char *array_varname,
+static int execute_put_values(Tcl_Interp *interp, CONST84 char *array_varname,
 				   PGresult *result, int tupno);
 
 
@@ -314,11 +314,11 @@ int
 Pg_connect(ClientData cData, Tcl_Interp *interp, int objc,
 		   Tcl_Obj *CONST objv[])
 {
-	char	   *pghost = NULL;
-	char	   *pgtty = NULL;
-	char	   *pgport = NULL;
-	char	   *pgoptions = NULL;
-	char	   *dbName;
+	const char	   *pghost = NULL;
+	const char	   *pgtty = NULL;
+	const char	   *pgport = NULL;
+	const char	   *pgoptions = NULL;
+  	const char	   *dbName;
 	int			i;
 	PGconn	   *conn;
 	char	   *firstArg;
@@ -600,7 +600,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	PGresult   *result;
 	int			i;
 	int			tupno;
-	char	   *arrVar;
+	CONST84 char	   *arrVar;
 	Tcl_Obj    *arrVarObj;
 	Tcl_Obj    *appendstrObj;
 	char	   *queryResultString;
@@ -1121,7 +1121,7 @@ Pg_execute(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 	int			tupno;
 	int			ntup;
 	int			loop_rc;
-	char	   *array_varname = NULL;
+	CONST84 char	   *array_varname = NULL;
 	char	   *arg;
 	char	   *connString;
 	char	   *queryString;
@@ -1356,7 +1356,7 @@ Pg_execute(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
  column names, or into an array indexed by the column names.
  **********************************/
 static int
-execute_put_values(Tcl_Interp *interp, char *array_varname,
+execute_put_values(Tcl_Interp *interp, CONST84 char *array_varname,
 				   PGresult *result, int tupno)
 {
 	int			i;
@@ -1830,7 +1830,7 @@ Pg_lo_import(ClientData cData, Tcl_Interp *interp, int objc,
 			 Tcl_Obj *CONST objv[])
 {
 	PGconn	   *conn;
-	char	   *filename;
+	const char	   *filename;
 	Oid			lobjId;
 	char	   *connString;
 
@@ -1873,7 +1873,7 @@ Pg_lo_export(ClientData cData, Tcl_Interp *interp, int objc,
 			 Tcl_Obj *CONST objv[])
 {
 	PGconn	   *conn;
-	char	   *filename;
+	const char	   *filename;
 	Oid			lobjId;
 	int			retval;
 	char	   *connString;
@@ -2082,7 +2082,7 @@ Pg_listen
 int
 Pg_listen(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
-	char	   *origrelname;
+	const char	   *origrelname;
 	char	   *caserelname;
 	char	   *callback = NULL;
 	Pg_TclNotifies *notifies;
@@ -2127,7 +2127,7 @@ Pg_listen(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	else
 	{
 		/* Downcase it */
-		char	   *rels = origrelname;
+		const char   *rels = origrelname;
 		char	   *reld = caserelname;
 
 		while (*rels)
