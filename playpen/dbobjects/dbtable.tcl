@@ -5,7 +5,6 @@
 #
 
 ::itcl::class db_table {
-    public variable fields
 
     constructor {args} {
 	eval configure $args
@@ -21,15 +20,11 @@
 	}
     }
 
-    method fields {} {
-	return $fields
-    }
-
     method gen_insert {} {
-	set result "insert into $tableName ([join $fields ","]) values ("
+	set result "insert into [$this table] ([join [$this fields] ","]) values ("
         
-	foreach field $fields {
-	    append result "[pg_quote [set $field]],"
+	foreach value [$this values] {
+	    append result "[pg_quote $value],"
 	}
 	return "[string range $result 0 end-1]);"
     }

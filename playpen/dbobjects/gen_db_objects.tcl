@@ -23,10 +23,20 @@ proc gen_table_base_class {tableName} {
 	}
 	append result "\n"
 
-	append result "    public variable fields [list $varList]\n\n"
+	append result "    common fields [list $varList]\n\n"
 
-	append result "    constructor {args} {\n        eval configure \$args\n    }\n"
+	append result "    constructor {args} {\n        eval configure \$args\n    }\n\n"
+
+	append result "    method fields {} {\n        return \$fields\n    }\n\n"
+
+	append result "    method table {} {\n        return [list $tableName]\n    }\n\n"
+
+	append result "    method values {} {\n    return \[list"
+	foreach var $varList {
+	    append result " \$$var"
+	}
+	append result "]\n    }\n\n"
     }
-    append result "\n}"
+    append result "}\n"
 }
 

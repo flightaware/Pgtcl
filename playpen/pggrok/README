@@ -1,0 +1,41 @@
+
+pggrok -- code to introspect the postgres database
+
+Copyright (C) 2004 Karl Lehenbauer
+freely redistributable under the Berkeley license as long as this copyright
+is maintained.
+
+$Id$
+
+::pggrok::tables $conn
+
+    Return a list of the names of all the tables in the database.
+
+
+::pggrok::schema $conn
+
+    Return a list of the names of all the schema in the database
+
+::pggrok::users $conn
+
+    Return a list of the names of all the users in the database
+
+
+::pggrok::views $conn
+
+    Return a list of the names of all the views in the datbase
+
+::pggrok::attributes $conn tableName
+
+    Currently uses parray to dump attribute data for each field.
+    Needs to populate a dict or execute code with a filled array
+    or something.
+
+::pggrok::indices $conn tableName
+
+    Same as above
+
+::pggrok::dump $conn
+
+    Dump the names of the tables, schema, users and views to stdout.
+
