@@ -3,7 +3,7 @@
  * pgtclCmds.c
  *	  C functions which implement pg_* tcl commands
  *
- * Portions Copyright (c) 1996-2002, PostgreSQL Global Development Group
+ * Portions Copyright (c) 1996-2003, PostgreSQL Global Development Group
  * Portions Copyright (c) 1994, Regents of the University of California
  *
  *
@@ -838,9 +838,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 							Tcl_AppendObjToObj(fieldNameObj, appendstrObj);
 
 						if (Tcl_ObjSetVar2(interp, arrVarObj, fieldNameObj,
-										   Tcl_NewStringObj(
-								 tcl_value(PQgetvalue(result, tupno, i)),
-										 -1), TCL_LEAVE_ERR_MSG) == NULL)
+										   Tcl_NewStringObj( tcl_value(PQgetvalue(result, tupno, i)), -1), TCL_LEAVE_ERR_MSG) == NULL)
 						{
                             
 							Tcl_DecrRefCount(fieldNameObj);
