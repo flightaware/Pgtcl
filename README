@@ -1,10 +1,6 @@
 libpgtcl is a library that implements Tcl commands for front-end
 clients to interact with Postgresql 7.4 backends.  
 
-Please see libpgtcl.sgml for details.
-
-$Id$
-
 Thank you for downloading Pgtcl, a package that adds extensions for
 Postgres to Tcl, that's been in existence for ten years.
 
