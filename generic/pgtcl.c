@@ -115,6 +115,7 @@ Pgtcl_Init(Tcl_Interp *interp)
 {
 	double		tclversion;
 	Tcl_Obj    *tclVersionObj;
+	Tcl_Obj    *tresult;
         PgCmd *cmdPtr;
 
         #ifdef WIN32
@@ -134,9 +135,15 @@ Pgtcl_Init(Tcl_Interp *interp)
         if (LoadLibrary("libpq.dll") == NULL) {
         //char buf[32];
         //sprintf(buf, "%d", GetLastError());
+        tresult = Tcl_NewStringObj("Cannot load \"libpq.dll\" (or dependant), error was ");
+        Tcl_AppendToObj(tresult, GetLastError(), -1);
+        Tcl_SetObjResult(interp, tresult);
+        
+/*
         Tcl_AppendStringsToObj(Tcl_GetObjResult(interp), 
             "Cannot load \"libpq.dll\" (or dependant), error was ", 
             GetLastError(), NULL);
+*/
 
         return TCL_ERROR;
         }

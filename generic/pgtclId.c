@@ -444,13 +444,14 @@ PgGetConnectionId(Tcl_Interp *interp, CONST84 char *id, Pg_ConnectionId ** conni
 {
 	Tcl_Channel conn_chan;
 	Pg_ConnectionId *connid;
+    Tcl_Obj     *tresult;
 
 	conn_chan = Tcl_GetChannel(interp, id, 0);
 	if (conn_chan == NULL || Tcl_GetChannelType(conn_chan) != &Pg_ConnType)
 	{
-	    Tcl_ResetResult(interp);
-            Tcl_AppendStringsToObj(Tcl_GetObjResult(interp), 
-                id, " is not a valid postgresql connection", NULL);
+            tresult = Tcl_NewStringObj(id, -1);
+            Tcl_AppendStringsToObj(tresult, " is not a valid postgresql connection", NULL);
+            Tcl_SetObjResult(interp, tresult);
 
 		if (connid_p)
 			*connid_p = NULL;
@@ -719,6 +720,7 @@ PgGetConnByResultId(Tcl_Interp *interp, CONST84 char *resid_c)
 {
 	char	   *mark;
 	Tcl_Channel conn_chan;
+    Tcl_Obj     *tresult;
 
 	if (!(mark = strchr(resid_c, '.')))
 		goto error_out;
@@ -732,9 +734,9 @@ PgGetConnByResultId(Tcl_Interp *interp, CONST84 char *resid_c)
 	}
 
 error_out:
-	Tcl_ResetResult(interp);
-        Tcl_AppendStringsToObj(Tcl_GetObjResult(interp), resid_c,
-            " is not a valid connection\n", NULL);
+        tresult = Tcl_NewStringObj(resid_c, -1);
+        Tcl_AppendStringsToObj(tresult, " is not a valid connection\n", NULL);
+        Tcl_SetObjResult(interp, tresult);
 
 	return TCL_ERROR;
 }
