@@ -75,7 +75,7 @@ static PgCmd commands[] = {
     {"pg_connect", "::pg::connect", Pg_connect,2},
     {"pg_disconnect", "::pg::disconnect", Pg_disconnect,2},
     {"pg_exec", "::pg::sqlexec", Pg_exec,2},
-    {"pg_exec", "::pg::sqlexec_prepared", Pg_exec_prepared,3},
+    {"pg_exec_prepared", "::pg::sqlexec_prepared", Pg_exec_prepared,3},
     {"pg_select", "::pg::select", Pg_select,2},
     {"pg_result", "::pg::result", Pg_result,2},
     {"pg_execute", "::pg::execute", Pg_execute,2},
@@ -91,7 +91,7 @@ static PgCmd commands[] = {
     {"pg_lo_export", "::pg::lo_export", Pg_lo_export,2},
     {"pg_listen", "::pg::listen", Pg_listen,2},
     {"pg_sendquery", "::pg::sendquery", Pg_sendquery,2},
-    {"pg_sendquery", "::pg::sendquery_prepared", Pg_sendquery_prepared,3},
+    {"pg_sendquery_prepared", "::pg::sendquery_prepared", Pg_sendquery_prepared,3},
     {"pg_getresult", "::pg::getresult", Pg_getresult,2},
     {"pg_isbusy", "::pg::isbusy", Pg_isbusy,2},
     {"pg_blocking", "::pg::blocking", Pg_blocking,2},
@@ -172,7 +172,8 @@ Pgtcl_Init(Tcl_Interp *interp)
 
         for (cmdPtr = commands; cmdPtr->name != NULL; cmdPtr++) {
 
-             Tcl_CreateObjCommand(interp, cmdPtr->name2, cmdPtr->objProc, NULL,NULL);
+             Tcl_CreateObjCommand(interp, cmdPtr->name, cmdPtr->objProc, (ClientData) "::",NULL);
+             Tcl_CreateObjCommand(interp, cmdPtr->name2, cmdPtr->objProc, (ClientData) "::pg::",NULL);
         }
 
 
