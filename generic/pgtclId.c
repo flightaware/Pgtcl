@@ -270,14 +270,13 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
      *    this assigns the args array with an offset, since
      *    the command handle args looks is offset
      */
-    for (objvxi=0; objvxi < objc; objvxi++) {
+    for (objvxi = 2; objvxi < objc; objvxi++) {
         objvx[objvxi] = objv[objvxi];
     }
 
-    tmp = objvx[0];
-    objvx[0] = objvx[1];
-    objvx[1] = tmp;
-
+	/* swap the first and second elements of the copied command */
+	objvx[0] = objv[1];
+	objvx[1] = objv[0];
 
     if (Tcl_GetCommandInfo(interp, Tcl_GetStringFromObj(objvx[1], NULL), &info) == 0)
         return TCL_ERROR;
@@ -416,13 +415,12 @@ PgResultCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[
      *    the command handle args looks is offset
      */
 
-    for (objvxi=0; objvxi < objc; objvxi++) {
+    for (objvxi = 2; objvxi < objc; objvxi++) {
         objvx[objvxi] = objv[objvxi];
     }
 
-    tmp = objvx[0];
-    objvx[0] = objvx[1];
-    objvx[1] = tmp;
+    objvx[0] = objv[1];
+    objvx[1] = objv[0];
 
 
     if (Tcl_GetCommandInfo(interp, Tcl_GetStringFromObj(objvx[1], NULL), &info) == 0)

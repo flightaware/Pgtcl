@@ -1,6 +1,11 @@
 
 $Id$
 
+2004-11-17 Karl Lehenbauer <karl-pg@sc.com>
+    * minor optimization in connections-as-commands and results-as-commands
+      where we don't copy and then swap, we copy it the way we want it to
+      end up (first and second elements of objv reversed).
+
 2004-11-16 Karl Lehenbauer <karl-pg@sc.com>
     * libpgtcl will again build with versions of Tcl < 8.5 thanks to a little
       extra checking for HAVETCL_NEWDICTOBJ
