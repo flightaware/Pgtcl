@@ -29,21 +29,45 @@ AC_SUBST(CONFIGDIR)
 # Get the paths to the Postgres includes and libraries.
 #--------------------------------------------------------------------
 
-AC_PATH_PROGS(PG_CONFIG, pg_config)
-if test "$PG_CONFIG" = ""; then
-  AC_MSG_ERROR([Cannot locate program pg_config to determine PostgreSQL paths.  Make sure pg_config is in PATH or set PG_CONFIG env var to path to pg_config.])
+AC_ARG_WITH(postgres-include,  --with-postgres-include        directory containing PostgreSQL include files)
+AC_ARG_WITH(postgres-lib,  --with-postgres-lib        directory containing PostgreSQL library files)
+
+need_pg_config=""
+
+if test "${with_postgres_include+set}" = "set"; then
+    PG_INC_DIR="${with_postgres_include}"
+    AC_MSG_RESULT([using PostgreSQL include dir of... "$PG_INC_DIR"])
+else
+    need_pg_config="1"
 fi
 
-PG_INC_DIR="`$PG_CONFIG --includedir`"
-AC_MSG_RESULT([using pg_config-reported PostgreSQL include dir of... "$PG_INC_DIR"])
-PG_LIB_DIR="`$PG_CONFIG --libdir`"
-AC_MSG_RESULT([using pg_config-reported PostgreSQL lib dir of... "$PG_LIB_DIR"])
+if test "${with_postgres_lib+set}" = "set"; then
+    PG_LIB_DIR="${with_postgres_lib}"
+    AC_MSG_RESULT([using PostgreSQL lib dir of... "$PG_LIB_DIR"])
+else
+    need_pg_config="1"
+fi
+
+if test "$need_pg_config" = "1"; then
+    AC_PATH_PROGS(PG_CONFIG, pg_config)
+    if test "$PG_CONFIG" = ""; then
+        AC_MSG_ERROR([Cannot locate program pg_config to determine PostgreSQL paths.  Make sure pg_config is in PATH or set PG_CONFIG env var to path to pg_config.])
+    fi
+    if test "${with_postgres_include+set}" != "set"; then
+        PG_INC_DIR="`$PG_CONFIG --includedir`"
+        AC_MSG_RESULT([using pg_config-reported PostgreSQL include dir of... "$PG_INC_DIR"])
+    fi
+    if test "${with_postgres_lib+set}" != "set"; then
+        PG_LIB_DIR="`$PG_CONFIG --libdir`"
+        AC_MSG_RESULT([using pg_config-reported PostgreSQL lib dir of... "$PG_LIB_DIR"])
+    fi
+fi
 
 LIBPG=""
 PG_INCLUDES="-I$PG_INC_DIR"
 PG_LIBS="-L$PG_LIB_DIR -lpq"
 if test ! "$PG_LIB_DIR" = ""; then
-  LIBPG="libpq${SHLIB_SUFFIX}"
+    LIBPG="libpq${SHLIB_SUFFIX}"
 fi
 
 #--------------------------------------------------------------------
@@ -54,7 +78,8 @@ fi
 SAVE_LIBS=$LIBS
 LIBS="$PG_LIBS $LIBS"
 AC_CHECK_FUNCS(PQexecParams PQexecPrepared PQsendQueryParams PQsendQueryPrepared)
-LIBS=$SAVE_LIBS
+#LIBS=$SAVE_LIBS
+
 
 AC_SUBST(LIBPG)
 AC_SUBST(PG_INC_DIR)

@@ -178,7 +178,7 @@ Pgtcl_Init(Tcl_Interp *interp)
 
 
         Tcl_Eval(interp, "namespace eval ::pg {namespace export *}");
-	Tcl_PkgProvide(interp, "Pgtcl", "1.4");
+	Tcl_PkgProvide(interp, "Pgtcl", "1.5");
 
 	return TCL_OK;
 }
