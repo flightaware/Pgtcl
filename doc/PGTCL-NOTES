@@ -28,14 +28,17 @@ pg_connect -connlist name_value_list
         pg_connect -connlist [array get myinfo]
 
 
-pg_conninfo
+pg_dbinfo connections
     This returns the currect connection handles
 
-pg_disconnect connection
+pg_dbinfo results $conn
+    This returns the currect result handles for connection $conn
+
+pg_disconnect $conn
 
     Close a backend connection.
 
-pg_exec connection query
+pg_exec $conn query
 
     Send a query string to the backend connection.
 
@@ -236,12 +239,17 @@ pg_quote
     syntax:
         pg_quote string
 
+pg_escape_string
+    escapes a string suitable for SQL statements to the backend
+
+    syntax:
+        pg_escape_string string
 
 pg_escape_bytea
     escapes a binary string suitable for SQL statements to the backend
 
     syntax:
-        pg_escape_bytea binaryStrin
+        pg_escape_bytea binaryString
 
 pg_unescape_bytea
     unescapes a binary string that was stored in the backend
