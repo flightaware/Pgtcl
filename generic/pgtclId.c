@@ -265,7 +265,7 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
         SENDQUERY, EXEC_PREPARED, SENDQUERY_PREPARED
     };
 
-    if (objc == 1)
+    if (objc == 1 || objc > 25)
     {
 	    Tcl_WrongNumArgs(interp, 1, objv, "command...");
 	    return TCL_ERROR;
@@ -397,7 +397,7 @@ PgResultCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[
     int    objvxi;
     Tcl_Obj    *objvx[25];
 
-    if (objc == 1)
+    if (objc == 1 || objc > 25)
     {
 	    Tcl_WrongNumArgs(interp, 1, objv, "command...");
 	    return TCL_ERROR;
