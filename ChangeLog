@@ -6,6 +6,10 @@ $Id$
       pg::connect -connlist {host myhost port myport ...}. This is similiar
       to -conninfo, except that the arg is a key value list.
 
+    * Added -connhandle option to pg::connect to specify the connection
+      handle name. If not specified, then connection handle name is
+      derived by pgtcl (as before).
+
 2004-08-16 Brett Schwarz <brett_schwarz@yahoo.com>
     * added Pg_results (pg::results, pg_results) command that returns
       the result handles for a particular connection
