@@ -30,3 +30,6 @@ back through the tcl event loop, something like
 
 It iterates the resultCode for each result found, automatically clearing
 the result at the end of each iteration.
+
+X add -list and -llist options to return list in pg_result
+- add introspection commands? e.g. to return the connection handles, or result handles
