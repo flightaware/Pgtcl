@@ -3,7 +3,7 @@ if {[lsearch [namespace children] ::tcltest] == -1} {
     namespace import -force ::tcltest::*
 }
 
-foreach F [list ../libpgtcl1.5.so ./libpgtcl1.5.so] {
+foreach F [list ../libpgtcl1.5[info sharedlibextension] ./libpgtcl1.5[info sharedlibextension]] {
 
     if {[file exists $F]} {
 
@@ -27,6 +27,7 @@ array set conninfo {
 test pgtcl-1.1 {connect to db using old connection string} {
 
     set conn [pg_connect $::conninfo(dbname) \
+        -connhandle pgsql3 \
         -host $::conninfo(host) \
         -port $::conninfo(port) \
         -user $::conninfo(user)]
@@ -42,7 +43,7 @@ test pgtcl-1.1 {connect to db using old connection string} {
 #
 test pgtcl-1.2 {connect to db using conninfo string} {
 
-    set conn [pg_connect -conninfo \
+    set conn [pg_connect -connhandle pgsql3 -conninfo \
         "dbname=$::conninfo(dbname) host=$::conninfo(host) port=$::conninfo(port) user=$::conninfo(user)"]
 
     pg_disconnect $conn
@@ -55,7 +56,7 @@ test pgtcl-1.2 {connect to db using conninfo string} {
 #
 test pgtcl-1.3 {connect to db using connlist option} {
 
-    set conn [pg::connect -connlist [array get ::conninfo]]
+    set conn [pg::connect -connhandle pgsql3 -connlist [array get ::conninfo]]
 
     pg_disconnect $conn
 
@@ -95,8 +96,10 @@ test pgtcl-2.1 {use connection as command} {
 #
 test pgtcl-3.1 {test getting connection handles} {
 
+    set cnt 3
     foreach C [list 1 2 3] {
-        set myconn($C) [pg::connect -connlist [array get ::conninfo]]
+        set myconn($C) [pg::connect -connlist [array get ::conninfo] -connhandle pgsql$cnt]
+        incr cnt
     }
 
     #set conns [lsort [pg::dbinfo]]
@@ -114,8 +117,10 @@ test pgtcl-3.1 {test getting connection handles} {
 #
 test pgtcl-3.2 {test getting connection handles, after disconnect} {
 
+    set cnt 3
     foreach C [list 1 2 3] {
-        set myconn($C) [pg::connect -connlist [array get ::conninfo]]
+        set myconn($C) [pg::connect -connlist [array get ::conninfo] -connhandle pgsql$cnt]
+        incr cnt
     }
 
     foreach C [list 1 2 3] {
@@ -131,7 +136,7 @@ test pgtcl-3.2 {test getting connection handles, after disconnect} {
 #
 test pgtcl-3.3 {test renaming of connection handle command} {
 
-    set conn [pg::connect -connlist [array get ::conninfo]]
+    set conn [pg::connect -connlist [array get ::conninfo] -connhandle pgsql3]
 
     rename $conn MYCONN
     set res [MYCONN exec "SELECT * FROM Pg_class LIMIT 5"]
@@ -169,7 +174,7 @@ test pgtcl-4.1 {get result handles} {
 
     unset res
 
-    set conn [pg::connect -connlist [array get ::conninfo]]
+    set conn [pg::connect -connlist [array get ::conninfo] -connhandle pgsql9]
 
     foreach R [list 1 2 3 4] {
         set res($R) [$conn exec "SELECT * FROM Pg_class LIMIT $R"]
@@ -187,7 +192,7 @@ test pgtcl-4.1 {get result handles} {
 
     set results
 
-} [lsort [list pgsql3.0 pgsql3.1 pgsql3.2 pgsql3.3]]
+} [lsort [list pgsql9.0 pgsql9.1 pgsql9.2 pgsql9.3]]
 
 #
 ##
