@@ -16,7 +16,7 @@ foreach F [list ../libpgtcl1.5.so ./libpgtcl1.5.so] {
 #
 array set conninfo {
     host    192.168.123.180
-    port    5741
+    port    5739
     dbname  template1
     user    postgres
 }
@@ -99,7 +99,8 @@ test pgtcl-3.1 {test getting connection handles} {
         set myconn($C) [pg::connect -connlist [array get ::conninfo]]
     }
 
-    set conns [lsort [pg::conninfo]]
+    #set conns [lsort [pg::dbinfo]]
+    set conns [lsort [pg::dbinfo connections]]
 
     foreach C [list 1 2 3] {
         pg::disconnect $myconn($C)
@@ -121,7 +122,8 @@ test pgtcl-3.2 {test getting connection handles, after disconnect} {
         pg::disconnect $myconn($C)
     }
 
-    pg::conninfo
+    #pg::conninfo
+    pg::dbinfo connections
 } [list]
 
 #
@@ -156,7 +158,8 @@ test pgtcl-3.4 {test deleting of a command handle} {
     pg::result $res -clear
     rename $conn {}
 
-    pg::conninfo
+    #pg::conninfo
+    pg::dbinfo connections
 } [list]
 
 #
@@ -172,7 +175,8 @@ test pgtcl-4.1 {get result handles} {
         set res($R) [$conn exec "SELECT * FROM Pg_class LIMIT $R"]
     }
 
-    set results [lsort [pg::results $conn]]
+    #set results [lsort [pg::results $conn]]
+    set results [lsort [pg::dbinfo results $conn]]
 
     foreach R [list 1 2 3 4] {
 
@@ -217,7 +221,7 @@ test pgtcl-4.3 {test deleting of a result handle} {
     rename $res {}
 
     #pg::result $res -clear
-    pg::results $conn
+    pg::dbinfo results $conn
 
 } [list]
 
@@ -232,7 +236,7 @@ test pgtcl-4.4 {get results as a DICT} {
 
     set conn [pg::connect -connlist [array get ::conninfo]]
 
-    set res [$conn exec "SELECT * FROM Pg_class  WHERE relname='tables'"]
+    set res [$conn exec "SELECT * FROM Pg_class  WHERE relname='pg_tables'"]
 
     set results [pg::result $res -dict]
 
@@ -242,7 +246,7 @@ test pgtcl-4.4 {get results as a DICT} {
 
     dict get $results 0 relname
 
-} tables
+} pg_tables
 }
 
 test pgtcl-4.5 {get results as a list} {
@@ -251,7 +255,11 @@ test pgtcl-4.5 {get results as a list} {
 
     set conn [pg::connect -connlist [array get ::conninfo]]
 
-    set res [$conn exec "SELECT relname FROM Pg_class ORDER BY relname LIMIT 5"]
+    set res [$conn exec "SELECT relname 
+                           FROM Pg_class 
+                          WHERE relname LIKE 'pg_%' 
+                       ORDER BY relname 
+                          LIMIT 5"]
 
     set results [pg::result $res -list]
 
@@ -261,7 +269,8 @@ test pgtcl-4.5 {get results as a list} {
 
     lsort $results
     
-} [lsort [list applicable_roles check_constraints column_domain_usage column_privileges column_udt_usage]]
+} [list pg_aggregate pg_aggregate_fnoid_index pg_am pg_am_name_index pg_am_oid_index]
+
 
 #
 #
@@ -272,7 +281,11 @@ test pgtcl-4.6 {get results as a list of lists} {
 
     set conn [pg::connect -connlist [array get ::conninfo]]
 
-    set res [$conn exec "SELECT relname, relkind FROM Pg_class ORDER BY relname LIMIT 3"]
+    set res [$conn exec "SELECT relname, relkind
+                           FROM Pg_class 
+                          WHERE relname LIKE 'pg_%' 
+                       ORDER BY relname 
+                          LIMIT 3"]
 
     set results [pg::result $res -llist]
 
@@ -282,7 +295,7 @@ test pgtcl-4.6 {get results as a list of lists} {
 
     lsort $results
     
-} [list [list applicable_roles v] [list check_constraints v] [list column_domain_usage v]]
+} [list [list pg_aggregate r] [list pg_aggregate_fnoid_index i] [list pg_am r]]
 
 
 #
