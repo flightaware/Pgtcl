@@ -1,6 +1,25 @@
 
 $Id$
 
+2004-05-26 Karl Lehenbauer <karl-pg@sc.com>
+    * Changed configure script to use pg_config to find the path to
+      PostgreSQL includes and libraries.
+
+    * Altered libpgtcl to no longer require access to internal PostgreSQL
+      include files.
+
+2004-05-21 Karl Lehenbauer <karl-pg@sc.com>
+    * Add pg_exec_prepared to execute pre-prepared SQL statements with 
+      parameters.
+
+2004-04-23 Karl Lehenbauer <karl-pg@sc.com>
+    * Add pg_quote function to escape strings.  It adds the outside quotes, too.
+
+2004-04-14 Karl Lehenbauer <karl-pg@sc.com>
+    * Modify pg_exec to support $-variable substitution for PostgreSQL 7.4 and
+      above (protocol >= 3).  For example, you can now do stuff like
+          pg_exec $conn {select * from foo where field1 = $1} $value
+
 2004-02-14  Brett Schwarz <brett_schwarz@yahoo.com>
     * Updated with the fixes that went into the -core libpgtcl release
     * Also added fix for WSAStartup posted by anonymous on the bug list
@@ -12,7 +31,7 @@ $Id$
 
     * Improved the performance of -list a little bit
 
-2002-11-15  Karl Lehenbauer <karl@procplace.com>
+2002-11-15  Karl Lehenbauer <karl-pg@sc.com>
 
     * Tagged for 1.4b3
 
@@ -25,7 +44,7 @@ $Id$
 
     * Fixed bug in pg_result -assignbyidx
 
-2002-11-15  Karl Lehenbauer <karl@procplace.com>
+2002-11-15  Karl Lehenbauer <karl-pg@sc.com>
 
     * Convert all the "#ifdef TCL_ARRAYS" where tcl_value was called if 
       defined and not called if not defined to always "call" tcl_value.  
@@ -35,7 +54,7 @@ $Id$
       This change allows the code to be compiled with TCL_MEM_DEBUG enabled
       to look for memory leaks.
 
-2002-11-06  Karl Lehenbauer <karl@procplace.com>
+2002-11-06  Karl Lehenbauer <karl-pg@sc.com>
 
     * Tagged for 1.4b2
 
@@ -48,6 +67,6 @@ $Id$
     * added -list and -llist options to pg_result to return the
       results as a list and list of lists
 
-2002-11-05  Karl Lehenbauer <karl@procplace.com>
+2002-11-05  Karl Lehenbauer <karl-pg@sc.com>
 
 Started the ChangeLog.

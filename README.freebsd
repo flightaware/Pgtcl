@@ -25,5 +25,6 @@ You might need postgres-tcltk package, I'm not sure
 
 Then run configure in this directory with the following parameters:
 
-./configure  --with-tcl=/usr/local/lib/tcl8.4 --with-tclinclude=/usr/local/include/tcl8.4 --with-postgres-include=/usr/local/include --with-postgres-lib=/usr/local/lib
+./configure  --with-tcl=/usr/local/lib/tcl8.4 --with-tclinclude=/usr/local/include/tcl8.4 
+
 

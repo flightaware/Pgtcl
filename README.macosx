@@ -14,7 +14,10 @@ For now, you need to build and install Tcl and Postgres
 
 Then run configure in this directory with the following parameters:
 
-./configure --prefix=/opt/local --with-postgres-include=/opt/local/include --with-postgres-lib=/opt/local/lib
+./configure --prefix=/opt/local
+
+Then do a "make" and a "sudo make install" or equivalent, and you should
+be on your way.
 
 Here's one way to start it up:
 
