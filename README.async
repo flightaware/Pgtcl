@@ -3,7 +3,7 @@ $Id$
 
 Experimental Tcl interface to PostgreSQL asynchronous query processing
 
-        by Karl Lehenbauer (karl@procplace.com) 10/30/2002
+        by Karl Lehenbauer (karl-pg@sc.com) 10/2002 (revised 6/2004)
 
 RATIONALE
 
@@ -47,6 +47,21 @@ ASYNCHRONOUS QUERY PROCESSING COMMANDS
 
 This works like pg_exec, except that the query is issued asynchronously
 and pg_sendquery returns immediately without providing a result handle.
+
+With Postgres 7.4 and above, you can also do variable substitution.
+
+    pg_sendquery connection query var1 var2 ...
+
+...for example...
+
+    pg_sendquery $conn {insert into people values ($1, $2, $3, $4, $5);} \
+        $name $address $city $state $zip
+
+You can also execute prepared statements:
+
+    pg_exec $conn {prepare insert_people (varchar, varchar, varchar, varchar, varchar) as insert into people values ($1, $2, $3, $4, $5);}
+
+    pg_sendquery_prepared $conn insert_people $name $address $city $state $zip
 
 To get result handles resulting from the execution of pg_sendqery (and there 
 may be more than one if there are multiple SQL commands in the query), you 

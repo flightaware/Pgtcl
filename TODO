@@ -2,14 +2,15 @@
 
 $Id$
 
-Add support for PQsendQueryParams (parameter substitution to asynchronous
-queries.)
+Document var substitution to pg_sendquery
 
-Add support for PQsendQueryPrepared (parameter substitution to prepared
-statements as asynchronous queries.)
+Document pg_sendquery_prepared
 
 Set up error code when returning errors from postgres stuff.
 Return postgres status like {POSTGRES PGRES_EMPTY_QUERY} or whatever.
+
+Go through all possible C library calls to investigate a Postgres
+result and make sure they're supported.
 
 Make a cursor-like thing that sits on top of postgres results.  It's
 "reusable", because it knows to close out the previous result when it's
@@ -48,4 +49,10 @@ DONE Document pg_execute.
 DONE Document pg_on_connection_loss.
 
 DONE Document new asynchronous operation stuff.
+
+DONE Add support for PQsendQueryParams (parameter substitution to asynchronous
+queries.)
+
+DONE Add support for PQsendQueryPrepared (parameter substitution to prepared
+statements as asynchronous queries.)
 
