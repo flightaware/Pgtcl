@@ -245,6 +245,46 @@ test pgtcl-4.4 {get results as a DICT} {
 } tables
 }
 
+test pgtcl-4.5 {get results as a list} {
+
+    unset res
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+
+    set res [$conn exec "SELECT relname FROM Pg_class ORDER BY relname LIMIT 5"]
+
+    set results [pg::result $res -list]
+
+    pg_result $res -clear
+
+    pg_disconnect $conn
+
+    lsort $results
+    
+} [lsort [list applicable_roles check_constraints column_domain_usage column_privileges column_udt_usage]]
+
+#
+#
+#
+test pgtcl-4.6 {get results as a list of lists} {
+
+    unset res
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+
+    set res [$conn exec "SELECT relname, relkind FROM Pg_class ORDER BY relname LIMIT 3"]
+
+    set results [pg::result $res -llist]
+
+    pg_result $res -clear
+
+    pg_disconnect $conn
+
+    lsort $results
+    
+} [list [list applicable_roles v] [list check_constraints v] [list column_domain_usage v]]
+
+
 #
 #
 #
