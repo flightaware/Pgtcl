@@ -1,6 +1,13 @@
 
 $Id$
 
+
+2004-11-05 Brett Schwarz <brett_schwarz@yahoo.com>
+    * added delete proc for result handle cleanup
+
+2004-11-02 Brett Schwarz <brett_schwarz@yahoo.com>
+    * added delete proc for connection handle cleanup
+
 2004-09-20 Brett Schwarz <brett_schwarz@yahoo.com>
     * added preliminary support for dicts in pg_result. Need to have
       Tcl 8.5 or the dicts package extension. Need to set            
