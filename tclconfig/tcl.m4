@@ -1218,10 +1218,15 @@ dnl AC_CHECK_TOOL(AR, ar, :)
 	    ;;
 	FreeBSD-*)
 	    # FreeBSD 3.* and greater have ELF.
+	    # They also expect shared lib filenames of the style
+	    # libtcl84.so.1 and a symlink to the latest one from libtcl84.so
 	    SHLIB_CFLAGS="-fPIC"
 	    SHLIB_LD="ld -Bshareable -x"
 	    SHLIB_LD_LIBS='${LIBS}'
 	    SHLIB_SUFFIX=".so"
+	    UNSHARED_LIB_SUFFIX='${TCL_TRIM_DOTS}\$\{DBGX\}.a'
+	    SHARED_LIB_SUFFIX='${TCL_TRIM_DOTS}\$\{DBGX\}.so.1'
+	    TCL_LIB_VERSIONS_OK=nodots
 	    DL_OBJS="tclLoadDl.o"
 	    DL_LIBS=""
 	    LDFLAGS="-export-dynamic"
@@ -1232,14 +1237,6 @@ dnl AC_CHECK_TOOL(AR, ar, :)
 		EXTRA_CFLAGS="-pthread"
 	    	LDFLAGS="$LDFLAGS -pthread"
 	    fi
-	    case $system in
-	    FreeBSD-3.*)
-	    	# FreeBSD-3 doesn't handle version numbers with dots.
-	    	UNSHARED_LIB_SUFFIX='${TCL_TRIM_DOTS}\$\{DBGX\}.a'
-	    	SHARED_LIB_SUFFIX='${TCL_TRIM_DOTS}\$\{DBGX\}.so'
-	    	TCL_LIB_VERSIONS_OK=nodots
-		;;
-	    esac
 	    ;;
 	Rhapsody-*|Darwin-*)
 	    SHLIB_CFLAGS="-fno-common"
