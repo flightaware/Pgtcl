@@ -4,7 +4,7 @@ backends.  See libpgtcl.doc for details.
 
 $Id$
 
-This is pgtcl version 1.4 beta 1
+This is pgtcl version 1.4 beta 2
 
 With version 1.4, Pgtcl has been internally overhauled and brought up to
 date with the latest Tcl C-interface technology, while maintaining
@@ -15,19 +15,46 @@ under Pgtcl 1.4.
 
 This is a transitional release, as pgtcl is moving out the of core and
 into its own distribution.  This means that documentation also must be
-collected and included, and a configure script must be created.
+collected and included.
+
+CONFIGURING
+
+Pgtcl is now Tcl Extension Architecture (TEA) compliant, shipping with
+a standard "configure" script.  It no longer needs to reside in a specific
+place within the Postgres source tree in order to build.  
+
+You need to specify a path to the Postgres include files
+using --with-postgres-include and to the Postgres libraries 
+using --with-postgres-lib
+
+If you had PostgreSQL installed into /usr/postgres and a Tcl build in
+/usr/pptcl, you might use something like
+
+./configure --prefix=/usr/pptcl --with-postgres-include=/usr/postgres/include --with-postgres-lib=/usr/postgres/lib
+
+BUILDING
+
+Do a "make".  If all goes well, libpgtcl will be compiled and linked.
 
 INSTALLING
 
-For right now, decompress and untar libpgtcl in your postgres'
-src/pgsql/interfaces directory:
+Do a "make install".
 
-    cd ...src/pgsql/interfaces
-    mv libpgtcl olibpgtcl
-    tar xzvf ...libpgtcl.tar.gz
-    cd libpgtcl
-    gmake
-    gmake install
+USING IT
+
+With version 1.4, Pgtcl is a standard package and can be loaded with
+"package require" instead of the shared library load routine, "load".
+
+Fire up your tclsh:
+
+tclsh8.4
+% package require Pgtcl
+1.4
+
+You should use package require instead of load because there will be
+additional Tcl code shipped in future versions of Pgtcl, and using
+package require will make that code available to your application.
+
 
 CHANGES
 
@@ -59,6 +86,8 @@ The main changes are:
 
     o Error reporting has been brought into more compliance with the
       Tcl way of doing things.
+
+    o TEA-compliant build and install.
 
 So some programs that might have been working properly but had certain
 syntatically incorrect pg_* commands will now fail until fixed.
