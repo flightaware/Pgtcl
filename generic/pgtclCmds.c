@@ -856,6 +856,11 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
     Tcl_Obj    *fieldNameObj;
 	Tcl_Obj* subDictObj;
         Tcl_Obj* tresult;
+    Tcl_CmdInfo    infoPtr;
+
+
+    Pg_resultid        *resultid;
+
 
 	static CONST char *options[] = {
 		"-status", "-error", "-conn", "-oid",
@@ -1004,8 +1009,10 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 					return TCL_ERROR;
 				}
 
-				PgDelResultId(interp, queryResultString);
-				PQclear(result);
+                     Tcl_GetCommandInfo(interp, queryResultString, &infoPtr);
+                     resultid = (Pg_resultid *) infoPtr.objClientData;
+
+                Tcl_DeleteCommandFromToken(interp, resultid->cmd_token);
 				return TCL_OK;
 			}
 
@@ -3259,6 +3266,12 @@ Pg_results(ClientData cData, Tcl_Interp *interp, int objc,
 
     for (i = 0; i <= connid->res_last; i++)
     {
+ 
+        if (connid->results[i] == 0)
+        {
+            continue;
+        }
+
         sprintf(buf, "%s.%d", connString, i);
         if (Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj(buf, -1)) != TCL_OK)
         {

@@ -45,5 +45,6 @@ extern void PgNotifyInterpDelete(ClientData clientData, Tcl_Interp *interp);
 
 extern int PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 extern void PgDelCmdHandle(ClientData cData);
+extern void PgDelResultHandle(ClientData cData);
 
 extern Tcl_ChannelType Pg_ConnType;

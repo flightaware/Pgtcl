@@ -582,6 +582,7 @@ PgSetResultId(Tcl_Interp *interp, CONST84 char *connid_c, PGresult *res)
                     i;
     char            buf[32];
     Tcl_Obj         *cmd;
+    Pg_resultid     *resultid;
 
 
     conn_chan = Tcl_GetChannel(interp, connid_c, 0);
@@ -637,8 +638,14 @@ PgSetResultId(Tcl_Interp *interp, CONST84 char *connid_c, PGresult *res)
     sprintf(buf, "%s.%d", connid_c, resid);
     cmd = Tcl_NewStringObj(buf, -1);
 
-    Tcl_CreateObjCommand(interp, Tcl_GetStringFromObj(cmd, NULL), 
-        PgResultCmd, (ClientData) cmd,NULL);
+    resultid = (Pg_resultid *) ckalloc(sizeof(Pg_resultid));
+    resultid->interp = interp;
+    resultid->id     = resid;
+    resultid->str = Tcl_NewStringObj(buf, -1);
+
+    resultid->cmd_token = Tcl_CreateObjCommand(interp, 
+        Tcl_GetStringFromObj(cmd, NULL), PgResultCmd, (ClientData) resultid, PgDelResultHandle);
+
     Tcl_SetObjResult(interp, cmd);
 
     return resid;
@@ -1133,5 +1140,23 @@ PgDelCmdHandle(ClientData cData)
         return;
 
     Tcl_UnregisterChannel(connid->interp, conn_chan);
+    return;
+}
+
+void
+PgDelResultHandle(ClientData cData)
+{
+
+    PGresult       *result;
+    Pg_resultid    *resultid = (Pg_resultid *) cData;
+    char           *resstr;
+
+    resstr = Tcl_GetStringFromObj(resultid->str, NULL);
+    
+    result = PgGetResultId(resultid->interp, resstr);
+
+    PgDelResultId(resultid->interp, resstr);
+    PQclear(result);
+
     return;
 }

@@ -68,6 +68,14 @@ typedef struct Pg_ConnectionId_s
 	Tcl_Interp *interp;               /* save Interp info */
 }	Pg_ConnectionId;
 
+typedef struct Pg_resultid_s
+{
+    int            id;
+    Tcl_Obj           *str;
+    Tcl_Interp     *interp;
+    Tcl_Command    cmd_token;
+} Pg_resultid;
+
 /* Values of res_copyStatus */
 #define RES_COPY_NONE	0
 #define RES_COPY_INPROGRESS 1
