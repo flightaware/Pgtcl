@@ -13,6 +13,24 @@ nearly 100% compatibility with the pg_* Tcl interface provided by Pgtcl 1.3.
 Most Tcl programs that used Pgtcl 1.3 will work without modification
 under Pgtcl 1.4.
 
+This is a transitional release, as pgtcl is moving out the of core and
+into its own distribution.  This means that documentation also must be
+collected and included, and a configure script must be created.
+
+INSTALLING
+
+For right now, decompress and untar libpgtcl in your postgres'
+src/pgsql/interfaces directory:
+
+    cd ...src/pgsql/interfaces
+    mv libpgtcl olibpgtcl
+    tar xzvf ...libpgtcl.tar.gz
+    cd libpgtcl
+    gmake
+    gmake install
+
+CHANGES
+
 The main changes are:
 
     o Support has been dropped for Tcl 7.x.  We now support Tcl 8.0 and above,
@@ -48,6 +66,8 @@ syntatically incorrect pg_* commands will now fail until fixed.
 pg_result -assign and pg_result -assignbyidx used to return the array
 name, which was superfluous because the array name was specified on the
 command line.  They now return nothing.  *** POTENTIAL INCOMPATIBILITY ***
+
+OLDER CHANGES
 
 Here are some features that were added back in the 1998 - 1999 timeframe:
 
