@@ -223,8 +223,6 @@ tcl_value(char *value)
 #endif
 	return value;
 }
-#else /* TCL_ARRAYS */
-#define tcl_value(x) x
 #endif   /* TCL_ARRAYS */
 
 
@@ -604,9 +602,9 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	char	   *queryResultString;
 	int			optIndex;
 
-        Tcl_Obj* listObj = Tcl_NewListObj(0, (Tcl_Obj **) NULL);
-        Tcl_Obj* subListObj;
-        Tcl_Obj* fieldObj;
+	Tcl_Obj* listObj;
+	Tcl_Obj* subListObj;
+	Tcl_Obj* fieldObj;
 
 	static CONST char *options[] = {
 		"-status", "-error", "-conn", "-oid",
@@ -766,7 +764,12 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 						Tcl_AppendToObj(fieldNameObj, PQfname(result, i), -1);
 
 						if (Tcl_ObjSetVar2(interp, arrVarObj, fieldNameObj,
-										   Tcl_NewStringObj( tcl_value(PQgetvalue(result, tupno, i)),
+										   Tcl_NewStringObj(
+#ifdef TCL_ARRAYS
+								 tcl_value(PQgetvalue(result, tupno, i)),
+#else
+											PQgetvalue(result, tupno, i),
+#endif
 										 -1), TCL_LEAVE_ERR_MSG) == NULL)
 							return TCL_ERROR;
 					}
@@ -776,9 +779,12 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 		case OPT_ASSIGNBYIDX:
 			{
+				Tcl_Obj *fieldNameObj = Tcl_NewStringObj((char*)NULL, 0);
+
 				if ((objc != 4) && (objc != 5))
 				{
 					Tcl_WrongNumArgs(interp, 3, objv, "arrayName ?append_string?");
+					Tcl_DecrRefCount(fieldNameObj);
 					return TCL_ERROR;
 				}
 
@@ -801,13 +807,17 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				 */
 				for (tupno = 0; tupno < PQntuples(result); tupno++)
 				{
-					Tcl_Obj    *fieldNameObj;
-					const char *field0 = tcl_value(PQgetvalue(result, tupno, 0));
+					const char *field0 =
+#ifdef TCL_ARRAYS
+					tcl_value(PQgetvalue(result, tupno, 0));
 
-					fieldNameObj = Tcl_NewStringObj(field0, -1);
+#else
+					PQgetvalue(result, tupno, 0);
+#endif
 
 					for (i = 1; i < PQnfields(result); i++)
 					{
+						Tcl_SetStringObj(fieldNameObj, field0, -1);
 						Tcl_AppendToObj(fieldNameObj, ",", 1);
 						Tcl_AppendToObj(fieldNameObj, PQfname(result, i), -1);
 
@@ -816,11 +826,20 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 						if (Tcl_ObjSetVar2(interp, arrVarObj, fieldNameObj,
 										   Tcl_NewStringObj(
-											 tcl_value(PQgetvalue(result, tupno, i)),
+#ifdef TCL_ARRAYS
+								 tcl_value(PQgetvalue(result, tupno, i)),
+#else
+											PQgetvalue(result, tupno, i),
+#endif
 										 -1), TCL_LEAVE_ERR_MSG) == NULL)
+						{
+                            
+							Tcl_DecrRefCount(fieldNameObj);
 							return TCL_ERROR;
+						}
 					}
 				}
+				Tcl_DecrRefCount(fieldNameObj);
 				return TCL_OK;
 			}
 
@@ -852,7 +871,11 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				{
 					char	   *value;
 
+#ifdef TCL_ARRAYS
 					value = tcl_value(PQgetvalue(result, tupno, i));
+#else
+					value = PQgetvalue(result, tupno, i);
+#endif
 					if (Tcl_ListObjAppendElement(interp, resultObj,
 							   Tcl_NewStringObj(value, -1)) == TCL_ERROR)
 						return TCL_ERROR;
@@ -884,7 +907,11 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				for (i = 0; i < PQnfields(result); i++)
 				{
 					if (Tcl_SetVar2(interp, arrayName, PQfname(result, i),
+#ifdef TCL_ARRAYS
 								 tcl_value(PQgetvalue(result, tupno, i)),
+#else
+									PQgetvalue(result, tupno, i),
+#endif
 									TCL_LEAVE_ERR_MSG) == NULL)
 						return TCL_ERROR;
 				}
@@ -951,8 +978,10 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 			}
 
 		case OPT_LIST: 
-                        {
-	
+		{
+ 	
+			listObj = Tcl_NewListObj(0, (Tcl_Obj **) NULL);
+
 			/*
 			**	Loop through the tuple, and append each 
 			**	attribute to the list
@@ -971,12 +1000,12 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				*/
 				for (i = 0; i < PQnfields(result); i++)
 				{
-	
-					fieldObj = Tcl_NewObj();
-	
-					Tcl_SetStringObj(fieldObj, PQgetvalue(result, tupno, i), -1);
-	    				if (Tcl_ListObjAppendElement(interp, listObj, fieldObj) != TCL_OK)
+				    fieldObj = Tcl_NewObj();
+
+				    Tcl_SetStringObj(fieldObj, PQgetvalue(result, tupno, i), -1);
+				    if (Tcl_ListObjAppendElement(interp, listObj, fieldObj) != TCL_OK)
 					{
+						Tcl_DecrRefCount(listObj);
 						Tcl_DecrRefCount(fieldObj);
 						return TCL_ERROR;
 					}
@@ -987,9 +1016,10 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 			Tcl_SetObjResult(interp, listObj);
 			return TCL_OK;
 
-        		}
+		}
 		case OPT_LLIST: 
-                        {
+		{
+			listObj = Tcl_NewListObj(0, (Tcl_Obj **) NULL);
 	
 			/*
 			**	This is the top level list. This
@@ -1012,11 +1042,12 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				{
 	
 					fieldObj = Tcl_NewObj();
-	
+
 					Tcl_SetStringObj(fieldObj, PQgetvalue(result, tupno, i), -1);
 	
 					if (Tcl_ListObjAppendElement(interp, subListObj, fieldObj) != TCL_OK)
 					{
+						Tcl_DecrRefCount(listObj);
 						Tcl_DecrRefCount(fieldObj);
 						return TCL_ERROR;
 					}
@@ -1024,6 +1055,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				}
 				if (Tcl_ListObjAppendElement(interp, listObj, subListObj) != TCL_OK)
 				{
+					Tcl_DecrRefCount(listObj);
 					Tcl_DecrRefCount(fieldObj);
 					return TCL_ERROR;
 				}
@@ -1055,8 +1087,8 @@ Pg_result_errReturn:
 					 "\t-tupleArray tupleNumber arrayVarName\n",
 					 "\t-attributes\n"
 					 "\t-lAttributes\n"
-                                         "\t-list\n",
-                                         "\t-llist\n",
+                                        "\t-list\n",
+                                        "\t-llist\n",
 					 "\t-clear\n",
 					 (char *)0);
 	return TCL_ERROR;
@@ -1965,7 +1997,11 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		{
 			Tcl_Obj    *valueObj;
 
+#ifdef TCL_ARRAYS
 			valueObj = Tcl_NewStringObj(tcl_value(PQgetvalue(result, tupno, column)), -1);
+#else
+			valueObj = Tcl_NewStringObj(PQgetvalue(result, tupno, column), -1);
+#endif
 			Tcl_ObjSetVar2(interp, varNameObj, columnNameObjs[column],
 						   valueObj,
 						   0);
