@@ -619,7 +619,7 @@ dnl AC_CHECK_TOOL(AR, ar, :)
 	    SHLIB_LD_LIBS='${LIBS}'
 	    SHLIB_SUFFIX=".so"
 	    UNSHARED_LIB_SUFFIX='${TCL_TRIM_DOTS}\$\{DBGX\}.a'
-	    SHARED_LIB_SUFFIX='${TCL_TRIM_DOTS}\$\{DBGX\}.so.1'
+	    SHARED_LIB_SUFFIX='${TCL_TRIM_DOTS}\$\{DBGX\}.so'
 	    TCL_LIB_VERSIONS_OK=nodots
 	    DL_OBJS="tclLoadDl.o"
 	    DL_LIBS=""
