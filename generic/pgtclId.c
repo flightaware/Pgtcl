@@ -266,6 +266,12 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
         SENDQUERY, EXEC_PREPARED, SENDQUERY_PREPARED
     };
 
+    if (objc == 1)
+    {
+	    Tcl_WrongNumArgs(interp, 1, objv, "command...");
+	    return TCL_ERROR;
+    }
+
     /*
      *    this assigns the args array with an offset, since
      *    the command handle args looks is offset
@@ -396,19 +402,11 @@ PgResultCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[
     Tcl_Obj       *res;
     //char       *res;
 
-    static CONST char *options[] = {
-    "disconnect", "exec", "sqlexec", "execute", "select", "listen",
-    "on_connection_loss", "lo_creat", "lo_open", "lo_close", 
-    "lo_read", "lo_write", "lo_lseek", "lo_tell", "lo_unlink",
-    "lo_import", "lo_export", (char *)NULL
-    };
-
-    enum options
+    if (objc == 1)
     {
-        DISCONNECT,EXEC, SQLEXEC, EXECUTE, SELECT, LISTEN, ON_CONNECTION_LOSS,
-        LO_CREAT, LO_OPEN, LO_CLOSE, LO_READ, LO_WRITE, LO_LSEEK, LO_TELL,
-        LO_UNLINK, LO_IMPORT, LO_EXPORT
-    };
+	    Tcl_WrongNumArgs(interp, 1, objv, "command...");
+	    return TCL_ERROR;
+    }
 
     /*
      *    this assigns the args array with an offset, since
