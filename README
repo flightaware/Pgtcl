@@ -1,8 +1,9 @@
 libpgtcl is a library that implements Tcl commands for front-end
 clients to interact with Postgresql backends.  
 
-Thank you for downloading Pgtcl, a package that adds extensions for
-Postgres to Tcl, that's been in existence for ten years.
+Thank you for downloading Pgtcl, a package that adds Postgres interface
+extensions to the Tcl programming language, an open source project that's 
+been in existence for more than ten years.
 
 Pgtcl was originally written by Jolly Chen.  Many people have contributed to 
 the further development of Pgtcl over the years, including Randy Kunkee,
@@ -23,7 +24,8 @@ under Pgtcl 1.4.
 This is a transitional release, as pgtcl is moving out the of core and
 into its own distribution.  The documentation has been broken out into
 this release, although we do not document all the tools you need to
-build it.  The release also includes the docs in HTML and PDF format.
+build the documentation itself.  The release also includes the docs in 
+HTML and PDF format.
 
 CHANGES
 
@@ -88,20 +90,25 @@ a standard "configure" script.  It no longer needs to reside in a specific
 place within the Postgres source tree in order to build.  
 
 The configure script will attempt to find where the Postgres includes and
-libraries are using pg_config.  You can specify a path to the Postgres 
+libraries are using pg_config, a program built and installed as part of
+Postgres.  Alternatively, you can specify a path to the Postgres 
 include files using --with-postgres-include and to the Postgres libraries 
-using --with-postgres-lib
+using --with-postgres-lib.  
 
 If you had PostgreSQL installed into /usr/postgres and a Tcl build in
 /usr/pptcl, you might use something like
 
-./configure --prefix=/usr/pptcl --with-postgres-include=/usr/postgres/include --with-postgres-lib=/usr/postgres/lib
-
-but if pg_config is in your search path,
-
 ./configure --prefix=/usr/pptcl
 
-...would suffice.
+With this style of configure command, you'll need to make sure pg_config
+(and the correct pg_config if you have postgres installed in multiple
+places) is in the PATH.
+
+Alternatively you can still explicitly specify where the Postgres includes
+and libraries are found:
+
+./configure --prefix=/usr/pptcl --with-postgres-include=/usr/postgres/include --with-postgres-lib=/usr/postgres/lib
+
 
 For standard builds to put things in subdirectories of /usr/local,
 
@@ -133,7 +140,7 @@ versions of Pgtcl, and using "package require" will make that code available
 to your application.  Also it keeps you from hard-coding the path to the
 library and hard-coding a dependency on a specific version.
 
-IF IT COMPILES AND INSTALLS BUT PACKAGE REQUIRE DOESN'T WORK
+IF IT COMPILES AND INSTALLS OK BUT "PACKAGE REQUIRE" DOESN'T WORK
 
 ...it probably didn't install into the search path Tcl uses to find
 extensions.  You might have more than one Tclsh installed.  Try adding

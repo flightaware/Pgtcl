@@ -1,6 +1,9 @@
 
 $Id$
 
+2004-06-28 Karl Lehenbauer <karl-pg@sc.com>
+    * Version 1.4 released
+
 2004-06-22 Karl Lehenbauer <karl-pg@sc.com>
     * Added new optional subidentifiers to pg_result $resultID -error. 
       You can specify one of "severity", "sqlstate", "primary", "detail",
