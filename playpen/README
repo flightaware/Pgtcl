@@ -1,0 +1,7 @@
+
+$Id$
+
+This is the playpen directory, where we put stuff to play with, mess with,
+and evolve... stuff that isn't (yet) ready for prime time.
+
+datatypes - code for playing with data type oids and names

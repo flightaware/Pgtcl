@@ -1,6 +1,12 @@
 
 $Id$
 
+2004-11-22 Karl Lehenbauer <karl-pg@sc.com>
+    * Created playpen directory where interesting things that are not
+      yet ready for prime time can be examined and messed with.  
+      Added code for turning OIDs returned by pg_result -lAttributes
+      into data type names.
+
 2004-11-19 Karl Lehenbauer <karl-pg@sc.com>
     * Updated autoconf build to TEA 3.1 / autoconf 2.59
 

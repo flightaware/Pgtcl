@@ -1,0 +1,12 @@
+
+
+$Id$
+
+Code for fetching data types and storing them in a global so data type 
+numbers returned by pg_result -lAttributes can be turned into something
+useful. 
+
+table_types - will tell you all the data types for the fields within a
+table.
+
+demo.tcl - will demo it
