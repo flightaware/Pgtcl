@@ -5,3 +5,14 @@ from the PostgreSQL package when Pgtcl was part of the Postgres core.
 
 It has been updated to document the latest capabilities of Pgtcl.
 
+The release ships with documentation in HTML and PDF form.
+
+To build your own docs from the sgml source is beyond the scope of this
+document.
+
+If you're using FreeBSD, it's pretty easy.
+
+There are some good hints on everything you need and how to get it built
+and installed at http://www.postgresql.org/docs/7.3/static/doc-toolsets.html
+
+

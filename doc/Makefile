@@ -2,8 +2,13 @@
 # Makefile for making html and pdf documentation (etc) of the libpgtcl 
 # interface.
 #
-# This requires all that complicated docbook stuff.  You need at least
-# openjade and pdfjadetex to run it.
+# This requires all that complicated docbook sgml stuff, plus tex if you
+# want to generate postscript or pdf.  You need at least
+# openjade and pdfjadetex to run it, plus all the stuff they need.
+#
+# There is a lot of useful information on
+#
+#     http://www.postgresql.org/docs/7.3/static/doc-toolsets.html
 #
 #
 # $Id$
