@@ -923,7 +923,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 #ifndef HAVE_TCL_NEWDICTOBJ
     if ((enum options) optIndex == OPT_DICT)
     {
-        Tcl_SetObjResult(interp, Tcl_NewStringObj("You need a Tcl version (8.5+)that supports dicts in order to use the -dict option", -1));
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("You need a Tcl version (8.5+) that supports dicts in order to use the -dict option", -1));
 	    return TCL_ERROR;
     }
 
