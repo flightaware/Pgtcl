@@ -24,7 +24,6 @@
 #include <c.h>
 #endif
 
-
 /* BEGIN STUBS MUMBO JUMBO http://mini.net/tcl/1687 */
 /* We need at least the Tcl_Obj interface that was started in 8.0 */
 #if TCL_MAJOR_VERSION < 8

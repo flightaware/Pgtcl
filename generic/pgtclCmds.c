@@ -839,12 +839,14 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	Tcl_Obj* listObj;
 	Tcl_Obj* subListObj;
 	Tcl_Obj* fieldObj;
+    Tcl_Obj    *fieldNameObj;
+	Tcl_Obj* subDictObj;
 
 	static CONST char *options[] = {
 		"-status", "-error", "-conn", "-oid",
 		"-numTuples", "-cmdTuples", "-numAttrs", "-assign", "-assignbyidx",
 		"-getTuple", "-tupleArray", "-attributes", "-lAttributes",
-		"-clear", "-list", "-llist", (char *)NULL
+		"-clear", "-list", "-llist", "-dict", (char *)NULL
 	};
 
 	enum options
@@ -852,7 +854,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		OPT_STATUS, OPT_ERROR, OPT_CONN, OPT_OID,
 		OPT_NUMTUPLES, OPT_CMDTUPLES, OPT_NUMATTRS, OPT_ASSIGN, OPT_ASSIGNBYIDX,
 		OPT_GETTUPLE, OPT_TUPLEARRAY, OPT_ATTRIBUTES, OPT_LATTRIBUTES,
-		OPT_CLEAR, OPT_LIST, OPT_LLIST
+		OPT_CLEAR, OPT_LIST, OPT_LLIST, OPT_DICT
 	};
 
 	static CONST char *errorOptions[] = {
@@ -895,6 +897,16 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	if (Tcl_GetIndexFromObj(interp, objv[2], options, "option", TCL_EXACT,
 							&optIndex) != TCL_OK)
 		return TCL_ERROR;
+
+#ifndef HAVE_TCL_NEWDICTOBJ
+    if ((enum options) optIndex == OPT_DICT)
+    {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("You need a Tcl version that supports dicts in order to use the -dict option", -1));
+	    return TCL_ERROR;
+    }
+
+#endif
+
 
 	switch ((enum options) optIndex)
 	{
@@ -1063,7 +1075,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 		case OPT_ASSIGNBYIDX:
 			{
-				Tcl_Obj *fieldNameObj = Tcl_NewObj();
+				fieldNameObj = Tcl_NewObj();
 
 				if ((objc != 4) && (objc != 5))
 				{
@@ -1338,7 +1350,57 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 			Tcl_SetObjResult(interp, listObj);
 			return TCL_OK;
 		}
+		case OPT_DICT: 
+                {
 
+			listObj = Tcl_NewDictObj();
+	
+			/*
+			**	This is the top level list. This
+			**	contains the other lists
+			**
+			**	This option contructs a list of
+			**	attributes for each tuple, and
+			**	appends that to the main list.
+			**	This is a list of lists
+			*/
+			for (tupno = 0; tupno < PQntuples(result); tupno++)
+			{
+				subListObj = Tcl_NewDictObj();
+	
+				/*
+				**	This is the inner list. This contains
+				**	the actual row values
+				*/
+				for (i = 0; i < PQnfields(result); i++)
+				{
+	
+					fieldObj = Tcl_NewObj();
+					fieldNameObj = Tcl_NewObj();
+
+					Tcl_SetStringObj(fieldNameObj, PQfname(result, i), -1);
+					Tcl_SetStringObj(fieldObj, PQgetvalue(result, tupno, i), -1);
+	
+					if (Tcl_DictObjPut(interp, subListObj, fieldNameObj, fieldObj) != TCL_OK)
+					{
+						Tcl_DecrRefCount(listObj);
+						Tcl_DecrRefCount(fieldObj);
+						return TCL_ERROR;
+					}
+	
+				}
+				if (Tcl_DictObjPut(interp, listObj, Tcl_NewIntObj(tupno), subListObj) != TCL_OK)
+				{
+					Tcl_DecrRefCount(listObj);
+					Tcl_DecrRefCount(fieldObj);
+					return TCL_ERROR;
+				}
+			}
+	
+			Tcl_SetObjResult(interp, listObj);
+			return TCL_OK;
+
+                }
 		default:
 			{
                 Tcl_SetObjResult(interp, Tcl_NewStringObj("Invalid option\n", -1));
