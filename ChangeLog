@@ -1,6 +1,14 @@
 
 $Id$
 
+2004-06-21 Karl Lehenbauer <karl-pg@sc.com>
+    * Added parameter support to the asynchronous pg_sendquery function.
+      With newer versions of Postgres, $-variable substitution is now
+      supported in pg_sendquery as it is in pg_exec.
+
+    * Added a new function, pg_sendquery_prepared, that supports
+      asynchronous invocation of prepared statements.
+
 2004-05-26 Karl Lehenbauer <karl-pg@sc.com>
     * Changed configure script to use pg_config to find the path to
       PostgreSQL includes and libraries.
