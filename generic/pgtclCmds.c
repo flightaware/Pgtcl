@@ -3157,6 +3157,52 @@ Pg_quote(ClientData cData, Tcl_Interp *interp, int objc,
 	Tcl_SetResult(interp, toString, TCL_DYNAMIC);
 	return TCL_OK;
 }
+
+/***********************************
+Pg_quoteBytea
+
+ syntax:
+
+***********************************/
+int
+Pg_quoteBytea(ClientData cData, Tcl_Interp *interp, int objc,
+                                 Tcl_Obj *CONST objv[])
+{
+        const unsigned char    *from;
+        unsigned char          *to;
+        size_t                    fromLen;
+        size_t                    toLen;
+
+        if (objc != 2)
+        {
+                Tcl_WrongNumArgs(interp, 1, objv, "binaryString");
+                return TCL_ERROR;
+        }
+
+        /*
+         * Get the "from" string.
+         */
+        from = Tcl_GetByteArrayFromObj(objv[1], &fromLen);
+
+        to = PQescapeBytea(from, fromLen, &toLen);
+
+        if (! to)
+        {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("Failed to quote binary string", -1));
+            return TCL_ERROR;
+        }
+
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(to, -1));
+
+        #ifdef PQfreemem
+            PQfreemem(to);
+        #else
+            PQfreeNotify(to);
+        #endif
+
+        return TCL_OK;
+}
+
 /***********************************
 Pg_conninfo
 

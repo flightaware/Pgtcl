@@ -97,6 +97,7 @@ static PgCmd commands[] = {
     {"pg_cancelrequest", "::pg::cancelrequest", Pg_cancelrequest,2},
     {"pg_on_connection_loss", "::pg::on_connection_loss", Pg_on_connection_loss,2},
     {"pg_quote", "::pg::quote", Pg_quote,2},
+    {"pg_quote_bytea", "::pg::quote_bytea", Pg_quoteBytea,2},
     {"pg_conninfo", "::pg::conninfo", Pg_conninfo,2},
     {"pg_results", "::pg::results", Pg_results,2},
     {NULL, NULL, NULL, NULL}
@@ -115,7 +116,6 @@ Pgtcl_Init(Tcl_Interp *interp)
 {
 	double		tclversion;
 	Tcl_Obj    *tclVersionObj;
-	Tcl_Obj    *tresult;
         PgCmd *cmdPtr;
 
         #ifdef WIN32
@@ -132,6 +132,8 @@ Pgtcl_Init(Tcl_Interp *interp)
         * On Windows, need to explicitly load the libpq library to
         * force the call to WSAStartup.
         */
+	Tcl_Obj    *tresult;
+
         if (LoadLibrary("libpq.dll") == NULL) {
         //char buf[32];
         //sprintf(buf, "%d", GetLastError());
