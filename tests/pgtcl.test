@@ -3,7 +3,7 @@ if {[lsearch [namespace children] ::tcltest] == -1} {
     namespace import -force ::tcltest::*
 }
 
-foreach F [list ../libpgtcl1.4.so libpgtcl1.4.so] {
+foreach F [list ../libpgtcl1.5.so ./libpgtcl1.5.so] {
 
     if {[file exists $F]} {
 
@@ -167,3 +167,27 @@ test pgtcl-0.8 {get result handles} {
     set results
 
 } [lsort [list pgsql3.0 pgsql3.1 pgsql3.2 pgsql3.3]]
+
+## only check if have dicts installed
+if {[llength [info commands dict]] == 1} {
+#
+#
+#
+test pgtcl-0.8 {get results as a DICT} {
+
+    unset res
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+
+    set res [$conn exec "SELECT * FROM Pg_class  WHERE relname='tables'"]
+
+    set results [pg::result $res -dict]
+
+    pg_result $res -clear
+
+    pg_disconnect $conn
+
+    dict get $results 0 relname
+
+} tables
+}
