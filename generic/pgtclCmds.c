@@ -490,15 +490,37 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	PGresult   *result;
 	char	   *connString;
 	char	   *execString;
+	const char **paramValues = NULL;
+	int         nParams;
 
-	if (objc != 3)
+	if (objc < 3)
 	{
-		Tcl_WrongNumArgs(interp, 1, objv, "connection queryString");
+		Tcl_WrongNumArgs(interp, 1, objv, "connection queryString [parm...]");
 		return TCL_ERROR;
 	}
 
-	connString = Tcl_GetStringFromObj(objv[1], NULL);
+	/* extra params will substitute for $1, $2, etc, in the statement */
+	/* objc must be 3 or greater at this point */
+	nParams = objc - 3;
 
+	/* If there are any extra params, allocate paramValues and fill it
+	 * with the string representations of all of the extra parameters
+	 * substituted on the command line.  Otherwise nParams will be 0,
+	 * and PQexecParams will work just like PQexec (no $-substitutions).
+	 */
+	if (nParams > 0) {
+	    int param;
+
+	    paramValues = (const char **)ckalloc (nParams * sizeof (char *));
+
+	    for (param = 0; param < nParams; param++) {
+		paramValues[param] = Tcl_GetStringFromObj (objv[3+param], NULL);
+	    }
+	}
+
+	/* figure out the connect string and get the connection ID */
+
+	connString = Tcl_GetStringFromObj(objv[1], NULL);
 	conn = PgGetConnectionId(interp, connString, &connid);
 	if (conn == NULL)
 		return TCL_ERROR;
@@ -510,7 +532,18 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	}
 
 	execString = Tcl_GetStringFromObj(objv[2], NULL);
-	result = PQexec(conn, execString);
+
+	/* we could call PQexecParams when nParams is 0, but PQexecParams
+	 * will not accept more than one SQL statement per call, while
+	 * PQexec will.  by checking and using PQexec when no parameters
+	 * are included, we maintain compatibility for code that doesn't
+	 * use params and might have had multiple statements in a single 
+	 * request */
+	if (nParams == 0} {
+	    result = PQexec(conn, execString);
+	} else {
+	    result = PQexecParams(conn, execString, nParams, NULL, paramValues, NULL, NULL, 1);
+	}
 
 	/* Transfer any notify events from libpq to Tcl event queue. */
 	PgNotifyTransferEvents(connid);
