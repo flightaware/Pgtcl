@@ -581,6 +581,12 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		returns a list of the {name type len} entries of the tuple
 		attributes
 
+        -list
+                returns one list of all of the data
+
+        -llist  returns a list of lists, where each embedded list represents 
+                a tuple in the result
+
 	-clear	clear the result buffer. Do not reuse after this
 
  **********************************/
@@ -596,11 +602,15 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	char	   *queryResultString;
 	int			optIndex;
 
+        Tcl_Obj* listObj = Tcl_NewListObj(0, (Tcl_Obj **) NULL);
+        Tcl_Obj* subListObj;
+        Tcl_Obj* fieldObj;
+
 	static CONST char *options[] = {
 		"-status", "-error", "-conn", "-oid",
 		"-numTuples", "-numAttrs", "-assign", "-assignbyidx",
 		"-getTuple", "-tupleArray", "-attributes", "-lAttributes",
-		"-clear", (char *)NULL
+		"-clear", "-list", "-llist", (char *)NULL
 	};
 
 	enum options
@@ -608,7 +618,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		OPT_STATUS, OPT_ERROR, OPT_CONN, OPT_OID,
 		OPT_NUMTUPLES, OPT_NUMATTRS, OPT_ASSIGN, OPT_ASSIGNBYIDX,
 		OPT_GETTUPLE, OPT_TUPLEARRAY, OPT_ATTRIBUTES, OPT_LATTRIBUTES,
-		OPT_CLEAR
+		OPT_CLEAR, OPT_LIST, OPT_LLIST
 	};
 
 	if (objc < 3 || objc > 5)
@@ -961,13 +971,95 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				return TCL_OK;
 			}
 
+		case OPT_LIST: 
+                        {
+	
+			/*
+			**	Loop through the tuple, and append each 
+			**	attribute to the list
+			**
+			**	This option appends all of the attributes
+			**	for each tuple to the same list
+			*/
+			for (tupno = 0; tupno < PQntuples(result); tupno++)
+			{
+	
+				subListObj = Tcl_NewListObj(0, (Tcl_Obj **) NULL);
+	
+				/*
+				**	Loop over the attributes for the tuple, 
+				**	and append them to the list
+				*/
+				for (i = 0; i < PQnfields(result); i++)
+				{
+	
+					fieldObj = Tcl_NewObj();
+	
+					Tcl_SetStringObj(fieldObj, PQgetvalue(result, tupno, i), -1);
+	    				if (Tcl_ListObjAppendElement(interp, listObj, fieldObj) != TCL_OK)
+					{
+						Tcl_DecrRefCount(fieldObj);
+						return TCL_ERROR;
+					}
+	
+				}
+			}
+	
+			Tcl_SetObjResult(interp, listObj);
+			return TCL_OK;
+
+        		}
+		case OPT_LLIST: 
+                        {
+	
+			/*
+			**	This is the top level list. This
+			**	contains the other lists
+			**
+			**	This option contructs a list of
+			**	attributes for each tuple, and
+			**	appends that to the main list.
+			**	This is a list of lists
+			*/
+			for (tupno = 0; tupno < PQntuples(result); tupno++)
+			{
+				subListObj = Tcl_NewListObj(0, (Tcl_Obj **) NULL);
+	
+				/*
+				**	This is the inner list. This contains
+				**	the actual row values
+				*/
+				for (i = 0; i < PQnfields(result); i++)
+				{
+	
+					fieldObj = Tcl_NewObj();
+	
+					Tcl_SetStringObj(fieldObj, PQgetvalue(result, tupno, i), -1);
+	
+					if (Tcl_ListObjAppendElement(interp, subListObj, fieldObj) != TCL_OK)
+					{
+						Tcl_DecrRefCount(fieldObj);
+						return TCL_ERROR;
+					}
+	
+				}
+				if (Tcl_ListObjAppendElement(interp, listObj, subListObj) != TCL_OK)
+				{
+					Tcl_DecrRefCount(fieldObj);
+					return TCL_ERROR;
+				}
+			}
+	
+			Tcl_SetObjResult(interp, listObj);
+			return TCL_OK;
+		}
+
 		default:
 			{
 				Tcl_AppendResult(interp, "Invalid option\n", 0);
 				goto Pg_result_errReturn;		/* append help info */
 			}
 	}
-
 
 Pg_result_errReturn:
 	Tcl_AppendResult(interp,
@@ -984,6 +1076,8 @@ Pg_result_errReturn:
 					 "\t-tupleArray tupleNumber arrayVarName\n",
 					 "\t-attributes\n"
 					 "\t-lAttributes\n"
+                                         "\t-list\n",
+                                         "\t-llist\n",
 					 "\t-clear\n",
 					 (char *)0);
 	return TCL_ERROR;
