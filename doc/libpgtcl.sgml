@@ -93,8 +93,8 @@ $Header$
     <entry>send a query and optionally loop over the results</entry>
   </row>
   <row>
-    <entry><function>pg_escape_string</function></entry>
-    <entry>escape string for inclusion into SQL queries</entry>
+    <entry><function>pg_quote</function></entry>
+    <entry>escape a string for inclusion into SQL queries</entry>
   </row>
   <row>
     <entry><function>pg_listen</function></entry>
@@ -1493,19 +1493,19 @@ pg_cancelrequest <parameter>conn</parameter>
 
 <refentry ID="PGTCL-PGESCAPE-STRING">
  <refmeta>
-  <refentrytitle>pg_escape_string</refentrytitle>
+  <refentrytitle>pg_quote</refentrytitle>
  </refmeta>
 
  <refnamediv>
-  <refname>pg_escape_string</refname>
-  <refpurpose>escape string for inclusion into SQL queries
+  <refname>pg_quote</refname>
+  <refpurpose>escapes a string for inclusion into SQL queries
  </refpurpose>
-  <indexterm ID="IX-PGTCL-PGESCAPE-STRING-2"><primary>pg_escape_string</primary></indexterm>
+  <indexterm ID="IX-PGTCL-PGESCAPE-STRING-2"><primary>pg_quote</primary></indexterm>
  </refnamediv>
 
  <refsynopsisdiv>
 <synopsis>
-pg_escape_string <parameter>string</parameter>
+pg_quote <parameter>string</parameter>
 </synopsis>
  </refsynopsisdiv>
 
@@ -1513,7 +1513,7 @@ pg_escape_string <parameter>string</parameter>
   <title>Description</title>
 
   <para>
-   <function>pg_escape_string</function> escapes a string for inclusion
+   <function>pg_quote</function> escapes a string for inclusion
    into SQL queries.
   </para>
  </refsect1>
@@ -1538,7 +1538,7 @@ pg_escape_string <parameter>string</parameter>
 
   <para>
    Returns the string, escaped for inclusion into SQL queries.  Note that
-   it does not put the single quotes around the outside of the string.
+   it adds a set of single quotes around the outside of the string as well.
   </para>
  </refsect1>
 </refentry>

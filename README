@@ -1,15 +1,19 @@
 libpgtcl is a library that implements Tcl commands for front-end
-clients to interact with Postgresql 7.2 (and perhaps later)
-backends.  See libpgtcl.doc for details.
+clients to interact with Postgresql 7.4 backends.  
+
+Please see libpgtcl.sgml for details.
 
 $Id$
 
-This is pgtcl version 1.4 beta 3
+Thank you for downloading Pgtcl, a package that adds extensions for
+Postgres to Tcl, that's been in existence for ten years.
 
-CHANGES IN 1.4 BETA 3
+Pgtcl was originally written by Jolly Chen.  Many people have contributed to 
+the further development of Pgtcl over the years, including Randy Kunkee,
+who added the channel handler code, among other things, and we intend to
+identify the rest of them and give them credit as well.
 
-Fixed all known memory leaks.  Fixed bug in "pg_result -assignbyidx".
-Fixed notifier bug in pg_listen.
+This release was carved by by Brett Schwartz and Karl Lehenbauer.
 
 VERSION 1.4
 
@@ -17,13 +21,63 @@ With version 1.4, Pgtcl has been internally overhauled and brought up to
 date with the latest Tcl C-interface technology, while maintaining
 nearly 100% compatibility with the pg_* Tcl interface provided by Pgtcl 1.3.
 
-Most Tcl programs that used Pgtcl 1.3 will work without modification
+Just about every Tcl program that uses Pgtcl 1.3 will work without modification
 under Pgtcl 1.4.
 
 This is a transitional release, as pgtcl is moving out the of core and
 into its own distribution.  This means that documentation also must be
 collected and included.  This has not yet been done.
 
+CHANGES
+
+The main changes are:
+
+    o All commands have now been converted to use Tcl 8-style Tcl objects.
+
+        The result is a probable increase in performance in all routines, with
+        potentially huge performance increases in pg_select and pg_execute when
+        used with complex Tcl code bodies.
+
+	Also Tcl 7 is no longer supported.  (Surely you're not still
+	using it, anyway, right?)
+
+    o A new asynchronous interface has been added
+
+	Requests can be issued to the backend without waiting for the
+	results, allowing for user interfaces to still work while
+	database requests are being processed, etc.
+	Also, requests can now be cancelled while they're in progress.
+
+    o pg_* call arguments are now checked much more rigorously.
+
+	Code previously using atoi() for integer conversions now
+	uses Tcl_GetIntFromObj, etc.
+
+	pg_* calls with too many arguments were often accepted without
+	complaint.  These now generate standard Tcl "wrong # args"
+	messages, etc.
+
+    o Error reporting has been brought into more compliance with the
+      Tcl way of doing things.
+
+    o TEA-compliant build and install.
+
+    o pg_exec now supports $-variable substitution.  This is a new
+      feature of Postgres 7.4 that is now supported in Pgtcl.
+      You can now say
+
+	pg_exec $conn {select * from foo where id = $1 and user = $2} $id $user
+
+    And the values following the SQL statement are substituted positionally
+    for $1, $2, etc, in the statement.
+
+
+Some programs that might have been working properly but had certain
+syntatically incorrect pg_* commands will now fail until fixed.
+
+pg_result -assign and pg_result -assignbyidx used to return the array
+name, which was superfluous because the array name was specified on the
+command line.  They now return nothing.  *** POTENTIAL INCOMPATIBILITY ***
 CONFIGURING
 
 Pgtcl is now Tcl Extension Architecture (TEA) compliant, shipping with
@@ -58,50 +112,11 @@ tclsh8.4
 % package require Pgtcl
 1.4
 
-You should use package require instead of load because there will be
-additional Tcl code shipped in future versions of Pgtcl, and using
-package require will make that code available to your application.
-
-
-CHANGES
-
-The main changes are:
-
-    o Support has been dropped for Tcl 7.x.  We now support Tcl 8.0 and above,
-      preferably Tcl 8.3 and above.
-
-    o All commands have now been converted to use Tcl 8-style Tcl objects.
-
-        The result is a probable increase in performance in all routines, with
-        potentially huge performance increases in pg_select and pg_execute when
-        used with complex Tcl code bodies.
-
-    o A new experimental asynchronous interface has been added
-
-	Requests can be issued to the backend without waiting for the
-	results, allowing for user interfaces to still work, etc.
-	Also, requests can now be cancelled while they're in process.
-
-    o pg_* call arguments are now checked much more rigorously.
-
-	Code previously using atoi() for integer conversions now
-	uses Tcl_GetIntFromObj, etc.
-
-	pg_* calls with too many arguments were often accepted without
-	complaint.  These now generate standard Tcl "wrong # args"
-	messages, etc.
-
-    o Error reporting has been brought into more compliance with the
-      Tcl way of doing things.
-
-    o TEA-compliant build and install.
-
-So some programs that might have been working properly but had certain
-syntatically incorrect pg_* commands will now fail until fixed.
-
-pg_result -assign and pg_result -assignbyidx used to return the array
-name, which was superfluous because the array name was specified on the
-command line.  They now return nothing.  *** POTENTIAL INCOMPATIBILITY ***
+It's a good idea to switch to using the "package require' instead of "load"
+to pick up Pgtcl, because there will be additional Tcl code shipped in future 
+versions of Pgtcl, and using "package require" will make that code available 
+to your application.  Also it keeps you from hard-coding the path to the
+library and hard-coding a dependency on a specific version.
 
 OLDER CHANGES
 
