@@ -12,7 +12,7 @@
  *
  *-------------------------------------------------------------------------
  */
-#include "postgres_fe.h"
+#include "internal/postgres_fe.h"
 
 #include <ctype.h>
 
