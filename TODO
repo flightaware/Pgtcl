@@ -15,15 +15,15 @@ being handed a new result.
 
 DONE Support for asynchronous operation.
 
-Stubify the build.
+DONE Stubify the build.
 
-Make the build TEA-compliant, including
+DONE Make the build TEA-compliant, including
 
-Document pg_execute.
+DONE Document pg_execute.
 
-Document pg_on_connection_loss.
+DONE Document pg_on_connection_loss.
 
-Document new asynchronous operation stuff.
+DONE Document new asynchronous operation stuff.
 
 Fix up new asynchronous operation stuff to use applicable Tcl internals.
 
