@@ -1,7 +1,12 @@
 
 $Id$
 
-2002-11-05  Brett Schwarz <brett_schwarz@yahoo.com>
+2002-11-15  Karl Lehenbauer <karl@procplace.com>
+
+    * Fix pg_listen.  (callback string wasn't null-terminated)
+      Also made slight performance improvements in pg_listen.
+
+2002-11-15  Brett Schwarz <brett_schwarz@yahoo.com>
 
     * Cleanup memory leaks in pg_result.
 

@@ -498,12 +498,6 @@ error_out:
   The list item stays around until the connection is deleted.  (This avoids
   trouble with walking through a list whose members may get deleted under us.)
 
-  Another headache is that Ousterhout keeps changing the Tcl I/O interfaces.
-  libpgtcl currently claims to work with Tcl 7.5, 7.6, and 8.0, and each of
-  'em is different.  Worse, the Tcl_File type went away in 8.0, which means
-  there is no longer any platform-independent way of waiting for file ready.
-  So we now have to use a Unix-specific interface.	Grumble.
-
   In the current design, Pg_Notify_FileHandler is a file handler that
   we establish by calling Tcl_CreateFileHandler().	It gets invoked from
   the Tcl event loop whenever the underlying PGconn's socket is read-ready.

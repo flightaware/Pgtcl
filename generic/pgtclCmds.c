@@ -2074,6 +2074,7 @@ Pg_listen(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	int			new;
 	char	   *connString;
 	int			callbackStrlen = 0;
+	int         origrelnameStrlen;
 
 	if (objc < 3 || objc > 4)
 	{
@@ -2096,13 +2097,13 @@ Pg_listen(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	 * quoted.	We have to do the same thing to ensure that we will find
 	 * the desired pg_listen item.
 	 */
-	origrelname = Tcl_GetStringFromObj(objv[2], NULL);
-	caserelname = (char *)ckalloc((unsigned)(strlen(origrelname) + 1));
+	origrelname = Tcl_GetStringFromObj(objv[2], &origrelnameStrlen);
+	caserelname = (char *)ckalloc((unsigned)(origrelnameStrlen + 1));
 	if (*origrelname == '"')
 	{
 		/* Copy a quoted string without downcasing */
 		strcpy(caserelname, origrelname + 1);
-		caserelname[strlen(caserelname) - 1] = '\0';
+		caserelname[origrelnameStrlen - 2] = '\0';
 	}
 	else
 	{
@@ -2121,7 +2122,7 @@ Pg_listen(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 		callbackStr = Tcl_GetStringFromObj(objv[3], &callbackStrlen);
 		callback = ckalloc(callbackStrlen + 1);
-		strncpy(callback, callbackStr, callbackStrlen);
+		strcpy(callback, callbackStr);
 	}
 
 	/* Find or make a Pg_TclNotifies struct for this interp and connection */
@@ -2167,7 +2168,7 @@ Pg_listen(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		 */
 		if (!alreadyHadListener)
 		{
-			char	   *cmd = (char *)ckalloc((unsigned)(strlen(origrelname) + 8));
+			char	   *cmd = (char *)ckalloc((unsigned)(origrelnameStrlen + 8));
 
 			sprintf(cmd, "LISTEN %s", origrelname);
 			result = PQexec(conn, cmd);
@@ -2210,7 +2211,7 @@ Pg_listen(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		if (!Pg_have_listener(connid, caserelname))
 		{
 			char	   *cmd = (char *)
-			ckalloc((unsigned)(strlen(origrelname) + 10));
+			ckalloc((unsigned)(origrelnameStrlen + 10));
 
 			sprintf(cmd, "UNLISTEN %s", origrelname);
 			result = PQexec(conn, cmd);
