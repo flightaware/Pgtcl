@@ -175,19 +175,20 @@ Pgtcl_Init(Tcl_Interp *interp)
 	/* register all pgtcl commands */
 
 
-        for (cmdPtr = commands; cmdPtr->name != NULL; cmdPtr++) {
+    for (cmdPtr = commands; cmdPtr->name != NULL; cmdPtr++) {
 
-             Tcl_CreateObjCommand(interp, cmdPtr->name, cmdPtr->objProc, (ClientData) "::",NULL);
-             Tcl_CreateObjCommand(interp, cmdPtr->name2, cmdPtr->objProc, (ClientData) "::pg::",NULL);
-        }
+        Tcl_CreateObjCommand(interp, cmdPtr->name, 
+             cmdPtr->objProc, (ClientData) "::",NULL);
+         Tcl_CreateObjCommand(interp, cmdPtr->name2, 
+             cmdPtr->objProc, (ClientData) "::pg::",NULL);
+    }
 
 
-        if (Tcl_Eval(interp, "namespace eval ::pg namespace export *") == TCL_ERROR)
-            return TCL_ERROR;
+    if (Tcl_Eval(interp, "namespace eval ::pg namespace export *") == TCL_ERROR)
+        return TCL_ERROR;
 
-	Tcl_PkgProvide(interp, "Pgtcl", "1.5");
 
-	return TCL_OK;
+	return Tcl_PkgProvide(interp, "Pgtcl", "1.5");
 }
 
 int
