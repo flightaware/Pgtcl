@@ -246,7 +246,6 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
     int    optIndex;
     int    objvxi;
     Tcl_Obj    *objvx[25];
-    Tcl_Obj    *tmp;
     Tcl_CmdInfo info;
     Pg_ConnectionId *connid;
 
@@ -373,9 +372,8 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
         {
             return Pg_sendquery_prepared(cData, interp, objc, objvx);
         }
-
     }
-
+    return TCL_ERROR;
 }
 
 /* 
@@ -394,10 +392,8 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 int
 PgResultCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
-    int    optIndex;
     int    objvxi;
     Tcl_Obj    *objvx[25];
-    Tcl_Obj    *tmp;
     Tcl_CmdInfo info;
     Tcl_Obj       *res;
     //char       *res;

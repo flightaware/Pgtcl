@@ -1,6 +1,16 @@
 
 $Id$
 
+2004-11-23 Karl Lehenbauer <karl-pg@sc.com>
+    * Fixed bug in Pg_cancelrequest where the error message would
+      not be returned.
+
+    * Remove unused variables.
+
+    * Silence compiler warnings about a fall-through (that couldn't
+      be reached) that would cause a function declared to return something
+      to not return anything and about a possibly uninitialized variable.
+
 2004-11-22 Karl Lehenbauer <karl-pg@sc.com>
     * Created playpen directory where interesting things that are not
       yet ready for prime time can be examined and messed with.  

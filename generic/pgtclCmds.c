@@ -328,8 +328,6 @@ Pg_connect(ClientData cData, Tcl_Interp *interp, int objc,
 		   Tcl_Obj *CONST objv[])
 {
     PGconn	   *conn;
-    char	   *firstArg;
-    char	   *conninfoString;
     char	   *connhandle = NULL;
     int            optIndex, i, skip = 0;
     Tcl_DString    ds;
@@ -852,10 +850,9 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 	Tcl_Obj* listObj;
 	Tcl_Obj* subListObj;
-	Tcl_Obj* fieldObj;
+	Tcl_Obj* fieldObj = NULL;
     Tcl_Obj    *fieldNameObj;
-	Tcl_Obj* subDictObj;
-        Tcl_Obj* tresult;
+	Tcl_Obj* tresult;
     Tcl_CmdInfo    infoPtr;
 
 
@@ -3001,7 +2998,6 @@ Pg_cancelrequest(ClientData cData, Tcl_Interp *interp, int objc,
 {
 	Pg_ConnectionId *connid;
 	PGconn	   *conn;
-	PGresult   *result;
 	char	   *connString;
 
 	if (objc != 2)
@@ -3019,7 +3015,7 @@ Pg_cancelrequest(ClientData cData, Tcl_Interp *interp, int objc,
 	if (PQrequestCancel(conn) == 0)
 	{
 		Tcl_SetObjResult(interp,
-					 Tcl_NewStringObj(PQresultErrorMessage(result), -1));
+			 Tcl_NewStringObj(PQerrorMessage(conn), -1));
 		return TCL_ERROR;
 	}
 	return TCL_OK;
@@ -3171,12 +3167,9 @@ Pg_conninfo(ClientData cData, Tcl_Interp *interp, int objc,
 				 Tcl_Obj *CONST objv[])
 {
 
-    Pg_ConnectionId *connid;
-    Tcl_Obj   *names;
     Tcl_Obj   **elemPtrs;
     Tcl_Obj   *listObj;
-    int       i, count, length;
-    char     *tmp;
+    int       i, count;
     Tcl_Channel conn_chan;
    
     listObj = Tcl_NewListObj(0, (Tcl_Obj **) NULL);
@@ -3233,7 +3226,6 @@ Pg_results(ClientData cData, Tcl_Interp *interp, int objc,
 {
 
     Pg_ConnectionId *connid;
-    PGconn	    *conn;
     char	    *connString;
     char	    buf[32];
     Tcl_Channel     conn_chan;
