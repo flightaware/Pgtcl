@@ -1,6 +1,10 @@
 
 $Id$
 
+2004-08-21 Brett Schwarz <brett_schwarz@yahoo.com>
+    * Made the result handle into a command, and added associated command
+      dispatcher.
+
 2004-08-18 Brett Schwarz <brett_schwarz@yahoo.com>
     * Added another way to specify the connection string to pg::connect:
       pg::connect -connlist {host myhost port myport ...}. This is similiar
