@@ -251,8 +251,8 @@ Pgtcl_Init(Tcl_Interp *interp)
 						  NULL);
 
 	Tcl_CreateObjCommand(interp,
-						  "pg_escape_string",
-						  Pg_escape_string,
+						  "pg_quote",
+						  Pg_quote,
 						  NULL, 
 						  NULL);
 

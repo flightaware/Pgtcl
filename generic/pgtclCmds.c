@@ -2617,20 +2617,21 @@ Pg_on_connection_loss(ClientData cData, Tcl_Interp *interp, int objc,
 }
 
 /***********************************
-Pg_escape_string
+Pg_auote
 	escape string for inclusion in SQL queries
 
  syntax:
-   pg_escape_string string
+   pg_auote string
 
 ***********************************/
 int
-Pg_escape_string(ClientData cData, Tcl_Interp *interp, int objc,
+Pg_quote(ClientData cData, Tcl_Interp *interp, int objc,
 				 Tcl_Obj *CONST objv[])
 {
 	char	   *fromString;
 	char	   *toString;
 	int         fromStringLen;
+	int         stringSize;
 
 	if (objc != 2)
 	{
@@ -2645,16 +2646,20 @@ Pg_escape_string(ClientData cData, Tcl_Interp *interp, int objc,
 
 	/* 
 	 * allocate the "to" string, max size is documented in the
-	 * postgres docs as 2 * fromStringLen + 1 
+	 * postgres docs as 2 * fromStringLen + 1, we add two more
+	 * for the leading and trailing single quotes
 	 */
-	toString = (char *) ckalloc((2 * fromStringLen) + 1);
+	toString = (char *) ckalloc((2 * fromStringLen) + 3);
 
 	/*
 	 * call the library routine to escape the string, use
 	 * Tcl_SetResult to set the command result to be that string,
 	 * with TCL_DYNAMIC, we tell Tcl to free the memory when it's
 	 * done with it */
-	PQescapeString (toString, fromString, fromStringLen);
+	 *toString = '\'';
+	stringSize = PQescapeString (toString+1, fromString, fromStringLen);
+	toString[stringSize+1] = '\'';
+	toString[stringSize+2] = '\0';
 	Tcl_SetResult(interp, toString, TCL_DYNAMIC);
 	return TCL_OK;
 }
