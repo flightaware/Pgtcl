@@ -476,7 +476,7 @@ Pg_disconnect(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
  send a query string to the backend connection
 
  syntax:
- pg_exec connection query
+ pg_exec connection query [var1] [var2]...
 
  the return result is either an error message or a handle for a query
  result.  Handles start with the prefix "pgp"
@@ -558,6 +558,7 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	}
 #endif
 
+	/* REPLICATED IN pg_exec_prepared -- NEEDS TO BE FACTORED */
 	/* Transfer any notify events from libpq to Tcl event queue. */
 	PgNotifyTransferEvents(connid);
 
@@ -581,6 +582,102 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		return TCL_ERROR;
 	}
 }
+
+/**********************************
+ * pg_exec_prepared
+ send a request to executed a prepared statement with given parameters  
+ to the backend connection
+
+ syntax:
+ pg_exec_prepared connection statement_name [var1] [var2]...
+
+ the return result is either an error message or a handle for a query
+ result.  Handles start with the prefix "pgp"
+ **********************************/
+
+#ifdef HAVE_PQEXECPREPARED
+int
+Pg_exec_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+{
+	Pg_ConnectionId *connid;
+	PGconn	   *conn;
+	PGresult   *result;
+	char	   *connString;
+	char	   *statementNameString;
+	const char **paramValues = NULL;
+
+	int         nParams;
+
+	if (objc < 3)
+	{
+		Tcl_WrongNumArgs(interp, 1, objv, "connection statementName [parm...]");
+		return TCL_ERROR;
+	}
+
+	/* extra params will substitute for $1, $2, etc, in the statement */
+	/* objc must be 3 or greater at this point */
+	nParams = objc - 3;
+
+	/* If there are any extra params, allocate paramValues and fill it
+	 * with the string representations of all of the extra parameters
+	 * substituted on the command line.  Otherwise nParams will be 0,
+	 * and we don't need to allocate space, paramValues will be NULL.
+	 * However, prepared statements that don't take any parameters aren't
+	 * generally real useful.
+	 */
+	if (nParams > 0) {
+	    int param;
+
+	    paramValues = (const char **)ckalloc (nParams * sizeof (char *));
+
+	    for (param = 0; param < nParams; param++) {
+		paramValues[param] = Tcl_GetStringFromObj (objv[3+param], NULL);
+	    }
+	}
+
+	/* figure out the connect string and get the connection ID */
+
+	connString = Tcl_GetStringFromObj(objv[1], NULL);
+	conn = PgGetConnectionId(interp, connString, &connid);
+	if (conn == NULL)
+		return TCL_ERROR;
+
+	if (connid->res_copyStatus != RES_COPY_NONE)
+	{
+		Tcl_SetResult(interp, "Attempt to query while COPY in progress", TCL_STATIC);
+		return TCL_ERROR;
+	}
+
+	statementNameString = Tcl_GetStringFromObj(objv[2], NULL);
+
+	result = PQexecPrepared(conn, statementNameString, nParams, paramValues, NULL, NULL, 1);
+
+	/* REPLICATED IN pg_exec -- NEEDS TO BE FACTORED */
+	/* Transfer any notify events from libpq to Tcl event queue. */
+	PgNotifyTransferEvents(connid);
+
+	if (result)
+	{
+		int			rId = PgSetResultId(interp, connString, result);
+
+		ExecStatusType rStat = PQresultStatus(result);
+
+		if (rStat == PGRES_COPY_IN || rStat == PGRES_COPY_OUT)
+		{
+			connid->res_copyStatus = RES_COPY_INPROGRESS;
+			connid->res_copy = rId;
+		}
+		return TCL_OK;
+	}
+	else
+	{
+		/* error occurred during the query */
+		Tcl_SetObjResult(interp, Tcl_NewStringObj(PQerrorMessage(conn), -1));
+		return TCL_ERROR;
+	}
+}
+#endif /* HAVE_PQEXECPREPARED */
+
 
 /**********************************
  * pg_result
@@ -2677,3 +2774,16 @@ Pg_quote(ClientData cData, Tcl_Interp *interp, int objc,
 	return TCL_OK;
 }
 
+/*
+error severity
+error sqlstate
+error message
+error message primary
+error message detail
+error message hint
+error position
+error context
+error source file
+error source line
+error source function
+*/
