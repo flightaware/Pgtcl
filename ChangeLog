@@ -2,6 +2,11 @@
 $Id$
 
 
+2002-11-05  Brett Schwarz <brett_schwarz@yahoo.com>
+
+    * added -list and -llist options to pg_result to return the
+      results as a list and list of lists
+
 2002-11-05  Karl Lehenbauer <karl@procplace.com>
 
 Started the ChangeLog.
