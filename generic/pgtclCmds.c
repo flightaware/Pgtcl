@@ -335,7 +335,7 @@ Pg_connect(ClientData cData, Tcl_Interp *interp, int objc,
     Tcl_Obj        *tresult;
         
 
-    static CONST char *options[] = {
+    static CONST84 char *options[] = {
     	"-host", "-port", "-tty", "-options", "-user", 
         "-password", "-conninfo", "-connlist", "-connhandle", (char *)NULL
     };
@@ -531,7 +531,7 @@ Pg_disconnect(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
 {
     Pg_ConnectionId *connid;
     Tcl_Channel conn_chan;
-    char	   *connString;
+    CONST84 char	   *connString;
     Tcl_Obj         *tresult;
 
     if (objc != 2)
@@ -589,7 +589,7 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	Pg_ConnectionId *connid;
 	PGconn	   *conn;
 	PGresult   *result;
-	const char	   *connString;
+	CONST84 char	   *connString;
 	const char *execString;
 	const char **paramValues = NULL;
 
@@ -705,7 +705,7 @@ Pg_exec_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 	Pg_ConnectionId *connid;
 	PGconn	   *conn;
 	PGresult   *result;
-	const char	   *connString;
+	CONST84 char	   *connString;
 	const char *statementNameString;
 	const char **paramValues = NULL;
 
@@ -873,7 +873,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
     Pg_resultid        *resultid;
 
 
-	static CONST char *options[] = {
+	static CONST84 char *options[] = {
 		"-status", "-error", "-conn", "-oid",
 		"-numTuples", "-cmdTuples", "-numAttrs", "-assign", "-assignbyidx",
 		"-getTuple", "-tupleArray", "-attributes", "-lAttributes",
@@ -888,7 +888,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		OPT_CLEAR, OPT_LIST, OPT_LLIST, OPT_DICT
 	};
 
-	static CONST char *errorOptions[] = {
+	static CONST84 char *errorOptions[] = {
 		"severity", "sqlstate", "primary", "detail",
 		"hint", "position", "context", "file", "line",
 		"function", (char *)NULL
@@ -1141,7 +1141,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				 */
 				for (tupno = 0; tupno < PQntuples(result); tupno++)
 				{
-					const char *field0 = PQgetvalue(result, tupno, 0);
+					CONST84 char *field0 = PQgetvalue(result, tupno, 0);
 
 					for (i = 1; i < PQnfields(result); i++)
 					{
@@ -3326,7 +3326,7 @@ Pg_dbinfo(ClientData cData, Tcl_Interp *interp, int objc,
     int       i, count, optIndex;
     Tcl_Channel conn_chan;
 
-    static CONST char *options[] = {
+    static CONST84 char *options[] = {
     	"connections", "results", NULL
     };
 

@@ -223,7 +223,7 @@ PgSetConnectionId(Tcl_Interp *interp, PGconn *conn, char *chandle)
 	    return 0;
 	}
 	
-	connid->notifier_channel = Tcl_MakeTcpClientChannel((ClientData)PQsocket(conn));
+	connid->notifier_channel = Tcl_MakeTcpClientChannel((ClientData)(long)PQsocket(conn));
 	/* Code  executing  outside  of  any Tcl interpreter can call
        Tcl_RegisterChannel with interp as NULL, to indicate  that
        it  wishes  to  hold  a  reference to this channel. Subse-
@@ -270,7 +270,7 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
     Tcl_CmdInfo info;
     Pg_ConnectionId *connid;
 
-    static CONST char *options[] = {
+    static CONST84 char *options[] = {
         "disconnect", "exec", "sqlexec", "execute", "select", "listen",
         "on_connection_loss", "lo_creat", "lo_open", "lo_close", 
         "lo_read", "lo_write", "lo_lseek", "lo_tell", "lo_unlink",

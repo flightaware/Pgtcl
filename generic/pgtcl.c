@@ -101,7 +101,7 @@ static PgCmd commands[] = {
     {"pg_escape_bytea", "::pg::escape_bytea", Pg_escapeBytea,2},
     {"pg_unescape_bytea", "::pg::unescape_bytea", Pg_unescapeBytea,2},
     {"pg_dbinfo", "::pg::dbinfo", Pg_dbinfo,2},
-    {NULL, NULL, NULL, NULL}
+    {NULL, NULL, NULL, 0}
 };
 
 
