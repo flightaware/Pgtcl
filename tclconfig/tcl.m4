@@ -1221,7 +1221,8 @@ dnl AC_CHECK_TOOL(AR, ar, :)
 	    # They also expect shared lib filenames of the style
 	    # libtcl84.so.1 and a symlink to the latest one from libtcl84.so
 	    SHLIB_CFLAGS="-fPIC"
-	    SHLIB_LD="ld -Bshareable -x"
+	    SHLIB_LD="${CC} -shared"
+	    #SHLIB_LD="ld -Bshareable -x"
 	    SHLIB_LD_LIBS='${LIBS}'
 	    SHLIB_SUFFIX=".so"
 	    UNSHARED_LIB_SUFFIX='${TCL_TRIM_DOTS}\$\{DBGX\}.a'
@@ -2545,7 +2546,7 @@ AC_DEFUN(TEA_MAKE_LIB, [
 	MAKE_STUB_LIB="\${STLIB_LD} -out:\[$]@ \$(\[$](PACKAGE)stub_OBJECTS)"
     else
 	MAKE_STATIC_LIB="\${STLIB_LD} \[$]@ \$(\[$](PACKAGE)_OBJECTS)"
-	MAKE_SHARED_LIB="\${SHLIB_LD} -o \[$]@ \$(\[$](PACKAGE)_OBJECTS) \${SHLIB_LDFLAGS} \${SHLIB_LD_LIBS}"
+	MAKE_SHARED_LIB="\${SHLIB_LD} -o \[$]@ \$(\[$](PACKAGE)_OBJECTS) \${SHLIB_LDFLAGS} ${LD_SEARCH_FLAGS} \${SHLIB_LD_LIBS}"
 	MAKE_STUB_LIB="\${STLIB_LD} \[$]@ \$(\[$](PACKAGE)stub_OBJECTS)"
     fi
 
