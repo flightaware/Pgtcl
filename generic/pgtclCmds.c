@@ -979,9 +979,6 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 			*/
 			for (tupno = 0; tupno < PQntuples(result); tupno++)
 			{
-	
-				subListObj = Tcl_NewListObj(0, (Tcl_Obj **) NULL);
-	
 				/*
 				**	Loop over the attributes for the tuple, 
 				**	and append them to the list
