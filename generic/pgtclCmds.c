@@ -3110,14 +3110,22 @@ Pg_on_connection_loss(ClientData cData, Tcl_Interp *interp, int objc,
 	return TCL_OK;
 }
 
-/***********************************
-Pg_quote
-	escape string for inclusion in SQL queries
-
- syntax:
-   pg_quote string
-
-***********************************/
+/*
+ *----------------------------------------------------------------------
+ *
+ * Pg_quote --
+ *
+ *    returns the quoted version of the passed in string
+ *
+ * Syntax:
+ *    pg_quote string
+ *
+ * Results:
+ *    the return result is either an error message or the passed
+ *    in string after going through PQescapeString
+ *
+ *----------------------------------------------------------------------
+ */
 int
 Pg_quote(ClientData cData, Tcl_Interp *interp, int objc,
 				 Tcl_Obj *CONST objv[])
@@ -3158,12 +3166,27 @@ Pg_quote(ClientData cData, Tcl_Interp *interp, int objc,
 	return TCL_OK;
 }
 
-/***********************************
-Pg_quoteBytea
-
- syntax:
-
-***********************************/
+/*
+ *----------------------------------------------------------------------
+ *
+ * Pg_escapeBytea --
+ *
+ *    returns the escaped version of the passed in binary
+ *    string
+ *
+ * Syntax:
+ *    pg_escapeBytea binaryString
+ *
+ * Results:
+ *    the return result is either an error message or the passed
+ *    in binary string after going through PQescapeBytea
+ *
+ * NOTE: PQunescapeBytea is *not* the direct inverse
+ *     of PQescapeBytea. The result from PQescapeBytea needs
+ *     to go through extra parsing, where as PQunescapeBytea
+ *     is at the end of the parsing stage.
+ *----------------------------------------------------------------------
+ */
 int
 Pg_escapeBytea(ClientData cData, Tcl_Interp *interp, int objc,
                                  Tcl_Obj *CONST objv[])
@@ -3200,52 +3223,78 @@ Pg_escapeBytea(ClientData cData, Tcl_Interp *interp, int objc,
         return TCL_OK;
 }
 
-/***********************************
-Pg_unquoteBytea
-
- syntax:
-
-***********************************/
+/*
+ *----------------------------------------------------------------------
+ *
+ * Pg_unescapeBytea --
+ *
+ *    returns the unescaped version of the passed in escaped binary
+ *    string
+ *
+ * Syntax:
+ *    pg_unescapeBytea escapedBinaryString
+ *
+ * Results:
+ *    the return result is either an error message or the passed
+ *    in string, that has gone through PQunescapeBytea
+ *
+ * NOTE: PQunescapeBytea is *not* the direct inverse
+ *     of PQescapeBytea. The result from PQescapeBytea needs
+ *     to go through extra parsing, where as PQunescapeBytea
+ *     is at the end of the parsing stage.
+ *----------------------------------------------------------------------
+ */
 int
 Pg_unescapeBytea(ClientData cData, Tcl_Interp *interp, int objc,
                                  Tcl_Obj *CONST objv[])
 {
-        const unsigned char  *from;
-        unsigned char        *to;
-        int         fromLen;
-        int         toLen;
+    const unsigned char  *from;
+    unsigned char        *to;
+    int         fromLen;
+    int         toLen;
 
-        if (objc != 2)
-        {
-            Tcl_WrongNumArgs(interp, 1, objv, "binaryString");
-            return TCL_ERROR;
-        }
+    if (objc != 2)
+    {
+        Tcl_WrongNumArgs(interp, 1, objv, "binaryString");
+        return TCL_ERROR;
+    }
 
-        from = Tcl_GetStringFromObj(objv[1], &fromLen);
-        to   = PQunescapeBytea(from, &toLen);
-        if (! to)
-        {
-            Tcl_SetObjResult(interp, Tcl_NewStringObj("Failed to unquote binary string", -1));
-            return TCL_ERROR;
-        }
+    from = Tcl_GetStringFromObj(objv[1], &fromLen);
+    to   = PQunescapeBytea(from, &toLen);
+    if (! to)
+    {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("Failed to unquote binary string", -1));
+        return TCL_ERROR;
+    }
 
-        Tcl_SetObjResult(interp, Tcl_NewByteArrayObj(to, toLen));
+    Tcl_SetObjResult(interp, Tcl_NewByteArrayObj(to, toLen));
 
-        #ifdef PQfreemem
-            PQfreemem(to);
-        #else
-            PQfreeNotify(to);
-        #endif
+    #ifdef PQfreemem
+        PQfreemem(to);
+    #else
+        PQfreeNotify(to);
+    #endif
 
-        return TCL_OK;
+    return TCL_OK;
 }
 
 
-/***********************************
-Pg_conninfo
-
- syntax:
-***********************************/
+/*
+ *----------------------------------------------------------------------
+ *
+ * Pg_conninfo --
+ *
+ *    returns the current connection handles
+ *
+ * Syntax:
+ *    pg_conninfo
+ *
+ * Results:
+ *    the return result is either an error message or a list of
+ *    the connection handles.
+ *
+ *----------------------------------------------------------------------
+ */
 int
 Pg_conninfo(ClientData cData, Tcl_Interp *interp, int objc,
 				 Tcl_Obj *CONST objv[])
