@@ -25,6 +25,44 @@ AC_CONFIG_AUX_DIR(tclconfig)
 CONFIGDIR=${srcdir}/tclconfig
 AC_SUBST(CONFIGDIR)
 
+#--------------------------------------------------------------------
+# Get the paths to the Postgres includes and libraries.
+#--------------------------------------------------------------------
+
+AC_PATH_PROGS(PG_CONFIG, pg_config)
+if test "$PG_CONFIG" = ""; then
+  AC_MSG_ERROR([Cannot locate program pg_config to determine PostgreSQL paths.  Make sure pg_config is in PATH or set PG_CONFIG env var to path to pg_config.])
+fi
+
+PG_INC_DIR="`$PG_CONFIG --includedir`"
+AC_MSG_RESULT([using pg_config-reported PostgreSQL include dir of... "$PG_INC_DIR"])
+PG_LIB_DIR="`$PG_CONFIG --libdir`"
+AC_MSG_RESULT([using pg_config-reported PostgreSQL lib dir of... "$PG_LIB_DIR"])
+
+LIBPG=""
+PG_INCLUDES="-I$PG_INC_DIR"
+PG_LIBS="-L$PG_LIB_DIR -lpq"
+if test ! "$PG_LIB_DIR" = ""; then
+  LIBPG="libpq${SHLIB_SUFFIX}"
+fi
+
+#--------------------------------------------------------------------
+# Determine if certain PostgreSQL functions are defined 
+# (Postgres 7.4 and above)
+#--------------------------------------------------------------------
+
+SAVE_LIBS=$LIBS
+LIBS="$PG_LIBS $LIBS"
+AC_CHECK_FUNCS(PQexecParams PQexecPrepared)
+LIBS=$SAVE_LIBS
+
+AC_SUBST(LIBPG)
+AC_SUBST(PG_INC_DIR)
+AC_SUBST(PG_INCLUDES)
+AC_SUBST(PG_LIBS)
+AC_SUBST(PG_LIB_DIR)
+
+
 #----------------------------------------------------------------------
 # __CHANGE__
 # Set your package name and version numbers here.  The NODOT_VERSION is
@@ -199,39 +237,6 @@ TEA_MAKE_LIB
 
 TEA_PROG_TCLSH
 #TEA_PROG_WISH
-
-#--------------------------------------------------------------------
-# Get the path to the Postgres installation.
-#--------------------------------------------------------------------
-
-AC_PATH_PROGS(PG_CONFIG, pg_config)
-if test "$PG_CONFIG" = ""; then
-  AC_MSG_ERROR([Cannot locate program pg_config to determine PostgreSQL paths.  Make sure pg_config is in PATH or set PG_CONFIG env var to path to pg_config.])
-fi
-
-PG_INC_DIR="`$PG_CONFIG --includedir`"
-AC_MSG_RESULT([using pg_config-reported PostgreSQL include dir of... "$PG_INC_DIR"])
-PG_LIB_DIR="`$PG_CONFIG --libdir`"
-AC_MSG_RESULT([using pg_config-reported PostgreSQL lib dir of... "$PG_LIB_DIR"])
-
-LIBPG=""
-PG_INCLUDES="-I$PG_INC_DIR"
-PG_LIBS="-L$PG_LIB_DIR -lpq"
-if test ! "$PG_LIB_DIR" = ""; then
-  LIBPG="libpq${SHLIB_SUFFIX}"
-fi
-
-AC_SUBST(LIBPG)
-AC_SUBST(PG_INC_DIR)
-AC_SUBST(PG_INCLUDES)
-AC_SUBST(PG_LIBS)
-AC_SUBST(PG_LIB_DIR)
-
-LIBS="$PG_LIBS $LIBS"
-AC_CHECK_LIB(pq, PQexecParams)
-AC_CHECK_LIB(pq, PQexecPrepared)
-#AC_CHECK_FUNC(PQexecParams, [AC_DEFINE(HAVE_PQEXECPARAMS)])
-#AC_CHECK_FUNC(PQexecPrepared, [AC_DEFINE(HAVE_PQEXECPREPARED)])
 
 #--------------------------------------------------------------------
 # Finally, substitute all of the various values into the Makefile.

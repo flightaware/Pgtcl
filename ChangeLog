@@ -8,6 +8,9 @@ $Id$
     * Altered libpgtcl to no longer require access to internal PostgreSQL
       include files.
 
+    * Changed configure script to determine whether or not PostgreSQL 7.4+
+      functions PQexecParams and PQexecPrepared are available or not.
+
 2004-05-21 Karl Lehenbauer <karl-pg@sc.com>
     * Add pg_exec_prepared to execute pre-prepared SQL statements with 
       parameters.
