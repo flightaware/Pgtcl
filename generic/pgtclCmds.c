@@ -427,10 +427,10 @@ Pg_connect(ClientData cData, Tcl_Interp *interp, int objc,
 
                 if (count % 2 != 0)
                 {
-	            Tcl_WrongNumArgs(interp,1,objv,"-connlist {opt val ...}");
+	                Tcl_WrongNumArgs(interp,1,objv,"-connlist {opt val ...}");
                     Tcl_DStringFree(&ds);
 
-		    return TCL_ERROR;
+		            return TCL_ERROR;
                 }
 
                 for (lelem = 0; lelem < count; lelem=lelem+2) {
@@ -493,8 +493,8 @@ Pg_connect(ClientData cData, Tcl_Interp *interp, int objc,
     }
     else
     {
-        Tcl_AppendResult(interp, "Connection to database failed\n",
-						 PQerrorMessage(conn), 0);
+        Tcl_AppendStringsToObj(Tcl_GetObjResult(interp), 
+            "Connection to database failed\n", PQerrorMessage(conn), NULL);
         PQfinish(conn);
         return TCL_ERROR;
     }
@@ -530,7 +530,8 @@ Pg_disconnect(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
     if (conn_chan == NULL)
     {
 	Tcl_ResetResult(interp);
-	Tcl_AppendResult(interp, connString, " is not a valid connection", 0);
+    Tcl_AppendStringsToObj(Tcl_GetObjResult(interp), connString, 
+        " is not a valid connection", NULL);
 	return TCL_ERROR;
     }
 
@@ -634,7 +635,6 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	    result = PQexecParams(conn, execString, nParams, NULL, paramValues, NULL, NULL, 1);
 	}
 #endif
-//result = PQexecPrepared(conn, statementNameString, nParams, paramValues, NULL, NULL, 1);
 
 	/* REPLICATED IN pg_exec_prepared -- NEEDS TO BE FACTORED */
 	/* Transfer any notify events from libpq to Tcl event queue. */
@@ -687,7 +687,11 @@ Pg_exec_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 
     /* THIS CODE IS REPLICATED IN Pg_sendquery_prepared AND NEEDS TO BE FACTORED */
 #ifndef HAVE_PQEXECPREPARED
-	Tcl_AppendResult(interp, "function unavailable with this version of the postgres libpq library", 0);
+    Tcl_SetObjResult(interp, 
+        Tcl_NewStringObj(
+        "function unavailable with this version ",
+        " of the postgres libpq library", -1));
+
 	return TCL_ERROR;
 #else
 	if (objc < 3)
@@ -881,8 +885,9 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	result = PgGetResultId(interp, queryResultString);
 	if (result == (PGresult *)NULL)
 	{
-		Tcl_AppendResult(interp, "\n", queryResultString,
-						 " is not a valid query result", (char *)NULL);
+        Tcl_AppendStringsToObj(Tcl_GetObjResult(interp), "\n", 
+           queryResultString, " is not a valid query result", NULL);
+
 		return TCL_ERROR;
 	}
 
@@ -1125,7 +1130,9 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 				if (tupno < 0 || tupno >= PQntuples(result))
 				{
-					Tcl_AppendResult(interp, "argument to getTuple cannot exceed number of tuples - 1", 0);
+                    Tcl_AppendStringsToObj(Tcl_GetObjResult(interp),
+                        "argument to getTuple cannot exceed ",
+                        "number of tuples - 1", NULL);
 					return TCL_ERROR;
 				}
 
@@ -1161,7 +1168,10 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 				if (tupno < 0 || tupno >= PQntuples(result))
 				{
-					Tcl_AppendResult(interp, "argument to tupleArray cannot exceed number of tuples - 1", 0);
+                    Tcl_AppendStringsToObj(Tcl_GetObjResult(interp),
+                        "argument to tupleArray cannot exceed ",
+                        "number of tuples - 1", NULL);
+
 					return TCL_ERROR;
 				}
 
@@ -1331,13 +1341,13 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 		default:
 			{
-				Tcl_AppendResult(interp, "Invalid option\n", 0);
+                Tcl_SetObjResult(interp, Tcl_NewStringObj("Invalid option\n", -1));
 				goto Pg_result_errReturn;		/* append help info */
 			}
 	}
 
 Pg_result_errReturn:
-	Tcl_AppendResult(interp,
+	Tcl_AppendStringsToObj(Tcl_GetObjResult(interp),
 					 "pg_result result ?option? where option is\n",
 					 "\t-status\n",
 					 "\t-error\n",
@@ -1460,7 +1470,9 @@ Pg_execute(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 
 	if (connid->res_copyStatus != RES_COPY_NONE)
 	{
-		Tcl_SetResult(interp, "Attempt to query while COPY in progress", TCL_STATIC);
+            Tcl_SetObjResult(interp, 
+              Tcl_NewStringObj("Attempt to query while COPY in progress", -1));
+
 		return TCL_ERROR;
 	}
 
@@ -1480,7 +1492,8 @@ Pg_execute(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 	 */
 	if (result == NULL)
 	{
-		Tcl_SetResult(interp, PQerrorMessage(conn), TCL_VOLATILE);
+            Tcl_SetObjResult(interp, Tcl_NewStringObj(PQerrorMessage(conn), -1));
+
 		return TCL_ERROR;
 	}
 
@@ -1511,11 +1524,11 @@ Pg_execute(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 		case PGRES_COMMAND_OK:
 		case PGRES_COPY_IN:
 		case PGRES_COPY_OUT:
-			/* tell the number of affected tuples for non-SELECT queries */
-			Tcl_SetObjResult(interp,
-							 Tcl_NewStringObj(PQcmdTuples(result), -1));
-			PQclear(result);
-			return TCL_OK;
+		/* tell the number of affected tuples for non-SELECT queries */
+                    Tcl_SetObjResult(interp,
+                        Tcl_NewStringObj(PQcmdTuples(result), -1));
+                    PQclear(result);
+                    return TCL_OK;
 
 		default:
 			/* anything else must be an error */
@@ -1687,7 +1700,10 @@ Pg_lo_open(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 	modeString = Tcl_GetStringFromObj(objv[3], &modeStringLen);
 	if ((modeStringLen < 1) || (modeStringLen > 2))
 	{
-		Tcl_AppendResult(interp, "mode argument must be 'r', 'w', or 'rw'", 0);
+
+        Tcl_SetObjResult(interp, 
+            Tcl_NewStringObj("mode argument must be 'r', 'w', or 'rw'", -1));
+
 		return TCL_ERROR;
 	}
 
@@ -1702,7 +1718,8 @@ Pg_lo_open(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 			mode = INV_WRITE;
 			break;
 		default:
-			Tcl_AppendResult(interp, "mode argument must be 'r', 'w', or 'rw'", 0);
+            Tcl_SetObjResult(interp, 
+             Tcl_NewStringObj("mode argument must be 'r', 'w', or 'rw'", -1));
 			return TCL_ERROR;
 	}
 
@@ -1719,7 +1736,8 @@ Pg_lo_open(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 			mode |= INV_WRITE;
 			break;
 		default:
-			Tcl_AppendResult(interp, "mode argument must be 'r', 'w', or 'rw'", 0);
+            Tcl_SetObjResult(interp, 
+             Tcl_NewStringObj("mode argument must be 'r', 'w', or 'rw'", -1));
 			return TCL_ERROR;
 	}
 
@@ -1932,7 +1950,8 @@ Pg_lo_lseek(ClientData cData, Tcl_Interp *interp, int objc,
 		whence = SEEK_END;
 	else
 	{
-		Tcl_AppendResult(interp, "'whence' must be SEEK_SET, SEEK_CUR or SEEK_END", 0);
+        Tcl_AppendStringsToObj(Tcl_GetObjResult(interp), "'whence' must be SEEK_SET, SEEK_CUR or SEEK_END", NULL);
+
 		return TCL_ERROR;
 	}
 
@@ -1982,8 +2001,9 @@ Pg_lo_creat(ClientData cData, Tcl_Interp *interp, int objc,
 		mode = INV_WRITE;
 	else
 	{
-		Tcl_AppendResult(interp,
-						 "mode must be some OR'd combination of INV_READ, and INV_WRITE", 0);
+        Tcl_AppendStringsToObj(Tcl_GetObjResult(interp), 
+          "mode must be some OR'd combination of INV_READ, and INV_WRITE", 0);
+
 		return TCL_ERROR;
 	}
 
@@ -1995,8 +2015,9 @@ Pg_lo_creat(ClientData cData, Tcl_Interp *interp, int objc,
 			mode |= INV_WRITE;
 		else
 		{
-			Tcl_AppendResult(interp,
-							 "mode must be some OR'd combination of INV_READ, INV_WRITE", 0);
+        Tcl_AppendStringsToObj(Tcl_GetObjResult(interp), 
+          "mode must be some OR'd combination of INV_READ, and INV_WRITE", 0);
+
 			return TCL_ERROR;
 		}
 	}
@@ -2119,8 +2140,9 @@ Pg_lo_import(ClientData cData, Tcl_Interp *interp, int objc,
 	lobjId = lo_import(conn, filename);
 	if (lobjId == InvalidOid)
 	{
-		Tcl_AppendResult(interp,
-						 "import of '", filename, "' failed", NULL);
+        Tcl_AppendStringsToObj(Tcl_GetObjResult(interp), 
+           "import of '", filename, "' failed", NULL);
+
 		return TCL_ERROR;
 	}
 
@@ -2166,7 +2188,9 @@ Pg_lo_export(ClientData cData, Tcl_Interp *interp, int objc,
 	retval = lo_export(conn, lobjId, filename);
 	if (retval == -1)
 	{
-		Tcl_AppendResult(interp, "export failed", 0);
+        Tcl_AppendStringsToObj(Tcl_GetObjResult(interp),
+            "export failed", NULL);
+
 		return TCL_ERROR;
 	}
 	return TCL_OK;
@@ -2484,7 +2508,10 @@ Pg_listen(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		entry = Tcl_FindHashEntry(&notifies->notify_hash, caserelname);
 		if (entry == NULL)
 		{
-			Tcl_AppendResult(interp, "not listening on ", origrelname, 0);
+                    Tcl_AppendStringsToObj(Tcl_GetObjResult(interp), 
+                        "not listening on ",
+                        origrelname, NULL);
+
 			ckfree(caserelname);
 			return TCL_ERROR;
 		}
@@ -2642,7 +2669,7 @@ Pg_sendquery_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *C
 
     /* THIS CODE IS REPLICATED IN Pg_exec_prepared AND NEEDS TO BE FACTORED */
 #ifndef HAVE_PQSENDQUERYPREPARED
-	Tcl_AppendResult(interp, "function unavailable with this version of the postgres libpq library", 0);
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("function unavailable with this version of the postgres libpq library", -1));
 	return TCL_ERROR;
 #else /* HAVE_PQSENDQUERYPREPARED */
 	if (objc < 3)
@@ -3062,7 +3089,6 @@ Pg_conninfo(ClientData cData, Tcl_Interp *interp, int objc,
 
     }
 
-    Tcl_ResetResult(interp);
     Tcl_SetObjResult(interp, listObj);
     
     return TCL_OK;
@@ -3110,7 +3136,9 @@ Pg_results(ClientData cData, Tcl_Interp *interp, int objc,
     conn_chan = Tcl_GetChannel(interp, connString, 0);
     if (conn_chan == NULL)
     {
-        Tcl_AppendStringsToObj(Tcl_GetObjResult(interp), "... not a valid connection", NULL);
+        Tcl_AppendStringsToObj(Tcl_GetObjResult(interp), 
+            "... not a valid connection", NULL);
+
         return TCL_ERROR;
     }
 

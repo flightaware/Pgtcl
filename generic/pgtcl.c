@@ -133,9 +133,12 @@ Pgtcl_Init(Tcl_Interp *interp)
         * force the call to WSAStartup.
         */
         if (LoadLibrary("libpq.dll") == NULL) {
-        char buf[32];
-        sprintf(buf, "%d", GetLastError());
-        Tcl_AppendResult(interp, "Cannot load "libpq.dll" (or dependant), error was ", buf, NULL);
+        //char buf[32];
+        //sprintf(buf, "%d", GetLastError());
+        Tcl_AppendStringsToObj(Tcl_GetObjResult(interp), 
+            "Cannot load \"libpq.dll\" (or dependant), error was ", 
+            GetLastError(), NULL);
+
         return TCL_ERROR;
         }
         #endif
