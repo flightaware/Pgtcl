@@ -264,6 +264,7 @@ PgDelConnectionId(DRIVER_DEL_PROTO)
 		Tcl_DeleteHashTable(&notifies->notify_hash);
 		if (notifies->conn_loss_cmd)
 			ckfree((void *) notifies->conn_loss_cmd);
+                if (notifies->interp)
 		Tcl_DontCallWhenDeleted(notifies->interp, PgNotifyInterpDelete,
 								(ClientData)notifies);
 		ckfree((void *)notifies);
