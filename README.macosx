@@ -19,7 +19,8 @@ Then run configure in this directory with the following parameters:
 Then do a "make" and a "sudo make install" or equivalent, and you should
 be on your way.
 
-There is also a version of Tcl included on the Mac in /usr/bin, and you'll
+There is also a version of Tcl included on the Mac in /usr/bin if you install
+developer tools (I think that's what did it), and you'll
 get this one by default (in all likelihood) if you just type tclsh from the
 shell command line.  This version does not have /opt/local/lib in its package 
 path (auto_path).  You need to either edit 
