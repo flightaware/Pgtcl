@@ -1,0 +1,27 @@
+
+$Id$
+
+This is the start of a tests directory.
+
+Right now you can start up a default database, like one owned by you,
+and use psql
+
+psql
+karl=# \i create.sql
+
+You can time importing the 5,000 sample data items by doing a
+
+time tclsh8.4 import_sampledata.tcl
+
+You can time importing the 5,000 sample data items via a prepared
+statement using
+
+time tclsh8.4 import_sampledata_prepared.tcl
+
+You can time importing the 5,000 sample data items as one single
+transaction using
+
+time tclsh8.4 import_sampledata_onetransaction.tcl
+
+The data set is in sampledata.txt.
+
