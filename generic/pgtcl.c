@@ -61,6 +61,48 @@
 #define TCL_STORAGE_CLASS DLLEXPORT
 /* END STUBS MUMBO JUMBO */
 
+
+
+typedef struct {
+    char *name;                 /* Name of command. */
+    char *name2;                /* Name of command, in ::pg namespace. */
+    Tcl_ObjCmdProc *objProc;    /* Command's object-based procedure. */
+    int protocol;    /* version 2 or version 3 (>=7.4) of PG protocol */
+} PgCmd;
+
+static PgCmd commands[] = {
+    {"pg_conndefaults", "::pg::conndefaults", Pg_conndefaults, 2},
+    {"pg_connect", "::pg::connect", Pg_connect,2},
+    {"pg_disconnect", "::pg::disconnect", Pg_disconnect,2},
+    {"pg_exec", "::pg::sqlexec", Pg_exec,2},
+    {"pg_exec", "::pg::sqlexec_prepared", Pg_exec_prepared,3},
+    {"pg_select", "::pg::select", Pg_select,2},
+    {"pg_result", "::pg::result", Pg_result,2},
+    {"pg_execute", "::pg::execute", Pg_execute,2},
+    {"pg_lo_open", "::pg::lo_open", Pg_lo_open,2},
+    {"pg_lo_close", "::pg::lo_close", Pg_lo_close,2},
+    {"pg_lo_read", "::pg::lo_read", Pg_lo_read,2},
+    {"pg_lo_write", "::pg::lo_write", Pg_lo_write,2},
+    {"pg_lo_lseek", "::pg::lo_lseek", Pg_lo_lseek,2},
+    {"pg_lo_creat", "::pg::lo_creat", Pg_lo_creat,2},
+    {"pg_lo_tell", "::pg::lo_tell", Pg_lo_tell,2},
+    {"pg_lo_unlink", "::pg::lo_unlink", Pg_lo_unlink,2},
+    {"pg_lo_import", "::pg::lo_import", Pg_lo_import,2},
+    {"pg_lo_export", "::pg::lo_export", Pg_lo_export,2},
+    {"pg_listen", "::pg::listen", Pg_listen,2},
+    {"pg_sendquery", "::pg::sendquery", Pg_sendquery,2},
+    {"pg_sendquery", "::pg::sendquery_prepared", Pg_sendquery_prepared,3},
+    {"pg_getresult", "::pg::getresult", Pg_getresult,2},
+    {"pg_isbusy", "::pg::isbusy", Pg_isbusy,2},
+    {"pg_blocking", "::pg::blocking", Pg_blocking,2},
+    {"pg_cancelrequest", "::pg::cancelrequest", Pg_cancelrequest,2},
+    {"pg_on_connection_loss", "::pg::on_connection_loss", Pg_on_connection_loss,2},
+    {"pg_quote", "::pg::quote", Pg_quote,2},
+    {NULL, NULL, NULL, NULL}
+};
+
+
+
 /*
  * Pgtcl_Init
  *	  initialization package for the PGTCL Tcl package
@@ -72,6 +114,7 @@ Pgtcl_Init(Tcl_Interp *interp)
 {
 	double		tclversion;
 	Tcl_Obj    *tclVersionObj;
+        PgCmd *cmdPtr;
 
         #ifdef WIN32
         WSADATA wsaData;
@@ -108,6 +151,7 @@ Pgtcl_Init(Tcl_Interp *interp)
 
     #endif
 
+
 	/*
 	 * Tcl versions >= 8.1 use UTF-8 for their internal string
 	 * representation. Therefore PGCLIENTENCODING must be set to UNICODE
@@ -124,168 +168,15 @@ Pgtcl_Init(Tcl_Interp *interp)
 		Tcl_PutEnv("PGCLIENTENCODING=UNICODE");
 
 	/* register all pgtcl commands */
-	Tcl_CreateObjCommand(interp,
-						 "pg_conndefaults",
-						 Pg_conndefaults,
-						 NULL,
-						 NULL);
 
-	Tcl_CreateObjCommand(interp,
-						 "pg_connect",
-						 Pg_connect,
-						 NULL,
-						 NULL);
 
-	Tcl_CreateObjCommand(interp,
-						 "pg_disconnect",
-						 Pg_disconnect,
-						 NULL,
-						 NULL);
+        for (cmdPtr = commands; cmdPtr->name != NULL; cmdPtr++) {
 
-	Tcl_CreateObjCommand(interp,
-						 "pg_exec",
-						 Pg_exec,
-						 NULL,
-						 NULL);
+             Tcl_CreateObjCommand(interp, cmdPtr->name2, cmdPtr->objProc, NULL,NULL);
+        }
 
-	Tcl_CreateObjCommand(interp,
-						 "pg_exec_prepared",
-						 Pg_exec_prepared,
-						 NULL,
-						 NULL);
 
-	Tcl_CreateObjCommand(interp,
-						 "pg_select",
-						 Pg_select,
-						 NULL,
-						 NULL);
-
-	Tcl_CreateObjCommand(interp,
-						 "pg_result",
-						 Pg_result,
-						 NULL,
-						 NULL);
-
-	Tcl_CreateObjCommand(interp,
-						 "pg_execute",
-						 Pg_execute,
-						 NULL,
-						 NULL);
-
-	Tcl_CreateObjCommand(interp,
-						 "pg_lo_open",
-						 Pg_lo_open,
-						 NULL,
-						 NULL);
-
-	Tcl_CreateObjCommand(interp,
-						 "pg_lo_close",
-						 Pg_lo_close,
-						 NULL,
-						 NULL);
-
-	Tcl_CreateObjCommand(interp,
-						 "pg_lo_read",
-						 Pg_lo_read,
-						 NULL,
-						 NULL);
-
-	Tcl_CreateObjCommand(interp,
-						 "pg_lo_write",
-						 Pg_lo_write,
-						 NULL,
-						 NULL);
-
-	Tcl_CreateObjCommand(interp,
-						 "pg_lo_lseek",
-						 Pg_lo_lseek,
-						 NULL,
-						 NULL);
-
-	Tcl_CreateObjCommand(interp,
-						 "pg_lo_creat",
-						 Pg_lo_creat,
-						 NULL,
-						 NULL);
-
-	Tcl_CreateObjCommand(interp,
-						 "pg_lo_tell",
-						 Pg_lo_tell,
-						 NULL,
-						 NULL);
-
-	Tcl_CreateObjCommand(interp,
-						 "pg_lo_unlink",
-						 Pg_lo_unlink,
-						 NULL,
-						 NULL);
-
-	Tcl_CreateObjCommand(interp,
-						 "pg_lo_import",
-						 Pg_lo_import,
-						 NULL,
-						 NULL);
-
-	Tcl_CreateObjCommand(interp,
-						 "pg_lo_export",
-						 Pg_lo_export,
-						 NULL,
-						 NULL);
-
-	Tcl_CreateObjCommand(interp,
-						 "pg_listen",
-						 Pg_listen,
-						 NULL,
-						 NULL);
-
-	Tcl_CreateObjCommand(interp,
-						 "pg_sendquery",
-						 Pg_sendquery,
-						 NULL,
-						 NULL);
-
-	Tcl_CreateObjCommand(interp,
-						 "pg_sendquery_prepared",
-						 Pg_sendquery_prepared,
-						 NULL,
-						 NULL);
-
-	Tcl_CreateObjCommand(interp,
-						 "pg_getresult",
-						 Pg_getresult,
-						 NULL,
-						 NULL);
-
-	Tcl_CreateObjCommand(interp,
-						 "pg_isbusy",
-						 Pg_isbusy,
-						 NULL,
-						 NULL);
-
-	Tcl_CreateObjCommand(interp,
-						 "pg_blocking",
-						 Pg_blocking,
-						 NULL,
-						 NULL);
-
-	Tcl_CreateObjCommand(interp,
-						 "pg_cancelrequest",
-						 Pg_cancelrequest,
-						 NULL,
-						 NULL);
-
-	Tcl_CreateObjCommand(interp,
-						  "pg_on_connection_loss",
-						  Pg_on_connection_loss,
-						  NULL, 
-						  NULL);
-
-	Tcl_CreateObjCommand(interp,
-						  "pg_quote",
-						  Pg_quote,
-						  NULL, 
-						  NULL);
-
+        Tcl_Eval(interp, "namespace eval ::pg {namespace export *}");
 	Tcl_PkgProvide(interp, "Pgtcl", "1.4");
 
 	return TCL_OK;
