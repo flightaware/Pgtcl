@@ -311,7 +311,7 @@ Pg_conndefaults(ClientData cData, Tcl_Interp *interp, int objc,
  pg_connect dbName [-host hostName] [-port portNumber] [-tty pqtty]]
 
  the return result is either an error message or a handle for a database
- connection.  Handles start with the prefix "pgp"
+ connection.  Handles start with the prefix "pgsql"
 
  **********************************/
 
@@ -489,7 +489,7 @@ Pg_disconnect(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
  pg_exec connection query [var1] [var2]...
 
  the return result is either an error message or a handle for a query
- result.  Handles start with the prefix "pgp"
+ result.  Handles start with the prefix "pgsql"
  **********************************/
 
 int
@@ -2948,6 +2948,56 @@ Pg_quote(ClientData cData, Tcl_Interp *interp, int objc,
 	toString[stringSize+2] = '\0';
 	Tcl_SetResult(interp, toString, TCL_DYNAMIC);
 	return TCL_OK;
+}
+/***********************************
+Pg_conninfo
+
+ syntax:
+***********************************/
+int
+Pg_conninfo(ClientData cData, Tcl_Interp *interp, int objc,
+				 Tcl_Obj *CONST objv[])
+{
+
+    Pg_ConnectionId *connid;
+    Tcl_Obj   *names;
+    Tcl_Obj   **elemPtrs;
+    Tcl_Obj   *listObj;
+    int       i, count, length;
+    char     *tmp;
+    Tcl_Channel conn_chan;
+   
+    listObj = Tcl_NewListObj(0, (Tcl_Obj **) NULL);
+
+    Tcl_GetChannelNamesEx(interp, (char *) NULL);
+
+
+    Tcl_ListObjGetElements(interp, Tcl_GetObjResult(interp), &count, &elemPtrs);
+
+
+    for (i = 0; i < count; i++) {
+
+        char *name = Tcl_GetStringFromObj(elemPtrs[i], NULL);
+
+        conn_chan = Tcl_GetChannel(interp, name, 0);
+        if (conn_chan != NULL && Tcl_GetChannelType(conn_chan) == &Pg_ConnType)
+        {
+
+        if (Tcl_ListObjAppendElement(interp, listObj, elemPtrs[i]) != TCL_OK)
+        {
+            Tcl_DecrRefCount(listObj);
+            return TCL_ERROR;
+        }
+        }
+
+
+    }
+
+    Tcl_ResetResult(interp);
+    Tcl_SetObjResult(interp, listObj);
+    
+    return TCL_OK;
+
 }
 
 /*
