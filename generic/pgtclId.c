@@ -252,14 +252,14 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
     "disconnect", "exec", "sqlexec", "execute", "select", "listen",
     "on_connection_loss", "lo_creat", "lo_open", "lo_close", 
     "lo_read", "lo_write", "lo_lseek", "lo_tell", "lo_unlink",
-    "lo_import", "lo_export", (char *)NULL
+    "lo_import", "lo_export", "sendquery", "exec_prepared", "sendquery_prepared",  (char *)NULL
     };
 
     enum options
     {
         DISCONNECT,EXEC, SQLEXEC, EXECUTE, SELECT, LISTEN, ON_CONNECTION_LOSS,
         LO_CREAT, LO_OPEN, LO_CLOSE, LO_READ, LO_WRITE, LO_LSEEK, LO_TELL,
-        LO_UNLINK, LO_IMPORT, LO_EXPORT
+        LO_UNLINK, LO_IMPORT, LO_EXPORT, SENDQUERY, EXEC_PREPARED, SENDQUERY_PREPARED
     };
 
     /*
@@ -356,8 +356,84 @@ objvx = (Tcl_Obj **) ckalloc((unsigned) sizeof(Tcl_Obj *) * objc);
         {
             return Pg_lo_export(cData, interp, objc, objvx);
         }
+        case SENDQUERY:
+        {
+            return Pg_sendquery(cData, interp, objc, objvx);
+        }
+        case EXEC_PREPARED:
+        {
+            return Pg_exec_prepared(cData, interp, objc, objvx);
+        }
+        case SENDQUERY_PREPARED:
+        {
+            return Pg_sendquery_prepared(cData, interp, objc, objvx);
+        }
 
     }
+
+}
+
+/* 
+ *----------------------------------------------------------------------
+ *
+ * PgResultCmd --
+ *
+ *    dispatches the correct command from a result handle command
+ *
+ * Results:
+ *    Returns the return value of the command that gets called. If
+ *    the command is not found, then a TCL_ERROR is returned
+ *
+ *----------------------------------------------------------------------
+ */
+int
+PgResultCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+{
+    int    optIndex;
+    int    objvxi;
+    Tcl_Obj    *objvx[25];
+    Tcl_Obj    *tmp;
+    Tcl_CmdInfo info;
+    Tcl_Obj       *res;
+    //char       *res;
+
+    static CONST char *options[] = {
+    "disconnect", "exec", "sqlexec", "execute", "select", "listen",
+    "on_connection_loss", "lo_creat", "lo_open", "lo_close", 
+    "lo_read", "lo_write", "lo_lseek", "lo_tell", "lo_unlink",
+    "lo_import", "lo_export", (char *)NULL
+    };
+
+    enum options
+    {
+        DISCONNECT,EXEC, SQLEXEC, EXECUTE, SELECT, LISTEN, ON_CONNECTION_LOSS,
+        LO_CREAT, LO_OPEN, LO_CLOSE, LO_READ, LO_WRITE, LO_LSEEK, LO_TELL,
+        LO_UNLINK, LO_IMPORT, LO_EXPORT
+    };
+
+    /*
+     *    this assigns the args array with an offset, since
+     *    the command handle args looks is offset
+     */
+
+    for (objvxi=0; objvxi < objc; objvxi++) {
+        objvx[objvxi] = objv[objvxi];
+    }
+
+    tmp = objvx[0];
+    objvx[0] = objvx[1];
+    objvx[1] = tmp;
+
+
+    if (Tcl_GetCommandInfo(interp, Tcl_GetStringFromObj(objvx[1], NULL), &info) == 0)
+        return TCL_ERROR;
+
+    res = (Tcl_Obj *)info.objClientData;
+
+
+    objvx[1] = res;
+
+    return Pg_result(cData, interp, objc, objvx);
 
 }
 
@@ -481,6 +557,7 @@ PgSetResultId(Tcl_Interp *interp, CONST84 char *connid_c, PGresult *res)
 	int			resid,
 				i;
 	char		buf[32];
+        Tcl_Obj         *cmd;
 
 
 	conn_chan = Tcl_GetChannel(interp, connid_c, 0);
@@ -506,6 +583,7 @@ PgSetResultId(Tcl_Interp *interp, CONST84 char *connid_c, PGresult *res)
 			break;				/* failure exit */
 	}
 
+printf("SETRES1\n");
 	if (connid->results[resid])
 	{
 		/* no free slot found, so try to enlarge array */
@@ -527,9 +605,13 @@ PgSetResultId(Tcl_Interp *interp, CONST84 char *connid_c, PGresult *res)
 
 	connid->results[resid] = res;
 	sprintf(buf, "%s.%d", connid_c, resid);
-	Tcl_SetResult(interp, buf, TCL_VOLATILE);
+        cmd = Tcl_NewStringObj(buf, -1);
+        Tcl_CreateObjCommand(interp, Tcl_GetStringFromObj(cmd, NULL), PgResultCmd, (ClientData) cmd,NULL);
+	Tcl_SetObjResult(interp, cmd);
+
 	return resid;
 }
+
 
 static int
 getresid(Tcl_Interp *interp, CONST84 char *id, Pg_ConnectionId ** connid_p)

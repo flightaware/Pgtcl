@@ -62,7 +62,7 @@ typedef struct Pg_ConnectionId_s
 	int			notifier_running;		/* notify event source is live */
 	Tcl_Channel notifier_channel;		/* Tcl_Channel on which notifier
 										 * is listening */
-	Tcl_Command cmd_token;               /* associated handle command token */
+	Tcl_Command cmd_token;               /* handle command token */
 }	Pg_ConnectionId;
 
 /* Values of res_copyStatus */

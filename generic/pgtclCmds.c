@@ -478,16 +478,17 @@ Pg_connect(ClientData cData, Tcl_Interp *interp, int objc,
         OPT_PASSWORD, OPT_CONNINFO, OPT_CONNLIST, OPT_CONNHANDLE
     };
 
+    Tcl_DStringInit(&ds);
+
     if (objc == 1)
     {
-	    Tcl_AppendResult(interp, "pg_connect: database name missing\n", 0);
-	    Tcl_AppendResult(interp, "pg_connect databaseName [-host hostName] [-port portNumber] [-tty pgtty]\n", 0);
-	    Tcl_AppendResult(interp, "pg_connect -conninfo conninfoString", 0);
+        Tcl_DStringAppend(&ds, "pg_connect: database name missing\n", -1);
+        Tcl_DStringAppend(&ds, "pg_connect databaseName [-host hostName] [-port portNumber] [-tty pgtty]\n", -1);
+        Tcl_DStringAppend(&ds, "pg_connect -conninfo conninfoString", -1);
+        Tcl_DStringResult(interp, &ds);
 	    return TCL_ERROR;
     }
 
-
-    Tcl_DStringInit(&ds);
 
 
     /* parse for pg environment settings */
@@ -692,8 +693,8 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	Pg_ConnectionId *connid;
 	PGconn	   *conn;
 	PGresult   *result;
-	char	   *connString;
-	char	   *execString;
+	const char	   *connString;
+	const char *execString;
 	const char **paramValues = NULL;
 
 	/* THIS CODE IS REPLICATED IN Pg_sendquery AND SHOULD BE FACTORED */
@@ -762,6 +763,7 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	    result = PQexecParams(conn, execString, nParams, NULL, paramValues, NULL, NULL, 1);
 	}
 #endif
+//result = PQexecPrepared(conn, statementNameString, nParams, paramValues, NULL, NULL, 1);
 
 	/* REPLICATED IN pg_exec_prepared -- NEEDS TO BE FACTORED */
 	/* Transfer any notify events from libpq to Tcl event queue. */
@@ -769,7 +771,7 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 	if (result)
 	{
-		int			rId = PgSetResultId(interp, connString, result);
+		int	rId = PgSetResultId(interp, connString, result);
 
 		ExecStatusType rStat = PQresultStatus(result);
 
@@ -806,8 +808,8 @@ Pg_exec_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 	Pg_ConnectionId *connid;
 	PGconn	   *conn;
 	PGresult   *result;
-	char	   *connString;
-	char	   *statementNameString;
+	const char	   *connString;
+	const char *statementNameString;
 	const char **paramValues = NULL;
 
 	int         nParams;
@@ -867,7 +869,7 @@ Pg_exec_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 
 	if (result)
 	{
-		int			rId = PgSetResultId(interp, connString, result);
+		int	rId = PgSetResultId(interp, connString, result);
 
 		ExecStatusType rStat = PQresultStatus(result);
 
@@ -3232,7 +3234,6 @@ Pg_results(ClientData cData, Tcl_Interp *interp, int objc,
 
     /* Check that it is a PG connection and not something else */
     connid = (Pg_ConnectionId *) Tcl_GetChannelInstanceData(conn_chan);
-    printf("################ %d \n", connid->res_last);
 
     if (connid->conn == NULL)
 	    return TCL_ERROR;
