@@ -1,6 +1,10 @@
 
 $Id$
 
+2002-11-05  Brett Schwarz <brett_schwarz@yahoo.com>
+
+    * Cleanup memory leaks in pg_result.
+
 2002-11-15  Karl Lehenbauer <karl@procplace.com>
 
     * Convert all the "#ifdef TCL_ARRAYS" where tcl_value was called if 
