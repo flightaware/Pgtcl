@@ -3390,7 +3390,8 @@ Pg_dbinfo(ClientData cData, Tcl_Interp *interp, int objc,
     conn_chan = Tcl_GetChannel(interp, connString, 0);
     if (conn_chan == NULL)
     {
-        tresult = Tcl_NewStringObj("... not a valid connection", -1);
+        tresult = Tcl_NewStringObj(connString, -1);
+		Tcl_AppendStringsToObj(tresult, " is not a valid connection", NULL);
         Tcl_SetObjResult(interp, tresult);
 
         return TCL_ERROR;
