@@ -19,6 +19,7 @@
  */
 
 #include <errno.h>
+#include <string.h>
 #include <libpq-fe.h>
 
 #include "pgtclCmds.h"
