@@ -246,8 +246,6 @@ Pg_conndefaults(ClientData cData, Tcl_Interp *interp, int objc,
 {
 	PQconninfoOption *options = PQconndefaults();
 	PQconninfoOption *option;
-	Tcl_DString result;
-	char		ibuf[32];
 
 	if (objc != 1)
 	{
@@ -594,7 +592,6 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	int			tupno;
 	char	   *arrVar;
 	Tcl_Obj    *arrVarObj;
-	const char *appendstr;
 	Tcl_Obj    *appendstrObj;
 	char	   *queryResultString;
 	int			optIndex;
@@ -2224,7 +2221,6 @@ Pg_getresult(ClientData cData, Tcl_Interp *interp, int objc,
 	PGconn	   *conn;
 	PGresult   *result;
 	char	   *connString;
-	char	   *execString;
 
 	if (objc != 2)
 	{
@@ -2275,9 +2271,7 @@ Pg_isbusy(ClientData cData, Tcl_Interp *interp, int objc,
 {
 	Pg_ConnectionId *connid;
 	PGconn	   *conn;
-	PGresult   *result;
 	char	   *connString;
-	char	   *execString;
 
 	if (objc != 2)
 	{
@@ -2316,9 +2310,7 @@ Pg_blocking(ClientData cData, Tcl_Interp *interp, int objc,
 {
 	Pg_ConnectionId *connid;
 	PGconn	   *conn;
-	PGresult   *result;
 	char	   *connString;
-	char	   *execString;
 	int			boolean;
 
 	if ((objc < 2) || (objc > 3))
@@ -2366,7 +2358,6 @@ Pg_cancelrequest(ClientData cData, Tcl_Interp *interp, int objc,
 	PGconn	   *conn;
 	PGresult   *result;
 	char	   *connString;
-	char	   *execString;
 
 	if (objc != 2)
 	{
