@@ -12,6 +12,10 @@ identify the rest of them and give them credit as well.
 
 This release was carved by by Brett Schwartz and Karl Lehenbauer.
 
+VERSION 1.5
+
+Documentation
+
 VERSION 1.4
 
 With version 1.4, Pgtcl has been internally overhauled and brought up to
@@ -21,11 +25,17 @@ nearly 100% compatibility with the pg_* Tcl interface provided by Pgtcl 1.3.
 Just about every Tcl program that uses Pgtcl 1.3 will work without modification
 under Pgtcl 1.4.
 
-This is a transitional release, as pgtcl is moving out the of core and
-into its own distribution.  The documentation has been broken out into
-this release, although we do not document all the tools you need to
-build the documentation itself.  The release also includes the docs in 
-HTML and PDF format.
+Version 1.4 was something of a transitional release, as pgtcl moved out the 
+of core and into its this distribution.  Previously, for example, the
+Pgtcl documentation resided with the rest of the PostgreSQL documentation,
+and Pgtcl's source code accessed PostgreSQL's include files and libraries
+in a fraternal manner that had to be divorced and reworked to use the same
+APIs and build methods that any external application would use to build against
+PostgreSQL's libpq C interface library.  
+
+The Pgtcl documentation is now included with this release.  As building the
+documentation requires a number of fairly major tools and packages, the
+release also includes the docs prebuilt in HTML and PDF format.
 
 CHANGES
 
