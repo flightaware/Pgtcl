@@ -1,0 +1,85 @@
+if {[lsearch [namespace children] ::tcltest] == -1} {
+    package require tcltest
+    namespace import -force ::tcltest::*
+}
+
+load [file join .. libpgtcl1.4.so]
+
+#
+#   set this to your specific location
+#
+array set conninfo {
+    host    192.168.123.180
+    port    5741
+    dbname  template1
+    user    postgres
+}
+
+#
+#
+#
+test pgtcl-0.1 {connect to db using old connection string} {
+
+    set conn [pg_connect $::conninfo(dbname) \
+        -host $::conninfo(host) \
+        -port $::conninfo(port) \
+        -user $::conninfo(user)]
+
+    pg_disconnect $conn
+
+    set conn
+} pgsql3
+
+
+#
+#
+#
+test pgtcl-0.2 {connect to db using conninfo string} {
+
+    set conn [pg_connect -conninfo \
+        "dbname=$::conninfo(dbname) host=$::conninfo(host) port=$::conninfo(port) user=$::conninfo(user)"]
+
+    pg_disconnect $conn
+
+    set conn   
+} pgsql3
+
+#
+#
+#
+test pgtcl-0.3 {connect to db using connlist option} {
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+
+    pg_disconnect $conn
+
+    set conn
+} pgsql3
+
+#
+#
+#
+test pgtcl-0.4 {connect to db using -connhandle option} {
+
+    set conn [pg::connect -connlist [array get ::conninfo] -connhandle myhan]
+
+    pg_disconnect $conn
+
+    set conn
+} myhan
+
+#
+#
+#
+test pgtcl-0.5 {use connection as command} {
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+
+    set res [$conn exec "SELECT * FROM Pg_class LIMIT 5"]
+
+    pg_result $res -clear
+
+    pg_disconnect $conn
+
+    set res
+} pgsql3.0
