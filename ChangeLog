@@ -1,6 +1,10 @@
 
 $Id$
 
+2002-11-19  Brett Schwarz <brett_schwarz@yahoo.com>
+
+    * Improved the performance of -list a little bit
+
 2002-11-15  Karl Lehenbauer <karl@procplace.com>
 
     * Tagged for 1.4b3
