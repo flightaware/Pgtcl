@@ -1,0 +1,40 @@
+
+
+$Id$
+
+There are a couple of tweaks that need to be done to build and install and
+run under FreeBSD.  We'd love some help in making this a port in the FreeBSD
+ports tree, so this could be automatic.
+
+For now, you need to build and install Tcl and Postgres
+
+    cd /usr/ports/lang/tcl84
+    make
+    make install
+
+    cd /usr/ports/databases/postgresql7
+    make
+    make install
+
+You might need postgres-tcltk package, I'm not sure
+
+    cd /usr/ports/databases/postgresql-tcltk
+    make
+    make install
+
+Then run configure in this directory with the following parameters:
+
+./configure  --with-tcl=/usr/local/lib/tcl8.4 --with-tclinclude=/usr/local/include/tcl8.4 --with-postgres-include=/usr/local/include/postgresql --with-postgres-lib=/usr/local/lib
+
+Finally, and this is gross,
+edit the Makefile to add /usr/local/include to the list of includes:
+
+Change
+
+INCLUDES        = $(PG_INCLUDES) -I"/usr/local/include/tcl8.4"
+
+to
+
+INCLUDES        = $(PG_INCLUDES) -I"/usr/local/include" -I"/usr/local/include/tcl8.4"
+
+
