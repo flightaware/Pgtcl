@@ -488,19 +488,30 @@ Pg_connect(ClientData cData, Tcl_Interp *interp, int objc,
 
     if (PQstatus(conn) == CONNECTION_OK)
     {
-        PgSetConnectionId(interp, conn, connhandle);
-        return TCL_OK;
+        
+		if (PgSetConnectionId(interp, conn, connhandle) == 1)
+		{
+
+            return TCL_OK;
+		}
     }
-    else
-    {
+   
 
         tresult = Tcl_NewStringObj("Connection to database failed\n", -1);
-        Tcl_AppendStringsToObj(tresult, PQerrorMessage(conn), NULL);
-        Tcl_SetObjResult(interp, tresult);
+        if (PQstatus(conn) != CONNECTION_OK)
+		{
+		    Tcl_AppendStringsToObj(tresult, PQerrorMessage(conn), NULL);
+        }
+		else
+		{
+			Tcl_AppendStringsToObj(tresult, "handle already exists", NULL);
+		}
+
+		Tcl_SetObjResult(interp, tresult);
         PQfinish(conn);
 
         return TCL_ERROR;
-    }
+   
 }
 
 
@@ -3288,8 +3299,8 @@ Pg_unescapeBytea(ClientData cData, Tcl_Interp *interp, int objc,
  *    returns either the connection handles or the result handles
  *
  * Syntax:
- *    pg_info connections
- *    pg_info results connHandle 
+ *    pg_dbinfo connections
+ *    pg_dbinfo results connHandle 
  *
  * Results:
  *    the return result is either an error message or a list of
@@ -3319,6 +3330,12 @@ Pg_dbinfo(ClientData cData, Tcl_Interp *interp, int objc,
     {
     	OPT_CONNECTIONS, OPT_RESULTS
     };
+    
+	if (objc <= 1)
+    {
+	Tcl_WrongNumArgs(interp,1,objv,"connections|results");
+        return TCL_ERROR;
+    }
 
     if (Tcl_GetIndexFromObj(interp, objv[1], options, "option", TCL_EXACT, &optIndex) != TCL_OK)
     {
@@ -3330,11 +3347,7 @@ Pg_dbinfo(ClientData cData, Tcl_Interp *interp, int objc,
         case OPT_CONNECTIONS:
         {
 
-    if (objc != 2)
-    {
-	Tcl_WrongNumArgs(interp,1,objv,"connections");
-        return TCL_ERROR;
-    }
+    
 
     listObj = Tcl_NewListObj(0, (Tcl_Obj **) NULL);
 

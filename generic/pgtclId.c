@@ -164,7 +164,7 @@ Tcl_ChannelType Pg_ConnType = {
 /*
  * Create and register a new channel for the connection
  */
-void
+int
 PgSetConnectionId(Tcl_Interp *interp, PGconn *conn, char *chandle)
 {
 	Tcl_Channel conn_chan;
@@ -210,6 +210,13 @@ PgSetConnectionId(Tcl_Interp *interp, PGconn *conn, char *chandle)
 	    sprintf(connid->id, "%s%s", ns, chandle);
         }
 
+    conn_chan = Tcl_GetChannel(interp, connid->id, 0);
+
+	if (conn_chan != NULL)
+	{
+	    return 0;
+	}
+	
 	connid->notifier_channel = Tcl_MakeTcpClientChannel((ClientData)PQsocket(conn));
 	/* Code  executing  outside  of  any Tcl interpreter can call
        Tcl_RegisterChannel with interp as NULL, to indicate  that
@@ -232,6 +239,7 @@ PgSetConnectionId(Tcl_Interp *interp, PGconn *conn, char *chandle)
 
         connid->cmd_token=Tcl_CreateObjCommand(interp, connid->id, PgConnCmd, (ClientData) connid, PgDelCmdHandle);
 
+    return 1;
 }
 
 /* 
