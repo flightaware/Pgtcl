@@ -15,8 +15,8 @@ REL="UP"
 TITLE="pgtcl Command Reference"
 HREF="libpgtcl-ref.html"><LINK
 REL="PREVIOUS"
-TITLE="pg_exec"
-HREF="pgtcl-pgexec.html"><LINK
+TITLE="pg_exec_prepared"
+HREF="pgtcl-pgexecprepared.html"><LINK
 REL="NEXT"
 TITLE="pg_select"
 HREF="pgtcl-pgselect.html"><LINK
@@ -24,7 +24,7 @@ REL="STYLESHEET"
 TYPE="text/css"
 HREF="stylesheet.css"><META
 NAME="creation"
-CONTENT="2004-11-30T06:04:45"></HEAD
+CONTENT="2004-11-30T07:45:14"></HEAD
 ><BODY
 CLASS="REFENTRY"
 ><DIV
@@ -48,7 +48,7 @@ WIDTH="10%"
 ALIGN="left"
 VALIGN="top"
 ><A
-HREF="pgtcl-pgexec.html"
+HREF="pgtcl-pgexecprepared.html"
 ACCESSKEY="P"
 >Prev</A
 ></TD
@@ -57,7 +57,7 @@ WIDTH="10%"
 ALIGN="left"
 VALIGN="top"
 ><A
-HREF="pgtcl-pgexec.html"
+HREF="pgtcl-pgexecprepared.html"
 >Fast Backward</A
 ></TD
 ><TD
@@ -95,7 +95,7 @@ NAME="PGTCL-PGRESULT"
 ><DIV
 CLASS="REFNAMEDIV"
 ><A
-NAME="AEN351"
+NAME="AEN428"
 ></A
 ><H2
 >Name</H2
@@ -106,7 +106,7 @@ NAME="IX-PGTCL-PGRESULT-2"
 ><DIV
 CLASS="REFSYNOPSISDIV"
 ><A
-NAME="AEN356"
+NAME="AEN433"
 ></A
 ><H2
 >Synopsis</H2
@@ -123,7 +123,7 @@ CLASS="PARAMETER"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN360"
+NAME="AEN437"
 ></A
 ><H2
 >Description</H2
@@ -154,7 +154,7 @@ CLASS="APPLICATION"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN368"
+NAME="AEN445"
 ></A
 ><H2
 >Arguments</H2
@@ -202,12 +202,187 @@ CLASS="OPTION"
 ><VAR
 CLASS="OPTION"
 >-error</VAR
-></DT
+> ?<SPAN
+CLASS="OPTIONAL"
+><VAR
+CLASS="PARAMETER"
+>diagCode</VAR
+></SPAN
+>?</DT
 ><DD
 ><P
 >          The error message, if the status indicates an error,
           otherwise an empty string.
          </P
+><P
+>	 <VAR
+CLASS="PARAMETER"
+>diagCode</VAR
+>, if specified, requests data
+	 for a specific diagnostic code:
+	 </P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><VAR
+CLASS="OPTION"
+>severity</VAR
+></DT
+><DD
+><P
+>	      The severity; the field contents are <TT
+CLASS="LITERAL"
+>ERROR</TT
+>,
+	      <TT
+CLASS="LITERAL"
+>FATAL</TT
+>, or <TT
+CLASS="LITERAL"
+>PANIC</TT
+>, in
+	      an error message, or <TT
+CLASS="LITERAL"
+>WARNING</TT
+>,
+	      <TT
+CLASS="LITERAL"
+>NOTICE</TT
+>, <TT
+CLASS="LITERAL"
+>DEBUG</TT
+>,
+	      <TT
+CLASS="LITERAL"
+>INFO</TT
+>, or <TT
+CLASS="LITERAL"
+>LOG</TT
+>,
+	      in a notice message, or a localized translation of one of
+	      these.
+	     </P
+></DD
+><DT
+><VAR
+CLASS="OPTION"
+>sqlstate</VAR
+></DT
+><DD
+><P
+>	      The <TT
+CLASS="LITERAL"
+>SQLSTATE</TT
+> code for the error.
+	      (See <SPAN
+CLASS="PRODUCTNAME"
+>PostgreSQL</SPAN
+> manual Appendix A).
+	     </P
+></DD
+><DT
+><VAR
+CLASS="OPTION"
+>primary</VAR
+></DT
+><DD
+><P
+>	      The primary human-readable error message (typically one line).
+	     </P
+></DD
+><DT
+><VAR
+CLASS="OPTION"
+>detail</VAR
+></DT
+><DD
+><P
+>	      An optional secondary error message carrying more detail
+	      abhout the problem, which may run to multiple lines.
+	     </P
+></DD
+><DT
+><VAR
+CLASS="OPTION"
+>hint</VAR
+></DT
+><DD
+><P
+>	      An optional suggestion about what to do about the problem.
+	      This is intended to differ from detail in that it offers
+	      advice (potentially inappropriate) rather than hard facts.
+	     </P
+><P
+>	      The result may run to multiple lines.
+	     </P
+></DD
+><DT
+><VAR
+CLASS="OPTION"
+>position</VAR
+></DT
+><DD
+><P
+>	      A string containing a decimal integer indicating an error 
+	      cursor position as an index into the original statement string.
+	     </P
+><P
+>	      The first character has index <TT
+CLASS="LITERAL"
+>1</TT
+>, and 
+	      positions are measured in characters not bytes. 
+	     </P
+></DD
+><DT
+><VAR
+CLASS="OPTION"
+>context</VAR
+></DT
+><DD
+><P
+>	      An indication of the context in which the error occurred. 
+	      Presently this includes a call stack traceback of active PL 
+	      functions. The trace is one entry per line, most recent first. 
+	     </P
+></DD
+><DT
+><VAR
+CLASS="OPTION"
+>file</VAR
+></DT
+><DD
+><P
+>	      The filename of the source code location where the error
+	      was reported.
+	     </P
+></DD
+><DT
+><VAR
+CLASS="OPTION"
+>line</VAR
+></DT
+><DD
+><P
+>	      The line number of the source code location where the error
+	      was reported.
+	     </P
+></DD
+><DT
+><VAR
+CLASS="OPTION"
+>function</VAR
+></DT
+><DD
+><P
+>	       The name of the source code function reporting the error.
+	     </P
+></DD
+></DL
+></DIV
 ></DD
 ><DT
 ><VAR
@@ -251,6 +426,18 @@ CLASS="OPTION"
 ><DD
 ><P
 >          The number of rows (tuples) affected by the command.
+	  (This is similar to <VAR
+CLASS="OPTION"
+>-numTuples</VAR
+> but
+	  relevant to <TT
+CLASS="COMMAND"
+>INSERT</TT
+> and
+	  <TT
+CLASS="COMMAND"
+>UPDATE</TT
+> commands.)
          </P
 ></DD
 ><DT
@@ -372,6 +559,28 @@ CLASS="LITERAL"
 ><DT
 ><VAR
 CLASS="OPTION"
+>-list</VAR
+></DT
+><DD
+><P
+>          Returns one list containing all the data
+	  returned by the query.
+         </P
+></DD
+><DT
+><VAR
+CLASS="OPTION"
+>-llist</VAR
+></DT
+><DD
+><P
+>          Returns a list of lists, where each embedded list represents
+	  a tuple in the result.
+         </P
+></DD
+><DT
+><VAR
+CLASS="OPTION"
 >-clear</VAR
 ></DT
 ><DD
@@ -390,7 +599,7 @@ CLASS="OPTION"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN465"
+NAME="AEN623"
 ></A
 ><H2
 >Return Value</H2
@@ -414,7 +623,7 @@ WIDTH="33%"
 ALIGN="left"
 VALIGN="top"
 ><A
-HREF="pgtcl-pgexec.html"
+HREF="pgtcl-pgexecprepared.html"
 ACCESSKEY="P"
 >Prev</A
 ></TD
@@ -442,7 +651,7 @@ ACCESSKEY="N"
 WIDTH="33%"
 ALIGN="left"
 VALIGN="top"
->pg_exec</TD
+>pg_exec_prepared</TD
 ><TD
 WIDTH="34%"
 ALIGN="center"

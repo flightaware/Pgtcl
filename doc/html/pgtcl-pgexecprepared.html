@@ -2,7 +2,7 @@
 <HTML
 ><HEAD
 ><TITLE
->pg_lo_unlink</TITLE
+>pg_exec_prepared</TITLE
 ><META
 NAME="GENERATOR"
 CONTENT="Modular DocBook HTML Stylesheet Version 1.7"><LINK
@@ -15,11 +15,11 @@ REL="UP"
 TITLE="pgtcl Command Reference"
 HREF="libpgtcl-ref.html"><LINK
 REL="PREVIOUS"
-TITLE="pg_lo_tell"
-HREF="pgtcl-pglotell.html"><LINK
+TITLE="pg_exec"
+HREF="pgtcl-pgexec.html"><LINK
 REL="NEXT"
-TITLE="pg_lo_import"
-HREF="pgtcl-pgloimport.html"><LINK
+TITLE="pg_result"
+HREF="pgtcl-pgresult.html"><LINK
 REL="STYLESHEET"
 TYPE="text/css"
 HREF="stylesheet.css"><META
@@ -48,7 +48,7 @@ WIDTH="10%"
 ALIGN="left"
 VALIGN="top"
 ><A
-HREF="pgtcl-pglotell.html"
+HREF="pgtcl-pgexec.html"
 ACCESSKEY="P"
 >Prev</A
 ></TD
@@ -57,7 +57,7 @@ WIDTH="10%"
 ALIGN="left"
 VALIGN="top"
 ><A
-HREF="pgtcl-pglotell.html"
+HREF="pgtcl-pgexec.html"
 >Fast Backward</A
 ></TD
 ><TD
@@ -70,7 +70,7 @@ WIDTH="10%"
 ALIGN="right"
 VALIGN="top"
 ><A
-HREF="pgtcl-pgloimport.html"
+HREF="pgtcl-pgresult.html"
 >Fast Forward</A
 ></TD
 ><TD
@@ -78,7 +78,7 @@ WIDTH="10%"
 ALIGN="right"
 VALIGN="top"
 ><A
-HREF="pgtcl-pgloimport.html"
+HREF="pgtcl-pgresult.html"
 ACCESSKEY="N"
 >Next</A
 ></TD
@@ -89,56 +89,86 @@ ALIGN="LEFT"
 WIDTH="100%"></DIV
 ><H1
 ><A
-NAME="PGTCL-PGLOUNLINK"
+NAME="PGTCL-PGEXECPREPARED"
 ></A
->pg_lo_unlink</H1
+>pg_exec_prepared</H1
 ><DIV
 CLASS="REFNAMEDIV"
 ><A
-NAME="AEN1475"
+NAME="AEN376"
 ></A
 ><H2
 >Name</H2
->pg_lo_unlink&nbsp;--&nbsp;delete a large object<A
-NAME="IX-PGTCL-PGLOUNLINK-2"
+>pg_exec_prepared&nbsp;--&nbsp;send a request to execute a prepared SQL statement to the server<A
+NAME="IX-PGTCL-PGEXECPREPARED-2"
 ></A
 ></DIV
 ><DIV
 CLASS="REFSYNOPSISDIV"
 ><A
-NAME="AEN1480"
+NAME="AEN381"
 ></A
 ><H2
 >Synopsis</H2
 ><PRE
 CLASS="SYNOPSIS"
->pg_lo_unlink <VAR
+>pg_exec_prepared <VAR
 CLASS="PARAMETER"
 >conn</VAR
 > <VAR
 CLASS="PARAMETER"
->loid</VAR
-></PRE
+>statementName</VAR
+> ?<SPAN
+CLASS="OPTIONAL"
+><VAR
+CLASS="PARAMETER"
+>args</VAR
+></SPAN
+>?</PRE
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN1484"
+NAME="AEN387"
 ></A
 ><H2
 >Description</H2
 ><P
 >   <CODE
 CLASS="FUNCTION"
->pg_lo_unlink</CODE
-> deletes the specified large
-   object.
+>pg_exec_prepared</CODE
+> submits a command to the
+   <SPAN
+CLASS="PRODUCTNAME"
+>PostgreSQL</SPAN
+> server and returns a result.
+  </P
+><P
+>   <CODE
+CLASS="FUNCTION"
+>pg_exec_prepared</CODE
+> functions identically to
+   <CODE
+CLASS="FUNCTION"
+>pg_exec</CODE
+>, except that it operates using
+   statements prepared by the <TT
+CLASS="COMMAND"
+>PREPARE</TT
+> SQL command.
+  </P
+><P
+>  Note that prepared statements are only support under <SPAN
+CLASS="PRODUCTNAME"
+>PostgreSQL</SPAN
+> 7.4
+  and later.
   </P
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN1488"
+NAME="AEN398"
 ></A
 ><H2
 >Arguments</H2
@@ -154,18 +184,32 @@ CLASS="PARAMETER"
 ></DT
 ><DD
 ><P
->      The handle of a connection to the database in which the large object
-      exists.
+>      The handle of the connection on which to execute the command.
      </P
 ></DD
 ><DT
 ><VAR
 CLASS="PARAMETER"
->loid</VAR
+>statementName</VAR
 ></DT
 ><DD
 ><P
->      The OID of the large object.
+>      The name of the prepared statement to execute.
+     </P
+></DD
+><DT
+><VAR
+CLASS="PARAMETER"
+>args</VAR
+></DT
+><DD
+><P
+>      <VAR
+CLASS="PARAMETER"
+>args</VAR
+>
+      consists of zero or more optional values that can be inserted,
+      unquoted, into the SQL statement using $-style substitution.
      </P
 ></DD
 ></DL
@@ -174,12 +218,33 @@ CLASS="PARAMETER"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN1501"
+NAME="AEN417"
 ></A
 ><H2
 >Return Value</H2
 ><P
->   None
+>   A result handle. See <CODE
+CLASS="FUNCTION"
+>pg_exec</CODE
+> for details.
+  </P
+></DIV
+><DIV
+CLASS="REFSECT1"
+><A
+NAME="AEN421"
+></A
+><H2
+>Example</H2
+><P
+></P><PRE
+CLASS="PROGRAMLISTING"
+>pg_exec $conn {prepare insert_people 
+    (varchar, varchar, varchar, varchar, varchar, varchar) 
+    as insert into people values ($1, $2, $3, $4, $5, $6);}
+
+pg_exec_prepared $conn insert_people $email $name $address $city $state $zip</PRE
+><P>
   </P
 ></DIV
 ><DIV
@@ -198,7 +263,7 @@ WIDTH="33%"
 ALIGN="left"
 VALIGN="top"
 ><A
-HREF="pgtcl-pglotell.html"
+HREF="pgtcl-pgexec.html"
 ACCESSKEY="P"
 >Prev</A
 ></TD
@@ -216,7 +281,7 @@ WIDTH="33%"
 ALIGN="right"
 VALIGN="top"
 ><A
-HREF="pgtcl-pgloimport.html"
+HREF="pgtcl-pgresult.html"
 ACCESSKEY="N"
 >Next</A
 ></TD
@@ -226,7 +291,7 @@ ACCESSKEY="N"
 WIDTH="33%"
 ALIGN="left"
 VALIGN="top"
->pg_lo_tell</TD
+>pg_exec</TD
 ><TD
 WIDTH="34%"
 ALIGN="center"
@@ -240,7 +305,7 @@ ACCESSKEY="U"
 WIDTH="33%"
 ALIGN="right"
 VALIGN="top"
->pg_lo_import</TD
+>pg_result</TD
 ></TR
 ></TABLE
 ></DIV

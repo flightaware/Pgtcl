@@ -2,9 +2,7 @@
 $Id$
 
 2004-11-30 Karl Lehenbauer <karl-pg@sc.com>
-    * Document pg_exec_prepared.
-
-    * Document pg_results.
+    * Document pg_exec_prepared, pg_results, and pg_sendquery_prepared.
 
     * Document pg_exec's ability to take optional arguments for 
       $-substitution in PostgreSQL 7.4+.

@@ -118,6 +118,10 @@ $Header$
     <entry>issue pg_exec-style command asynchronously</entry>
   </row>
   <row>
+    <entry><function>pg_sendquery_prepared</function></entry>
+    <entry>send an asynchronous request to execute a prepared statement, with parameters</entry>
+  </row>
+  <row>
     <entry><function>pg_getresult</function></entry>
     <entry>check on results from asynchronously issued commands</entry>
   </row>
@@ -1642,6 +1646,91 @@ pg_sendquery <parameter>conn</parameter> <parameter>commandString</parameter>
   </para>
  </refsect1>
 </refentry>
+
+<refentry ID="PGTCL-PGSENDQUERYPREPARED">
+ <refmeta>
+  <refentrytitle>pg_sendquery_prepared</refentrytitle>
+ </refmeta>
+
+ <refnamediv>
+  <refname>pg_sendquery_prepared</refname>
+  <refpurpose>send a request to execute a prepared statement to the backend connection, without waiting for a result</refpurpose>
+  <indexterm ID="IX-PGTCL-PGSENDQUERYPREPARED-2"><primary>pg_sendquery_prepared</primary></indexterm>
+ </refnamediv>
+
+ <refsynopsisdiv>
+<synopsis>
+pg_sendquery_prepared <parameter>conn</parameter> <parameter>statementName</parameter> <optional role="tcl"><parameter>args</parameter></optional>
+</synopsis>
+ </refsynopsisdiv>
+
+ <refsect1>
+  <title>Description</title>
+
+  <para>
+   <function>pg_sendquery_prepared</function> submits a command to the
+   <productname>PostgreSQL</productname> server.
+   This function works like <function>pg_exec</function>, except that
+   it does not return a result.  Rather, the command is issued
+   to the backend asynchronously.
+  </para>
+
+  <para>
+   The result is either an error message or nothing.  An empty
+   return indicates that the command was dispatched to the
+   backend.
+  </para>
+ </refsect1>
+
+ <refsect1>
+  <title>Arguments</title>
+
+  <variablelist>
+   <varlistentry>
+    <term><parameter>conn</parameter></term>
+    <listitem>
+     <para>
+      The handle of the connection on which to execute the command.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><parameter>statementName</parameter></term>
+    <listitem>
+     <para>
+      The name of the prepared SQL statement to execute asynchronously.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><parameter>args</parameter></term>
+    <listitem>
+     <para>
+      <parameter>args</parameter>
+      consists of zero or more optional values that can be inserted,
+      unquoted, into the SQL statement using $-style substitution.
+     </para>
+    </listitem>
+   </varlistentry>
+
+  </variablelist>
+ </refsect1>
+
+ <refsect1>
+  <title>Return Value</title>
+
+  <para>
+   A Tcl error will be returned if
+   <application>pgtcl</application> was unable to issue the command.
+   Otherwise, an empty string will be return.  It is up to the
+   developer to use <function>pg_getresult</function> to obtain
+   results from commands issued with <function>pg_sendquery</function>.
+  </para>
+ </refsect1>
+</refentry>
+
 
 <refentry ID="PGTCL-PGGETRESULT">
  <refmeta>

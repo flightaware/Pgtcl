@@ -2,7 +2,7 @@
 <HTML
 ><HEAD
 ><TITLE
->pg_lo_unlink</TITLE
+>pg_sendquery_prepared</TITLE
 ><META
 NAME="GENERATOR"
 CONTENT="Modular DocBook HTML Stylesheet Version 1.7"><LINK
@@ -15,11 +15,11 @@ REL="UP"
 TITLE="pgtcl Command Reference"
 HREF="libpgtcl-ref.html"><LINK
 REL="PREVIOUS"
-TITLE="pg_lo_tell"
-HREF="pgtcl-pglotell.html"><LINK
+TITLE="pg_sendquery"
+HREF="pgtcl-pgsendquery.html"><LINK
 REL="NEXT"
-TITLE="pg_lo_import"
-HREF="pgtcl-pgloimport.html"><LINK
+TITLE="pg_getresult"
+HREF="pgtcl-pggetresult.html"><LINK
 REL="STYLESHEET"
 TYPE="text/css"
 HREF="stylesheet.css"><META
@@ -48,7 +48,7 @@ WIDTH="10%"
 ALIGN="left"
 VALIGN="top"
 ><A
-HREF="pgtcl-pglotell.html"
+HREF="pgtcl-pgsendquery.html"
 ACCESSKEY="P"
 >Prev</A
 ></TD
@@ -57,7 +57,7 @@ WIDTH="10%"
 ALIGN="left"
 VALIGN="top"
 ><A
-HREF="pgtcl-pglotell.html"
+HREF="pgtcl-pgsendquery.html"
 >Fast Backward</A
 ></TD
 ><TD
@@ -70,7 +70,7 @@ WIDTH="10%"
 ALIGN="right"
 VALIGN="top"
 ><A
-HREF="pgtcl-pgloimport.html"
+HREF="pgtcl-pggetresult.html"
 >Fast Forward</A
 ></TD
 ><TD
@@ -78,7 +78,7 @@ WIDTH="10%"
 ALIGN="right"
 VALIGN="top"
 ><A
-HREF="pgtcl-pgloimport.html"
+HREF="pgtcl-pggetresult.html"
 ACCESSKEY="N"
 >Next</A
 ></TD
@@ -89,56 +89,76 @@ ALIGN="LEFT"
 WIDTH="100%"></DIV
 ><H1
 ><A
-NAME="PGTCL-PGLOUNLINK"
+NAME="PGTCL-PGSENDQUERYPREPARED"
 ></A
->pg_lo_unlink</H1
+>pg_sendquery_prepared</H1
 ><DIV
 CLASS="REFNAMEDIV"
 ><A
-NAME="AEN1475"
+NAME="AEN977"
 ></A
 ><H2
 >Name</H2
->pg_lo_unlink&nbsp;--&nbsp;delete a large object<A
-NAME="IX-PGTCL-PGLOUNLINK-2"
+>pg_sendquery_prepared&nbsp;--&nbsp;send a request to execute a prepared statement to the backend connection, without waiting for a result<A
+NAME="IX-PGTCL-PGSENDQUERYPREPARED-2"
 ></A
 ></DIV
 ><DIV
 CLASS="REFSYNOPSISDIV"
 ><A
-NAME="AEN1480"
+NAME="AEN982"
 ></A
 ><H2
 >Synopsis</H2
 ><PRE
 CLASS="SYNOPSIS"
->pg_lo_unlink <VAR
+>pg_sendquery_prepared <VAR
 CLASS="PARAMETER"
 >conn</VAR
 > <VAR
 CLASS="PARAMETER"
->loid</VAR
-></PRE
+>statementName</VAR
+> ?<SPAN
+CLASS="OPTIONAL"
+><VAR
+CLASS="PARAMETER"
+>args</VAR
+></SPAN
+>?</PRE
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN1484"
+NAME="AEN988"
 ></A
 ><H2
 >Description</H2
 ><P
 >   <CODE
 CLASS="FUNCTION"
->pg_lo_unlink</CODE
-> deletes the specified large
-   object.
+>pg_sendquery_prepared</CODE
+> submits a command to the
+   <SPAN
+CLASS="PRODUCTNAME"
+>PostgreSQL</SPAN
+> server.
+   This function works like <CODE
+CLASS="FUNCTION"
+>pg_exec</CODE
+>, except that
+   it does not return a result.  Rather, the command is issued
+   to the backend asynchronously.
+  </P
+><P
+>   The result is either an error message or nothing.  An empty
+   return indicates that the command was dispatched to the
+   backend.
   </P
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN1488"
+NAME="AEN995"
 ></A
 ><H2
 >Arguments</H2
@@ -154,18 +174,32 @@ CLASS="PARAMETER"
 ></DT
 ><DD
 ><P
->      The handle of a connection to the database in which the large object
-      exists.
+>      The handle of the connection on which to execute the command.
      </P
 ></DD
 ><DT
 ><VAR
 CLASS="PARAMETER"
->loid</VAR
+>statementName</VAR
 ></DT
 ><DD
 ><P
->      The OID of the large object.
+>      The name of the prepared SQL statement to execute asynchronously.
+     </P
+></DD
+><DT
+><VAR
+CLASS="PARAMETER"
+>args</VAR
+></DT
+><DD
+><P
+>      <VAR
+CLASS="PARAMETER"
+>args</VAR
+>
+      consists of zero or more optional values that can be inserted,
+      unquoted, into the SQL statement using $-style substitution.
      </P
 ></DD
 ></DL
@@ -174,12 +208,25 @@ CLASS="PARAMETER"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN1501"
+NAME="AEN1014"
 ></A
 ><H2
 >Return Value</H2
 ><P
->   None
+>   A Tcl error will be returned if
+   <SPAN
+CLASS="APPLICATION"
+>pgtcl</SPAN
+> was unable to issue the command.
+   Otherwise, an empty string will be return.  It is up to the
+   developer to use <CODE
+CLASS="FUNCTION"
+>pg_getresult</CODE
+> to obtain
+   results from commands issued with <CODE
+CLASS="FUNCTION"
+>pg_sendquery</CODE
+>.
   </P
 ></DIV
 ><DIV
@@ -198,7 +245,7 @@ WIDTH="33%"
 ALIGN="left"
 VALIGN="top"
 ><A
-HREF="pgtcl-pglotell.html"
+HREF="pgtcl-pgsendquery.html"
 ACCESSKEY="P"
 >Prev</A
 ></TD
@@ -216,7 +263,7 @@ WIDTH="33%"
 ALIGN="right"
 VALIGN="top"
 ><A
-HREF="pgtcl-pgloimport.html"
+HREF="pgtcl-pggetresult.html"
 ACCESSKEY="N"
 >Next</A
 ></TD
@@ -226,7 +273,7 @@ ACCESSKEY="N"
 WIDTH="33%"
 ALIGN="left"
 VALIGN="top"
->pg_lo_tell</TD
+>pg_sendquery</TD
 ><TD
 WIDTH="34%"
 ALIGN="center"
@@ -240,7 +287,7 @@ ACCESSKEY="U"
 WIDTH="33%"
 ALIGN="right"
 VALIGN="top"
->pg_lo_import</TD
+>pg_getresult</TD
 ></TR
 ></TABLE
 ></DIV

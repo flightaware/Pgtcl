@@ -2,7 +2,7 @@
 <HTML
 ><HEAD
 ><TITLE
->pg_lo_unlink</TITLE
+>pg_results</TITLE
 ><META
 NAME="GENERATOR"
 CONTENT="Modular DocBook HTML Stylesheet Version 1.7"><LINK
@@ -15,11 +15,11 @@ REL="UP"
 TITLE="pgtcl Command Reference"
 HREF="libpgtcl-ref.html"><LINK
 REL="PREVIOUS"
-TITLE="pg_lo_tell"
-HREF="pgtcl-pglotell.html"><LINK
+TITLE="pg_execute"
+HREF="pgtcl-pgexecute.html"><LINK
 REL="NEXT"
-TITLE="pg_lo_import"
-HREF="pgtcl-pgloimport.html"><LINK
+TITLE="pg_listen"
+HREF="pgtcl-pglisten.html"><LINK
 REL="STYLESHEET"
 TYPE="text/css"
 HREF="stylesheet.css"><META
@@ -48,7 +48,7 @@ WIDTH="10%"
 ALIGN="left"
 VALIGN="top"
 ><A
-HREF="pgtcl-pglotell.html"
+HREF="pgtcl-pgexecute.html"
 ACCESSKEY="P"
 >Prev</A
 ></TD
@@ -57,7 +57,7 @@ WIDTH="10%"
 ALIGN="left"
 VALIGN="top"
 ><A
-HREF="pgtcl-pglotell.html"
+HREF="pgtcl-pgexecute.html"
 >Fast Backward</A
 ></TD
 ><TD
@@ -70,7 +70,7 @@ WIDTH="10%"
 ALIGN="right"
 VALIGN="top"
 ><A
-HREF="pgtcl-pgloimport.html"
+HREF="pgtcl-pglisten.html"
 >Fast Forward</A
 ></TD
 ><TD
@@ -78,7 +78,7 @@ WIDTH="10%"
 ALIGN="right"
 VALIGN="top"
 ><A
-HREF="pgtcl-pgloimport.html"
+HREF="pgtcl-pglisten.html"
 ACCESSKEY="N"
 >Next</A
 ></TD
@@ -89,56 +89,71 @@ ALIGN="LEFT"
 WIDTH="100%"></DIV
 ><H1
 ><A
-NAME="PGTCL-PGLOUNLINK"
+NAME="PGTCL-PGRESULTS"
 ></A
->pg_lo_unlink</H1
+>pg_results</H1
 ><DIV
 CLASS="REFNAMEDIV"
 ><A
-NAME="AEN1475"
+NAME="AEN809"
 ></A
 ><H2
 >Name</H2
->pg_lo_unlink&nbsp;--&nbsp;delete a large object<A
-NAME="IX-PGTCL-PGLOUNLINK-2"
+>pg_results&nbsp;--&nbsp;return a list of all the uncleared result handles for a connection<A
+NAME="IX-PGTCL-PGRESULTS-2"
 ></A
 ></DIV
 ><DIV
 CLASS="REFSYNOPSISDIV"
 ><A
-NAME="AEN1480"
+NAME="AEN814"
 ></A
 ><H2
 >Synopsis</H2
 ><PRE
 CLASS="SYNOPSIS"
->pg_lo_unlink <VAR
+>pg_results <VAR
 CLASS="PARAMETER"
 >conn</VAR
-> <VAR
-CLASS="PARAMETER"
->loid</VAR
 ></PRE
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN1484"
+NAME="AEN817"
 ></A
 ><H2
 >Description</H2
 ><P
 >   <CODE
 CLASS="FUNCTION"
->pg_lo_unlink</CODE
-> deletes the specified large
-   object.
+>pg_results</CODE
+> returns a list off all of the
+   <SPAN
+CLASS="PRODUCTNAME"
+>PostgreSQL</SPAN
+> result handles returned by
+   <CODE
+CLASS="FUNCTION"
+>pg_exec</CODE
+>, <CODE
+CLASS="FUNCTION"
+>pg_exec_prepared</CODE
+>,
+   <CODE
+CLASS="FUNCTION"
+>pg_sendquery</CODE
+>, 
+   <CODE
+CLASS="FUNCTION"
+>pg_sendquery_prepared</CODE
+>, etc.
   </P
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN1488"
+NAME="AEN826"
 ></A
 ><H2
 >Arguments</H2
@@ -154,18 +169,7 @@ CLASS="PARAMETER"
 ></DT
 ><DD
 ><P
->      The handle of a connection to the database in which the large object
-      exists.
-     </P
-></DD
-><DT
-><VAR
-CLASS="PARAMETER"
->loid</VAR
-></DT
-><DD
-><P
->      The OID of the large object.
+>      The handle of the connection on which to listen for notifications.
      </P
 ></DD
 ></DL
@@ -174,12 +178,22 @@ CLASS="PARAMETER"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN1501"
+NAME="AEN834"
 ></A
 ><H2
 >Return Value</H2
 ><P
->   None
+>   A list of all of the result handles that haven't been cleared with
+   <CODE
+CLASS="FUNCTION"
+>pg_result</CODE
+> <VAR
+CLASS="PARAMETER"
+>-clear</VAR
+>.
+  </P
+><P
+>  The list can be empty if there are no uncleared result handles.
   </P
 ></DIV
 ><DIV
@@ -198,7 +212,7 @@ WIDTH="33%"
 ALIGN="left"
 VALIGN="top"
 ><A
-HREF="pgtcl-pglotell.html"
+HREF="pgtcl-pgexecute.html"
 ACCESSKEY="P"
 >Prev</A
 ></TD
@@ -216,7 +230,7 @@ WIDTH="33%"
 ALIGN="right"
 VALIGN="top"
 ><A
-HREF="pgtcl-pgloimport.html"
+HREF="pgtcl-pglisten.html"
 ACCESSKEY="N"
 >Next</A
 ></TD
@@ -226,7 +240,7 @@ ACCESSKEY="N"
 WIDTH="33%"
 ALIGN="left"
 VALIGN="top"
->pg_lo_tell</TD
+>pg_execute</TD
 ><TD
 WIDTH="34%"
 ALIGN="center"
@@ -240,7 +254,7 @@ ACCESSKEY="U"
 WIDTH="33%"
 ALIGN="right"
 VALIGN="top"
->pg_lo_import</TD
+>pg_listen</TD
 ></TR
 ></TABLE
 ></DIV
