@@ -9,6 +9,9 @@ $Id$
 
     * Documented pg_getresult and pg_result -error suboptions.  
 
+    * Pasted connect string options from the libpq manual rather
+      than simply referring Pgtcl users to the libpq manual.
+
     * Regenerated pdf and html documentation.
 
 2004-11-29 Karl Lehenbauer <karl-pg@sc.com>

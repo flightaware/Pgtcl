@@ -18,7 +18,8 @@ $Header$
  <title>PostgreSQL Tcl Interface Documentation</title>
 
  <bookinfo>
-  <corpauthor>The PostgreSQL Global Development Group and the Tcl Interface Group</corpauthor>
+  <corpauthor>The PostgreSQL Global Development Group</corpauthor>
+  <corpauthor>The Tcl Interface Group</corpauthor>
   </bookinfo>
 
 <chapter id="libpgtcl">
@@ -213,7 +214,7 @@ package require Pgtcl 1.4
 </programlisting>
 
 <literal>package require</literal> loads the <literal>libpgtcl</literal>
-shared library, and loads any dditional Tcl code that is part of the
+shared library, and loads any additional Tcl code that is part of the
 <literal>Pgtcl</literal> package.
     </para>
 
@@ -312,14 +313,227 @@ pg_connect <parameter>dbName</parameter> <optional role="tcl">-host <parameter>h
    <varlistentry>
     <term><parameter>connectOptions</parameter></term>
     <listitem>
-     <para>
-      A string of connection options, each written in the form
-      <literal>keyword = value</>.  A list of valid options can be
-      found in the description of the <application>libpq</> function
-      <function>PQconnectdb</>.
-     </para>
-    </listitem>
-   </varlistentry>
+    <para>
+       <function>pg_connect</function> opens a new database connection using the 
+       parameters taken from the <literal>connectOptions</literal> string.  Unlike 
+       the old-style usage of <function>pg_connect</>,
+       with the new-style usage the parameter set can be extended without changing 
+       the function signature, so use of the new style (or its nonexistent
+       nonblocking analogues <function>pg_connect_start</>
+       and <function>pg_connect_poll</function>) is preferred for new application 
+       programming.
+       </para>
+
+       <para>
+       The passed string
+       can be empty to use all default parameters, or it can contain one or more
+       parameter settings separated by whitespace.
+       Each parameter setting is in the form <literal>keyword = value</literal>.
+       (To write an empty value or a value containing
+       spaces, surround it with single quotes, e.g.,
+       <literal>keyword = 'a value'</literal>.
+       Single quotes and backslashes within the value must be escaped with a
+       backslash, i.e., <literal>\'</literal> and <literal>\\</literal>.)
+       Spaces around the equal sign are optional.
+       </para>
+
+       <para>
+       The currently recognized parameter key words are:
+
+       <variablelist>
+	<varlistentry>
+	 <term><literal>host</literal></term>
+	 <listitem>
+	 <para>
+	  Name of host to connect to.<indexterm><primary>host name</></>
+	  If this begins with a slash, it specifies Unix-domain
+	  communication rather than TCP/IP communication; the value is the
+	  name of the directory in which the socket file is stored.  The
+	  default is to connect to a Unix-domain socket in
+	  <filename>/tmp</filename>.<indexterm><primary>Unix domain
+	  socket</></>
+	 </para>
+	 </listitem>
+	</varlistentry>
+
+	<varlistentry>
+	 <term><literal>hostaddr</literal></term>
+	 <listitem>
+	 <para>
+	  Numeric IP address of host to connect to.  This should be in the
+	  standard IPv4 address format, e.g., <literal>172.28.40.9</>.  If
+	  your machine supports IPv6, you can also use those addresses.
+	  TCP/IP communication is
+	  always used when a nonempty string is specified for this parameter.
+	 </para>
+	 <para>
+	  Using <literal>hostaddr</> instead of <literal>host</> allows the
+	  application to avoid a host name look-up, which may be important in
+	  applications with time constraints. However, Kerberos authentication
+	  requires the host name. The following therefore applies: If
+	  <literal>host</> is specified without <literal>hostaddr</>, a host name
+	  lookup occurs. If <literal>hostaddr</> is specified without
+	  <literal>host</>, the value for <literal>hostaddr</> gives the remote
+	  address. When Kerberos is used, a reverse name query occurs to obtain
+	  the host name for Kerberos. If both
+	  <literal>host</> and <literal>hostaddr</> are specified, the value for
+	  <literal>hostaddr</> gives the remote address; the value for
+	  <literal>host</> is ignored, unless Kerberos is used, in which case that
+	  value is used for Kerberos authentication. (Note that authentication is
+	  likely to fail if <application>libpq</application> is passed a host name
+	  that is not the name of the machine at <literal>hostaddr</>.)  Also,
+	  <literal>host</> rather than <literal>hostaddr</> is used to identify
+	  the connection in <filename>$HOME/.pgpass</>.
+	 </para>
+	 <para>
+	  Without either a host name or host address,
+	  <application>Pgtcl</application> will connect using a
+	  local Unix domain socket.
+	 </para>
+	 </listitem>
+	</varlistentry>
+
+	<varlistentry>
+	 <term><literal>port</literal></term>
+	 <listitem>
+	 <para>
+	  Port number to connect to at the server host, or socket file
+	  name extension for Unix-domain
+	  connections.<indexterm><primary>port</></>
+	 </para>
+	 </listitem>
+	</varlistentry>
+
+	<varlistentry>
+	 <term><literal>dbname</literal></term>
+	 <listitem>
+	 <para>
+	  The database name.  Defaults to be the same as the user name.
+	 </para>
+	 </listitem>
+	</varlistentry>
+
+	<varlistentry>
+	 <term><literal>user</literal></term> 
+	 <listitem>
+	 <para>
+	  <productname>PostgreSQL</productname> user name to connect as.
+	 </para>
+	 </listitem>
+	</varlistentry>
+
+	<varlistentry>
+	 <term><literal>password</literal></term>
+	 <listitem>
+	 <para>
+	  Password to be used if the server demands password authentication.
+	 </para>
+	 </listitem>
+	</varlistentry>
+
+	<varlistentry>
+	 <term><literal>connect_timeout</literal></term>
+	 <listitem>
+	 <para>
+	  Maximum wait for connection, in seconds (write as a decimal integer
+	  string). Zero or not specified means wait indefinitely.  It is not
+	  recommended to use a timeout of less than 2 seconds.
+	 </para>
+	 </listitem>
+	</varlistentry>
+
+	<varlistentry>
+	 <term><literal>options</literal></term>
+	 <listitem>
+	  <para>
+	   Command-line options to be sent to the server.
+	  </para>
+	 </listitem>
+	</varlistentry>
+
+	<varlistentry>
+	 <term><literal>tty</literal></term>
+	 <listitem>
+	 <para>
+	  Ignored (formerly, this specified where to send server debug output).
+	 </para>
+	 </listitem>
+	</varlistentry>
+
+	<varlistentry>
+	 <term><literal>sslmode</literal></term>
+	 <listitem>
+	  <para>
+	   This option determines whether or with what priority an
+	   <acronym>SSL</> connection will be negotiated with the
+	   server. There are four modes: <literal>disable</> will attempt
+	   only an unencrypted <acronym>SSL</> connection;
+	   <literal>allow</> will negotiate, trying first a
+	   non-<acronym>SSL</> connection, then if that fails, trying an
+	   <acronym>SSL</> connection; <literal>prefer</> (the default)
+	   will negotiate, trying first an <acronym>SSL</> connection,
+	   then if that fails, trying a regular non-<acronym>SSL</>
+	   connection; <literal>require</> will try only an
+	   <acronym>SSL</> connection.
+	  </para>
+
+	  <para>
+	   If <productname>PostgreSQL</> is compiled without SSL support,
+	   using option <literal>require</> will cause an error, and
+	   options <literal>allow</> and <literal>prefer</> will be
+	   tolerated but <application>libpq</> will be unable to negotiate
+	   an <acronym>SSL</>
+	   connection.<indexterm><primary>SSL</><secondary
+	   sortas="libpq">with libpq</></indexterm>
+	  </para>
+	 </listitem>
+	</varlistentry>
+
+	<varlistentry>
+	 <term><literal>requiressl</literal></term>
+	 <listitem>
+	  <para>
+	   This option is deprecated in favor of the <literal>sslmode</>
+	   setting.
+	  </para>
+
+	  <para>
+	   If set to 1, an <acronym>SSL</acronym> connection to the server
+	   is required (this is equivalent to <literal>sslmode</>
+	   <literal>require</>).  <application>libpq</> will then refuse
+	   to connect if the server does not accept an
+	   <acronym>SSL</acronym> connection.  If set to 0 (default),
+	   <application>libpq</> will negotiate the connection type with
+	   the server (equivalent to <literal>sslmode</>
+	   <literal>prefer</>).  This option is only available if
+	   <productname>PostgreSQL</> is compiled with SSL support.
+	  </para>
+	 </listitem>
+	</varlistentry>
+
+	<varlistentry>
+	 <term><literal>service</literal></term>
+	 <listitem>
+	 <para>
+	  Service name to use for additional parameters.  It specifies a service
+	  name in <filename>pg_service.conf</filename> that holds additional connection parameters.
+	  This allows applications to specify only a service name so connection parameters 
+	  can be centrally maintained.  See 
+	  <filename><replaceable>PREFIX</>/share/pg_service.conf.sample</> for
+	  information on how to set up the file.
+	 </para>
+	 </listitem>
+	</varlistentry>
+       </variablelist>
+
+       If  any  parameter is unspecified, then the corresponding
+       environment variable (see <literal>libpq</> documentation in the <productname>PostgreSQL</> manual)
+       is checked. If the  environment  variable is not set either,
+       then built-in defaults are used.
+       </para>
+      </listitem>
+     </varlistentry>
+
   </variablelist>
 
   <variablelist>
