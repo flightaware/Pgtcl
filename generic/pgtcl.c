@@ -73,6 +73,23 @@ Pgtcl_Init(Tcl_Interp *interp)
 		return TCL_ERROR;
 #endif
 
+        #ifdef WIN32
+        /*
+        * On Windows, need to explicitly load the libpq library to
+        * force the call to WSAStartup.
+        */
+        if (LoadLibrary("libpq.dll") == NULL) {
+        char buf[32];
+        sprintf(buf, "%d", GetLastError());
+        Tcl_AppendResult(interp,
+        "Cannot load "libpq.dll" (or dependant), error was ",
+        buf,
+        NULL);
+        return TCL_ERROR;
+        }
+        #endif
+        
+
 	/*
 	 * Tcl versions >= 8.1 use UTF-8 for their internal string
 	 * representation. Therefore PGCLIENTENCODING must be set to UNICODE
