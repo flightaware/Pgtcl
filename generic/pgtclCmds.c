@@ -636,7 +636,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	result = PgGetResultId(interp, queryResultString);
 	if (result == (PGresult *)NULL)
 	{
-		Tcl_AppendResult(interp, " ", queryResultString,
+		Tcl_AppendResult(interp, "\n", queryResultString,
 						 " is not a valid query result", (char *)NULL);
 		return TCL_ERROR;
 	}
