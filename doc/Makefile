@@ -21,8 +21,10 @@ SGMLSOURCE=libpgtcl.sgml
 
 all:	libpgtcl.pdf
 
-html:
-	openjade -V draft-mode -wall -wno-unused-param -wno-empty -D . -c $(DOCBOOKDIR) -d $(STYLESHEET) -i output-html -t sgml $(SGMLSOURCE)
+dohtml:
+	-openjade -V draft-mode -wall -wno-unused-param -wno-empty -D . -c $(DOCBOOKDIR) -d $(STYLESHEET) -i output-html -t sgml $(SGMLSOURCE)
+	-mkdir html
+	mv *.html html
 
 libpgtcl.pdf:	$(SGMLSOURCE)
 	openjade -V draft-mode -D . -c $(DOCBOOKDIR) -d $(STYLESHEET) -t tex -V tex-backend -i output-print -V texpdf-output -o libpgtcl.tex-pdf $(SGMLSOURCE)
@@ -30,4 +32,4 @@ libpgtcl.pdf:	$(SGMLSOURCE)
 	rm -f libpgtcl.tex-pdf
 
 clean:
-	rm -f libpgtcl.aux libpgtcl.log libpgtcl.out
+	rm -f libpgtcl.aux libpgtcl.log libpgtcl.out HTML.index libpgtcl.tex-pdf

@@ -1,0 +1,283 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML
+><HEAD
+><TITLE
+>pg_blocking</TITLE
+><META
+NAME="GENERATOR"
+CONTENT="Modular DocBook HTML Stylesheet Version 1.7"><LINK
+REV="MADE"
+HREF="mailto:pgsql-docs@postgresql.org"><LINK
+REL="HOME"
+TITLE="PostgreSQL Tcl Interface Documentation"
+HREF="index.html"><LINK
+REL="UP"
+TITLE="pgtcl Command Reference"
+HREF="libpgtcl-ref.html"><LINK
+REL="PREVIOUS"
+TITLE="pg_isbusy"
+HREF="pgtcl-pgisbusy.html"><LINK
+REL="NEXT"
+TITLE="pg_cancelrequest"
+HREF="pgtcl-pgcancelrequest.html"><LINK
+REL="STYLESHEET"
+TYPE="text/css"
+HREF="stylesheet.css"><META
+NAME="creation"
+CONTENT="2004-04-23T18:27:26"></HEAD
+><BODY
+CLASS="REFENTRY"
+><DIV
+CLASS="NAVHEADER"
+><TABLE
+SUMMARY="Header navigation table"
+WIDTH="100%"
+BORDER="0"
+CELLPADDING="0"
+CELLSPACING="0"
+><TR
+><TH
+COLSPAN="5"
+ALIGN="center"
+VALIGN="bottom"
+>PostgreSQL Tcl Interface Documentation</TH
+></TR
+><TR
+><TD
+WIDTH="10%"
+ALIGN="left"
+VALIGN="top"
+><A
+HREF="pgtcl-pgisbusy.html"
+ACCESSKEY="P"
+>Prev</A
+></TD
+><TD
+WIDTH="10%"
+ALIGN="left"
+VALIGN="top"
+><A
+HREF="pgtcl-pgisbusy.html"
+>Fast Backward</A
+></TD
+><TD
+WIDTH="60%"
+ALIGN="center"
+VALIGN="bottom"
+></TD
+><TD
+WIDTH="10%"
+ALIGN="right"
+VALIGN="top"
+><A
+HREF="pgtcl-pgcancelrequest.html"
+>Fast Forward</A
+></TD
+><TD
+WIDTH="10%"
+ALIGN="right"
+VALIGN="top"
+><A
+HREF="pgtcl-pgcancelrequest.html"
+ACCESSKEY="N"
+>Next</A
+></TD
+></TR
+></TABLE
+><HR
+ALIGN="LEFT"
+WIDTH="100%"></DIV
+><H1
+><A
+NAME="PGTCL-PGBLOCKING"
+></A
+>pg_blocking</H1
+><DIV
+CLASS="REFNAMEDIV"
+><A
+NAME="AEN814"
+></A
+><H2
+>Name</H2
+>pg_blocking&nbsp;--&nbsp;see or set whether or not a connection is set to blocking
+ or nonblocking<A
+NAME="IX-PGTCL-PGBLOCKING-2"
+></A
+></DIV
+><DIV
+CLASS="REFSYNOPSISDIV"
+><A
+NAME="AEN819"
+></A
+><H2
+>Synopsis</H2
+><PRE
+CLASS="SYNOPSIS"
+>pg_blocking <VAR
+CLASS="PARAMETER"
+>conn</VAR
+> ?<SPAN
+CLASS="OPTIONAL"
+><VAR
+CLASS="PARAMETER"
+>mode</VAR
+></SPAN
+>?</PRE
+></DIV
+><DIV
+CLASS="REFSECT1"
+><A
+NAME="AEN824"
+></A
+><H2
+>Description</H2
+><P
+>   <CODE
+CLASS="FUNCTION"
+>pg_blocking</CODE
+> can set the connection to either
+   blocking or nonblocking, and it can see which way the connection
+   is currently set.
+  </P
+></DIV
+><DIV
+CLASS="REFSECT1"
+><A
+NAME="AEN828"
+></A
+><H2
+>Arguments</H2
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><VAR
+CLASS="PARAMETER"
+>conn</VAR
+></DT
+><DD
+><P
+>      The handle of a connection to the database in which the large object
+      exists.
+     </P
+></DD
+><DT
+><VAR
+CLASS="PARAMETER"
+>mode</VAR
+></DT
+><DD
+><P
+>      If present, sets the mode of the connection to <TT
+CLASS="LITERAL"
+>nonblocking</TT
+>
+      if <TT
+CLASS="LITERAL"
+>0</TT
+>.  Otherwise it sets the connection to 
+      <TT
+CLASS="LITERAL"
+>blocking</TT
+>.
+     </P
+></DD
+></DL
+></DIV
+></DIV
+><DIV
+CLASS="REFSECT1"
+><A
+NAME="AEN844"
+></A
+><H2
+>Return Value</H2
+><P
+>   Returns nothing if called with the <VAR
+CLASS="PARAMETER"
+>mode</VAR
+> argument.
+   Otherwise it returns <TT
+CLASS="LITERAL"
+>1</TT
+> if the connection is set for
+   <TT
+CLASS="LITERAL"
+>blocking</TT
+>, or <TT
+CLASS="LITERAL"
+>0</TT
+> if the connection
+   is set for <TT
+CLASS="LITERAL"
+>nonblocking</TT
+>.
+  </P
+></DIV
+><DIV
+CLASS="NAVFOOTER"
+><HR
+ALIGN="LEFT"
+WIDTH="100%"><TABLE
+SUMMARY="Footer navigation table"
+WIDTH="100%"
+BORDER="0"
+CELLPADDING="0"
+CELLSPACING="0"
+><TR
+><TD
+WIDTH="33%"
+ALIGN="left"
+VALIGN="top"
+><A
+HREF="pgtcl-pgisbusy.html"
+ACCESSKEY="P"
+>Prev</A
+></TD
+><TD
+WIDTH="34%"
+ALIGN="center"
+VALIGN="top"
+><A
+HREF="index.html"
+ACCESSKEY="H"
+>Home</A
+></TD
+><TD
+WIDTH="33%"
+ALIGN="right"
+VALIGN="top"
+><A
+HREF="pgtcl-pgcancelrequest.html"
+ACCESSKEY="N"
+>Next</A
+></TD
+></TR
+><TR
+><TD
+WIDTH="33%"
+ALIGN="left"
+VALIGN="top"
+>pg_isbusy</TD
+><TD
+WIDTH="34%"
+ALIGN="center"
+VALIGN="top"
+><A
+HREF="libpgtcl-ref.html"
+ACCESSKEY="U"
+>Up</A
+></TD
+><TD
+WIDTH="33%"
+ALIGN="right"
+VALIGN="top"
+>pg_cancelrequest</TD
+></TR
+></TABLE
+></DIV
+></BODY
+></HTML
+>
