@@ -449,7 +449,7 @@ Pg_connect(ClientData cData, Tcl_Interp *interp, int objc,
 int
 Pg_disconnect(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
-    PGconn	   *conn;
+    Pg_ConnectionId *connid;
     Tcl_Channel conn_chan;
     char	   *connString;
 
@@ -468,12 +468,15 @@ Pg_disconnect(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
 	return TCL_ERROR;
     }
 
+
     /* Check that it is a PG connection and not something else */
-    conn = PgGetConnectionId(interp, connString, NULL);
-    if (conn == NULL)
+    connid = (Pg_ConnectionId *) Tcl_GetChannelInstanceData(conn_chan);
+
+    if (connid->conn == NULL)
 	return TCL_ERROR;
 
-    Tcl_DeleteCommand(interp, connString);
+    if (connid->cmd_token != NULL)
+        Tcl_DeleteCommandFromToken(interp, connid->cmd_token);
 
     return Tcl_UnregisterChannel(interp, conn_chan);
 }

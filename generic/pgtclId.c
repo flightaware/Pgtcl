@@ -170,7 +170,7 @@ PgSetConnectionId(Tcl_Interp *interp, PGconn *conn)
 	Tcl_Channel conn_chan;
 	Pg_ConnectionId *connid;
 	int			i;
-        CONST   char      *ns = "::";
+        CONST   char      *ns = "";
 
 	connid = (Pg_ConnectionId *) ckalloc(sizeof(Pg_ConnectionId));
 	connid->conn = conn;
@@ -186,11 +186,13 @@ PgSetConnectionId(Tcl_Interp *interp, PGconn *conn)
 	connid->notify_list = NULL;
 	connid->notifier_running = 0;
 
-        Tcl_Eval(interp, "if {[namespace current] != \"::\"} {namespace current}");
+        Tcl_Eval(interp, "if {[namespace current] != \"::\"} {\
+                              set k [namespace current]::\
+                           }");
         
         ns = Tcl_GetStringResult(interp);
 
-	sprintf(connid->id, "%s::pgsql%d", ns, PQsocket(conn));
+	sprintf(connid->id, "%spgsql%d", ns, PQsocket(conn));
 
 	connid->notifier_channel = Tcl_MakeTcpClientChannel((ClientData)PQsocket(conn));
 	/* Code  executing  outside  of  any Tcl interpreter can call
@@ -212,17 +214,32 @@ PgSetConnectionId(Tcl_Interp *interp, PGconn *conn)
 	Tcl_SetResult(interp, connid->id, TCL_VOLATILE);
 	Tcl_RegisterChannel(interp, conn_chan);
 
-        Tcl_CreateObjCommand(interp, connid->id, PgConnCmd, NULL,NULL);
+        connid->cmd_token=Tcl_CreateObjCommand(interp, connid->id, PgConnCmd, (ClientData) connid,NULL);
 
 }
 
+/* 
+ *----------------------------------------------------------------------
+ *
+ * PgConnCmd --
+ *
+ *    dispatches the correct command from a handle command
+ *
+ * Results:
+ *    Returns the return value of the command that gets called. If
+ *    the command is not found, then a TCL_ERROR is returned
+ *
+ *----------------------------------------------------------------------
+ */
 int
 PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
     int    optIndex;
     int    objvxi;
-    Tcl_Obj    **objvx;
+    Tcl_Obj    *objvx[25];
     Tcl_Obj    *tmp;
+    Tcl_CmdInfo info;
+    Pg_ConnectionId *connid;
 
     static CONST char *options[] = {
     "disconnect", "exec", "sqlexec", "execute", "select", "listen",
@@ -242,6 +259,10 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
      *    this assigns the args array with an offset, since
      *    the command handle args looks is offset
      */
+
+/*
+objvx = (Tcl_Obj **) ckalloc((unsigned) sizeof(Tcl_Obj *) * objc);
+*/
     for (objvxi=0; objvxi < objc; objvxi++) {
         objvx[objvxi] = objv[objvxi];
     }
@@ -251,6 +272,13 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
     objvx[1] = tmp;
 
 
+    if (Tcl_GetCommandInfo(interp, Tcl_GetStringFromObj(objvx[1], NULL), &info) == 0)
+        return TCL_ERROR;
+
+    connid = (Pg_ConnectionId *) info.objClientData;
+
+
+    objvx[1] = Tcl_NewStringObj(connid->id, -1);
     if (Tcl_GetIndexFromObj(interp, objv[1], options, "switch", TCL_EXACT, &optIndex) != TCL_OK)
                     return TCL_ERROR;
 
@@ -951,8 +979,10 @@ PgStopNotifyEventSource(Pg_ConnectionId * connid, pqbool allevents)
 	}
 
 	/* Kill queued Tcl events that reference this channel */
-	if (allevents)
-		Tcl_DeleteEvents(AllNotifyEventDeleteProc, (ClientData) connid);
-	else
-		Tcl_DeleteEvents(NotifyEventDeleteProc, (ClientData) connid);
+
+      if (allevents)
+               Tcl_DeleteEvents(AllNotifyEventDeleteProc, (ClientData) connid);
+       else
+               Tcl_DeleteEvents(NotifyEventDeleteProc, (ClientData) connid);
 }
+
