@@ -24,7 +24,7 @@ array set conninfo {
 #
 #
 #
-test pgtcl-0.1 {connect to db using old connection string} {
+test pgtcl-1.1 {connect to db using old connection string} {
 
     set conn [pg_connect $::conninfo(dbname) \
         -host $::conninfo(host) \
@@ -40,7 +40,7 @@ test pgtcl-0.1 {connect to db using old connection string} {
 #
 #
 #
-test pgtcl-0.2 {connect to db using conninfo string} {
+test pgtcl-1.2 {connect to db using conninfo string} {
 
     set conn [pg_connect -conninfo \
         "dbname=$::conninfo(dbname) host=$::conninfo(host) port=$::conninfo(port) user=$::conninfo(user)"]
@@ -53,7 +53,7 @@ test pgtcl-0.2 {connect to db using conninfo string} {
 #
 #
 #
-test pgtcl-0.3 {connect to db using connlist option} {
+test pgtcl-1.3 {connect to db using connlist option} {
 
     set conn [pg::connect -connlist [array get ::conninfo]]
 
@@ -65,7 +65,7 @@ test pgtcl-0.3 {connect to db using connlist option} {
 #
 #
 #
-test pgtcl-0.4 {connect to db using -connhandle option} {
+test pgtcl-1.4 {connect to db using -connhandle option} {
 
     set conn [pg::connect -connlist [array get ::conninfo] -connhandle myhan]
 
@@ -77,7 +77,7 @@ test pgtcl-0.4 {connect to db using -connhandle option} {
 #
 #
 #
-test pgtcl-0.5 {use connection as command} {
+test pgtcl-2.1 {use connection as command} {
 
     set conn [pg::connect -connlist [array get ::conninfo] -connhandle myhan]
 
@@ -93,7 +93,7 @@ test pgtcl-0.5 {use connection as command} {
 #
 #
 #
-test pgtcl-0.6 {test getting connection handles} {
+test pgtcl-3.1 {test getting connection handles} {
 
     foreach C [list 1 2 3] {
         set myconn($C) [pg::connect -connlist [array get ::conninfo]]
@@ -111,7 +111,7 @@ test pgtcl-0.6 {test getting connection handles} {
 #
 #
 #
-test pgtcl-0.7 {test getting connection handles, after disconnect} {
+test pgtcl-3.2 {test getting connection handles, after disconnect} {
 
     foreach C [list 1 2 3] {
         set myconn($C) [pg::connect -connlist [array get ::conninfo]]
@@ -127,7 +127,7 @@ test pgtcl-0.7 {test getting connection handles, after disconnect} {
 #
 #
 #
-test pgtcl-0.7 {test renaming of connection handle command} {
+test pgtcl-3.3 {test renaming of connection handle command} {
 
     set conn [pg::connect -connlist [array get ::conninfo]]
 
@@ -142,10 +142,27 @@ test pgtcl-0.7 {test renaming of connection handle command} {
 
 } pgsql3.0
 
+
 #
 #
 #
-test pgtcl-0.8 {get result handles} {
+test pgtcl-3.4 {test deleting of a command handle} {
+    unset -nocomplain res
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+
+    set res [$conn exec "SELECT * FROM Pg_class  WHERE relname='tables'"]
+
+    pg::result $res -clear
+    rename $conn {}
+
+    pg::conninfo
+} [list]
+
+#
+#
+#
+test pgtcl-4.1 {get result handles} {
 
     unset res
 
@@ -168,12 +185,48 @@ test pgtcl-0.8 {get result handles} {
 
 } [lsort [list pgsql3.0 pgsql3.1 pgsql3.2 pgsql3.3]]
 
+#
+##
+#
+test pgtcl-4.2 {test using result handle command} {
+
+    catch {unset res}
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+
+    set res [$conn exec "SELECT * FROM Pg_class LIMIT 1"]
+
+    set num [$res -numTuples]
+    $res -clear
+
+    pg_disconnect $conn
+
+    set num
+} 1
+
+#
+#
+#
+test pgtcl-4.3 {test deleting of a result handle} {
+    unset -nocomplain res
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+
+    set res [$conn exec "SELECT * FROM Pg_class  WHERE relname='tables'"]
+
+    rename $res {}
+
+    #pg::result $res -clear
+    pg::results $conn
+
+} [list]
+
 ## only check if have dicts installed
 if {[llength [info commands dict]] == 1} {
 #
 #
 #
-test pgtcl-0.8 {get results as a DICT} {
+test pgtcl-4.4 {get results as a DICT} {
 
     unset res
 
@@ -191,3 +244,13 @@ test pgtcl-0.8 {get results as a DICT} {
 
 } tables
 }
+
+#
+#
+#
+test pgtcl-5.1 {quote a string} {
+
+    set qstr [pg::quote "o'reilly"]
+
+    set qstr
+} 'o''reilly'
