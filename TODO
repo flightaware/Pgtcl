@@ -2,6 +2,12 @@
 
 $Id$
 
+Add support for PQsendQueryParams (parameter substitution to asynchronous
+queries.)
+
+Add support for PQsendQueryPrepared (parameter substitution to prepared
+statements as asynchronous queries.)
+
 Set up error code when returning errors from postgres stuff.
 Return postgres status like {POSTGRES PGRES_EMPTY_QUERY} or whatever.
 
