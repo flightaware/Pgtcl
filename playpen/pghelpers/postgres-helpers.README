@@ -1,0 +1,71 @@
+
+
+Welcome to the Postgres helpers functions.
+
+These are actually quite soild.  They've been in use for years.
+
+The only issue here is that they need to be part of the Postgres
+install.
+
+$Id$
+
+
+sc_pg::foreach_tuple pgResult arrayName body
+
+    Given a postgres result, an array name, and a code body, fill the array in 
+    turn with each result tuple and execute the code body against it.
+
+sc_pg::quote string
+
+    Quote a string for Postgres.  Puts single quotes around it and quotes
+    single quotes if they're contained within it.
+
+sc_pg::gen_sql_insert_from_array
+
+    Return a postgres SQL insert statement based on the contents of an array.
+
+sc_pg::perform_insert session insertStatement
+
+    Execute a statement on the given database session.  Grab the
+    status out of the result.  Clear the result.  Return the status.
+
+sc_pg::gen_insert_from_lists tableName nameList valueList
+
+    Generate a sql insert command based on the
+    contents of an element list and a one-for-one
+    corresponding value list, and return it.
+
+sc_pg::perform_insert_from_array
+
+    Generate a sql insert command based on the
+    contents of an array and execute it against 
+    the specified database session.
+
+sc_pg::clock_to_sql_time clockValue
+
+    Convert a clock value (integer seconds since 1970) to a 
+    SQL standard abstime value, accurate to a day.
+
+
+sc_pg::clock_to_precise_sql_time clockValue
+
+    Generate a SQL time from an integer clock
+    time (seconds since 1970), accurate to the second.
+
+
+sc_pg::sql_time_to_clock sqlDate
+
+    Given a SQL standard abstime value, convert it to an integer
+    clock value (seconds since 1970) and return it.
+
+
+sc_pg::res_must_succeed
+
+    The given postgres result must be PGRES_COMMAND_OK and, if it isn't,
+    throw an error.  If it is OK, clear the postgres result.
+
+sc_pg::res_dont_care
+
+    Whether or not the give postgres result is PGRES_COMMAND_OK, the
+    result is cleared.  By default we write something to stdout,
+    but that's probably dumb.
