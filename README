@@ -4,7 +4,14 @@ backends.  See libpgtcl.doc for details.
 
 $Id$
 
-This is pgtcl version 1.4 beta 2
+This is pgtcl version 1.4 beta 3
+
+CHANGES IN 1.4 BETA 3
+
+Fixed all known memory leaks.  Fixed bug in "pg_result -assignbyidx".
+Fixed notifier bug in pg_listen.
+
+VERSION 1.4
 
 With version 1.4, Pgtcl has been internally overhauled and brought up to
 date with the latest Tcl C-interface technology, while maintaining
@@ -15,7 +22,7 @@ under Pgtcl 1.4.
 
 This is a transitional release, as pgtcl is moving out the of core and
 into its own distribution.  This means that documentation also must be
-collected and included.
+collected and included.  This has not yet been done.
 
 CONFIGURING
 
@@ -128,3 +135,5 @@ Here are some features that were added back in the 1998 - 1999 timeframe:
    In either case (upon detecting the EOF or putting the `\.', the status
    of the result handle will change to "PGRES_COMMAND_OK", and any further
    I/O attempts will cause a Tcl error.
+
+

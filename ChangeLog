@@ -3,12 +3,16 @@ $Id$
 
 2002-11-15  Karl Lehenbauer <karl@procplace.com>
 
-    * Fix pg_listen.  (callback string wasn't null-terminated)
+    * Tagged for 1.4b3
+
+    * Fix pg_listen.  (callback string wasn't properly terminated)
       Also made slight performance improvements in pg_listen.
 
 2002-11-15  Brett Schwarz <brett_schwarz@yahoo.com>
 
     * Cleanup memory leaks in pg_result.
+
+    * Fixed bug in pg_result -assignbyidx
 
 2002-11-15  Karl Lehenbauer <karl@procplace.com>
 
