@@ -491,6 +491,8 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	char	   *connString;
 	char	   *execString;
 	const char **paramValues = NULL;
+
+#ifdef HAVE_PQEXECPARAMS
 	int         nParams;
 
 	if (objc < 3)
@@ -517,6 +519,13 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		paramValues[param] = Tcl_GetStringFromObj (objv[3+param], NULL);
 	    }
 	}
+#else /* HAVE_PQEXECPARAMS */
+	if (objc != 3)
+	{
+		Tcl_WrongNumArgs(interp, 1, objv, "connection queryString");
+		return TCL_ERROR;
+	}
+#endif /* HAVE_PQEXECPARAMS */
 
 	/* figure out the connect string and get the connection ID */
 
@@ -539,11 +548,15 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	 * are included, we maintain compatibility for code that doesn't
 	 * use params and might have had multiple statements in a single 
 	 * request */
+#ifdef HAVE_PQEXECPARAMS
 	if (nParams == 0) {
+#endif
 	    result = PQexec(conn, execString);
+#ifdef HAVE_PQEXECPARAMS
 	} else {
 	    result = PQexecParams(conn, execString, nParams, NULL, paramValues, NULL, NULL, 1);
 	}
+#endif
 
 	/* Transfer any notify events from libpq to Tcl event queue. */
 	PgNotifyTransferEvents(connid);
