@@ -14,6 +14,9 @@ $Id$
 
     * Regenerated pdf and html documentation.
 
+2004-11-29 Brett Schwarz <brett_schwarz@yahoo.com>
+    * Added commands to escape and unescape binary strings
+
 2004-11-29 Karl Lehenbauer <karl-pg@sc.com>
     * Added library of useful PostreSQL helper functions to the playpen.
 
