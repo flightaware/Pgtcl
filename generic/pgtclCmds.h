@@ -172,7 +172,10 @@ extern int Pg_escapeBytea(
 extern int Pg_unescapeBytea(
   ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 
-extern int Pg_conninfo(
+extern int Pg_dbinfo(
+  ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+
+extern int Pg_info(
   ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 
 extern int Pg_results(

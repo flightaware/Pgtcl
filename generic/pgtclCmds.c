@@ -3297,7 +3297,7 @@ Pg_unescapeBytea(ClientData cData, Tcl_Interp *interp, int objc,
  *----------------------------------------------------------------------
  */
 int
-Pg_conninfo(ClientData cData, Tcl_Interp *interp, int objc,
+Pg_info(ClientData cData, Tcl_Interp *interp, int objc,
 				 Tcl_Obj *CONST objv[])
 {
 
@@ -3412,7 +3412,144 @@ Pg_results(ClientData cData, Tcl_Interp *interp, int objc,
     return TCL_OK;
 }
 
+/*
+ *----------------------------------------------------------------------
+ *
+ * Pg_dbinfo --
+ *
+ *    returns either the connection handles or the result handles
+ *
+ * Syntax:
+ *    pg_info connections
+ *    pg_info results connHandle 
+ *
+ * Results:
+ *    the return result is either an error message or a list of
+ *    the connection/result handles.
+ *
+ *----------------------------------------------------------------------
+ */
+int
+Pg_dbinfo(ClientData cData, Tcl_Interp *interp, int objc,
+				 Tcl_Obj *CONST objv[])
+{
+    Pg_ConnectionId *connid;
+    char	    *connString;
+    char	    buf[32];
+    Tcl_Obj         *listObj;
+    Tcl_Obj         *tresult;
 
+    Tcl_Obj   **elemPtrs;
+    int       i, count, optIndex;
+    Tcl_Channel conn_chan;
+
+    static CONST char *options[] = {
+    	"connections", "results", NULL
+    };
+
+    enum options
+    {
+    	OPT_CONNECTIONS, OPT_RESULTS
+    };
+
+    if (Tcl_GetIndexFromObj(interp, objv[1], options, "option", TCL_EXACT, &optIndex) != TCL_OK)
+    {
+		return TCL_ERROR;
+    }
+
+    switch ((enum options) optIndex)
+    {
+        case OPT_CONNECTIONS:
+        {
+
+    if (objc != 2)
+    {
+	Tcl_WrongNumArgs(interp,1,objv,"connections");
+        return TCL_ERROR;
+    }
+
+    listObj = Tcl_NewListObj(0, (Tcl_Obj **) NULL);
+
+    Tcl_GetChannelNames(interp);
+
+
+    Tcl_ListObjGetElements(interp, Tcl_GetObjResult(interp), &count, &elemPtrs);
+
+
+    for (i = 0; i < count; i++) {
+
+        char *name = Tcl_GetStringFromObj(elemPtrs[i], NULL);
+
+        conn_chan = Tcl_GetChannel(interp, name, 0);
+        if (conn_chan != NULL && Tcl_GetChannelType(conn_chan) == &Pg_ConnType)
+        {
+
+        if (Tcl_ListObjAppendElement(interp, listObj, elemPtrs[i]) != TCL_OK)
+        {
+            Tcl_DecrRefCount(listObj);
+            return TCL_ERROR;
+        }
+        }
+
+
+    }
+        break;
+        }
+        case OPT_RESULTS:
+        {
+
+    if (objc != 3)
+    {
+	Tcl_WrongNumArgs(interp,1,objv,"results connHandle");
+        return TCL_ERROR;
+    }
+    listObj = Tcl_NewListObj(0, (Tcl_Obj **) NULL);
+
+    connString = Tcl_GetStringFromObj(objv[2], NULL);
+    conn_chan = Tcl_GetChannel(interp, connString, 0);
+    if (conn_chan == NULL)
+    {
+        tresult = Tcl_NewStringObj("... not a valid connection", -1);
+        Tcl_SetObjResult(interp, tresult);
+
+        return TCL_ERROR;
+    }
+
+
+    /* Check that it is a PG connection and not something else */
+    connid = (Pg_ConnectionId *) Tcl_GetChannelInstanceData(conn_chan);
+
+    if (connid->conn == NULL)
+        return TCL_ERROR;
+
+    for (i = 0; i <= connid->res_last; i++)
+    {
+ 
+        if (connid->results[i] == 0)
+        {
+            continue;
+        }
+
+        sprintf(buf, "%s.%d", connString, i);
+        if (Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj(buf, -1)) != TCL_OK)
+        {
+            Tcl_DecrRefCount(listObj);
+            return TCL_ERROR;
+        }
+    }
+        break;
+        }
+        default:
+        {
+	    Tcl_WrongNumArgs(interp,1,objv,"connections|results connHandle");
+            return TCL_ERROR;
+        }
+
+    }
+    Tcl_SetObjResult(interp, listObj);
+    return TCL_OK;
+
+}
 
 /*
 error severity
