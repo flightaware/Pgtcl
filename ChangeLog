@@ -1,6 +1,11 @@
 
 $Id$
 
+2005-02-25 Brett Schwarz <brett_schwarz@yahoo.com>
+    * took away pg::conninfo and pg::results, and made one command
+      pg::dbinfo. Usage is pg::dbinfo connections and 
+      pg::dbinfo results $conn
+
 2004-11-30 Karl Lehenbauer <karl-pg@sc.com>
     * Document pg_exec_prepared, pg_results, and pg_sendquery_prepared.
 
