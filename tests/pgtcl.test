@@ -254,3 +254,16 @@ test pgtcl-5.1 {quote a string} {
 
     set qstr
 } 'o''reilly'
+
+#
+#
+#
+test pgtcl-5.2 {quote a binary string} {
+
+    set bn [binary format a* \000\\HELLO's]
+    set qstr [pg::quote_bytea $bn]
+
+    set qstr
+} \\\\000\\\\\\\\HELLO\\'s
+
+
