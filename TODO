@@ -1,0 +1,20 @@
+
+
+$Id$
+
+Set up error code when returning errors from postgres stuff.
+Return postgres status like {POSTGRES PGRES_EMPTY_QUERY} or whatever.
+
+Make a cursor-like thing that sits on top of postgres results.  It's
+"reusable", because it knows to close out the previous result when it's
+being handed a new result.
+
+DONE Support for asynchronous operation.
+
+Stubify the build.
+
+Make the build TEA-compliant.
+
+Document pg_execute.
+
+Document new asynchronous operation stuff.

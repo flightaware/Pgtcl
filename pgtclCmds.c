@@ -8,7 +8,7 @@
  *
  *
  * IDENTIFICATION
- *	  $Header$
+ *	  $Id$
  *
  *-------------------------------------------------------------------------
  */
@@ -153,7 +153,7 @@ tcl_value(char *value)
 	char	   *p;
 
 	if (!value)
-		return (char *) NULL;
+		return (char *)NULL;
 
 #ifdef TCL_ARRAYS_DEBUG
 	printf("pq_value  = '%s'\n", value);
@@ -241,35 +241,59 @@ tcl_value(char *value)
  **********************************/
 
 int
-Pg_conndefaults(ClientData cData, Tcl_Interp *interp, int argc, char **argv)
+Pg_conndefaults(ClientData cData, Tcl_Interp *interp, int objc,
+				Tcl_Obj *CONST objv[])
 {
 	PQconninfoOption *options = PQconndefaults();
 	PQconninfoOption *option;
 	Tcl_DString result;
 	char		ibuf[32];
 
+	if (objc != 1)
+	{
+		Tcl_WrongNumArgs(interp, 1, objv, "");
+		return TCL_ERROR;
+	}
+
 	if (options)
 	{
-		Tcl_DStringInit(&result);
+		Tcl_Obj    *resultList = Tcl_GetObjResult(interp);
+
+		Tcl_SetListObj(resultList, 0, NULL);
 
 		for (option = options; option->keyword != NULL; option++)
 		{
 			char	   *val = option->val ? option->val : "";
 
-			sprintf(ibuf, "%d", option->dispsize);
-			Tcl_DStringStartSublist(&result);
-			Tcl_DStringAppendElement(&result, option->keyword);
-			Tcl_DStringAppendElement(&result, option->label);
-			Tcl_DStringAppendElement(&result, option->dispchar);
-			Tcl_DStringAppendElement(&result, ibuf);
-			Tcl_DStringAppendElement(&result, val);
-			Tcl_DStringEndSublist(&result);
-		}
-		Tcl_DStringResult(interp, &result);
+			/* start a sublist */
+			Tcl_Obj    *subList = Tcl_NewListObj(0, NULL);
 
+			if (Tcl_ListObjAppendElement(interp, subList,
+					 Tcl_NewStringObj(option->keyword, -1)) == TCL_ERROR)
+				return TCL_ERROR;
+
+			if (Tcl_ListObjAppendElement(interp, subList,
+					   Tcl_NewStringObj(option->label, -1)) == TCL_ERROR)
+				return TCL_ERROR;
+
+			if (Tcl_ListObjAppendElement(interp, subList,
+					Tcl_NewStringObj(option->dispchar, -1)) == TCL_ERROR)
+				return TCL_ERROR;
+
+			if (Tcl_ListObjAppendElement(interp, subList,
+						   Tcl_NewIntObj(option->dispsize)) == TCL_ERROR)
+				return TCL_ERROR;
+
+			if (Tcl_ListObjAppendElement(interp, subList,
+								 Tcl_NewStringObj(val, -1)) == TCL_ERROR)
+				return TCL_ERROR;
+
+			if (Tcl_ListObjAppendElement(interp, resultList,
+										 subList) == TCL_ERROR)
+				return TCL_ERROR;
+		}
 		PQconninfoFree(options);
 	}
-
 	return TCL_OK;
 }
 
@@ -287,7 +311,8 @@ Pg_conndefaults(ClientData cData, Tcl_Interp *interp, int argc, char **argv)
  **********************************/
 
 int
-Pg_connect(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
+Pg_connect(ClientData cData, Tcl_Interp *interp, int objc,
+		   Tcl_Obj *CONST objv[])
 {
 	char	   *pghost = NULL;
 	char	   *pgtty = NULL;
@@ -296,77 +321,97 @@ Pg_connect(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
 	char	   *dbName;
 	int			i;
 	PGconn	   *conn;
+	char	   *firstArg;
+	char	   *conninfoString;
+	int			optIndex;
 
-	if (argc == 1)
+	static CONST char *options[] = {
+		"-host", "-port", "-tty", "-options", (char *)NULL
+	};
+
+	enum options
+	{
+		OPT_HOST, OPT_PORT, OPT_TTY, OPT_OPTIONS
+	};
+
+	if (objc == 1)
 	{
 		Tcl_AppendResult(interp, "pg_connect: database name missing\n", 0);
 		Tcl_AppendResult(interp, "pg_connect databaseName [-host hostName] [-port portNumber] [-tty pgtty]\n", 0);
 		Tcl_AppendResult(interp, "pg_connect -conninfo conninfoString", 0);
 		return TCL_ERROR;
-
 	}
 
-	if (!strcmp("-conninfo", argv[1]))
+	firstArg = Tcl_GetStringFromObj(objv[1], NULL);
+	if (strcmp(firstArg, "-conninfo") == 0)
 	{
 		/*
 		 * Establish a connection using the new PQconnectdb() interface
 		 */
-		if (argc != 3)
+		if (objc != 3)
 		{
-			Tcl_AppendResult(interp, "pg_connect: syntax error\n", 0);
-			Tcl_AppendResult(interp, "pg_connect -conninfo conninfoString", 0);
+			Tcl_WrongNumArgs(interp, 2, objv, "conninfoString");
 			return TCL_ERROR;
 		}
-		conn = PQconnectdb(argv[2]);
+		conninfoString = Tcl_GetStringFromObj(objv[2], NULL);
+		conn = PQconnectdb(conninfoString);
 	}
 	else
 	{
 		/*
 		 * Establish a connection using the old PQsetdb() interface
 		 */
-		if (argc > 2)
+		if (objc > 2)
 		{
 			/* parse for pg environment settings */
 			i = 2;
-			while (i + 1 < argc)
+			while (i + 1 < objc)
 			{
-				if (strcmp(argv[i], "-host") == 0)
-				{
-					pghost = argv[i + 1];
-					i += 2;
-				}
-				else if (strcmp(argv[i], "-port") == 0)
-				{
-					pgport = argv[i + 1];
-					i += 2;
-				}
-				else if (strcmp(argv[i], "-tty") == 0)
-				{
-					pgtty = argv[i + 1];
-					i += 2;
-				}
-				else if (strcmp(argv[i], "-options") == 0)
-				{
-					pgoptions = argv[i + 1];
-					i += 2;
-				}
-				else
-				{
-					Tcl_AppendResult(interp, "Bad option to pg_connect: ",
-									 argv[i], 0);
-					Tcl_AppendResult(interp, "\npg_connect databaseName [-host hostName] [-port portNumber] [-tty pgtty]", 0);
+				char	   *nextArg = Tcl_GetStringFromObj(objv[i + 1], NULL);
+
+				/* process command options */
+				if (Tcl_GetIndexFromObj(interp, objv[i], options,
+							   "switch", TCL_EXACT, &optIndex) != TCL_OK)
 					return TCL_ERROR;
+
+				switch ((enum options) optIndex)
+				{
+					case OPT_HOST:
+						{
+							pghost = nextArg;
+							i += 2;
+							break;
+						}
+
+					case OPT_PORT:
+						{
+							pgport = nextArg;
+							i += 2;
+							break;
+						}
+
+					case OPT_TTY:
+						{
+							pgtty = nextArg;
+							i += 2;
+							break;
+						}
+
+					case OPT_OPTIONS:
+						{
+							pgoptions = nextArg;
+							i += 2;
+						}
 				}
-			}					/* while */
-			if ((i % 2 != 0) || i != argc)
+			}
+
+			if ((i % 2 != 0) || i != objc)
 			{
-				Tcl_AppendResult(interp, "wrong # of arguments to pg_connect: ",
-								 argv[i], 0);
-				Tcl_AppendResult(interp, "\npg_connect databaseName [-host hostName] [-port portNumber] [-tty pgtty]", 0);
+				Tcl_WrongNumArgs(interp, 1, objv, "databaseName ?-host hostName? ?-port portNumber? ?-tty pgtty? ?-options pgoptions?");
 				return TCL_ERROR;
 			}
 		}
-		dbName = argv[1];
+		dbName = Tcl_GetStringFromObj(objv[1], NULL);
 		conn = PQsetdb(pghost, pgport, pgoptions, pgtty, dbName);
 	}
 
@@ -397,27 +442,29 @@ Pg_connect(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
  **********************************/
 
 int
-Pg_disconnect(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
+Pg_disconnect(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	PGconn	   *conn;
 	Tcl_Channel conn_chan;
+	char	   *connString;
 
-	if (argc != 2)
+	if (objc != 2)
 	{
-		Tcl_AppendResult(interp, "Wrong # of arguments\n", "pg_disconnect connection", 0);
+		Tcl_WrongNumArgs(interp, 1, objv, "connection");
 		return TCL_ERROR;
 	}
 
-	conn_chan = Tcl_GetChannel(interp, argv[1], 0);
+	connString = Tcl_GetStringFromObj(objv[1], NULL);
+	conn_chan = Tcl_GetChannel(interp, connString, 0);
 	if (conn_chan == NULL)
 	{
 		Tcl_ResetResult(interp);
-		Tcl_AppendResult(interp, argv[1], " is not a valid connection", 0);
+		Tcl_AppendResult(interp, connString, " is not a valid connection", 0);
 		return TCL_ERROR;
 	}
 
 	/* Check that it is a PG connection and not something else */
-	conn = PgGetConnectionId(interp, argv[1], (Pg_ConnectionId **) NULL);
+	conn = PgGetConnectionId(interp, connString, (Pg_ConnectionId **) NULL);
 	if (conn == (PGconn *) NULL)
 		return TCL_ERROR;
 
@@ -436,21 +483,24 @@ Pg_disconnect(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
  **********************************/
 
 int
-Pg_exec(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
+Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	Pg_ConnectionId *connid;
 	PGconn	   *conn;
 	PGresult   *result;
+	char	   *connString;
+	char	   *execString;
 
-	if (argc != 3)
+	if (objc != 3)
 	{
-		Tcl_AppendResult(interp, "Wrong # of arguments\n",
-						 "pg_exec connection queryString", 0);
+		Tcl_WrongNumArgs(interp, 1, objv, "connection queryString");
 		return TCL_ERROR;
 	}
 
-	conn = PgGetConnectionId(interp, argv[1], &connid);
-	if (conn == (PGconn *) NULL)
+	connString = Tcl_GetStringFromObj(objv[1], NULL);
+
+	conn = PgGetConnectionId(interp, connString, &connid);
+	if (conn == (PGconn *)NULL)
 		return TCL_ERROR;
 
 	if (connid->res_copyStatus != RES_COPY_NONE)
@@ -459,14 +509,15 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
 		return TCL_ERROR;
 	}
 
-	result = PQexec(conn, argv[2]);
+	execString = Tcl_GetStringFromObj(objv[2], NULL);
+	result = PQexec(conn, execString);
 
 	/* Transfer any notify events from libpq to Tcl event queue. */
 	PgNotifyTransferEvents(connid);
 
 	if (result)
 	{
-		int			rId = PgSetResultId(interp, argv[1], result);
+		int			rId = PgSetResultId(interp, connString, result);
 
 		ExecStatusType rStat = PQresultStatus(result);
 
@@ -480,7 +531,7 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
 	else
 	{
 		/* error occurred during the query */
-		Tcl_SetResult(interp, PQerrorMessage(conn), TCL_VOLATILE);
+		Tcl_SetObjResult(interp, Tcl_NewStringObj(PQerrorMessage(conn), -1));
 		return TCL_ERROR;
 	}
 }
@@ -495,268 +546,429 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
 
  the options are:
 
-	-status		the status of the result
+	-status the status of the result
 
-	-error		the error message, if the status indicates error; otherwise
-				an empty string
+	-error	the error message, if the status indicates error; otherwise
+		an empty string
 
-	-conn		the connection that produced the result
+	-conn	the connection that produced the result
 
-	-oid		if command was an INSERT, the OID of the inserted tuple
+	-oid	if command was an INSERT, the OID of the inserted tuple
 
 	-numTuples	the number of tuples in the query
 
 	-numAttrs	returns the number of attributes returned by the query
 
 	-assign arrayName
-				assign the results to an array, using subscripts of the form
-				(tupno,attributeName)
+		assign the results to an array, using subscripts of the form
+			(tupno,attributeName)
 
 	-assignbyidx arrayName ?appendstr?
-				assign the results to an array using the first field's value
-				as a key.
-				All but the first field of each tuple are stored, using
-				subscripts of the form (field0value,attributeNameappendstr)
+		assign the results to an array using the first field's value
+		as a key.
+		All but the first field of each tuple are stored, using
+		subscripts of the form (field0value,attributeNameappendstr)
 
 	-getTuple tupleNumber
-				returns the values of the tuple in a list
+		returns the values of the tuple in a list
 
 	-tupleArray tupleNumber arrayName
-				stores the values of the tuple in array arrayName, indexed
-				by the attributes returned
+		stores the values of the tuple in array arrayName, indexed
+		by the attributes returned
 
 	-attributes
-				returns a list of the name/type pairs of the tuple attributes
+		returns a list of the name/type pairs of the tuple attributes
 
 	-lAttributes
-				returns a list of the {name type len} entries of the tuple
-				attributes
+		returns a list of the {name type len} entries of the tuple
+		attributes
 
-	-clear		clear the result buffer. Do not reuse after this
+	-clear	clear the result buffer. Do not reuse after this
 
  **********************************/
 int
-Pg_result(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
+Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	PGresult   *result;
-	char	   *opt;
 	int			i;
 	int			tupno;
 	char	   *arrVar;
-	char		nameBuffer[256];
+	Tcl_Obj    *arrVarObj;
 	const char *appendstr;
+	Tcl_Obj    *appendstrObj;
+	char	   *queryResultString;
+	int			optIndex;
 
-	if (argc < 3 || argc > 5)
+	static CONST char *options[] = {
+		"-status", "-error", "-conn", "-oid",
+		"-numTuples", "-numAttrs", "-assign", "-assignbyidx",
+		"-getTuple", "-tupleArray", "-attributes", "-lAttributes",
+		"-clear", (char *)NULL
+	};
+
+	enum options
 	{
-		Tcl_AppendResult(interp, "Wrong # of arguments\n", 0);
+		OPT_STATUS, OPT_ERROR, OPT_CONN, OPT_OID,
+		OPT_NUMTUPLES, OPT_NUMATTRS, OPT_ASSIGN, OPT_ASSIGNBYIDX,
+		OPT_GETTUPLE, OPT_TUPLEARRAY, OPT_ATTRIBUTES, OPT_LATTRIBUTES,
+		OPT_CLEAR
+	};
+
+	if (objc < 3 || objc > 5)
+	{
+		Tcl_WrongNumArgs(interp, 1, objv, "");
 		goto Pg_result_errReturn;		/* append help info */
 	}
 
-	result = PgGetResultId(interp, argv[1]);
-	if (result == (PGresult *) NULL)
+	/* figure out the query result handle and look it up */
+	queryResultString = Tcl_GetStringFromObj(objv[1], NULL);
+	result = PgGetResultId(interp, queryResultString);
+	if (result == (PGresult *)NULL)
 	{
-		Tcl_AppendResult(interp, "\n",
-						 argv[1], " is not a valid query result", 0);
+		Tcl_AppendResult(interp, " ", queryResultString,
+						 " is not a valid query result", (char *)NULL);
 		return TCL_ERROR;
 	}
 
-	opt = argv[2];
+	/* process command options */
+	if (Tcl_GetIndexFromObj(interp, objv[2], options, "switch", TCL_EXACT,
+							&optIndex) != TCL_OK)
+		return TCL_ERROR;
 
-	if (strcmp(opt, "-status") == 0)
+	switch ((enum options) optIndex)
 	{
-		Tcl_AppendResult(interp, PQresStatus(PQresultStatus(result)), 0);
-		return TCL_OK;
-	}
-	else if (strcmp(opt, "-error") == 0)
-	{
-		Tcl_SetResult(interp, (char *) PQresultErrorMessage(result),
-					  TCL_STATIC);
-		return TCL_OK;
-	}
-	else if (strcmp(opt, "-conn") == 0)
-		return PgGetConnByResultId(interp, argv[1]);
-	else if (strcmp(opt, "-oid") == 0)
-	{
-		sprintf(interp->result, "%u", PQoidValue(result));
-		return TCL_OK;
-	}
-	else if (strcmp(opt, "-clear") == 0)
-	{
-		PgDelResultId(interp, argv[1]);
-		PQclear(result);
-		return TCL_OK;
-	}
-	else if (strcmp(opt, "-numTuples") == 0)
-	{
-		sprintf(interp->result, "%d", PQntuples(result));
-		return TCL_OK;
-	}
-	else if (strcmp(opt, "-numAttrs") == 0)
-	{
-		sprintf(interp->result, "%d", PQnfields(result));
-		return TCL_OK;
-	}
-	else if (strcmp(opt, "-assign") == 0)
-	{
-		if (argc != 4)
-		{
-			Tcl_AppendResult(interp, "-assign option must be followed by a variable name", 0);
-			return TCL_ERROR;
-		}
-		arrVar = argv[3];
-
-		/*
-		 * this assignment assigns the table of result tuples into a giant
-		 * array with the name given in the argument. The indices of the
-		 * array are of the form (tupno,attrName). Note we expect field
-		 * names not to exceed a few dozen characters, so truncating to
-		 * prevent buffer overflow shouldn't be a problem.
-		 */
-		for (tupno = 0; tupno < PQntuples(result); tupno++)
-		{
-			for (i = 0; i < PQnfields(result); i++)
+		case OPT_STATUS:
 			{
-				sprintf(nameBuffer, "%d,%.200s", tupno, PQfname(result, i));
-				if (Tcl_SetVar2(interp, arrVar, nameBuffer,
-#ifdef TCL_ARRAYS
-								tcl_value(PQgetvalue(result, tupno, i)),
-#else
-								PQgetvalue(result, tupno, i),
-#endif
-								TCL_LEAVE_ERR_MSG) == NULL)
-					return TCL_ERROR;
-			}
-		}
-		Tcl_AppendResult(interp, arrVar, 0);
-		return TCL_OK;
-	}
-	else if (strcmp(opt, "-assignbyidx") == 0)
-	{
-		if (argc != 4 && argc != 5)
-		{
-			Tcl_AppendResult(interp, "-assignbyidx option requires an array name and optionally an append string", 0);
-			return TCL_ERROR;
-		}
-		arrVar = argv[3];
-		appendstr = (argc == 5) ? (const char *) argv[4] : "";
+				char	   *resultStatus;
 
-		/*
-		 * this assignment assigns the table of result tuples into a giant
-		 * array with the name given in the argument.  The indices of the
-		 * array are of the form (field0Value,attrNameappendstr). Here, we
-		 * still assume PQfname won't exceed 200 characters, but we dare
-		 * not make the same assumption about the data in field 0 nor the
-		 * append string.
-		 */
-		for (tupno = 0; tupno < PQntuples(result); tupno++)
-		{
-			const char *field0 =
-#ifdef TCL_ARRAYS
-			tcl_value(PQgetvalue(result, tupno, 0));
-
-#else
-			PQgetvalue(result, tupno, 0);
-#endif
-			char	   *workspace = malloc(strlen(field0) + strlen(appendstr) + 210);
-
-			for (i = 1; i < PQnfields(result); i++)
-			{
-				sprintf(workspace, "%s,%.200s%s", field0, PQfname(result, i),
-						appendstr);
-				if (Tcl_SetVar2(interp, arrVar, workspace,
-#ifdef TCL_ARRAYS
-								tcl_value(PQgetvalue(result, tupno, i)),
-#else
-								PQgetvalue(result, tupno, i),
-#endif
-								TCL_LEAVE_ERR_MSG) == NULL)
+				if (objc != 3)
 				{
-					free(workspace);
+					Tcl_WrongNumArgs(interp, 3, objv, "");
 					return TCL_ERROR;
 				}
+
+				resultStatus = PQresStatus(PQresultStatus(result));
+				Tcl_SetObjResult(interp, Tcl_NewStringObj(resultStatus, -1));
+				return TCL_OK;
 			}
-			free(workspace);
-		}
-		Tcl_AppendResult(interp, arrVar, 0);
-		return TCL_OK;
-	}
-	else if (strcmp(opt, "-getTuple") == 0)
-	{
-		if (argc != 4)
-		{
-			Tcl_AppendResult(interp, "-getTuple option must be followed by a tuple number", 0);
-			return TCL_ERROR;
-		}
-		tupno = atoi(argv[3]);
-		if (tupno < 0 || tupno >= PQntuples(result))
-		{
-			Tcl_AppendResult(interp, "argument to getTuple cannot exceed number of tuples - 1", 0);
-			return TCL_ERROR;
-		}
+
+		case OPT_ERROR:
+			{
+				if (objc != 3)
+				{
+					Tcl_WrongNumArgs(interp, 3, objv, "");
+					return TCL_ERROR;
+				}
+
+				Tcl_SetObjResult(interp,
+					 Tcl_NewStringObj(PQresultErrorMessage(result), -1));
+				return TCL_OK;
+			}
+
+		case OPT_CONN:
+			{
+				if (objc != 3)
+				{
+					Tcl_WrongNumArgs(interp, 3, objv, "");
+					return TCL_ERROR;
+				}
+
+				return PgGetConnByResultId(interp, queryResultString);
+			}
+
+		case OPT_OID:
+			{
+				if (objc != 3)
+				{
+					Tcl_WrongNumArgs(interp, 3, objv, "");
+					return TCL_ERROR;
+				}
+
+				Tcl_SetLongObj(Tcl_GetObjResult(interp), PQoidValue(result));
+				return TCL_OK;
+			}
+
+		case OPT_CLEAR:
+			{
+				if (objc != 3)
+				{
+					Tcl_WrongNumArgs(interp, 3, objv, "");
+					return TCL_ERROR;
+				}
+
+				PgDelResultId(interp, queryResultString);
+				PQclear(result);
+				return TCL_OK;
+			}
+
+		case OPT_NUMTUPLES:
+			{
+				if (objc != 3)
+				{
+					Tcl_WrongNumArgs(interp, 3, objv, "");
+					return TCL_ERROR;
+				}
+
+				Tcl_SetIntObj(Tcl_GetObjResult(interp), PQntuples(result));
+				return TCL_OK;
+			}
+
+		case OPT_NUMATTRS:
+			{
+				if (objc != 3)
+				{
+					Tcl_WrongNumArgs(interp, 3, objv, "");
+					return TCL_ERROR;
+				}
+
+				Tcl_SetIntObj(Tcl_GetObjResult(interp), PQnfields(result));
+				return TCL_OK;
+			}
+
+		case OPT_ASSIGN:
+			{
+				if (objc != 4)
+				{
+					Tcl_WrongNumArgs(interp, 3, objv, "arrayName");
+					return TCL_ERROR;
+				}
+
+				arrVarObj = objv[3];
+				arrVar = Tcl_GetStringFromObj(arrVarObj, NULL);
+
+				/*
+				 * this assignment assigns the table of result tuples into
+				 * a giant array with the name given in the argument. The
+				 * indices of the array are of the form (tupno,attrName).
+				 */
+				for (tupno = 0; tupno < PQntuples(result); tupno++)
+				{
+					for (i = 0; i < PQnfields(result); i++)
+					{
+						Tcl_Obj    *fieldNameObj;
+
+						/*
+						 * this is a little kludgey -- we create an int
+						 * obj but the append following will force a
+						 * string conversion
+						 */
+						fieldNameObj = Tcl_NewIntObj(tupno);
+						Tcl_AppendToObj(fieldNameObj, ",", 1);
+						Tcl_AppendToObj(fieldNameObj, PQfname(result, i), -1);
+
+						if (Tcl_ObjSetVar2(interp, arrVarObj, fieldNameObj,
+										   Tcl_NewStringObj(
 #ifdef TCL_ARRAYS
-		for (i = 0; i < PQnfields(result); i++)
-			Tcl_AppendElement(interp, tcl_value(PQgetvalue(result, tupno, i)));
+								 tcl_value(PQgetvalue(result, tupno, i)),
 #else
-		for (i = 0; i < PQnfields(result); i++)
-			Tcl_AppendElement(interp, PQgetvalue(result, tupno, i));
+											PQgetvalue(result, tupno, i),
 #endif
-		return TCL_OK;
-	}
-	else if (strcmp(opt, "-tupleArray") == 0)
-	{
-		if (argc != 5)
-		{
-			Tcl_AppendResult(interp, "-tupleArray option must be followed by a tuple number and array name", 0);
-			return TCL_ERROR;
-		}
-		tupno = atoi(argv[3]);
-		if (tupno < 0 || tupno >= PQntuples(result))
-		{
-			Tcl_AppendResult(interp, "argument to tupleArray cannot exceed number of tuples - 1", 0);
-			return TCL_ERROR;
-		}
-		for (i = 0; i < PQnfields(result); i++)
-		{
-			if (Tcl_SetVar2(interp, argv[4], PQfname(result, i),
+										 -1), TCL_LEAVE_ERR_MSG) == NULL)
+							return TCL_ERROR;
+					}
+				}
+				return TCL_OK;
+			}
+
+		case OPT_ASSIGNBYIDX:
+			{
+				if ((objc != 4) && (objc != 5))
+				{
+					Tcl_WrongNumArgs(interp, 3, objv, "arrayName ?append_string?");
+					return TCL_ERROR;
+				}
+
+				arrVarObj = objv[3];
+				arrVar = Tcl_GetStringFromObj(arrVarObj, NULL);
+
+				if (objc == 5)
+					appendstrObj = objv[4];
+				else
+					appendstrObj = NULL;
+
+				/*
+				 * this assignment assigns the table of result tuples into
+				 * a giant array with the name given in the argument.  The
+				 * indices of the array are of the form
+				 * (field0Value,attrNameappendstr). Here, we still assume
+				 * PQfname won't exceed 200 characters, but we dare not
+				 * make the same assumption about the data in field 0 nor
+				 * the append string.
+				 */
+				for (tupno = 0; tupno < PQntuples(result); tupno++)
+				{
+					Tcl_Obj    *fieldNameObj;
+					const char *field0 =
 #ifdef TCL_ARRAYS
-							tcl_value(PQgetvalue(result, tupno, i)),
+					tcl_value(PQgetvalue(result, tupno, 0));
+
 #else
-							PQgetvalue(result, tupno, i),
+					PQgetvalue(result, tupno, 0);
 #endif
-							TCL_LEAVE_ERR_MSG) == NULL)
-				return TCL_ERROR;
-		}
-		return TCL_OK;
-	}
-	else if (strcmp(opt, "-attributes") == 0)
-	{
-		for (i = 0; i < PQnfields(result); i++)
-			Tcl_AppendElement(interp, PQfname(result, i));
-		return TCL_OK;
-	}
-	else if (strcmp(opt, "-lAttributes") == 0)
-	{
-		for (i = 0; i < PQnfields(result); i++)
-		{
-			/* start a sublist */
-			if (i > 0)
-				Tcl_AppendResult(interp, " {", 0);
-			else
-				Tcl_AppendResult(interp, "{", 0);
-			Tcl_AppendElement(interp, PQfname(result, i));
-			sprintf(nameBuffer, "%ld", (long) PQftype(result, i));
-			Tcl_AppendElement(interp, nameBuffer);
-			sprintf(nameBuffer, "%ld", (long) PQfsize(result, i));
-			Tcl_AppendElement(interp, nameBuffer);
-			/* end the sublist */
-			Tcl_AppendResult(interp, "}", 0);
-		}
-		return TCL_OK;
-	}
-	else
-	{
-		Tcl_AppendResult(interp, "Invalid option\n", 0);
-		goto Pg_result_errReturn;		/* append help info */
+
+					fieldNameObj = Tcl_NewStringObj(field0, -1);
+
+					for (i = 1; i < PQnfields(result); i++)
+					{
+						Tcl_AppendToObj(fieldNameObj, ",", 1);
+						Tcl_AppendToObj(fieldNameObj, PQfname(result, i), -1);
+
+						if (appendstrObj != NULL)
+							Tcl_AppendObjToObj(fieldNameObj, appendstrObj);
+
+						if (Tcl_ObjSetVar2(interp, arrVarObj, fieldNameObj,
+										   Tcl_NewStringObj(
+#ifdef TCL_ARRAYS
+								 tcl_value(PQgetvalue(result, tupno, i)),
+#else
+											PQgetvalue(result, tupno, i),
+#endif
+										 -1), TCL_LEAVE_ERR_MSG) == NULL)
+							return TCL_ERROR;
+					}
+				}
+				return TCL_OK;
+			}
+
+		case OPT_GETTUPLE:
+			{
+				Tcl_Obj    *resultObj;
+
+				if (objc != 4)
+				{
+					Tcl_WrongNumArgs(interp, 3, objv, "tuple_number");
+					return TCL_ERROR;
+				}
+
+				if (Tcl_GetIntFromObj(interp, objv[3], &tupno) == TCL_ERROR)
+					return TCL_ERROR;
+
+				if (tupno < 0 || tupno >= PQntuples(result))
+				{
+					Tcl_AppendResult(interp, "argument to getTuple cannot exceed number of tuples - 1", 0);
+					return TCL_ERROR;
+				}
+
+				/* set the result object to be an empty list */
+				resultObj = Tcl_GetObjResult(interp);
+				Tcl_SetListObj(resultObj, 0, NULL);
+
+				/* build up a return list, Tcl-object-style */
+				for (i = 0; i < PQnfields(result); i++)
+				{
+					char	   *value;
+
+#ifdef TCL_ARRAYS
+					value = tcl_value(PQgetvalue(result, tupno, i));
+#else
+					value = PQgetvalue(result, tupno, i);
+#endif
+					if (Tcl_ListObjAppendElement(interp, resultObj,
+							   Tcl_NewStringObj(value, -1)) == TCL_ERROR)
+						return TCL_ERROR;
+				}
+				return TCL_OK;
+			}
+
+		case OPT_TUPLEARRAY:
+			{
+				char	   *arrayName;
+
+				if (objc != 5)
+				{
+					Tcl_WrongNumArgs(interp, 3, objv, "tuple_number array_name");
+					return TCL_ERROR;
+				}
+
+				if (Tcl_GetIntFromObj(interp, objv[3], &tupno) == TCL_ERROR)
+					return TCL_ERROR;
+
+				if (tupno < 0 || tupno >= PQntuples(result))
+				{
+					Tcl_AppendResult(interp, "argument to tupleArray cannot exceed number of tuples - 1", 0);
+					return TCL_ERROR;
+				}
+
+				arrayName = Tcl_GetStringFromObj(objv[4], NULL);
+
+				for (i = 0; i < PQnfields(result); i++)
+				{
+					if (Tcl_SetVar2(interp, arrayName, PQfname(result, i),
+#ifdef TCL_ARRAYS
+								 tcl_value(PQgetvalue(result, tupno, i)),
+#else
+									PQgetvalue(result, tupno, i),
+#endif
+									TCL_LEAVE_ERR_MSG) == NULL)
+						return TCL_ERROR;
+				}
+				return TCL_OK;
+			}
+
+		case OPT_ATTRIBUTES:
+			{
+				Tcl_Obj    *resultObj = Tcl_GetObjResult(interp);
+
+				if (objc != 3)
+				{
+					Tcl_WrongNumArgs(interp, 3, objv, "");
+					return TCL_ERROR;
+				}
+
+				Tcl_SetListObj(resultObj, 0, NULL);
+
+				for (i = 0; i < PQnfields(result); i++)
+				{
+					Tcl_ListObjAppendElement(interp, resultObj,
+							   Tcl_NewStringObj(PQfname(result, i), -1));
+				}
+				return TCL_OK;
+			}
+
+		case OPT_LATTRIBUTES:
+			{
+				Tcl_Obj    *resultObj = Tcl_GetObjResult(interp);
+
+				if (objc != 3)
+				{
+					Tcl_WrongNumArgs(interp, 3, objv, "");
+					return TCL_ERROR;
+				}
+
+				Tcl_SetListObj(resultObj, 0, NULL);
+
+				for (i = 0; i < PQnfields(result); i++)
+				{
+
+					/* start a sublist */
+					Tcl_Obj    *subList = Tcl_NewListObj(0, NULL);
+
+					if (Tcl_ListObjAppendElement(interp, subList,
+												 Tcl_NewStringObj(PQfname(result, i), -1)) == TCL_ERROR)
+						return TCL_ERROR;
+
+					if (Tcl_ListObjAppendElement(interp, subList,
+												 Tcl_NewLongObj((long)PQftype(result, i))) == TCL_ERROR)
+						return TCL_ERROR;
+
+					if (Tcl_ListObjAppendElement(interp, subList,
+												 Tcl_NewLongObj((long)PQfsize(result, i))) == TCL_ERROR)
+						return TCL_ERROR;
+
+					/* end the sublist, append to the result list */
+
+					if (Tcl_ListObjAppendElement(interp, resultObj, subList)
+						== TCL_ERROR)
+						return TCL_ERROR;
+				}
+				return TCL_OK;
+			}
+
+		default:
+			{
+				Tcl_AppendResult(interp, "Invalid option\n", 0);
+				goto Pg_result_errReturn;		/* append help info */
+			}
 	}
 
 
@@ -776,10 +988,8 @@ Pg_result_errReturn:
 					 "\t-attributes\n"
 					 "\t-lAttributes\n"
 					 "\t-clear\n",
-					 (char *) 0);
+					 (char *)0);
 	return TCL_ERROR;
-
-
 }
 
 
@@ -796,7 +1006,7 @@ Pg_result_errReturn:
  **********************************/
 
 int
-Pg_execute(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
+Pg_execute(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	Pg_ConnectionId *connid;
 	PGconn	   *conn;
@@ -805,54 +1015,62 @@ Pg_execute(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
 	int			tupno;
 	int			ntup;
 	int			loop_rc;
-	char	   *oid_varname = NULL;
 	char	   *array_varname = NULL;
-	char		buf[64];
+	char	   *arg;
+	char	   *connString;
+	char	   *queryString;
 
-	char	   *usage = "Wrong # of arguments\n"
-	"pg_execute ?-array arrayname? ?-oid varname? "
+	Tcl_Obj    *oid_varnameObj = NULL;
+	Tcl_Obj    *evalObj;
+	Tcl_Obj    *resultObj;
+
+	char	   *usage = "?-array arrayname? ?-oid varname? "
 	"connection queryString ?loop_body?";
 
 	/*
 	 * First we parse the options
 	 */
 	i = 1;
-	while (i < argc)
+	while (i < objc)
 	{
-		if (argv[i][0] != '-')
+		arg = Tcl_GetStringFromObj(objv[i], NULL);
+		if (arg[0] != '-')
 			break;
 
-		if (strcmp(argv[i], "-array") == 0)
+		if (strcmp(arg, "-array") == 0)
 		{
 			/*
 			 * The rows should appear in an array vs. to single variables
 			 */
 			i++;
-			if (i == argc)
+			if (i == objc)
 			{
-				Tcl_SetResult(interp, usage, TCL_VOLATILE);
+				Tcl_WrongNumArgs(interp, 1, objv, usage);
 				return TCL_ERROR;
 			}
-			array_varname = argv[i++];
+
+			array_varname = Tcl_GetStringFromObj(objv[i++], NULL);
 			continue;
 		}
 
-		if (strcmp(argv[i], "-oid") == 0)
+		arg = Tcl_GetStringFromObj(objv[i], NULL);
+
+		if (strcmp(arg, "-oid") == 0)
 		{
 			/*
 			 * We should place PQoidValue() somewhere
 			 */
 			i++;
-			if (i == argc)
+			if (i == objc)
 			{
-				Tcl_SetResult(interp, usage, TCL_VOLATILE);
+				Tcl_WrongNumArgs(interp, 1, objv, usage);
 				return TCL_ERROR;
 			}
-			oid_varname = argv[i++];
+			oid_varnameObj = objv[i++];
 			continue;
 		}
 
-		Tcl_AppendResult(interp, "Unknown option '", argv[i], "'", NULL);
+		Tcl_WrongNumArgs(interp, 1, objv, usage);
 		return TCL_ERROR;
 	}
 
@@ -860,17 +1078,18 @@ Pg_execute(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
 	 * Check that after option parsing at least 'connection' and 'query'
 	 * are left
 	 */
-	if (argc - i < 2)
+	if (objc - i < 2)
 	{
-		Tcl_SetResult(interp, usage, TCL_VOLATILE);
+		Tcl_WrongNumArgs(interp, 1, objv, usage);
 		return TCL_ERROR;
 	}
 
 	/*
 	 * Get the connection and make sure no COPY command is pending
 	 */
-	conn = PgGetConnectionId(interp, argv[i++], &connid);
-	if (conn == (PGconn *) NULL)
+	connString = Tcl_GetStringFromObj(objv[i++], NULL);
+	conn = PgGetConnectionId(interp, connString, &connid);
+	if (conn == (PGconn *)NULL)
 		return TCL_ERROR;
 
 	if (connid->res_copyStatus != RES_COPY_NONE)
@@ -882,7 +1101,8 @@ Pg_execute(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
 	/*
 	 * Execute the query
 	 */
-	result = PQexec(conn, argv[i++]);
+	queryString = Tcl_GetStringFromObj(objv[i++], NULL);
+	result = PQexec(conn, queryString);
 
 	/*
 	 * Transfer any notify events from libpq to Tcl event queue.
@@ -902,13 +1122,10 @@ Pg_execute(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
 	 * Set the oid variable to the returned oid of an INSERT statement if
 	 * requested (or 0 if it wasn't an INSERT)
 	 */
-	if (oid_varname != NULL)
+	if (oid_varnameObj != NULL)
 	{
-		char		oid_buf[32];
-
-		sprintf(oid_buf, "%u", PQoidValue(result));
-		if (Tcl_SetVar(interp, oid_varname, oid_buf,
-					   TCL_LEAVE_ERR_MSG) == NULL)
+		if (Tcl_ObjSetVar2(interp, oid_varnameObj, NULL,
+						   Tcl_NewLongObj((long)PQoidValue(result)), TCL_LEAVE_ERR_MSG) == NULL)
 		{
 			PQclear(result);
 			return TCL_ERROR;
@@ -929,15 +1146,26 @@ Pg_execute(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
 		case PGRES_COPY_IN:
 		case PGRES_COPY_OUT:
 			/* tell the number of affected tuples for non-SELECT queries */
-			Tcl_SetResult(interp, PQcmdTuples(result), TCL_VOLATILE);
+			Tcl_SetObjResult(interp,
+							 Tcl_NewStringObj(PQcmdTuples(result), -1));
 			PQclear(result);
 			return TCL_OK;
 
 		default:
 			/* anything else must be an error */
-			Tcl_ResetResult(interp);
-			Tcl_AppendElement(interp, PQresStatus(PQresultStatus(result)));
-			Tcl_AppendElement(interp, PQresultErrorMessage(result));
+			/* set the result object to be an empty list */
+			resultObj = Tcl_GetObjResult(interp);
+			Tcl_SetListObj(resultObj, 0, NULL);
+			if (Tcl_ListObjAppendElement(interp, resultObj,
+			   Tcl_NewStringObj(PQresStatus(PQresultStatus(result)), -1))
+				== TCL_ERROR)
+				return TCL_ERROR;
+
+			if (Tcl_ListObjAppendElement(interp, resultObj,
+					  Tcl_NewStringObj(PQresultErrorMessage(result), -1))
+				== TCL_ERROR)
+				return TCL_ERROR;
+
 			PQclear(result);
 			return TCL_ERROR;
 	}
@@ -945,7 +1173,7 @@ Pg_execute(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
 	/*
 	 * We reach here only for queries that returned tuples
 	 */
-	if (i == argc)
+	if (i == objc)
 	{
 		/*
 		 * We don't have a loop body. If we have at least one result row,
@@ -960,17 +1188,17 @@ Pg_execute(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
 			}
 		}
 
-		sprintf(buf, "%d", PQntuples(result));
-		Tcl_SetResult(interp, buf, TCL_VOLATILE);
+		Tcl_SetObjResult(interp, Tcl_NewIntObj(PQntuples(result)));
 		PQclear(result);
 		return TCL_OK;
 	}
 
 	/*
-	 * We have a loop body. For each row in the result set put the values
+	 * We have a loop body. For each row in the result set, put the values
 	 * into the Tcl variables and execute the body.
 	 */
 	ntup = PQntuples(result);
+	evalObj = objv[i];
 	for (tupno = 0; tupno < ntup; tupno++)
 	{
 		if (execute_put_values(interp, array_varname, result, tupno) != TCL_OK)
@@ -979,21 +1207,27 @@ Pg_execute(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
 			return TCL_ERROR;
 		}
 
-		loop_rc = Tcl_Eval(interp, argv[i]);
+		loop_rc = Tcl_EvalObjEx(interp, evalObj, 0);
 
 		/* The returncode of the loop body controls the loop execution */
 		if (loop_rc == TCL_OK || loop_rc == TCL_CONTINUE)
+		{
 			/* OK or CONTINUE means start next loop invocation */
 			continue;
+		}
+
 		if (loop_rc == TCL_RETURN)
 		{
 			/* RETURN means hand up the given interpreter result */
 			PQclear(result);
 			return TCL_RETURN;
 		}
+
 		if (loop_rc == TCL_BREAK)
+		{
 			/* BREAK means leave the loop */
 			break;
+		}
 
 		PQclear(result);
 		return TCL_ERROR;
@@ -1003,8 +1237,7 @@ Pg_execute(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
 	 * At the end of the loop we put the number of rows we got into the
 	 * interpreter result and clear the result set.
 	 */
-	sprintf(buf, "%d", ntup);
-	Tcl_SetResult(interp, buf, TCL_VOLATILE);
+	Tcl_SetObjResult(interp, Tcl_NewIntObj(ntup));
 	PQclear(result);
 	return TCL_OK;
 }
@@ -1047,10 +1280,8 @@ execute_put_values(Tcl_Interp *interp, char *array_varname,
 				return TCL_ERROR;
 		}
 	}
-
 	return TCL_OK;
 }
-
 
 /**********************************
  * pg_lo_open
@@ -1063,32 +1294,38 @@ execute_put_values(Tcl_Interp *interp, char *array_varname,
 **********************/
 
 int
-Pg_lo_open(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
+Pg_lo_open(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	PGconn	   *conn;
 	int			lobjId;
 	int			mode;
 	int			fd;
+	char	   *connString;
+	char	   *modeString;
+	int			modeStringLen;
 
-	if (argc != 4)
+	if (objc != 4)
 	{
-		Tcl_AppendResult(interp, "Wrong # of arguments\n",
-						 "pg_lo_open connection lobjOid mode", 0);
+		Tcl_WrongNumArgs(interp, 1, objv, "connection lobjOid mode");
 		return TCL_ERROR;
 	}
 
-	conn = PgGetConnectionId(interp, argv[1], (Pg_ConnectionId **) NULL);
-	if (conn == (PGconn *) NULL)
+	connString = Tcl_GetStringFromObj(objv[1], NULL);
+	conn = PgGetConnectionId(interp, connString, (Pg_ConnectionId **) NULL);
+	if (conn == (PGconn *)NULL)
 		return TCL_ERROR;
 
-	lobjId = atoi(argv[2]);
-	if (strlen(argv[3]) < 1 ||
-		strlen(argv[3]) > 2)
+	if (Tcl_GetIntFromObj(interp, objv[2], &lobjId) == TCL_ERROR)
+		return TCL_ERROR;
+
+	modeString = Tcl_GetStringFromObj(objv[3], &modeStringLen);
+	if ((modeStringLen < 1) || (modeStringLen > 2))
 	{
 		Tcl_AppendResult(interp, "mode argument must be 'r', 'w', or 'rw'", 0);
 		return TCL_ERROR;
 	}
-	switch (argv[3][0])
+
+	switch (modeString[0])
 	{
 		case 'r':
 		case 'R':
@@ -1102,7 +1339,8 @@ Pg_lo_open(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
 			Tcl_AppendResult(interp, "mode argument must be 'r', 'w', or 'rw'", 0);
 			return TCL_ERROR;
 	}
-	switch (argv[3][1])
+
+	switch (modeString[1])
 	{
 		case '\0':
 			break;
@@ -1120,7 +1358,7 @@ Pg_lo_open(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
 	}
 
 	fd = lo_open(conn, lobjId, mode);
-	sprintf(interp->result, "%d", fd);
+	Tcl_SetObjResult(interp, Tcl_NewIntObj(fd));
 	return TCL_OK;
 }
 
@@ -1133,24 +1371,27 @@ Pg_lo_open(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
 
 **********************/
 int
-Pg_lo_close(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
+Pg_lo_close(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	PGconn	   *conn;
 	int			fd;
+	char	   *connString;
 
-	if (argc != 3)
+	if (objc != 3)
 	{
-		Tcl_AppendResult(interp, "Wrong # of arguments\n",
-						 "pg_lo_close connection fd", 0);
+		Tcl_WrongNumArgs(interp, 1, objv, "connection fd");
 		return TCL_ERROR;
 	}
 
-	conn = PgGetConnectionId(interp, argv[1], (Pg_ConnectionId **) NULL);
-	if (conn == (PGconn *) NULL)
+	connString = Tcl_GetStringFromObj(objv[1], NULL);
+	conn = PgGetConnectionId(interp, connString, (Pg_ConnectionId **) NULL);
+	if (conn == (PGconn *)NULL)
 		return TCL_ERROR;
 
-	fd = atoi(argv[2]);
-	sprintf(interp->result, "%d", lo_close(conn, fd));
+	if (Tcl_GetIntFromObj(interp, objv[2], &fd) != TCL_OK)
+		return TCL_ERROR;
+
+	Tcl_SetObjResult(interp, Tcl_NewIntObj(lo_close(conn, fd)));
 	return TCL_OK;
 }
 
@@ -1165,7 +1406,6 @@ Pg_lo_close(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
  bufVar is the name of a variable in which to store the contents of the read
 
 **********************/
-#ifdef PGTCL_USE_TCLOBJ
 int
 Pg_lo_read(ClientData cData, Tcl_Interp *interp, int objc,
 		   Tcl_Obj *CONST objv[])
@@ -1181,14 +1421,13 @@ Pg_lo_read(ClientData cData, Tcl_Interp *interp, int objc,
 
 	if (objc != 5)
 	{
-		Tcl_AppendResult(interp, "Wrong # of arguments\n",
-						 " pg_lo_read conn fd bufVar len", 0);
+		Tcl_WrongNumArgs(interp, 1, objv, "conn fd bufVar len");
 		return TCL_ERROR;
 	}
 
 	conn = PgGetConnectionId(interp, Tcl_GetStringFromObj(objv[1], NULL),
 							 (Pg_ConnectionId **) NULL);
-	if (conn == (PGconn *) NULL)
+	if (conn == (PGconn *)NULL)
 		return TCL_ERROR;
 
 	if (Tcl_GetIntFromObj(interp, objv[2], &fd) != TCL_OK)
@@ -1204,6 +1443,7 @@ Pg_lo_read(ClientData cData, Tcl_Interp *interp, int objc,
 		Tcl_SetObjResult(interp, Tcl_NewIntObj(nbytes));
 		return TCL_OK;
 	}
+
 	buf = ckalloc(len + 1);
 
 	nbytes = lo_read(conn, fd, buf, len);
@@ -1217,53 +1457,7 @@ Pg_lo_read(ClientData cData, Tcl_Interp *interp, int objc,
 
 	ckfree(buf);
 	return rc;
-
 }
-
-#else
-int
-Pg_lo_read(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
-{
-	PGconn	   *conn;
-	int			fd;
-	int			nbytes = 0;
-	char	   *buf;
-	char	   *bufVar;
-	int			len;
-
-	if (argc != 5)
-	{
-		Tcl_AppendResult(interp, "Wrong # of arguments\n",
-						 " pg_lo_read conn fd bufVar len", 0);
-		return TCL_ERROR;
-	}
-
-	conn = PgGetConnectionId(interp, argv[1], (Pg_ConnectionId **) NULL);
-	if (conn == (PGconn *) NULL)
-		return TCL_ERROR;
-
-	fd = atoi(argv[2]);
-
-	bufVar = argv[3];
-
-	len = atoi(argv[4]);
-
-	if (len <= 0)
-	{
-		sprintf(interp->result, "%d", nbytes);
-		return TCL_OK;
-	}
-	buf = ckalloc(len + 1);
-
-	nbytes = lo_read(conn, fd, buf, len);
-
-	Tcl_SetVar(interp, bufVar, buf, TCL_LEAVE_ERR_MSG);
-	sprintf(interp->result, "%d", nbytes);
-	ckfree(buf);
-	return TCL_OK;
-
-}
-#endif
 
 /***********************************
 Pg_lo_write
@@ -1273,7 +1467,6 @@ Pg_lo_write
  pg_lo_write conn fd buf len
 
 ***********************************/
-#ifdef PGTCL_USE_TCLOBJ
 int
 Pg_lo_write(ClientData cData, Tcl_Interp *interp, int objc,
 			Tcl_Obj *CONST objv[])
@@ -1286,14 +1479,13 @@ Pg_lo_write(ClientData cData, Tcl_Interp *interp, int objc,
 
 	if (objc != 5)
 	{
-		Tcl_AppendResult(interp, "Wrong # of arguments\n",
-						 "pg_lo_write conn fd buf len", 0);
+		Tcl_WrongNumArgs(interp, 1, objv, "conn fd buf len");
 		return TCL_ERROR;
 	}
 
 	conn = PgGetConnectionId(interp, Tcl_GetStringFromObj(objv[1], NULL),
 							 (Pg_ConnectionId **) NULL);
-	if (conn == (PGconn *) NULL)
+	if (conn == (PGconn *)NULL)
 		return TCL_ERROR;
 
 	if (Tcl_GetIntFromObj(interp, objv[2], &fd) != TCL_OK)
@@ -1318,45 +1510,6 @@ Pg_lo_write(ClientData cData, Tcl_Interp *interp, int objc,
 	return TCL_OK;
 }
 
-#else
-int
-Pg_lo_write(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
-{
-	PGconn	   *conn;
-	char	   *buf;
-	int			fd;
-	int			nbytes = 0;
-	int			len;
-
-	if (argc != 5)
-	{
-		Tcl_AppendResult(interp, "Wrong # of arguments\n",
-						 "pg_lo_write conn fd buf len", 0);
-		return TCL_ERROR;
-	}
-
-	conn = PgGetConnectionId(interp, argv[1], (Pg_ConnectionId **) NULL);
-	if (conn == (PGconn *) NULL)
-		return TCL_ERROR;
-
-	fd = atoi(argv[2]);
-
-	buf = argv[3];
-
-	len = atoi(argv[4]);
-
-	if (len <= 0)
-	{
-		sprintf(interp->result, "%d", nbytes);
-		return TCL_OK;
-	}
-
-	nbytes = lo_write(conn, fd, buf, len);
-	sprintf(interp->result, "%d", nbytes);
-	return TCL_OK;
-}
-#endif
-
 /***********************************
 Pg_lo_lseek
 	seek to a certain position in a large object
@@ -1368,30 +1521,35 @@ whence can be either
 "SEEK_CUR", "SEEK_END", or "SEEK_SET"
 ***********************************/
 int
-Pg_lo_lseek(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
+Pg_lo_lseek(ClientData cData, Tcl_Interp *interp, int objc,
+			Tcl_Obj *CONST objv[])
 {
 	PGconn	   *conn;
 	int			fd;
 	char	   *whenceStr;
-	int			offset,
-				whence;
+	int			offset;
+	int			whence;
+	char	   *connString;
 
-	if (argc != 5)
+	if (objc != 5)
 	{
-		Tcl_AppendResult(interp, "Wrong # of arguments\n",
-						 "pg_lo_lseek conn fd offset whence", 0);
+		Tcl_WrongNumArgs(interp, 1, objv, "conn fd offset whence");
 		return TCL_ERROR;
 	}
 
-	conn = PgGetConnectionId(interp, argv[1], (Pg_ConnectionId **) NULL);
-	if (conn == (PGconn *) NULL)
+	connString = Tcl_GetStringFromObj(objv[1], NULL);
+	conn = PgGetConnectionId(interp, connString, (Pg_ConnectionId **) NULL);
+	if (conn == (PGconn *)NULL)
 		return TCL_ERROR;
 
-	fd = atoi(argv[2]);
+	if (Tcl_GetIntFromObj(interp, objv[2], &fd) != TCL_OK)
+		return TCL_ERROR;
 
-	offset = atoi(argv[3]);
+	if (Tcl_GetIntFromObj(interp, objv[3], &offset) == TCL_ERROR)
+		return TCL_ERROR;
 
-	whenceStr = argv[4];
+	whenceStr = Tcl_GetStringFromObj(objv[4], NULL);
+
 	if (strcmp(whenceStr, "SEEK_SET") == 0)
 		whence = SEEK_SET;
 	else if (strcmp(whenceStr, "SEEK_CUR") == 0)
@@ -1400,11 +1558,11 @@ Pg_lo_lseek(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
 		whence = SEEK_END;
 	else
 	{
-		Tcl_AppendResult(interp, "the whence argument to Pg_lo_lseek must be SEEK_SET, SEEK_CUR or SEEK_END", 0);
+		Tcl_AppendResult(interp, "'whence' must be SEEK_SET, SEEK_CUR or SEEK_END", 0);
 		return TCL_ERROR;
 	}
 
-	sprintf(interp->result, "%d", lo_lseek(conn, fd, offset, whence));
+	Tcl_SetObjResult(interp, Tcl_NewIntObj(lo_lseek(conn, fd, offset, whence)));
 	return TCL_OK;
 }
 
@@ -1421,25 +1579,27 @@ for now, we don't support any additional storage managers.
 
 ***********************************/
 int
-Pg_lo_creat(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
+Pg_lo_creat(ClientData cData, Tcl_Interp *interp, int objc,
+			Tcl_Obj *CONST objv[])
 {
 	PGconn	   *conn;
 	char	   *modeStr;
 	char	   *modeWord;
 	int			mode;
+	char	   *connString;
 
-	if (argc != 3)
+	if (objc != 3)
 	{
-		Tcl_AppendResult(interp, "Wrong # of arguments\n",
-						 "pg_lo_creat conn mode", 0);
+		Tcl_WrongNumArgs(interp, 1, objv, "conn mode");
 		return TCL_ERROR;
 	}
 
-	conn = PgGetConnectionId(interp, argv[1], (Pg_ConnectionId **) NULL);
-	if (conn == (PGconn *) NULL)
+	connString = Tcl_GetStringFromObj(objv[1], NULL);
+	conn = PgGetConnectionId(interp, connString, (Pg_ConnectionId **) NULL);
+	if (conn == (PGconn *)NULL)
 		return TCL_ERROR;
 
-	modeStr = argv[2];
+	modeStr = Tcl_GetStringFromObj(objv[2], NULL);
 
 	modeWord = strtok(modeStr, "|");
 	if (strcmp(modeWord, "INV_READ") == 0)
@@ -1449,12 +1609,11 @@ Pg_lo_creat(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
 	else
 	{
 		Tcl_AppendResult(interp,
-						 "invalid mode argument to Pg_lo_creat\nmode argument must be some OR'd combination of INV_READ, and INV_WRITE",
-						 0);
+						 "mode must be some OR'd combination of INV_READ, and INV_WRITE", 0);
 		return TCL_ERROR;
 	}
 
-	while ((modeWord = strtok((char *) NULL, "|")) != NULL)
+	while ((modeWord = strtok((char *)NULL, "|")) != NULL)
 	{
 		if (strcmp(modeWord, "INV_READ") == 0)
 			mode |= INV_READ;
@@ -1463,12 +1622,12 @@ Pg_lo_creat(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
 		else
 		{
 			Tcl_AppendResult(interp,
-							 "invalid mode argument to Pg_lo_creat\nmode argument must be some OR'd combination of INV_READ, INV_WRITE",
-							 0);
+							 "mode must be some OR'd combination of INV_READ, INV_WRITE", 0);
 			return TCL_ERROR;
 		}
 	}
-	sprintf(interp->result, "%d", lo_creat(conn, mode));
+
+	Tcl_SetObjResult(interp, Tcl_NewIntObj(lo_creat(conn, mode)));
 	return TCL_OK;
 }
 
@@ -1481,27 +1640,29 @@ Pg_lo_tell
 
 ***********************************/
 int
-Pg_lo_tell(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
+Pg_lo_tell(ClientData cData, Tcl_Interp *interp, int objc,
+		   Tcl_Obj *CONST objv[])
 {
 	PGconn	   *conn;
 	int			fd;
+	char	   *connString;
 
-	if (argc != 3)
+	if (objc != 3)
 	{
-		Tcl_AppendResult(interp, "Wrong # of arguments\n",
-						 "pg_lo_tell conn fd", 0);
+		Tcl_WrongNumArgs(interp, 1, objv, "conn fd");
 		return TCL_ERROR;
 	}
 
-	conn = PgGetConnectionId(interp, argv[1], (Pg_ConnectionId **) NULL);
-	if (conn == (PGconn *) NULL)
+	connString = Tcl_GetStringFromObj(objv[1], NULL);
+	conn = PgGetConnectionId(interp, connString, (Pg_ConnectionId **) NULL);
+	if (conn == (PGconn *)NULL)
 		return TCL_ERROR;
 
-	fd = atoi(argv[2]);
+	if (Tcl_GetIntFromObj(interp, objv[2], &fd) != TCL_OK)
+		return TCL_ERROR;
 
-	sprintf(interp->result, "%d", lo_tell(conn, fd));
+	Tcl_SetObjResult(interp, Tcl_NewIntObj(lo_tell(conn, fd)));
 	return TCL_OK;
-
 }
 
 /***********************************
@@ -1514,33 +1675,36 @@ Pg_lo_unlink
 
 ***********************************/
 int
-Pg_lo_unlink(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
+Pg_lo_unlink(ClientData cData, Tcl_Interp *interp, int objc,
+			 Tcl_Obj *CONST objv[])
 {
 	PGconn	   *conn;
 	int			lobjId;
 	int			retval;
+	char	   *connString;
 
-	if (argc != 3)
+	if (objc != 3)
 	{
-		Tcl_AppendResult(interp, "Wrong # of arguments\n",
-						 "pg_lo_tell conn fd", 0);
+		Tcl_WrongNumArgs(interp, 1, objv, "conn fd");
 		return TCL_ERROR;
 	}
 
-	conn = PgGetConnectionId(interp, argv[1], (Pg_ConnectionId **) NULL);
-	if (conn == (PGconn *) NULL)
+	connString = Tcl_GetStringFromObj(objv[1], NULL);
+	conn = PgGetConnectionId(interp, connString, (Pg_ConnectionId **) NULL);
+	if (conn == (PGconn *)NULL)
 		return TCL_ERROR;
 
-	lobjId = atoi(argv[2]);
+	if (Tcl_GetIntFromObj(interp, objv[2], &lobjId) == TCL_ERROR)
+		return TCL_ERROR;
 
 	retval = lo_unlink(conn, lobjId);
 	if (retval == -1)
 	{
-		sprintf(interp->result, "Pg_lo_unlink of '%d' failed", lobjId);
+		sprintf(interp->result, "unlink of '%d' failed", lobjId);
 		return TCL_ERROR;
 	}
 
-	sprintf(interp->result, "%d", retval);
+	Tcl_SetObjResult(interp, Tcl_NewIntObj(retval));
 	return TCL_OK;
 }
 
@@ -1556,36 +1720,36 @@ Pg_lo_import
 ***********************************/
 
 int
-Pg_lo_import(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
+Pg_lo_import(ClientData cData, Tcl_Interp *interp, int objc,
+			 Tcl_Obj *CONST objv[])
 {
 	PGconn	   *conn;
 	char	   *filename;
 	Oid			lobjId;
+	char	   *connString;
 
-	if (argc != 3)
+	if (objc != 3)
 	{
-		Tcl_AppendResult(interp, "Wrong # of arguments\n",
-						 "pg_lo_import conn filename", 0);
+		Tcl_WrongNumArgs(interp, 1, objv, "conn filename");
 		return TCL_ERROR;
 	}
 
-	conn = PgGetConnectionId(interp, argv[1], (Pg_ConnectionId **) NULL);
-	if (conn == (PGconn *) NULL)
+	connString = Tcl_GetStringFromObj(objv[1], NULL);
+	conn = PgGetConnectionId(interp, connString, (Pg_ConnectionId **) NULL);
+	if (conn == (PGconn *)NULL)
 		return TCL_ERROR;
 
-	filename = argv[2];
+	filename = Tcl_GetStringFromObj(objv[2], NULL);
 
 	lobjId = lo_import(conn, filename);
 	if (lobjId == InvalidOid)
 	{
-		/*
-		 * What is the maximum size of this? FIXME if this is not a good
-		 * quess
-		 */
-		snprintf(interp->result, 128, "Pg_lo_import of '%s' failed", filename);
+		Tcl_AppendResult(interp,
+						 "import of '", filename, "' failed", NULL);
 		return TCL_ERROR;
 	}
-	sprintf(interp->result, "%u", lobjId);
+
+	Tcl_SetLongObj(Tcl_GetObjResult(interp), (long)lobjId);
 	return TCL_OK;
 }
 
@@ -1599,31 +1763,35 @@ Pg_lo_export
 ***********************************/
 
 int
-Pg_lo_export(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
+Pg_lo_export(ClientData cData, Tcl_Interp *interp, int objc,
+			 Tcl_Obj *CONST objv[])
 {
 	PGconn	   *conn;
 	char	   *filename;
 	Oid			lobjId;
 	int			retval;
+	char	   *connString;
 
-	if (argc != 4)
+	if (objc != 4)
 	{
-		Tcl_AppendResult(interp, "Wrong # of arguments\n",
-						 "pg_lo_export conn lobjId filename", 0);
+		Tcl_WrongNumArgs(interp, 1, objv, "conn lobjId filename");
 		return TCL_ERROR;
 	}
 
-	conn = PgGetConnectionId(interp, argv[1], (Pg_ConnectionId **) NULL);
-	if (conn == (PGconn *) NULL)
+	connString = Tcl_GetStringFromObj(objv[1], NULL);
+	conn = PgGetConnectionId(interp, connString, (Pg_ConnectionId **) NULL);
+	if (conn == (PGconn *)NULL)
 		return TCL_ERROR;
 
-	lobjId = atoi(argv[2]);
-	filename = argv[3];
+	if (Tcl_GetIntFromObj(interp, objv[2], &lobjId) == TCL_ERROR)
+		return TCL_ERROR;
+
+	filename = Tcl_GetStringFromObj(objv[3], NULL);
 
 	retval = lo_export(conn, lobjId, filename);
 	if (retval == -1)
 	{
-		sprintf(interp->result, "Pg_lo_export %u %s failed", lobjId, filename);
+		Tcl_AppendResult(interp, "export failed", 0);
 		return TCL_ERROR;
 	}
 	return TCL_OK;
@@ -1651,7 +1819,7 @@ Pg_lo_export(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
  **********************************/
 
 int
-Pg_select(ClientData cData, Tcl_Interp *interp, int argc, char **argv)
+Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	Pg_ConnectionId *connid;
 	PGconn	   *conn;
@@ -1661,26 +1829,33 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int argc, char **argv)
 	int			tupno,
 				column,
 				ncols;
-	Tcl_DString headers;
-	char		buffer[2048];
-	struct info_s
-	{
-		char	   *cname;
-		int			change;
-	}		   *info;
+	char	   *connString;
+	char	   *queryString;
+	char	   *varNameString;
+	Tcl_Obj    *varNameObj;
+	Tcl_Obj    *procStringObj;
+	Tcl_Obj    *columnListObj;
+	Tcl_Obj   **columnNameObjs;
 
-	if (argc != 5)
+	if (objc != 5)
 	{
-		Tcl_AppendResult(interp, "Wrong # of arguments\n",
-						 "pg_select connection queryString var proc", 0);
+		Tcl_WrongNumArgs(interp, 1, objv, "connection queryString var proc");
 		return TCL_ERROR;
 	}
 
-	conn = PgGetConnectionId(interp, argv[1], &connid);
-	if (conn == (PGconn *) NULL)
+	connString = Tcl_GetStringFromObj(objv[1], NULL);
+	queryString = Tcl_GetStringFromObj(objv[2], NULL);
+
+	varNameObj = objv[3];
+	varNameString = Tcl_GetStringFromObj(varNameObj, NULL);
+
+	procStringObj = objv[4];
+
+	conn = PgGetConnectionId(interp, connString, &connid);
+	if (conn == (PGconn *)NULL)
 		return TCL_ERROR;
 
-	if ((result = PQexec(conn, argv[2])) == 0)
+	if ((result = PQexec(conn, queryString)) == 0)
 	{
 		/* error occurred sending the query */
 		Tcl_SetResult(interp, PQerrorMessage(conn), TCL_VOLATILE);
@@ -1693,52 +1868,47 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int argc, char **argv)
 	if (PQresultStatus(result) != PGRES_TUPLES_OK)
 	{
 		/* query failed, or it wasn't SELECT */
-		Tcl_SetResult(interp, (char *) PQresultErrorMessage(result),
+		Tcl_SetResult(interp, (char *)PQresultErrorMessage(result),
 					  TCL_VOLATILE);
 		PQclear(result);
 		return TCL_ERROR;
 	}
 
-	if ((info = (struct info_s *) ckalloc(sizeof(*info) * (ncols = PQnfields(result)))) == NULL)
-	{
-		Tcl_AppendResult(interp, "Not enough memory", 0);
-		PQclear(result);
-		return TCL_ERROR;
-	}
-
-	Tcl_DStringInit(&headers);
+	ncols = PQnfields(result);
+	columnNameObjs = (Tcl_Obj **)ckalloc(sizeof(Tcl_Obj) * ncols);
 
 	for (column = 0; column < ncols; column++)
-	{
-		info[column].cname = PQfname(result, column);
-		info[column].change = 0;
-		Tcl_DStringAppendElement(&headers, info[column].cname);
-	}
+		columnNameObjs[column] = Tcl_NewStringObj(PQfname(result, column), -1);
 
-	Tcl_SetVar2(interp, argv[3], ".headers", Tcl_DStringValue(&headers), 0);
-	Tcl_DStringFree(&headers);
-	sprintf(buffer, "%d", ncols);
-	Tcl_SetVar2(interp, argv[3], ".numcols", buffer, 0);
+	columnListObj = Tcl_NewListObj(ncols, columnNameObjs);
+
+	Tcl_SetVar2Ex(interp, varNameString, ".headers", columnListObj, 0);
+	Tcl_SetVar2Ex(interp, varNameString, ".numcols", Tcl_NewIntObj(ncols), 0);
 
 	retval = TCL_OK;
 
 	for (tupno = 0; tupno < PQntuples(result); tupno++)
 	{
-		sprintf(buffer, "%d", tupno);
-		Tcl_SetVar2(interp, argv[3], ".tupno", buffer, 0);
+		Tcl_SetVar2Ex(interp, varNameString, ".tupno", Tcl_NewIntObj(tupno), 0);
 
 		for (column = 0; column < ncols; column++)
-			Tcl_SetVar2(interp, argv[3], info[column].cname,
+		{
+			Tcl_Obj    *valueObj;
+
 #ifdef TCL_ARRAYS
-						tcl_value(PQgetvalue(result, tupno, column)),
+			valueObj = Tcl_NewStringObj(tcl_value(PQgetvalue(result, tupno, column)), -1);
 #else
-						PQgetvalue(result, tupno, column),
+			valueObj = Tcl_NewStringObj(PQgetvalue(result, tupno, column), -1);
 #endif
-						0);
+			Tcl_ObjSetVar2(interp, varNameObj, columnNameObjs[column],
+						   valueObj,
+						   0);
+		}
 
-		Tcl_SetVar2(interp, argv[3], ".command", "update", 0);
+		Tcl_SetVar2(interp, varNameString, ".command", "update", 0);
 
-		if ((r = Tcl_Eval(interp, argv[4])) != TCL_OK && r != TCL_CONTINUE)
+		r = Tcl_EvalObjEx(interp, procStringObj, 0);
+		if ((r != TCL_OK) && (r != TCL_CONTINUE))
 		{
 			if (r == TCL_BREAK)
 				break;			/* exit loop, but return TCL_OK */
@@ -1757,8 +1927,8 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int argc, char **argv)
 		}
 	}
 
-	ckfree((void *) info);
-	Tcl_UnsetVar(interp, argv[3], 0);
+	ckfree((void *)columnNameObjs);
+	Tcl_UnsetVar(interp, varNameString, 0);
 	PQclear(result);
 	return retval;
 }
@@ -1783,7 +1953,7 @@ Pg_have_listener(Pg_ConnectionId * connid, const char *relname)
 		if (interp == NULL)
 			continue;			/* ignore deleted interpreter */
 
-		entry = Tcl_FindHashEntry(&notifies->notify_hash, (char *) relname);
+		entry = Tcl_FindHashEntry(&notifies->notify_hash, (char *)relname);
 		if (entry == NULL)
 			continue;			/* no pg_listen in this interpreter */
 
@@ -1808,7 +1978,7 @@ Pg_listen
    vwait or update can be used to enter the Tcl event loop.
 ***********************************/
 int
-Pg_listen(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
+Pg_listen(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	char	   *origrelname;
 	char	   *caserelname;
@@ -1819,11 +1989,12 @@ Pg_listen(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
 	PGconn	   *conn;
 	PGresult   *result;
 	int			new;
+	char	   *connString;
+	int			callbackStrlen = 0;
 
-	if (argc < 3 || argc > 4)
+	if (objc < 3 || objc > 4)
 	{
-		Tcl_AppendResult(interp, "wrong # args, should be \"",
-						 argv[0], " connection relname ?callback?\"", 0);
+		Tcl_WrongNumArgs(interp, 1, objv, "connection relname ?callback?");
 		return TCL_ERROR;
 	}
 
@@ -1832,8 +2003,9 @@ Pg_listen(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
 	 * copied by Tcl_CreateHashEntry while the callback string must be
 	 * allocated by us.
 	 */
-	conn = PgGetConnectionId(interp, argv[1], &connid);
-	if (conn == (PGconn *) NULL)
+	connString = Tcl_GetStringFromObj(objv[1], NULL);
+	conn = PgGetConnectionId(interp, connString, &connid);
+	if (conn == (PGconn *)NULL)
 		return TCL_ERROR;
 
 	/*
@@ -1841,8 +2013,8 @@ Pg_listen(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
 	 * quoted.	We have to do the same thing to ensure that we will find
 	 * the desired pg_listen item.
 	 */
-	origrelname = argv[2];
-	caserelname = (char *) ckalloc((unsigned) (strlen(origrelname) + 1));
+	origrelname = Tcl_GetStringFromObj(objv[2], NULL);
+	caserelname = (char *)ckalloc((unsigned)(strlen(origrelname) + 1));
 	if (*origrelname == '"')
 	{
 		/* Copy a quoted string without downcasing */
@@ -1856,14 +2028,17 @@ Pg_listen(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
 		char	   *reld = caserelname;
 
 		while (*rels)
-			*reld++ = tolower((unsigned char) *rels++);
+			*reld++ = tolower((unsigned char)*rels++);
 		*reld = '\0';
 	}
 
-	if ((argc > 3) && *argv[3])
+	if (objc > 3)
 	{
-		callback = (char *) ckalloc((unsigned) (strlen(argv[3]) + 1));
-		strcpy(callback, argv[3]);
+		char	   *callbackStr;
+
+		callbackStr = Tcl_GetStringFromObj(objv[3], &callbackStrlen);
+		callback = ckalloc(callbackStrlen + 1);
+		strncpy(callback, callbackStr, callbackStrlen);
 	}
 
 	/* Find or make a Pg_TclNotifies struct for this interp and connection */
@@ -1873,6 +2048,7 @@ Pg_listen(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
 		if (notifies->interp == interp)
 			break;
 	}
+
 	if (notifies == NULL)
 	{
 		notifies = (Pg_TclNotifies *) ckalloc(sizeof(Pg_TclNotifies));
@@ -1882,7 +2058,7 @@ Pg_listen(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
 		notifies->next = connid->notify_list;
 		connid->notify_list = notifies;
 		Tcl_CallWhenDeleted(interp, PgNotifyInterpDelete,
-							(ClientData) notifies);
+							(ClientData)notifies);
 	}
 
 	if (callback)
@@ -1895,7 +2071,8 @@ Pg_listen(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
 		entry = Tcl_CreateHashEntry(&notifies->notify_hash, caserelname, &new);
 		/* If update, free the old callback string */
 		if (!new)
-			ckfree((char *) Tcl_GetHashValue(entry));
+			ckfree((char *)Tcl_GetHashValue(entry));
+
 		/* Store the new callback string */
 		Tcl_SetHashValue(entry, callback);
 
@@ -1907,8 +2084,7 @@ Pg_listen(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
 		 */
 		if (!alreadyHadListener)
 		{
-			char	   *cmd = (char *)
-			ckalloc((unsigned) (strlen(origrelname) + 8));
+			char	   *cmd = (char *)ckalloc((unsigned)(strlen(origrelname) + 8));
 
 			sprintf(cmd, "LISTEN %s", origrelname);
 			result = PQexec(conn, cmd);
@@ -1940,7 +2116,7 @@ Pg_listen(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
 			ckfree(caserelname);
 			return TCL_ERROR;
 		}
-		ckfree((char *) Tcl_GetHashValue(entry));
+		ckfree((char *)Tcl_GetHashValue(entry));
 		Tcl_DeleteHashEntry(entry);
 
 		/*
@@ -1951,7 +2127,7 @@ Pg_listen(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
 		if (!Pg_have_listener(connid, caserelname))
 		{
 			char	   *cmd = (char *)
-			ckalloc((unsigned) (strlen(origrelname) + 10));
+			ckalloc((unsigned)(strlen(origrelname) + 10));
 
 			sprintf(cmd, "UNLISTEN %s", origrelname);
 			result = PQexec(conn, cmd);
@@ -1974,6 +2150,245 @@ Pg_listen(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
 	return TCL_OK;
 }
 
+/**********************************
+ * pg_sendquery
+ send a query string to the backend connection
+
+ syntax:
+ pg_sendquery connection query
+
+ the return result is either an error message or nothing, indicating the
+ command was dispatched.
+ **********************************/
+int
+Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
+			 Tcl_Obj *CONST objv[])
+{
+	Pg_ConnectionId *connid;
+	PGconn	   *conn;
+	char	   *connString;
+	char	   *execString;
+	int			status;
+
+	if (objc != 3)
+	{
+		Tcl_WrongNumArgs(interp, 1, objv, "connection queryString");
+		return TCL_ERROR;
+	}
+
+	connString = Tcl_GetStringFromObj(objv[1], NULL);
+
+	conn = PgGetConnectionId(interp, connString, &connid);
+	if (conn == (PGconn *)NULL)
+		return TCL_ERROR;
+
+	if (connid->res_copyStatus != RES_COPY_NONE)
+	{
+		Tcl_SetResult(interp, "Attempt to query while COPY in progress", TCL_STATIC);
+		return TCL_ERROR;
+	}
+
+	execString = Tcl_GetStringFromObj(objv[2], NULL);
+
+	status = PQsendQuery(conn, execString);
+
+	/* Transfer any notify events from libpq to Tcl event queue. */
+	PgNotifyTransferEvents(connid);
+
+	if (status)
+		return TCL_OK;
+	else
+	{
+		/* error occurred during the query */
+		Tcl_SetObjResult(interp, Tcl_NewStringObj(PQerrorMessage(conn), -1));
+		return TCL_ERROR;
+	}
+}
+
+/**********************************
+ * pg_getresult
+ wait for the next result from a prior pg_sendquery
+
+ syntax:
+ pg_getresult connection
+
+ the return result is either an error message, nothing, or a handle for a query
+ result.  Handles start with the prefix "pgp"
+ **********************************/
+
+int
+Pg_getresult(ClientData cData, Tcl_Interp *interp, int objc,
+			 Tcl_Obj *CONST objv[])
+{
+	Pg_ConnectionId *connid;
+	PGconn	   *conn;
+	PGresult   *result;
+	char	   *connString;
+	char	   *execString;
+
+	if (objc != 2)
+	{
+		Tcl_WrongNumArgs(interp, 1, objv, "connection");
+		return TCL_ERROR;
+	}
+
+	connString = Tcl_GetStringFromObj(objv[1], NULL);
+
+	conn = PgGetConnectionId(interp, connString, &connid);
+	if (conn == (PGconn *)NULL)
+		return TCL_ERROR;
+
+	result = PQgetResult(conn);
+
+	/* Transfer any notify events from libpq to Tcl event queue. */
+	PgNotifyTransferEvents(connid);
+
+	/* if there's a non-null result, give the caller the handle */
+	if (result)
+	{
+		int			rId = PgSetResultId(interp, connString, result);
+
+		ExecStatusType rStat = PQresultStatus(result);
+
+		if (rStat == PGRES_COPY_IN || rStat == PGRES_COPY_OUT)
+		{
+			connid->res_copyStatus = RES_COPY_INPROGRESS;
+			connid->res_copy = rId;
+		}
+	}
+	return TCL_OK;
+}
+
+/**********************************
+ * pg_isbusy
+ see if a query is busy, i.e. pg_getresult would block.
+
+ syntax:
+ pg_isbusy connection
+
+ return is 1 if it's busy and pg_getresult would block, 0 otherwise
+ **********************************/
+
+int
+Pg_isbusy(ClientData cData, Tcl_Interp *interp, int objc,
+		  Tcl_Obj *CONST objv[])
+{
+	Pg_ConnectionId *connid;
+	PGconn	   *conn;
+	PGresult   *result;
+	char	   *connString;
+	char	   *execString;
+
+	if (objc != 2)
+	{
+		Tcl_WrongNumArgs(interp, 1, objv, "connection");
+		return TCL_ERROR;
+	}
+
+	connString = Tcl_GetStringFromObj(objv[1], NULL);
+
+	conn = PgGetConnectionId(interp, connString, &connid);
+	if (conn == (PGconn *)NULL)
+		return TCL_ERROR;
+
+	PQconsumeInput(conn);
+
+	Tcl_SetIntObj(Tcl_GetObjResult(interp), PQisBusy(conn));
+	return TCL_OK;
+}
+
+/**********************************
+ * pg_blocking
+ see or set whether or not a connection is set to blocking or nonblocking
+
+ syntax:
+ pg_blocking connection
+ pg_blocking connection 1
+ pg_blocking connection 0
+
+ return is 1 if it's blocking or 0 if not (if called with two arguments),
+ sets blocking if called with 3.
+ **********************************/
+
+int
+Pg_blocking(ClientData cData, Tcl_Interp *interp, int objc,
+			Tcl_Obj *CONST objv[])
+{
+	Pg_ConnectionId *connid;
+	PGconn	   *conn;
+	PGresult   *result;
+	char	   *connString;
+	char	   *execString;
+	int			boolean;
+
+	if ((objc < 2) || (objc > 3))
+	{
+		Tcl_WrongNumArgs(interp, 1, objv, "connection ?bool?");
+		return TCL_ERROR;
+	}
+
+	connString = Tcl_GetStringFromObj(objv[1], NULL);
+
+	conn = PgGetConnectionId(interp, connString, &connid);
+	if (conn == (PGconn *)NULL)
+		return TCL_ERROR;
+
+	if (objc == 2)
+	{
+		Tcl_SetBooleanObj(Tcl_GetObjResult(interp), !PQisnonblocking(conn));
+		return TCL_OK;
+	}
+
+	/* objc == 3, they're setting it */
+	if (Tcl_GetBooleanFromObj(interp, objv[2], &boolean) == TCL_ERROR)
+		return TCL_ERROR;
+
+	PQsetnonblocking(conn, !boolean);
+	return TCL_OK;
+}
+
+/**********************************
+ * pg_cancelrequest
+ request that postgresql abandon processing of the current command
+
+ syntax:
+ pg_cancelrequest connection
+
+ returns nothing if the command successfully dispatched or if nothing was
+ going on, otherwise an error
+ **********************************/
+
+int
+Pg_cancelrequest(ClientData cData, Tcl_Interp *interp, int objc,
+				 Tcl_Obj *CONST objv[])
+{
+	Pg_ConnectionId *connid;
+	PGconn	   *conn;
+	PGresult   *result;
+	char	   *connString;
+	char	   *execString;
+
+	if (objc != 2)
+	{
+		Tcl_WrongNumArgs(interp, 1, objv, "connection");
+		return TCL_ERROR;
+	}
+
+	connString = Tcl_GetStringFromObj(objv[1], NULL);
+
+	conn = PgGetConnectionId(interp, connString, &connid);
+	if (conn == (PGconn *)NULL)
+		return TCL_ERROR;
+
+	if (PQrequestCancel(conn) == 0)
+	{
+		Tcl_SetObjResult(interp,
+					 Tcl_NewStringObj(PQresultErrorMessage(result), -1));
+		return TCL_ERROR;
+	}
+	return TCL_OK;
+}
+
 /***********************************
 Pg_on_connection_loss
 	create or remove a callback request for unexpected connection loss
@@ -1989,31 +2404,39 @@ Pg_on_connection_loss
    vwait or update can be used to enter the Tcl event loop.
 ***********************************/
 int
-Pg_on_connection_loss(ClientData cData, Tcl_Interp *interp, int argc, char *argv[])
+Pg_on_connection_loss(ClientData cData, Tcl_Interp *interp, int objc,
+				 Tcl_Obj *CONST objv[])
 {
 	char	   *callback = NULL;
 	Pg_TclNotifies *notifies;
 	Pg_ConnectionId *connid;
 	PGconn	   *conn;
+	char	   *connString;
 
-	if (argc < 2 || argc > 3)
+	if (objc < 2 || objc > 3)
 	{
-		Tcl_AppendResult(interp, "wrong # args, should be \"",
-						 argv[0], " connection ?callback?\"", 0);
+		Tcl_WrongNumArgs(interp, 1, objv, "connection ?callback?");
 		return TCL_ERROR;
 	}
 
 	/*
 	 * Get the command arguments.
 	 */
-	conn = PgGetConnectionId(interp, argv[1], &connid);
+	connString = Tcl_GetStringFromObj(objv[1], NULL);
+	conn = PgGetConnectionId(interp, connString, &connid);
 	if (conn == (PGconn *) NULL)
 		return TCL_ERROR;
 
-	if ((argc > 2) && *argv[2])
+	if (objc > 2)
 	{
-		callback = (char *) ckalloc((unsigned) (strlen(argv[2]) + 1));
-		strcpy(callback, argv[2]);
+		int         callbackStrLen;
+		char	   *callbackStr;
+
+		/* there is probably a better way to do this, like incrementing
+		 * the reference count (?) */
+		callbackStr = Tcl_GetStringFromObj(objv[2], &callbackStrLen);
+		callback = (char *) ckalloc((unsigned) (callbackStrLen + 1));
+		strcpy(callback, callbackStr);
 	}
 
 	/* Find or make a Pg_TclNotifies struct for this interp and connection */

@@ -4,7 +4,7 @@
 #
 # Copyright (c) 1994, Regents of the University of California
 #
-# $Header$
+# $Id$
 #
 #-------------------------------------------------------------------------
 
@@ -13,8 +13,8 @@ top_builddir = ../../..
 include ../../Makefile.global
 
 NAME= pgtcl
-SO_MAJOR_VERSION= 2
-SO_MINOR_VERSION= 2
+SO_MAJOR_VERSION= 3
+SO_MINOR_VERSION= 1
 
 override CPPFLAGS := -I$(libpq_srcdir) $(CPPFLAGS)
 

@@ -13,7 +13,7 @@
  * Portions Copyright (c) 1994, Regents of the University of California
  *
  * IDENTIFICATION
- *	  $Header$
+ *	  $Id$
  *
  *-------------------------------------------------------------------------
  */
@@ -128,15 +128,6 @@ PgOutputProc(DRIVER_OUTPUT_PROTO)
 	return bufSize;
 }
 
-#if HAVE_TCL_GETFILEPROC
-
-Tcl_File
-PgGetFileProc(ClientData cData, int direction)
-{
-	return (Tcl_File) NULL;
-}
-#endif
-
 /*
  * The WatchProc and GetHandleProc are no-ops but must be present.
  */
@@ -184,7 +175,7 @@ PgSetConnectionId(Tcl_Interp *interp, PGconn *conn)
 	connid->res_hardmax = RES_HARD_MAX;
 	connid->res_copy = -1;
 	connid->res_copyStatus = RES_COPY_NONE;
-	connid->results = (PGresult **) ckalloc(sizeof(PGresult *) * RES_START);
+	connid->results = (PGresult **)ckalloc(sizeof(PGresult *) * RES_START);
 	for (i = 0; i < RES_START; i++)
 		connid->results[i] = NULL;
 	connid->notify_list = NULL;
@@ -192,21 +183,21 @@ PgSetConnectionId(Tcl_Interp *interp, PGconn *conn)
 
 	sprintf(connid->id, "pgsql%d", PQsocket(conn));
 
-#if TCL_MAJOR_VERSION >= 8
-	connid->notifier_channel = Tcl_MakeTcpClientChannel((ClientData) PQsocket(conn));
+	connid->notifier_channel = Tcl_MakeTcpClientChannel((ClientData)PQsocket(conn));
+	/* Code  executing  outside  of  any Tcl interpreter can call
+       Tcl_RegisterChannel with interp as NULL, to indicate  that
+       it  wishes  to  hold  a  reference to this channel. Subse-
+       quently, the channel can be registered  in  a  Tcl  inter-
+       preter and it will only be closed when the matching number
+       of calls to Tcl_UnregisterChannel have  been  made.   This
+       allows code executing outside of any interpreter to safely
+       hold a reference to a channel that is also registered in a
+       Tcl interpreter.
+	*/
 	Tcl_RegisterChannel(NULL, connid->notifier_channel);
-#else
-	connid->notifier_socket = -1;
-#endif
 
-#if TCL_MAJOR_VERSION == 7 && TCL_MINOR_VERSION == 5
-	/* Original signature (only seen in Tcl 7.5) */
-	conn_chan = Tcl_CreateChannel(&Pg_ConnType, connid->id, NULL, NULL, (ClientData) connid);
-#else
-	/* Tcl 7.6 and later use this */
 	conn_chan = Tcl_CreateChannel(&Pg_ConnType, connid->id, (ClientData) connid,
 								  TCL_READABLE | TCL_WRITABLE);
-#endif
 
 	Tcl_SetChannelOption(interp, conn_chan, "-buffering", "line");
 	Tcl_SetResult(interp, connid->id, TCL_VOLATILE);
@@ -260,7 +251,7 @@ PgDelConnectionId(DRIVER_DEL_PROTO)
 		if (connid->results[i])
 			PQclear(connid->results[i]);
 	}
-	ckfree((void *) connid->results);
+	ckfree((void *)connid->results);
 
 	/* Release associated notify info */
 	while ((notifies = connid->notify_list) != NULL)
@@ -269,13 +260,13 @@ PgDelConnectionId(DRIVER_DEL_PROTO)
 		for (entry = Tcl_FirstHashEntry(&notifies->notify_hash, &hsearch);
 			 entry != NULL;
 			 entry = Tcl_NextHashEntry(&hsearch))
-			ckfree((char *) Tcl_GetHashValue(entry));
+			ckfree((char *)Tcl_GetHashValue(entry));
 		Tcl_DeleteHashTable(&notifies->notify_hash);
 		if (notifies->conn_loss_cmd)
 			ckfree((void *) notifies->conn_loss_cmd);
 		Tcl_DontCallWhenDeleted(notifies->interp, PgNotifyInterpDelete,
-								(ClientData) notifies);
-		ckfree((void *) notifies);
+								(ClientData)notifies);
+		ckfree((void *)notifies);
 	}
 
 	/*
@@ -314,7 +305,7 @@ PgDelConnectionId(DRIVER_DEL_PROTO)
 	 * could lead to coredump.)  Pg_Notify_EventProc can detect that the
 	 * connection has been deleted from under it by checking connid->conn.
 	 */
-	Tcl_EventuallyFree((ClientData) connid, TCL_DYNAMIC);
+	Tcl_EventuallyFree((ClientData)connid, TCL_DYNAMIC);
 
 	return 0;
 }
@@ -371,7 +362,7 @@ PgSetResultId(Tcl_Interp *interp, char *connid_c, PGresult *res)
 		connid->res_max *= 2;
 		if (connid->res_max > connid->res_hardmax)
 			connid->res_max = connid->res_hardmax;
-		connid->results = (PGresult **) ckrealloc((void *) connid->results,
+		connid->results = (PGresult **)ckrealloc((void *)connid->results,
 								   sizeof(PGresult *) * connid->res_max);
 		for (i = connid->res_last; i < connid->res_max; i++)
 			connid->results[i] = NULL;
@@ -557,7 +548,7 @@ Pg_Notify_EventProc(Tcl_Event *evPtr, int flags)
 	 * Preserve/Release to ensure the connection struct doesn't disappear
 	 * underneath us.
 	 */
-	Tcl_Preserve((ClientData) event->connid);
+	Tcl_Preserve((ClientData)event->connid);
 
 	/*
 	 * Loop for each interpreter that has ever registered on the
@@ -600,13 +591,13 @@ Pg_Notify_EventProc(Tcl_Event *evPtr, int flags)
 		 * We have to copy the callback string in case the user executes a
 		 * new pg_listen or pg_on_connection_loss during the callback.
 		 */
-		svcallback = (char *) ckalloc((unsigned) (strlen(callback) + 1));
+		svcallback = (char *)ckalloc((unsigned)(strlen(callback) + 1));
 		strcpy(svcallback, callback);
 
 		/*
 		 * Execute the callback.
 		 */
-		Tcl_Preserve((ClientData) interp);
+		Tcl_Preserve((ClientData)interp);
 		if (Tcl_GlobalEval(interp, svcallback) != TCL_OK)
 		{
 			if (event->notify)
@@ -615,7 +606,7 @@ Pg_Notify_EventProc(Tcl_Event *evPtr, int flags)
 				Tcl_AddErrorInfo(interp, "\n    (\"pg_on_connection_loss\" script)");
 			Tcl_BackgroundError(interp);
 		}
-		Tcl_Release((ClientData) interp);
+		Tcl_Release((ClientData)interp);
 		ckfree(svcallback);
 
 		/*
@@ -626,7 +617,7 @@ Pg_Notify_EventProc(Tcl_Event *evPtr, int flags)
 			break;
 	}
 
-	Tcl_Release((ClientData) event->connid);
+	Tcl_Release((ClientData)event->connid);
 
 	if (event->notify)
 		PQfreeNotify(event->notify);
@@ -811,19 +802,10 @@ PgStartNotifyEventSource(Pg_ConnectionId * connid)
 
 		if (pqsock >= 0)
 		{
-#if TCL_MAJOR_VERSION >= 8
 			Tcl_CreateChannelHandler(connid->notifier_channel,
 									 TCL_READABLE,
 									 Pg_Notify_FileHandler,
 									 (ClientData) connid);
-#else
-			/* In Tcl 7.5 and 7.6, we need to gin up a Tcl_File. */
-			Tcl_File	tclfile = Tcl_GetFile((ClientData) pqsock, TCL_UNIX_FD);
-
-			Tcl_CreateFileHandler(tclfile, TCL_READABLE,
-							 Pg_Notify_FileHandler, (ClientData) connid);
-			connid->notifier_socket = pqsock;
-#endif
 			connid->notifier_running = 1;
 		}
 	}
@@ -835,17 +817,8 @@ PgStopNotifyEventSource(Pg_ConnectionId * connid, bool allevents)
 	/* Remove the event source */
 	if (connid->notifier_running)
 	{
-#if TCL_MAJOR_VERSION >= 8
 		Tcl_DeleteChannelHandler(connid->notifier_channel,
-								 Pg_Notify_FileHandler,
-								 (ClientData) connid);
-#else
-		/* In Tcl 7.5 and 7.6, we need to gin up a Tcl_File. */
-		Tcl_File	tclfile = Tcl_GetFile((ClientData) connid->notifier_socket,
-										  TCL_UNIX_FD);
-
-		Tcl_DeleteFileHandler(tclfile);
-#endif
+							  Pg_Notify_FileHandler, (ClientData)connid);
 		connid->notifier_running = 0;
 	}
 

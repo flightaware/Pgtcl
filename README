@@ -1,6 +1,8 @@
 libpgtcl is a library that implements Tcl commands for front-end
-clients to interact with the Postgresql 6.3 (and perhaps later)
+clients to interact with Postgresql 7.2 (and perhaps later)
 backends.  See libpgtcl.doc for details.
+
+$Id$
   
 For an example of how to build a new tclsh to use libpgtcl, see the
 directory ../bin/pgtclsh

@@ -17,22 +17,11 @@
 
 extern void PgSetConnectionId(Tcl_Interp *interp, PGconn *conn);
 
-#if TCL_MAJOR_VERSION == 7 && TCL_MINOR_VERSION == 5
-/* Only Tcl 7.5 had drivers with this signature */
-#define DRIVER_DEL_PROTO ClientData cData, Tcl_Interp *interp, \
-	Tcl_File inFile, Tcl_File outFile
-#define DRIVER_OUTPUT_PROTO ClientData cData, Tcl_File outFile, char *buf, \
-	int bufSize, int *errorCodePtr
-#define DRIVER_INPUT_PROTO ClientData cData, Tcl_File inFile, char *buf, \
-	int bufSize, int *errorCodePtr
-#else
-/* Tcl 7.6 and beyond use this signature */
 #define DRIVER_OUTPUT_PROTO ClientData cData, char *buf, int bufSize, \
 	int *errorCodePtr
 #define DRIVER_INPUT_PROTO ClientData cData, char *buf, int bufSize, \
 	int *errorCodePtr
 #define DRIVER_DEL_PROTO ClientData cData, Tcl_Interp *interp
-#endif
 
 extern PGconn *PgGetConnectionId(Tcl_Interp *interp, char *id,
 				  Pg_ConnectionId **);
@@ -48,16 +37,5 @@ extern void PgStopNotifyEventSource(Pg_ConnectionId * connid, bool allevents);
 extern void PgNotifyTransferEvents(Pg_ConnectionId * connid);
 extern void PgConnLossTransferEvents(Pg_ConnectionId * connid);
 extern void PgNotifyInterpDelete(ClientData clientData, Tcl_Interp *interp);
-
-/* GetFileProc is needed in Tcl 7.6 *only* ... it went away again in 8.0 */
-#if TCL_MAJOR_VERSION == 7 && TCL_MINOR_VERSION >= 6
-#define HAVE_TCL_GETFILEPROC 1
-#else
-#define HAVE_TCL_GETFILEPROC 0
-#endif
-
-#if HAVE_TCL_GETFILEPROC
-extern Tcl_File PgGetFileProc(ClientData cData, int direction);
-#endif
 
 extern Tcl_ChannelType Pg_ConnType;

@@ -21,15 +21,6 @@
 #define RES_START 16
 
 /*
- * From Tcl version 8.0 on we can make large object access binary.
- */
-#ifdef TCL_MAJOR_VERSION
-#if (TCL_MAJOR_VERSION >= 8)
-#define PGTCL_USE_TCLOBJ
-#endif
-#endif
-
-/*
  * Each Pg_ConnectionId has a list of Pg_TclNotifies structs, one for each
  * Tcl interpreter that has executed any pg_listens on the connection.
  * We need this arrangement to be able to clean up if an interpreter is
@@ -69,12 +60,8 @@ typedef struct Pg_ConnectionId_s
 
 	Pg_TclNotifies *notify_list;	/* head of list of notify info */
 	int			notifier_running;		/* notify event source is live */
-#if TCL_MAJOR_VERSION >= 8
 	Tcl_Channel notifier_channel;		/* Tcl_Channel on which notifier
 										 * is listening */
-#else
-	int			notifier_socket;	/* PQsocket on which notifier is listening */
-#endif
 }	Pg_ConnectionId;
 
 /* Values of res_copyStatus */
@@ -87,53 +74,75 @@ typedef struct Pg_ConnectionId_s
 /* registered Tcl functions */
 /* **************************/
 extern int Pg_conndefaults(
-		   ClientData cData, Tcl_Interp *interp, int argc, char *argv[]);
+  ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+
 extern int Pg_connect(
-		   ClientData cData, Tcl_Interp *interp, int argc, char *argv[]);
+  ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+
 extern int Pg_disconnect(
-		   ClientData cData, Tcl_Interp *interp, int argc, char *argv[]);
+  ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+
 extern int Pg_exec(
-		ClientData cData, Tcl_Interp *interp, int argc, char *argv[]);
+  ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+
 extern int Pg_execute(
-		   ClientData cData, Tcl_Interp *interp, int argc, char *argv[]);
+  ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+
 extern int Pg_select(
-		  ClientData cData, Tcl_Interp *interp, int argc, char *argv[]);
+  ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+
 extern int Pg_result(
-		  ClientData cData, Tcl_Interp *interp, int argc, char *argv[]);
+  ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+
 extern int Pg_lo_open(
-		   ClientData cData, Tcl_Interp *interp, int argc, char *argv[]);
+  ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+
 extern int Pg_lo_close(
-			ClientData cData, Tcl_Interp *interp, int argc, char *argv[]);
+  ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 
-#ifdef PGTCL_USE_TCLOBJ
 extern int Pg_lo_read(
-		   ClientData cData, Tcl_Interp *interp, int objc,
-		   Tcl_Obj *CONST objv[]);
-extern int Pg_lo_write(
-			ClientData cData, Tcl_Interp *interp, int objc,
-			Tcl_Obj *CONST objv[]);
+  ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 
-#else
-extern int Pg_lo_read(
-		   ClientData cData, Tcl_Interp *interp, int argc, char *argv[]);
 extern int Pg_lo_write(
-			ClientData cData, Tcl_Interp *interp, int argc, char *argv[]);
-#endif
+  ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+
 extern int Pg_lo_lseek(
-			ClientData cData, Tcl_Interp *interp, int argc, char *argv[]);
+  ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+
 extern int Pg_lo_creat(
-			ClientData cData, Tcl_Interp *interp, int argc, char *argv[]);
+  ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+
 extern int Pg_lo_tell(
-		   ClientData cData, Tcl_Interp *interp, int argc, char *argv[]);
+  ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+
 extern int Pg_lo_unlink(
-		   ClientData cData, Tcl_Interp *interp, int argc, char *argv[]);
+  ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+
 extern int Pg_lo_import(
-		   ClientData cData, Tcl_Interp *interp, int argc, char *argv[]);
+  ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+
 extern int Pg_lo_export(
-		   ClientData cData, Tcl_Interp *interp, int argc, char *argv[]);
+  ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+
 extern int Pg_listen(
-		  ClientData cData, Tcl_Interp *interp, int argc, char *argv[]);
+  ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+
+extern int Pg_sendquery(
+  ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+
+extern int Pg_getresult(
+  ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+
+extern int Pg_isbusy(
+  ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+
+extern int Pg_blocking(
+  ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+
+extern int Pg_cancelrequest(
+  ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+
 extern int Pg_on_connection_loss(
-		   ClientData cData, Tcl_Interp *interp, int argc, char *argv[]);
+  ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 
 #endif   /* PGTCLCMDS_H */
