@@ -158,4 +158,7 @@ extern int Pg_quote(
 extern int Pg_conninfo(
   ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 
+extern int Pg_results(
+  ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+
 #endif   /* PGTCLCMDS_H */

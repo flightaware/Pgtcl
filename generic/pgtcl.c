@@ -99,6 +99,7 @@ static PgCmd commands[] = {
     {"pg_on_connection_loss", "::pg::on_connection_loss", Pg_on_connection_loss,2},
     {"pg_quote", "::pg::quote", Pg_quote,2},
     {"pg_conninfo", "::pg::conninfo", Pg_conninfo,2},
+    {"pg_results", "::pg::results", Pg_results,2},
     {NULL, NULL, NULL, NULL}
 };
 
