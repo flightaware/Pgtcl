@@ -315,6 +315,7 @@ Pg_conndefaults(ClientData cData, Tcl_Interp *interp, int objc,
  *    pg_connect dbName [-host hostName] [-port portNumber] [-tty pqtty]]
  *    pg_connect -conninfo "dbname=myydb host=myhost ..."
  *    pg_connect -connlist [list dbname mydb host myhost ...]
+ *    pg_connect -connhandle myhandle
  *
  * Results:
  *    the return result is either an error message or a handle for 
