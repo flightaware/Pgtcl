@@ -1,6 +1,11 @@
 
 $Id$
 
+2004-07-02 Brett Schwarz <brett_schwarz@yahoo.com>
+    * added basic capability to use the connection handle as a command
+    * since connection handle can be a command now, I made the returned
+      handle namespace qualified, with respect to the calling namespace
+
 2004-06-29 Brett Schwarz <brett_schwarz@yahoo.com>
     * Added proper Tcl namespace support (i.e. ::pg::connect)
 
