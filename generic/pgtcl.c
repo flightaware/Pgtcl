@@ -97,7 +97,9 @@ static PgCmd commands[] = {
     {"pg_cancelrequest", "::pg::cancelrequest", Pg_cancelrequest,2},
     {"pg_on_connection_loss", "::pg::on_connection_loss", Pg_on_connection_loss,2},
     {"pg_quote", "::pg::quote", Pg_quote,2},
-    {"pg_quote_bytea", "::pg::quote_bytea", Pg_quoteBytea,2},
+    {"pg_escape_string", "::pg::escape_string", Pg_quote,2},
+    {"pg_escape_bytea", "::pg::escape_bytea", Pg_escapeBytea,2},
+    {"pg_unescape_bytea", "::pg::unescape_bytea", Pg_unescapeBytea,2},
     {"pg_conninfo", "::pg::conninfo", Pg_conninfo,2},
     {"pg_results", "::pg::results", Pg_results,2},
     {NULL, NULL, NULL, NULL}

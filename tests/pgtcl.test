@@ -258,12 +258,22 @@ test pgtcl-5.1 {quote a string} {
 #
 #
 #
-test pgtcl-5.2 {quote a binary string} {
+test pgtcl-5.2 {escape a binary string} {
 
     set bn [binary format a* \000\\HELLO's]
-    set qstr [pg::quote_bytea $bn]
+    set qstr [pg::escape_bytea $bn]
 
     set qstr
 } \\\\000\\\\\\\\HELLO\\'s
 
+#
+#
+#
+test pgtcl-5.3 {unescape a binary string} {
+
+    set bn [binary format a* \000\\HELLO's]
+    set qstr [pg::unescape_bytea "\\\\000\\\\\\\\HELLO\\'s"]
+
+    set qstr
+} [binary format a* \\000\\\\HELLO\'s]
 

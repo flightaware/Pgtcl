@@ -166,7 +166,10 @@ extern int Pg_on_connection_loss(
 extern int Pg_quote(
   ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 
-extern int Pg_quoteBytea(
+extern int Pg_escapeBytea(
+  ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+
+extern int Pg_unescapeBytea(
   ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 
 extern int Pg_conninfo(

@@ -3165,7 +3165,7 @@ Pg_quoteBytea
 
 ***********************************/
 int
-Pg_quoteBytea(ClientData cData, Tcl_Interp *interp, int objc,
+Pg_escapeBytea(ClientData cData, Tcl_Interp *interp, int objc,
                                  Tcl_Obj *CONST objv[])
 {
         const unsigned char    *from;
@@ -3179,9 +3179,6 @@ Pg_quoteBytea(ClientData cData, Tcl_Interp *interp, int objc,
                 return TCL_ERROR;
         }
 
-        /*
-         * Get the "from" string.
-         */
         from = Tcl_GetByteArrayFromObj(objv[1], &fromLen);
 
         to = PQescapeBytea(from, fromLen, &toLen);
@@ -3202,6 +3199,47 @@ Pg_quoteBytea(ClientData cData, Tcl_Interp *interp, int objc,
 
         return TCL_OK;
 }
+
+/***********************************
+Pg_unquoteBytea
+
+ syntax:
+
+***********************************/
+int
+Pg_unescapeBytea(ClientData cData, Tcl_Interp *interp, int objc,
+                                 Tcl_Obj *CONST objv[])
+{
+        const unsigned char  *from;
+        unsigned char        *to;
+        int         fromLen;
+        int         toLen;
+
+        if (objc != 2)
+        {
+            Tcl_WrongNumArgs(interp, 1, objv, "binaryString");
+            return TCL_ERROR;
+        }
+
+        from = Tcl_GetStringFromObj(objv[1], &fromLen);
+        to   = PQunescapeBytea(from, &toLen);
+        if (! to)
+        {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("Failed to unquote binary string", -1));
+            return TCL_ERROR;
+        }
+
+        Tcl_SetObjResult(interp, Tcl_NewByteArrayObj(to, toLen));
+
+        #ifdef PQfreemem
+            PQfreemem(to);
+        #else
+            PQfreeNotify(to);
+        #endif
+
+        return TCL_OK;
+}
+
 
 /***********************************
 Pg_conninfo
