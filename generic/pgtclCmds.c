@@ -668,7 +668,11 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	{
 		int	rId = PgSetResultId(interp, connString, result);
 
+         
+
 		ExecStatusType rStat = PQresultStatus(result);
+
+		printf("RESULT IS NOT NULL IN PG_EXEC\n");
 
 		if (rStat == PGRES_COPY_IN || rStat == PGRES_COPY_OUT)
 		{

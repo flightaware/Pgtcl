@@ -47,6 +47,13 @@ typedef struct Pg_TclNotifies_s
 }	Pg_TclNotifies;
 
 
+typedef struct Pg_resultid_s
+{
+    int            id;
+    Tcl_Obj           *str;
+    Tcl_Interp     *interp;
+    Tcl_Command    cmd_token;
+} Pg_resultid;
 
 typedef struct Pg_ConnectionId_s
 {
@@ -66,15 +73,10 @@ typedef struct Pg_ConnectionId_s
 										 * is listening */
 	Tcl_Command cmd_token;               /* handle command token */
 	Tcl_Interp *interp;               /* save Interp info */
+	Pg_resultid **resultids;       /* resultids (internal storage) */
 }	Pg_ConnectionId;
 
-typedef struct Pg_resultid_s
-{
-    int            id;
-    Tcl_Obj           *str;
-    Tcl_Interp     *interp;
-    Tcl_Command    cmd_token;
-} Pg_resultid;
+
 
 /* Values of res_copyStatus */
 #define RES_COPY_NONE	0
