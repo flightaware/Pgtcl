@@ -2,6 +2,8 @@
 $Id$
 
 2004-11-23 Karl Lehenbauer <karl-pg@sc.com>
+    * Simplify result object processing
+
     * Fixed bug in Pg_cancelrequest where the error message would
       not be returned.
 

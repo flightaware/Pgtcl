@@ -373,6 +373,8 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
             return Pg_sendquery_prepared(cData, interp, objc, objvx);
         }
     }
+
+	/* It should not be possible to get here */
     return TCL_ERROR;
 }
 
@@ -394,9 +396,6 @@ PgResultCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[
 {
     int    objvxi;
     Tcl_Obj    *objvx[25];
-    Tcl_CmdInfo info;
-    Tcl_Obj       *res;
-    //char       *res;
 
     if (objc == 1)
     {
@@ -409,23 +408,13 @@ PgResultCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[
      *    the command handle args looks is offset
      */
 
-    for (objvxi = 2; objvxi < objc; objvxi++) {
-        objvx[objvxi] = objv[objvxi];
+    for (objvxi = 0; objvxi < objc; objvxi++) {
+        objvx[objvxi + 1] = objv[objvxi];
     }
 
-    objvx[0] = objv[1];
-    objvx[1] = objv[0];
+    objvx[0] = objv[0];
 
-
-    if (Tcl_GetCommandInfo(interp, Tcl_GetStringFromObj(objvx[1], NULL), &info) == 0)
-        return TCL_ERROR;
-
-    res = (Tcl_Obj *)info.objClientData;
-
-    objvx[1] = res;
-
-    return Pg_result(cData, interp, objc, objvx);
-
+    return Pg_result(cData, interp, objc + 1, objvx);
 }
 
 

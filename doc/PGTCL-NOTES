@@ -40,11 +40,21 @@ pg_select
      The query must be a select statement
      The var is used in the proc as an array
      The proc is run once for each row found
+
+     example:
+
+    set conn [pg_connect www]
+
+    pg_select $conn "select * from users" user {
+        parray user
+    }
+
+    pg_disconnect $conn
+
+
+    You can "continue" and "return" in the body and it'll do the
+    expected thing.
  
- The return is either TCL_OK, TCL_ERROR or TCL_RETURN and interp->result
- may contain more information.
-
-
 pg_result
 
     Get information about the results of a query.
@@ -94,8 +104,6 @@ pg_result
 	-clear		clear the result buffer. Do not reuse after this
 
 
-
-The options are
 
 pg_execute
 
