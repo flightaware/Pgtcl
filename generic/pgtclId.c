@@ -481,13 +481,20 @@ PgDelConnectionId(DRIVER_DEL_PROTO)
 	Pg_ConnectionId *connid;
 	Pg_TclNotifies *notifies;
 	int			i;
+        Pg_resultid    *resultid;
 
 	connid = (Pg_ConnectionId *) cData;
 
 	for (i = 0; i < connid->res_max; i++)
 	{
-		if (connid->results[i])
-			PQclear(connid->results[i]);
+            resultid = connid->resultids[i];
+	    if (connid->results[i])
+            {
+		PQclear(connid->results[i]);
+
+            Tcl_DecrRefCount(resultid->str);
+            }
+            ckfree((void *)resultid);
 	}
 	
 	ckfree((void *)connid->results);
@@ -627,14 +634,14 @@ PgSetResultId(Tcl_Interp *interp, CONST84 char *connid_c, PGresult *res)
         connid->results = (PGresult **)ckrealloc((void *)connid->results,
             sizeof(PGresult *) * connid->res_max);
 
-		connid->resultids = (Pg_resultid **)ckrealloc((void *)connid->resultids,
+	connid->resultids = (Pg_resultid **)ckrealloc((void *)connid->resultids,
             sizeof(Pg_resultid *) * connid->res_max);
 
         for (i = connid->res_last; i < connid->res_max; i++)
-		{
+        {
             connid->results[i] = NULL;
 			connid->resultids[i] = NULL;
-		}
+	}
 
     }
     connid->results[resid] = res;
@@ -644,10 +651,12 @@ PgSetResultId(Tcl_Interp *interp, CONST84 char *connid_c, PGresult *res)
     resultid->interp = interp;
     resultid->id     = resid;
     resultid->str = Tcl_NewStringObj(buf, -1);
-    resultid->cmd_token = Tcl_CreateObjCommand(interp, 
-        Tcl_GetStringFromObj(cmd, NULL), PgResultCmd, (ClientData) resultid, PgDelResultHandle);
-	connid->resultids[resid] = resultid;
+    resultid->cmd_token = Tcl_CreateObjCommand(interp, buf, 
+        PgResultCmd, (ClientData) resultid, PgDelResultHandle);
+    connid->resultids[resid] = resultid;
+
     Tcl_SetObjResult(interp, cmd);
+
     return resid;
 }
 
@@ -724,7 +733,11 @@ PgDelResultId(Tcl_Interp *interp, CONST84 char *id)
 	resid = getresid(interp, id, &connid);
 	if (resid == -1)
 		return;
+
 	connid->results[resid] = 0;
+
+Tcl_DecrRefCount((Tcl_Obj *)connid->resultids[resid]->str);
+ckfree((void *)connid->resultids[resid]);
 	connid->resultids[resid] = 0;
 }
 
@@ -739,7 +752,7 @@ PgGetConnByResultId(Tcl_Interp *interp, CONST84 char *resid_c)
 	Tcl_Channel conn_chan;
     Tcl_Obj     *tresult;
 
-	if (!(mark = strchr(resid_c, '.')))
+	if (!(mark = strrchr(resid_c, '.')))
 		goto error_out;
 	*mark = '\0';
 	conn_chan = Tcl_GetChannel(interp, resid_c, 0);
@@ -1149,17 +1162,12 @@ PgDelCmdHandle(ClientData cData)
     for (i = 0; i <= connid->res_last; i++)
     {
  
-        if (connid->resultids[i] == 0)
+        resultid = connid->resultids[i];
+
+        if (resultid)
         {
-            continue;
+            Tcl_DeleteCommandFromToken(resultid->interp, resultid->cmd_token);
         }
-
-		resultid = connid->resultids[i];
-
-        if (resultid != 0)
-		{
-		    Tcl_DeleteCommandFromToken(resultid->interp, resultid->cmd_token);
-		}
     }
         
     
@@ -1182,7 +1190,6 @@ PgDelResultHandle(ClientData cData)
 
     PgDelResultId(resultid->interp, resstr);
     PQclear(result);
-    ckfree(resstr);
 
     return;
 }
