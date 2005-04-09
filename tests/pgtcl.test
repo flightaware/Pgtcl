@@ -16,7 +16,7 @@ foreach F [list ../libpgtcl1.5[info sharedlibextension] ./libpgtcl1.5[info share
 #
 array set conninfo {
     host    192.168.123.180
-    port    5739
+    port    5801
     dbname  template1
     user    postgres
 }
@@ -335,3 +335,62 @@ test pgtcl-5.3 {unescape a binary string} {
     set qstr
 } [binary format a* \\000\\\\HELLO\'s]
 
+
+
+#
+#
+#
+test pgtcl-6.1 {using pg_exec with params} {
+
+    unset res
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+
+    set res [$conn exec {SELECT relname
+                           FROM Pg_class
+                          WHERE relname LIKE $1 
+                       ORDER BY relname
+                          LIMIT $2} "pg_%" 5]
+
+    set results [pg::result $res -list]
+
+    pg_result $res -clear
+
+    pg_disconnect $conn
+
+    lsort $results
+
+} [list pg_aggregate pg_aggregate_fnoid_index pg_am pg_am_name_index pg_am_oid_index]
+
+
+#
+#
+#
+test pgtcl-6.2 {using pg_exec_prepared with params} {
+
+    unset res
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+
+    set res [$conn exec {PREPARE test_prepare (integer)
+                          AS SELECT relname
+                           FROM Pg_class
+                          WHERE relname LIKE 'pg_%'
+                       ORDER BY relname
+                          LIMIT $1}]
+
+    set res [pg::sqlexec_prepared $conn test_prepare 5]
+
+    set results [pg::result $res -list]
+
+    if {[$res -status] != "PGRES_TUPLES_OK"} {
+            puts "[$res -status] [pg::result $res -error] during select"
+    }
+
+    pg_result $res -clear
+
+    pg_disconnect $conn
+
+    lsort $results
+
+} [list pg_aggregate pg_aggregate_fnoid_index pg_am pg_am_name_index pg_am_oid_index]
