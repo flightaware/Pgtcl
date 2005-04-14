@@ -655,7 +655,7 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	    result = PQexec(conn, execString);
 #ifdef HAVE_PQEXECPARAMS
 	} else {
-	    result = PQexecParams(conn, execString, nParams, NULL, paramValues, NULL, NULL, 1);
+	    result = PQexecParams(conn, execString, nParams, NULL, paramValues, NULL, NULL, 0);
 	}
 #endif
 
@@ -761,7 +761,7 @@ Pg_exec_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 
 	statementNameString = Tcl_GetStringFromObj(objv[2], NULL);
 
-	result = PQexecPrepared(conn, statementNameString, nParams, paramValues, NULL, NULL, 1);
+	result = PQexecPrepared(conn, statementNameString, nParams, paramValues, NULL, NULL, 0);
 
 	/* REPLICATED IN pg_exec -- NEEDS TO BE FACTORED */
 	/* Transfer any notify events from libpq to Tcl event queue. */
