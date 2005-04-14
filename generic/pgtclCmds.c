@@ -1520,7 +1520,9 @@ Pg_execute(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 	{
 		arg = Tcl_GetStringFromObj(objv[i], NULL);
 		if (arg[0] != '-')
-			break;
+                {
+		    break;
+                }
 
 		if (strcmp(arg, "-array") == 0)
 		{

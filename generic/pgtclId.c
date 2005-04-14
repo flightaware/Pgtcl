@@ -264,10 +264,11 @@ PgSetConnectionId(Tcl_Interp *interp, PGconn *conn, char *chandle)
 int
 PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
-    int    optIndex;
-    int    objvxi;
-    Tcl_Obj    *objvx[25];
-    Tcl_CmdInfo info;
+    int             optIndex;
+    int             objvxi;
+    char            *arg;
+    Tcl_Obj         *objvx[25];
+    Tcl_CmdInfo     info;
     Pg_ConnectionId *connid;
 
     static CONST84 char *options[] = {
@@ -300,9 +301,9 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
         objvx[objvxi] = objv[objvxi];
     }
 
-	/* swap the first and second elements of the copied command */
-	objvx[0] = objv[1];
-	objvx[1] = objv[0];
+    /* swap the first and second elements of the copied command */
+    objvx[0] = objv[1];
+    objvx[1] = objv[0];
 
     if (Tcl_GetCommandInfo(interp, Tcl_GetStringFromObj(objvx[1], NULL), &info) == 0)
         return TCL_ERROR;
@@ -327,6 +328,38 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
         }
         case EXECUTE:
         {
+            /*
+             * Need a little extra mojo here, since
+             * there can be the -array and -oid options
+             * before the connection handle -- arrggh
+             */
+            int num = 2;
+            arg = Tcl_GetStringFromObj(objvx[2], NULL);
+            if (arg[0] == '-')
+            {
+                /* see if there are 2 options on the command line */
+                arg = Tcl_GetStringFromObj(objvx[4], NULL);
+                if (arg[0] == '-')
+                {
+                    num = 4;
+                }
+
+                for (objvxi = 1; objvxi <= num; objvxi++)
+                {
+                    objvx[objvxi] = objv[objvxi+1];
+                }
+                objvx[objvxi++] = objv[0];
+                
+            }
+            /* DEBUGGING
+            for (objvxi = 0; objvxi < objc; objvxi++)
+            {
+                printf("ID: %d OBJV %s OBJVX %s\n", objvxi, 
+                     Tcl_GetStringFromObj(objv[objvxi], NULL), 
+                     Tcl_GetStringFromObj(objvx[objvxi], NULL));
+            }
+            */
+               
             return Pg_execute(cData, interp, objc, objvx);
         }
         case SELECT:
