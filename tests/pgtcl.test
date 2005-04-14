@@ -432,17 +432,56 @@ test pgtcl-8.1 {using pg_execute} {
 
     set conn [pg::connect -connlist [array get ::conninfo]]
 
+    set names [list]
     pg::execute -array resultArr $conn "SELECT relname FROM Pg_class LIMIT 5" {
-        #set headers $resultArr(.headers)
-        #set numcols $resultArr(.numcols)
-        #set tupno $resultArr(.tupno)
 
         lappend names $resultArr(relname)
         
     } 
 
     rename $conn {}
-
     llength $names
+ 
+} 5
+
+#
+#
+#
+test pgtcl-8.2 {using connection command handle for pg_execute, no options} {
+
+    catch {unset res}
+    catch {unset names}
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+
+    $conn execute -array resultArr "SELECT relname FROM Pg_class LIMIT 5" {
+        lappend ::names $resultArr(relname)
+        
+    } 
+
+    rename $conn {}
+
+    llength $::names
+ 
+} 5
+
+#
+#
+#
+test pgtcl-8.3 {using connection command handle for pg_execute, -array option} {
+
+    catch {unset res}
+    catch {unset names}
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+
+    $conn execute -array resultArr "SELECT relname FROM Pg_class LIMIT 5" {
+        lappend ::names $resultArr(relname)
+        
+    } 
+
+    rename $conn {}
+
+    llength $::names
  
 } 5
