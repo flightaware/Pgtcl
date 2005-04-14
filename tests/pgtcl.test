@@ -394,3 +394,55 @@ test pgtcl-6.2 {using pg_exec_prepared with params} {
     lsort $results
 
 } [list pg_aggregate pg_aggregate_fnoid_index pg_am pg_am_name_index pg_am_oid_index]
+
+
+#
+#
+#
+test pgtcl-7.1 {using pg_select} {
+
+    unset res
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+
+    pg::select $conn "SELECT relname FROM Pg_class LIMIT 5" resultArr {
+        set headers $resultArr(.headers)
+        set numcols $resultArr(.numcols)
+        set tupno $resultArr(.tupno)
+
+        lappend names $resultArr(relname)
+        
+    } 
+
+    rename $conn {}
+
+    llength $names
+ 
+} 5
+
+
+
+#
+#
+#
+test pgtcl-8.1 {using pg_execute} {
+
+    catch {unset res}
+    catch {unset names}
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+
+    pg::execute -array resultArr $conn "SELECT relname FROM Pg_class LIMIT 5" {
+        #set headers $resultArr(.headers)
+        #set numcols $resultArr(.numcols)
+        #set tupno $resultArr(.tupno)
+
+        lappend names $resultArr(relname)
+        
+    } 
+
+    rename $conn {}
+
+    llength $names
+ 
+} 5
