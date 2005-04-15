@@ -3082,6 +3082,76 @@ pg_lo_export <parameter>conn</parameter> <parameter>loid</parameter> <parameter>
 
 </sect1>
 
+<sect1 id="pgtcl-tclnamespace">
+ <title>Tcl Namespace Support</title>
+
+ <para>
+With version 1.5, there is proper Tcl namespace support build into <application>pgtcl</application>. There are commands now that mirror the pg_ commands, but use the Tcl namespace convention. For example, there are commands now called: pg::connect, pg::result, etc. However, due to this, there are some incapabilities. For example, pg_exec has a counterpart called pg::sqlexec, since doing a namespace import ::pg::* would clobber the builtin Tcl commmand exec. The old command names, pg_*, are still there for backwards compatibility, but might be phased out eventually.
+ </para>
+ <para>
+So, one can use Tcl's namespace mechanisms now with <application>pgtcl</application>. For eaxmple, you can import that namespace:
+
+<programlisting>
+namespace import ::pg::*
+
+set conn [connect template1 -host $host -port $port]
+</programlisting>
+
+ </para>
+
+<programlisting>
+# getDBs :
+#   get the names of all the databases at a given host and port number
+#   with the defaults being the localhost and port 5432
+#   return them in alphabetical order
+proc getDBs { {host "localhost"} {port "5432"} } {
+    # datnames is the list to be result
+    set conn [pg_connect template1 -host $host -port $port]
+    set res [pg_exec $conn "SELECT datname FROM pg_database ORDER BY datname;"]
+    set ntups [pg_result $res -numTuples]
+    for {set i 0} {$i < $ntups} {incr i} {
+	lappend datnames [pg_result $res -getTuple $i]
+    }
+    pg_result $res -clear
+    pg_disconnect $conn
+    return $datnames
+}
+
+## OR an alternative
+
+proc getDBs { {host "localhost"} {port "5432"} } {
+    # datnames is the list to be result
+    set conn [pg_connect template1 -host $host -port $port]
+    set res [pg_exec $conn "SELECT datname FROM pg_database ORDER BY datname;"]
+
+    set datnames [pg_result $res -list]
+    pg_result $res -clear
+    pg_disconnect $conn
+    return $datnames
+}
+</programlisting>
+  </example>
+ </sect1>
+
+</sect1>
+
+<sect1 id="pgtcl-commandhandles">
+ <title>Connection/result handles as commands</title>
+<para>
+Starting with version 1.5, you can use the connection/result handle as a Tcl command. For example, you can do the following:
+
+<programlisting>
+set conn [pg::connect template1 -host $host -port $port]
+set res [$conn exec "SELECT datname FROM pg_database ORDER BY datname;"]
+set datnames [$res -list]
+$res -clear
+rename $conn {} ;# or $conn disconnect
+</programlisting>
+
+
+</para>
+ </sect1>
+
 
 <sect1 id="pgtcl-examplesect">
  <title>Example Program</title>
