@@ -15,13 +15,13 @@ REL="UP"
 TITLE="pgtcl - Tcl Binding Library"
 HREF="libpgtcl.html"><LINK
 REL="PREVIOUS"
-TITLE="pg_lo_export"
-HREF="pgtcl-pgloexport.html"><LINK
+TITLE="Connection/result handles as commands"
+HREF="pgtcl-commandhandles.html"><LINK
 REL="STYLESHEET"
 TYPE="text/css"
 HREF="stylesheet.css"><META
 NAME="creation"
-CONTENT="2004-11-30T16:48:46"></HEAD
+CONTENT="2005-04-16T09:37:34"></HEAD
 ><BODY
 CLASS="SECT1"
 ><DIV
@@ -45,7 +45,7 @@ WIDTH="10%"
 ALIGN="left"
 VALIGN="top"
 ><A
-HREF="pgtcl-pgloexport.html"
+HREF="pgtcl-commandhandles.html"
 ACCESSKEY="P"
 >Prev</A
 ></TD
@@ -89,7 +89,7 @@ CLASS="SECT1"
 CLASS="SECT1"
 ><A
 NAME="PGTCL-EXAMPLESECT"
->1.4. Example Program</A
+>1.6. Example Program</A
 ></H1
 ><P
 >  <A
@@ -130,6 +130,19 @@ proc getDBs { {host "localhost"} {port "5432"} } {
     pg_result $res -clear
     pg_disconnect $conn
     return $datnames
+}
+
+## OR an alternative
+
+proc getDBs { {host "localhost"} {port "5432"} } {
+    # datnames is the list to be result
+    set conn [pg_connect template1 -host $host -port $port]
+    set res [pg_exec $conn "SELECT datname FROM pg_database ORDER BY datname;"]
+
+    set datnames [pg_result $res -list]
+    pg_result $res -clear
+    pg_disconnect $conn
+    return $datnames
 }</PRE
 ></DIV
 ></DIV
@@ -149,7 +162,7 @@ WIDTH="33%"
 ALIGN="left"
 VALIGN="top"
 ><A
-HREF="pgtcl-pgloexport.html"
+HREF="pgtcl-commandhandles.html"
 ACCESSKEY="P"
 >Prev</A
 ></TD
@@ -173,7 +186,7 @@ VALIGN="top"
 WIDTH="33%"
 ALIGN="left"
 VALIGN="top"
->pg_lo_export</TD
+>Connection/result handles as commands</TD
 ><TD
 WIDTH="34%"
 ALIGN="center"

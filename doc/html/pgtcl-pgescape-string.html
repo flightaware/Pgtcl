@@ -2,7 +2,7 @@
 <HTML
 ><HEAD
 ><TITLE
->pg_quote</TITLE
+>pg_escape_string</TITLE
 ><META
 NAME="GENERATOR"
 CONTENT="Modular DocBook HTML Stylesheet Version 1.7"><LINK
@@ -15,16 +15,16 @@ REL="UP"
 TITLE="pgtcl Command Reference"
 HREF="libpgtcl-ref.html"><LINK
 REL="PREVIOUS"
-TITLE="pg_cancelrequest"
-HREF="pgtcl-pgcancelrequest.html"><LINK
+TITLE="pg_quote"
+HREF="pgtcl-quote.html"><LINK
 REL="NEXT"
-TITLE="pg_lo_creat"
-HREF="pgtcl-pglocreat.html"><LINK
+TITLE="pg_escape_bytea"
+HREF="pgtcl-pgescape-bytea.html"><LINK
 REL="STYLESHEET"
 TYPE="text/css"
 HREF="stylesheet.css"><META
 NAME="creation"
-CONTENT="2004-11-30T16:48:46"></HEAD
+CONTENT="2005-04-16T09:37:34"></HEAD
 ><BODY
 CLASS="REFENTRY"
 ><DIV
@@ -48,7 +48,7 @@ WIDTH="10%"
 ALIGN="left"
 VALIGN="top"
 ><A
-HREF="pgtcl-pgcancelrequest.html"
+HREF="pgtcl-quote.html"
 ACCESSKEY="P"
 >Prev</A
 ></TD
@@ -57,7 +57,7 @@ WIDTH="10%"
 ALIGN="left"
 VALIGN="top"
 ><A
-HREF="pgtcl-pgcancelrequest.html"
+HREF="pgtcl-quote.html"
 >Fast Backward</A
 ></TD
 ><TD
@@ -70,7 +70,7 @@ WIDTH="10%"
 ALIGN="right"
 VALIGN="top"
 ><A
-HREF="pgtcl-pglocreat.html"
+HREF="pgtcl-pgescape-bytea.html"
 >Fast Forward</A
 ></TD
 ><TD
@@ -78,7 +78,7 @@ WIDTH="10%"
 ALIGN="right"
 VALIGN="top"
 ><A
-HREF="pgtcl-pglocreat.html"
+HREF="pgtcl-pgescape-bytea.html"
 ACCESSKEY="N"
 >Next</A
 ></TD
@@ -91,15 +91,15 @@ WIDTH="100%"></DIV
 ><A
 NAME="PGTCL-PGESCAPE-STRING"
 ></A
->pg_quote</H1
+>pg_escape_string</H1
 ><DIV
 CLASS="REFNAMEDIV"
 ><A
-NAME="AEN1292"
+NAME="AEN1459"
 ></A
 ><H2
 >Name</H2
->pg_quote&nbsp;--&nbsp;escapes a string for inclusion into SQL statements
+>pg_escape_string&nbsp;--&nbsp;escapes a string for inclusion into SQL statements. This is the same as pg_quote. It was added for consistency.
  <A
 NAME="IX-PGTCL-PGESCAPE-STRING-2"
 ></A
@@ -107,13 +107,13 @@ NAME="IX-PGTCL-PGESCAPE-STRING-2"
 ><DIV
 CLASS="REFSYNOPSISDIV"
 ><A
-NAME="AEN1297"
+NAME="AEN1464"
 ></A
 ><H2
 >Synopsis</H2
 ><PRE
 CLASS="SYNOPSIS"
->pg_quote <VAR
+>pg_escape_string <VAR
 CLASS="PARAMETER"
 >string</VAR
 ></PRE
@@ -121,14 +121,14 @@ CLASS="PARAMETER"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN1300"
+NAME="AEN1467"
 ></A
 ><H2
 >Description</H2
 ><P
 >   <CODE
 CLASS="FUNCTION"
->pg_quote</CODE
+>pg_escape_string</CODE
 > quotes a string and escapes single
 quotes and backslashes within the string, making it safe for inclusion 
 into SQL statements.
@@ -149,13 +149,13 @@ CLASS="LITERAL"
 >, the insert will fail.  
 Passing value strings through <CODE
 CLASS="FUNCTION"
->pg_quote</CODE
+>pg_escape_string</CODE
 >
 make sure they can be used as values and stuff in PostgreSQL.
 
 </P><PRE
 CLASS="PROGRAMLISTING"
->    pg_exec $conn "insert into foo values ([pg_quote $name]);" </PRE
+>    pg_exec $conn "insert into foo values ([pg_escape_string $name]);" </PRE
 ><P>
 ...will make sure that any special characters that occur in name, such as
 single quote or backslash, will be properly quoted.
@@ -164,7 +164,7 @@ single quote or backslash, will be properly quoted.
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN1310"
+NAME="AEN1477"
 ></A
 ><H2
 >Arguments</H2
@@ -189,7 +189,7 @@ CLASS="PARAMETER"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN1318"
+NAME="AEN1485"
 ></A
 ><H2
 >Return Value</H2
@@ -214,7 +214,7 @@ WIDTH="33%"
 ALIGN="left"
 VALIGN="top"
 ><A
-HREF="pgtcl-pgcancelrequest.html"
+HREF="pgtcl-quote.html"
 ACCESSKEY="P"
 >Prev</A
 ></TD
@@ -232,7 +232,7 @@ WIDTH="33%"
 ALIGN="right"
 VALIGN="top"
 ><A
-HREF="pgtcl-pglocreat.html"
+HREF="pgtcl-pgescape-bytea.html"
 ACCESSKEY="N"
 >Next</A
 ></TD
@@ -242,7 +242,7 @@ ACCESSKEY="N"
 WIDTH="33%"
 ALIGN="left"
 VALIGN="top"
->pg_cancelrequest</TD
+>pg_quote</TD
 ><TD
 WIDTH="34%"
 ALIGN="center"
@@ -256,7 +256,7 @@ ACCESSKEY="U"
 WIDTH="33%"
 ALIGN="right"
 VALIGN="top"
->pg_lo_creat</TD
+>pg_escape_bytea</TD
 ></TR
 ></TABLE
 ></DIV

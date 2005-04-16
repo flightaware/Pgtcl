@@ -60,6 +60,7 @@ $Header$
 <thead>
   <row>
     <entry>Command</entry>
+    <entry>Namespace Command</entry>
     <entry>Description</entry>
   </row>
 </thead>
@@ -67,128 +68,159 @@ $Header$
 <tbody>
   <row>
     <entry><function>pg_connect</function></entry>
+    <entry><function>pg::connect</function></entry>
     <entry>open a connection to the server</entry>
   </row>
   <row>
-    <entry><function>pg_conninfo</function></entry>
-    <entry>returns the current connection handles</entry>
+    <entry><function>pg_dbinfo</function></entry>
+    <entry><function>pg::dbinfo</function></entry>
+    <entry>returns the current connection/result handles</entry>
   </row>
   <row>
     <entry><function>pg_disconnect</function></entry>
+    <entry><function>pg::disconnect</function></entry>
     <entry>close a connection to the server</entry>
   </row>
   <row>
     <entry><function>pg_conndefaults</function></entry>
+    <entry><function>pg::conndefaults</function></entry>
     <entry>get connection options and their defaults</entry>
   </row>
   <row>
     <entry><function>pg_exec</function></entry>
+    <entry><function>pg::sqlexec</function></entry>
     <entry>send a command to the server</entry>
   </row>
   <row>
     <entry><function>pg_exec_prepared</function></entry>
+    <entry><function>pg::exec_prepared</function></entry>
     <entry>send a request to execute a prepared statement, with parameters</entry>
   </row>
   <row>
     <entry><function>pg_result</function></entry>
+    <entry><function>pg::result</function></entry>
     <entry>get information about a command result</entry>
   </row>
   <row>
-    <entry><function>pg_results</function></entry>
-    <entry>return a list of all the uncleared result handles for a connection</entry>
-  </row>
-  <row>
     <entry><function>pg_select</function></entry>
+    <entry><function>pg::select</function></entry>
     <entry>loop over the result of a query</entry>
   </row>
   <row>
     <entry><function>pg_execute</function></entry>
+    <entry><function>pg::execute</function></entry>
     <entry>send a query and optionally loop over the results</entry>
   </row>
   <row>
     <entry><function>pg_quote</function></entry>
+    <entry><function>pg::quote</function></entry>
     <entry>escape a string for inclusion into SQL statements</entry>
   </row>
   <row>
+    <entry><function>pg_escape_string</function></entry>
+    <entry><function>pg::escape_string</function></entry>
+    <entry>escape a binary string for inclusion into SQL statements</entry>
+  </row>
+  <row>
     <entry><function>pg_escape_bytea</function></entry>
+    <entry><function>pg::escape_bytea</function></entry>
     <entry>escape a binary string for inclusion into SQL statements</entry>
   </row>
   <row>
     <entry><function>pg_unescape_bytea</function></entry>
+    <entry><function>pg::unescape_bytea</function></entry>
     <entry>unescape a binary string from the backend</entry>
   </row>
   <row>
     <entry><function>pg_listen</function></entry>
+    <entry><function>pg::listen</function></entry>
     <entry>set or change a callback for asynchronous notification messages</entry>
   </row>
   <row>
     <entry><function>pg_on_connection_loss</function></entry>
+    <entry><function>pg::on_connection_loss</function></entry>
     <entry>set or change a callback for unexpected connection loss</entry>
   </row>
 
   <row>
     <entry><function>pg_sendquery</function></entry>
+    <entry><function>pg::sendquery</function></entry>
     <entry>issue pg_exec-style command asynchronously</entry>
   </row>
   <row>
     <entry><function>pg_sendquery_prepared</function></entry>
+    <entry><function>pg::sendquery_prepared</function></entry>
     <entry>send an asynchronous request to execute a prepared statement, with parameters</entry>
   </row>
   <row>
     <entry><function>pg_getresult</function></entry>
+    <entry><function>pg::getresult</function></entry>
     <entry>check on results from asynchronously issued commands</entry>
   </row>
   <row>
     <entry><function>pg_isbusy</function></entry>
+    <entry><function>pg::isbusy</function></entry>
     <entry>check to see if the connection is busy processing a query</entry>
   </row>
   <row>
     <entry><function>pg_blocking</function></entry>
+    <entry><function>pg::blocking</function></entry>
     <entry>set a database connection to be either blocking or nonblocking</entry>
   </row>
   <row>
     <entry><function>pg_cancelrequest</function></entry>
+    <entry><function>pg::cancelrequest</function></entry>
     <entry>request <ProductName>PostgreSQL</ProductName>
    abandon processing of the current command</entry>
   </row>
   <row>
     <entry><function>pg_lo_creat</function></entry>
+    <entry><function>pg::lo_creat</function></entry>
     <entry>create a large object</entry>
   </row>
   <row>
     <entry><function>pg_lo_open</function></entry>
+    <entry><function>pg::lo_open</function></entry>
     <entry>open a large object</entry>
   </row>
   <row>
     <entry><function>pg_lo_close</function></entry>
+    <entry><function>pg::lo_close</function></entry>
     <entry>close a large object</entry>
   </row>
   <row>
     <entry><function>pg_lo_read</function></entry>
+    <entry><function>pg::lo_read</function></entry>
     <entry>read from a large object</entry>
   </row>
   <row>
     <entry><function>pg_lo_write</function></entry>
+    <entry><function>pg::lo_write</function></entry>
     <entry>write to a large object</entry>
   </row>
   <row>
     <entry><function>pg_lo_lseek</function></entry>
+    <entry><function>pg::lo_lseek</function></entry>
     <entry>seek to a position in a large object</entry>
   </row>
   <row>
     <entry><function>pg_lo_tell</function></entry>
+    <entry><function>pg::lo_tell</function></entry>
     <entry>return the current seek position of a large object</entry>
   </row>
   <row>
     <entry><function>pg_lo_unlink</function></entry>
+    <entry><function>pg::lo_unlink</function></entry>
     <entry>delete a large object</entry>
   </row>
   <row>
     <entry><function>pg_lo_import</function></entry>
+    <entry><function>pg::lo_import</function></entry>
     <entry>import a large object from a file</entry>
   </row>
   <row>
     <entry><function>pg_lo_export</function></entry>
+    <entry><function>pg::lo_export</function></entry>
     <entry>export a large object to a file</entry>
   </row>
 </tbody>
@@ -628,14 +660,25 @@ name automatically. Without the option, the name is auto-generated, prefixed wit
 
 
   <variablelist>
-   <title>Third style</title>
+   <title>Third style (most recent one added)</title>
 
    <varlistentry>
-    <term><parameter>connlist</parameter></term>
+    <term><parameter>-connlist connectNameValuelist</parameter></term>
     <listitem>
     <para>
        <function>pg_connect</function> opens a new database connection using the 
        parameters taken from the <literal>connlist</literal> string. The parameters are exactly the same for the New Style, but they are stored as a Tcl list, instead of a string.
+
+<programlisting>
+array set conninfo {
+    host    192.168.123.180
+    port    5801
+    dbname  template1
+    user    postgres
+}
+set conn [pg::connect -connlist [array get ::conninfo]]
+<programlisting>
+
 
 	 </para>
 	 </listitem>
@@ -658,18 +701,18 @@ name automatically. Without the option, the name is auto-generated, prefixed wit
 
 <refentry ID="PGTCL-PGCONNINFO">
  <refmeta>
-  <refentrytitle>pg_conninfo</refentrytitle>
+  <refentrytitle>pg_dbinfo</refentrytitle>
  </refmeta>
 
  <refnamediv>
-  <refname>pg_conninfo</refname>
-  <refpurpose>returns a list of current open connection handles</refpurpose>
-  <indexterm ID="IX-PGTCL-PGCONNINFO-2"><primary>pg_conninfo</primary></indexterm>
+  <refname>pg_dbinfo</refname>
+  <refpurpose>returns a list of current open connection/result handles</refpurpose>
+  <indexterm ID="IX-PGTCL-PGCONNINFO-2"><primary>pg_dbinfo</primary></indexterm>
  </refnamediv>
 
  <refsynopsisdiv>
 <synopsis>
-pg_conninfo
+pg_dbinfo connections|results ?conn?
 </synopsis>
  </refsynopsisdiv>
 
@@ -677,16 +720,30 @@ pg_conninfo
   <title>Description</title>
 
   <para>
-   <function>pg_conninfo</function> returns a list of connection handles that are currently open.
+   <function>pg_dbinfo</function> returns a list of connection\result handles that are currently open. The first argument is either connections or results. If the first argument is results, then a second argument needs to be present, specifyin the connection.
   </para>
  </refsect1>
 
  <refsect1>
   <title>Arguments</title>
-  <para>
-  None
-  </para>
-
+  <variablelist>
+   <varlistentry>
+    <term><parameter>connections|results</parameter></term>
+    <listitem>
+     <para>
+      Either specify connections if you want the connection handles, or results if you want the result handles.
+     </para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><parameter>conn</parameter></term>
+    <listitem>
+     <para>
+      The handle of the connection, if results if specified for the first argument.
+     </para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
  </refsect1>
 
  <refsect1>
@@ -2287,7 +2344,7 @@ pg_cancelrequest <parameter>conn</parameter>
  </refsect1>
 </refentry>
 
-<refentry ID="PGTCL-PGESCAPE-STRING">
+<refentry ID="PGTCL-QUOTE">
  <refmeta>
   <refentrytitle>pg_quote</refentrytitle>
  </refmeta>
@@ -2296,7 +2353,7 @@ pg_cancelrequest <parameter>conn</parameter>
   <refname>pg_quote</refname>
   <refpurpose>escapes a string for inclusion into SQL statements
  </refpurpose>
-  <indexterm ID="IX-PGTCL-PGESCAPE-STRING-2"><primary>pg_quote</primary></indexterm>
+  <indexterm ID="IX-PGTCL-QUOTE-2"><primary>pg_quote</primary></indexterm>
  </refnamediv>
 
  <refsynopsisdiv>
@@ -2356,6 +2413,184 @@ single quote or backslash, will be properly quoted.
   </para>
  </refsect1>
 </refentry>
+
+<refentry ID="PGTCL-PGESCAPE-STRING">
+ <refmeta>
+  <refentrytitle>pg_escape_string</refentrytitle>
+ </refmeta>
+
+ <refnamediv>
+  <refname>pg_escape_string</refname>
+  <refpurpose>escapes a string for inclusion into SQL statements. This is the same as pg_quote. It was added for consistency.
+ </refpurpose>
+  <indexterm ID="IX-PGTCL-PGESCAPE-STRING-2"><primary>pg_escape_string</primary></indexterm>
+ </refnamediv>
+
+ <refsynopsisdiv>
+<synopsis>
+pg_escape_string <parameter>string</parameter>
+</synopsis>
+ </refsynopsisdiv>
+
+ <refsect1>
+  <title>Description</title>
+
+  <para>
+   <function>pg_escape_string</function> quotes a string and escapes single
+quotes and backslashes within the string, making it safe for inclusion 
+into SQL statements.
+  </para>
+
+  <para>
+If you're doing something like
+<programlisting>
+    pg_exec $conn "insert into foo values ('$name');" 
+</programlisting>
+and <varname>name</varname> contains text includeing an unescaped single
+quote, such as <literal>Bob's House</literal>, the insert will fail.  
+Passing value strings through <function>pg_escape_string</function>
+make sure they can be used as values and stuff in PostgreSQL.
+
+<programlisting>
+    pg_exec $conn "insert into foo values ([pg_escape_string $name]);" 
+</programlisting>
+...will make sure that any special characters that occur in name, such as
+single quote or backslash, will be properly quoted.
+  </para>
+ </refsect1>
+
+ <refsect1>
+  <title>Arguments</title>
+
+  <variablelist>
+   <varlistentry>
+    <term><parameter>string</parameter></term>
+    <listitem>
+     <para>
+      The string to be escaped.
+     </para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+ </refsect1>
+
+ <refsect1>
+  <title>Return Value</title>
+
+  <para>
+   Returns the string, escaped for inclusion into SQL queries.  Note that
+   it adds a set of single quotes around the outside of the string as well.
+  </para>
+ </refsect1>
+</refentry>
+
+
+<refentry ID="PGTCL-PGESCAPE-BYTEA">
+ <refmeta>
+  <refentrytitle>pg_escape_bytea</refentrytitle>
+ </refmeta>
+
+ <refnamediv>
+  <refname>pg_escape_bytea</refname>
+  <refpurpose>escapes a binary string for inclusion into SQL statements. 
+ </refpurpose>
+  <indexterm ID="IX-PGTCL-PGESCAPE-BYTEA-2"><primary>pg_escape_bytea</primary></indexterm>
+ </refnamediv>
+
+ <refsynopsisdiv>
+<synopsis>
+pg_escape_bytea <parameter>string</parameter>
+</synopsis>
+ </refsynopsisdiv>
+
+ <refsect1>
+  <title>Description</title>
+
+  <para>
+   <function>pg_escape_bytea</function> escapes a binary string, making it safe for inclusion into SQL statements.
+  </para>
+
+  <para>
+<programlisting>
+    pg_exec $conn "insert into foo values ([pg_escape_binary $name]);" 
+</programlisting>
+  </para>
+ </refsect1>
+
+ <refsect1>
+  <title>Arguments</title>
+
+  <variablelist>
+   <varlistentry>
+    <term><parameter>binary_string</parameter></term>
+    <listitem>
+     <para>
+      The binary string to be escaped.
+     </para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+ </refsect1>
+
+ <refsect1>
+  <title>Return Value</title>
+
+  <para>
+   Returns the binary string, escaped for inclusion into SQL queries. 
+  </para>
+ </refsect1>
+</refentry>
+
+<refentry ID="PGTCL-PGUNESCAPE-BYTEA">
+ <refmeta>
+  <refentrytitle>pg_unescape_bytea</refentrytitle>
+ </refmeta>
+
+ <refnamediv>
+  <refname>pg_unescape_bytea</refname>
+  <refpurpose>unescapes a binary string.
+ </refpurpose>
+  <indexterm ID="IX-PGTCL-PGUNESCAPE-BYTEA-2"><primary>pg_unescape_bytea</primary></indexterm>
+ </refnamediv>
+
+ <refsynopsisdiv>
+<synopsis>
+pg_unescape_bytea <parameter>string</parameter>
+</synopsis>
+ </refsynopsisdiv>
+
+ <refsect1>
+  <title>Description</title>
+
+  <para>
+   <function>pg_unescape_bytea</function> unescapes a binary string, when retrieving from the backend.
+  </para>
+ </refsect1>
+
+ <refsect1>
+  <title>Arguments</title>
+
+  <variablelist>
+   <varlistentry>
+    <term><parameter>binary_string</parameter></term>
+    <listitem>
+     <para>
+      The string to be unescaped.
+     </para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+ </refsect1>
+
+ <refsect1>
+  <title>Return Value</title>
+
+  <para>
+   Returns the binary string.
+  </para>
+ </refsect1>
+</refentry>
+
 
 <refentry ID="PGTCL-PGLOCREAT">
  <refmeta>
@@ -3090,50 +3325,14 @@ With version 1.5, there is proper Tcl namespace support build into <application>
  </para>
  <para>
 So, one can use Tcl's namespace mechanisms now with <application>pgtcl</application>. For eaxmple, you can import that namespace:
+</para>
 
 <programlisting>
 namespace import ::pg::*
 
 set conn [connect template1 -host $host -port $port]
 </programlisting>
-
- </para>
-
-<programlisting>
-# getDBs :
-#   get the names of all the databases at a given host and port number
-#   with the defaults being the localhost and port 5432
-#   return them in alphabetical order
-proc getDBs { {host "localhost"} {port "5432"} } {
-    # datnames is the list to be result
-    set conn [pg_connect template1 -host $host -port $port]
-    set res [pg_exec $conn "SELECT datname FROM pg_database ORDER BY datname;"]
-    set ntups [pg_result $res -numTuples]
-    for {set i 0} {$i < $ntups} {incr i} {
-	lappend datnames [pg_result $res -getTuple $i]
-    }
-    pg_result $res -clear
-    pg_disconnect $conn
-    return $datnames
-}
-
-## OR an alternative
-
-proc getDBs { {host "localhost"} {port "5432"} } {
-    # datnames is the list to be result
-    set conn [pg_connect template1 -host $host -port $port]
-    set res [pg_exec $conn "SELECT datname FROM pg_database ORDER BY datname;"]
-
-    set datnames [pg_result $res -list]
-    pg_result $res -clear
-    pg_disconnect $conn
-    return $datnames
-}
-</programlisting>
-  </example>
  </sect1>
-
-</sect1>
 
 <sect1 id="pgtcl-commandhandles">
  <title>Connection/result handles as commands</title>

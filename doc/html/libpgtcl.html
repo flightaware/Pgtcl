@@ -21,7 +21,7 @@ REL="STYLESHEET"
 TYPE="text/css"
 HREF="stylesheet.css"><META
 NAME="creation"
-CONTENT="2004-11-30T16:48:46"></HEAD
+CONTENT="2005-04-16T09:37:34"></HEAD
 ><BODY
 CLASS="CHAPTER"
 ><DIV
@@ -128,6 +128,11 @@ HREF="pgtcl-pgconnect.html"
 >&nbsp;--&nbsp;open a connection to the server</DT
 ><DT
 ><A
+HREF="pgtcl-pgconninfo.html"
+>pg_dbinfo</A
+>&nbsp;--&nbsp;returns a list of current open connection/result handles</DT
+><DT
+><A
 HREF="pgtcl-pgdisconnect.html"
 >pg_disconnect</A
 >&nbsp;--&nbsp;close a connection to the server</DT
@@ -214,9 +219,27 @@ CLASS="PRODUCTNAME"
  </DT
 ><DT
 ><A
-HREF="pgtcl-pgescape-string.html"
+HREF="pgtcl-quote.html"
 >pg_quote</A
 >&nbsp;--&nbsp;escapes a string for inclusion into SQL statements
+ </DT
+><DT
+><A
+HREF="pgtcl-pgescape-string.html"
+>pg_escape_string</A
+>&nbsp;--&nbsp;escapes a string for inclusion into SQL statements. This is the same as pg_quote. It was added for consistency.
+ </DT
+><DT
+><A
+HREF="pgtcl-pgescape-bytea.html"
+>pg_escape_bytea</A
+>&nbsp;--&nbsp;escapes a binary string for inclusion into SQL statements. 
+ </DT
+><DT
+><A
+HREF="pgtcl-pgunescape-bytea.html"
+>pg_unescape_bytea</A
+>&nbsp;--&nbsp;unescapes a binary string.
  </DT
 ><DT
 ><A
@@ -272,6 +295,16 @@ HREF="pgtcl-pgloexport.html"
 ></DD
 ><DT
 >1.4. <A
+HREF="pgtcl-tclnamespace.html"
+>Tcl Namespace Support</A
+></DT
+><DT
+>1.5. <A
+HREF="pgtcl-commandhandles.html"
+>Connection/result handles as commands</A
+></DT
+><DT
+>1.6. <A
 HREF="pgtcl-examplesect.html"
 >Example Program</A
 ></DT
@@ -340,6 +373,8 @@ CLASS="CALSTABLE"
 ><TH
 >Command</TH
 ><TH
+>Namespace Command</TH
+><TH
 >Description</TH
 ></TR
 ></THEAD
@@ -351,13 +386,37 @@ CLASS="FUNCTION"
 >pg_connect</CODE
 ></TD
 ><TD
+><CODE
+CLASS="FUNCTION"
+>pg::connect</CODE
+></TD
+><TD
 >open a connection to the server</TD
 ></TR
 ><TR
 ><TD
 ><CODE
 CLASS="FUNCTION"
+>pg_dbinfo</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::dbinfo</CODE
+></TD
+><TD
+>returns the current connection/result handles</TD
+></TR
+><TR
+><TD
+><CODE
+CLASS="FUNCTION"
 >pg_disconnect</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::disconnect</CODE
 ></TD
 ><TD
 >close a connection to the server</TD
@@ -369,6 +428,11 @@ CLASS="FUNCTION"
 >pg_conndefaults</CODE
 ></TD
 ><TD
+><CODE
+CLASS="FUNCTION"
+>pg::conndefaults</CODE
+></TD
+><TD
 >get connection options and their defaults</TD
 ></TR
 ><TR
@@ -376,6 +440,11 @@ CLASS="FUNCTION"
 ><CODE
 CLASS="FUNCTION"
 >pg_exec</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::sqlexec</CODE
 ></TD
 ><TD
 >send a command to the server</TD
@@ -387,6 +456,11 @@ CLASS="FUNCTION"
 >pg_exec_prepared</CODE
 ></TD
 ><TD
+><CODE
+CLASS="FUNCTION"
+>pg::exec_prepared</CODE
+></TD
+><TD
 >send a request to execute a prepared statement, with parameters</TD
 ></TR
 ><TR
@@ -396,22 +470,23 @@ CLASS="FUNCTION"
 >pg_result</CODE
 ></TD
 ><TD
+><CODE
+CLASS="FUNCTION"
+>pg::result</CODE
+></TD
+><TD
 >get information about a command result</TD
 ></TR
 ><TR
 ><TD
 ><CODE
 CLASS="FUNCTION"
->pg_results</CODE
+>pg_select</CODE
 ></TD
-><TD
->return a list of all the uncleared result handles for a connection</TD
-></TR
-><TR
 ><TD
 ><CODE
 CLASS="FUNCTION"
->pg_select</CODE
+>pg::select</CODE
 ></TD
 ><TD
 >loop over the result of a query</TD
@@ -423,6 +498,11 @@ CLASS="FUNCTION"
 >pg_execute</CODE
 ></TD
 ><TD
+><CODE
+CLASS="FUNCTION"
+>pg::execute</CODE
+></TD
+><TD
 >send a query and optionally loop over the results</TD
 ></TR
 ><TR
@@ -432,13 +512,65 @@ CLASS="FUNCTION"
 >pg_quote</CODE
 ></TD
 ><TD
+><CODE
+CLASS="FUNCTION"
+>pg::quote</CODE
+></TD
+><TD
 >escape a string for inclusion into SQL statements</TD
 ></TR
 ><TR
 ><TD
 ><CODE
 CLASS="FUNCTION"
+>pg_escape_string</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::escape_string</CODE
+></TD
+><TD
+>escape a binary string for inclusion into SQL statements</TD
+></TR
+><TR
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg_escape_bytea</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::escape_bytea</CODE
+></TD
+><TD
+>escape a binary string for inclusion into SQL statements</TD
+></TR
+><TR
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg_unescape_bytea</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::unescape_bytea</CODE
+></TD
+><TD
+>unescape a binary string from the backend</TD
+></TR
+><TR
+><TD
+><CODE
+CLASS="FUNCTION"
 >pg_listen</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::listen</CODE
 ></TD
 ><TD
 >set or change a callback for asynchronous notification messages</TD
@@ -450,6 +582,11 @@ CLASS="FUNCTION"
 >pg_on_connection_loss</CODE
 ></TD
 ><TD
+><CODE
+CLASS="FUNCTION"
+>pg::on_connection_loss</CODE
+></TD
+><TD
 >set or change a callback for unexpected connection loss</TD
 ></TR
 ><TR
@@ -457,6 +594,11 @@ CLASS="FUNCTION"
 ><CODE
 CLASS="FUNCTION"
 >pg_sendquery</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::sendquery</CODE
 ></TD
 ><TD
 >issue pg_exec-style command asynchronously</TD
@@ -468,6 +610,11 @@ CLASS="FUNCTION"
 >pg_sendquery_prepared</CODE
 ></TD
 ><TD
+><CODE
+CLASS="FUNCTION"
+>pg::sendquery_prepared</CODE
+></TD
+><TD
 >send an asynchronous request to execute a prepared statement, with parameters</TD
 ></TR
 ><TR
@@ -475,6 +622,11 @@ CLASS="FUNCTION"
 ><CODE
 CLASS="FUNCTION"
 >pg_getresult</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::getresult</CODE
 ></TD
 ><TD
 >check on results from asynchronously issued commands</TD
@@ -486,6 +638,11 @@ CLASS="FUNCTION"
 >pg_isbusy</CODE
 ></TD
 ><TD
+><CODE
+CLASS="FUNCTION"
+>pg::isbusy</CODE
+></TD
+><TD
 >check to see if the connection is busy processing a query</TD
 ></TR
 ><TR
@@ -495,6 +652,11 @@ CLASS="FUNCTION"
 >pg_blocking</CODE
 ></TD
 ><TD
+><CODE
+CLASS="FUNCTION"
+>pg::blocking</CODE
+></TD
+><TD
 >set a database connection to be either blocking or nonblocking</TD
 ></TR
 ><TR
@@ -502,6 +664,11 @@ CLASS="FUNCTION"
 ><CODE
 CLASS="FUNCTION"
 >pg_cancelrequest</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::cancelrequest</CODE
 ></TD
 ><TD
 >request <SPAN
@@ -517,6 +684,11 @@ CLASS="FUNCTION"
 >pg_lo_creat</CODE
 ></TD
 ><TD
+><CODE
+CLASS="FUNCTION"
+>pg::lo_creat</CODE
+></TD
+><TD
 >create a large object</TD
 ></TR
 ><TR
@@ -524,6 +696,11 @@ CLASS="FUNCTION"
 ><CODE
 CLASS="FUNCTION"
 >pg_lo_open</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::lo_open</CODE
 ></TD
 ><TD
 >open a large object</TD
@@ -535,6 +712,11 @@ CLASS="FUNCTION"
 >pg_lo_close</CODE
 ></TD
 ><TD
+><CODE
+CLASS="FUNCTION"
+>pg::lo_close</CODE
+></TD
+><TD
 >close a large object</TD
 ></TR
 ><TR
@@ -542,6 +724,11 @@ CLASS="FUNCTION"
 ><CODE
 CLASS="FUNCTION"
 >pg_lo_read</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::lo_read</CODE
 ></TD
 ><TD
 >read from a large object</TD
@@ -553,6 +740,11 @@ CLASS="FUNCTION"
 >pg_lo_write</CODE
 ></TD
 ><TD
+><CODE
+CLASS="FUNCTION"
+>pg::lo_write</CODE
+></TD
+><TD
 >write to a large object</TD
 ></TR
 ><TR
@@ -560,6 +752,11 @@ CLASS="FUNCTION"
 ><CODE
 CLASS="FUNCTION"
 >pg_lo_lseek</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::lo_lseek</CODE
 ></TD
 ><TD
 >seek to a position in a large object</TD
@@ -571,6 +768,11 @@ CLASS="FUNCTION"
 >pg_lo_tell</CODE
 ></TD
 ><TD
+><CODE
+CLASS="FUNCTION"
+>pg::lo_tell</CODE
+></TD
+><TD
 >return the current seek position of a large object</TD
 ></TR
 ><TR
@@ -578,6 +780,11 @@ CLASS="FUNCTION"
 ><CODE
 CLASS="FUNCTION"
 >pg_lo_unlink</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::lo_unlink</CODE
 ></TD
 ><TD
 >delete a large object</TD
@@ -589,6 +796,11 @@ CLASS="FUNCTION"
 >pg_lo_import</CODE
 ></TD
 ><TD
+><CODE
+CLASS="FUNCTION"
+>pg::lo_import</CODE
+></TD
+><TD
 >import a large object from a file</TD
 ></TR
 ><TR
@@ -596,6 +808,11 @@ CLASS="FUNCTION"
 ><CODE
 CLASS="FUNCTION"
 >pg_lo_export</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::lo_export</CODE
 ></TD
 ><TD
 >export a large object to a file</TD
@@ -613,7 +830,7 @@ CLASS="FUNCTION"
 CLASS="PRODUCTNAME"
 >PostgreSQL</SPAN
 >.<A
-NAME="AEN149"
+NAME="AEN224"
 ></A
 > The functions are designed to mimic the analogous file
    system functions in the standard Unix file system interface.  The

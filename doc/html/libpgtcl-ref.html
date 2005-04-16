@@ -24,7 +24,7 @@ REL="STYLESHEET"
 TYPE="text/css"
 HREF="stylesheet.css"><META
 NAME="creation"
-CONTENT="2004-11-30T16:48:46"></HEAD
+CONTENT="2005-04-16T09:37:34"></HEAD
 ><BODY
 CLASS="SECT1"
 ><DIV
@@ -115,6 +115,11 @@ HREF="pgtcl-pgconnect.html"
 >&nbsp;--&nbsp;open a connection to the server</DT
 ><DT
 ><A
+HREF="pgtcl-pgconninfo.html"
+>pg_dbinfo</A
+>&nbsp;--&nbsp;returns a list of current open connection/result handles</DT
+><DT
+><A
 HREF="pgtcl-pgdisconnect.html"
 >pg_disconnect</A
 >&nbsp;--&nbsp;close a connection to the server</DT
@@ -201,9 +206,27 @@ CLASS="PRODUCTNAME"
  </DT
 ><DT
 ><A
-HREF="pgtcl-pgescape-string.html"
+HREF="pgtcl-quote.html"
 >pg_quote</A
 >&nbsp;--&nbsp;escapes a string for inclusion into SQL statements
+ </DT
+><DT
+><A
+HREF="pgtcl-pgescape-string.html"
+>pg_escape_string</A
+>&nbsp;--&nbsp;escapes a string for inclusion into SQL statements. This is the same as pg_quote. It was added for consistency.
+ </DT
+><DT
+><A
+HREF="pgtcl-pgescape-bytea.html"
+>pg_escape_bytea</A
+>&nbsp;--&nbsp;escapes a binary string for inclusion into SQL statements. 
+ </DT
+><DT
+><A
+HREF="pgtcl-pgunescape-bytea.html"
+>pg_unescape_bytea</A
+>&nbsp;--&nbsp;unescapes a binary string.
  </DT
 ><DT
 ><A

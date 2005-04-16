@@ -18,13 +18,13 @@ REL="PREVIOUS"
 TITLE="pgtcl Command Reference"
 HREF="libpgtcl-ref.html"><LINK
 REL="NEXT"
-TITLE="pg_disconnect"
-HREF="pgtcl-pgdisconnect.html"><LINK
+TITLE="pg_dbinfo"
+HREF="pgtcl-pgconninfo.html"><LINK
 REL="STYLESHEET"
 TYPE="text/css"
 HREF="stylesheet.css"><META
 NAME="creation"
-CONTENT="2004-11-30T16:48:46"></HEAD
+CONTENT="2005-04-16T09:37:34"></HEAD
 ><BODY
 CLASS="REFENTRY"
 ><DIV
@@ -70,7 +70,7 @@ WIDTH="10%"
 ALIGN="right"
 VALIGN="top"
 ><A
-HREF="pgtcl-pgdisconnect.html"
+HREF="pgtcl-pgconninfo.html"
 >Fast Forward</A
 ></TD
 ><TD
@@ -78,7 +78,7 @@ WIDTH="10%"
 ALIGN="right"
 VALIGN="top"
 ><A
-HREF="pgtcl-pgdisconnect.html"
+HREF="pgtcl-pgconninfo.html"
 ACCESSKEY="N"
 >Next</A
 ></TD
@@ -95,7 +95,7 @@ NAME="PGTCL-PGCONNECT"
 ><DIV
 CLASS="REFNAMEDIV"
 ><A
-NAME="AEN200"
+NAME="AEN275"
 ></A
 ><H2
 >Name</H2
@@ -106,7 +106,7 @@ NAME="IX-PGTCL-PGCONNECT-2"
 ><DIV
 CLASS="REFSYNOPSISDIV"
 ><A
-NAME="AEN205"
+NAME="AEN280"
 ></A
 ><H2
 >Synopsis</H2
@@ -115,7 +115,13 @@ CLASS="SYNOPSIS"
 >pg_connect -conninfo <VAR
 CLASS="PARAMETER"
 >connectOptions</VAR
->
+> ?<SPAN
+CLASS="OPTIONAL"
+>-connhandle <VAR
+CLASS="PARAMETER"
+>connectionHandleName</VAR
+></SPAN
+>?
 pg_connect <VAR
 CLASS="PARAMETER"
 >dbName</VAR
@@ -143,12 +149,28 @@ CLASS="OPTIONAL"
 CLASS="PARAMETER"
 >serverOptions</VAR
 ></SPAN
+>? ?<SPAN
+CLASS="OPTIONAL"
+>-connhandle <VAR
+CLASS="PARAMETER"
+>connectionHandleName</VAR
+></SPAN
+>?
+pg_connect -connlist <VAR
+CLASS="PARAMETER"
+>connectNameValueList</VAR
+> ?<SPAN
+CLASS="OPTIONAL"
+>-connhandle <VAR
+CLASS="PARAMETER"
+>connectionHandleName</VAR
+></SPAN
 >?</PRE
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN217"
+NAME="AEN299"
 ></A
 ><H2
 >Description</H2
@@ -163,13 +185,14 @@ CLASS="PRODUCTNAME"
 > server.
   </P
 ><P
->   Two syntaxes are available.  In the older one, each possible option
+>   Three syntaxes are available.  In the older one, each possible option
    has a separate option switch in the <TT
 CLASS="COMMAND"
 >pg_connect</TT
 >
    command.  In the newer form, a single option string is supplied
-   that can contain multiple option values.
+   that can contain multiple option values. The third form takes
+   the parameters as a name value Tcl list.
    <CODE
 CLASS="FUNCTION"
 >pg_conndefaults</CODE
@@ -180,7 +203,7 @@ CLASS="FUNCTION"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN225"
+NAME="AEN307"
 ></A
 ><H2
 >Arguments</H2
@@ -272,7 +295,7 @@ CLASS="LITERAL"
 ><DD
 ><P
 >	  Name of host to connect to.<A
-NAME="AEN253"
+NAME="AEN335"
 ></A
 >
 	  If this begins with a slash, it specifies Unix-domain
@@ -283,7 +306,7 @@ NAME="AEN253"
 CLASS="FILENAME"
 >/tmp</TT
 >.<A
-NAME="AEN256"
+NAME="AEN338"
 ></A
 >
 	 </P
@@ -316,7 +339,7 @@ CLASS="LITERAL"
 CLASS="LITERAL"
 >host</TT
 > allows the
-	  application to avoid a host name look-up, which may be important in
+	  application to avoid a host name lookup, which may be important in
 	  applications with time constraints. However, Kerberos authentication
 	  requires the host name. The following therefore applies: If
 	  <TT
@@ -394,7 +417,7 @@ CLASS="LITERAL"
 >	  Port number to connect to at the server host, or socket file
 	  name extension for Unix-domain
 	  connections.<A
-NAME="AEN289"
+NAME="AEN371"
 ></A
 >
 	 </P
@@ -541,7 +564,7 @@ CLASS="ACRONYM"
 >SSL</ACRONYM
 >
 	   connection.<A
-NAME="AEN345"
+NAME="AEN427"
 ></A
 >
 	  </P
@@ -620,6 +643,20 @@ CLASS="REPLACEABLE"
 >/share/pg_service.conf.sample</TT
 > for
 	  information on how to set up the file.
+	 </P
+></DD
+><DT
+><VAR
+CLASS="OPTION"
+>-connhandle <VAR
+CLASS="PARAMETER"
+>connectionHandleName</VAR
+></VAR
+></DT
+><DD
+><P
+>         Name to use for the connection handle, instead of pgtcl generating the
+name automatically. Without the option, the name is auto-generated, prefixed with pgsql, and with a numeric id at the end. This gives the programmer control over the name of the connection handle.
 	 </P
 ></DD
 ></DL
@@ -715,13 +752,69 @@ CLASS="PARAMETER"
 >      Additional configuration options to pass to the server.
      </P
 ></DD
+><DT
+><VAR
+CLASS="OPTION"
+>-connhandle <VAR
+CLASS="PARAMETER"
+>connectionHandleName</VAR
+></VAR
+></DT
+><DD
+><P
+>         Name to use for the connection handle, instead of pgtcl generating the
+name automatically. Without the option, the name is auto-generated, prefixed with pgsql, and with a numeric id at the end. This gives the programmer control over the name of the connection handle.
+	 </P
+></DD
+></DL
+></DIV
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><P
+><B
+>Third style (most recent one added)</B
+></P
+><DL
+><DT
+><VAR
+CLASS="PARAMETER"
+>-connlist connectNameValuelist</VAR
+></DT
+><DD
+><P
+>       <CODE
+CLASS="FUNCTION"
+>pg_connect</CODE
+> opens a new database connection using the 
+       parameters taken from the <TT
+CLASS="LITERAL"
+>connlist</TT
+> string. The parameters are exactly the same for the New Style, but they are stored as a Tcl list, instead of a string.
+
+</P><PRE
+CLASS="PROGRAMLISTING"
+>array set conninfo {
+    host    192.168.123.180
+    port    5801
+    dbname  template1
+    user    postgres
+}
+set conn [pg::connect -connlist [array get ::conninfo]]</PRE
+><P></P><PRE
+CLASS="PROGRAMLISTING"
+>&#13;
+	 </PRE
+><P></P
+></DD
 ></DL
 ></DIV
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN406"
+NAME="AEN511"
 ></A
 ><H2
 >Return Value</H2
@@ -767,7 +860,7 @@ WIDTH="33%"
 ALIGN="right"
 VALIGN="top"
 ><A
-HREF="pgtcl-pgdisconnect.html"
+HREF="pgtcl-pgconninfo.html"
 ACCESSKEY="N"
 >Next</A
 ></TD
@@ -794,7 +887,7 @@ ACCESSKEY="U"
 WIDTH="33%"
 ALIGN="right"
 VALIGN="top"
->pg_disconnect</TD
+>pg_dbinfo</TD
 ></TR
 ></TABLE
 ></DIV
