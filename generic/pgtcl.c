@@ -74,7 +74,7 @@ static PgCmd commands[] = {
     {"pg_connect", "::pg::connect", Pg_connect,2},
     {"pg_disconnect", "::pg::disconnect", Pg_disconnect,2},
     {"pg_exec", "::pg::sqlexec", Pg_exec,2},
-    {"pg_exec_prepared", "::pg::sqlexec_prepared", Pg_exec_prepared,3},
+    {"pg_exec_prepared", "::pg::exec_prepared", Pg_exec_prepared,3},
     {"pg_select", "::pg::select", Pg_select,2},
     {"pg_result", "::pg::result", Pg_result,2},
     {"pg_execute", "::pg::execute", Pg_execute,2},

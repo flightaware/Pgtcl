@@ -49,10 +49,10 @@ typedef struct Pg_TclNotifies_s
 
 typedef struct Pg_resultid_s
 {
-    int            id;
-    Tcl_Obj           *str;
-    Tcl_Interp     *interp;
-    Tcl_Command    cmd_token;
+    int                id;
+    Tcl_Obj            *str;
+    Tcl_Interp         *interp;
+    Tcl_Command        cmd_token;
 } Pg_resultid;
 
 typedef struct Pg_ConnectionId_s

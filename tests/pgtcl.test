@@ -379,7 +379,7 @@ test pgtcl-6.2 {using pg_exec_prepared with params} {
                        ORDER BY relname
                           LIMIT $1}]
 
-    set res [pg::sqlexec_prepared $conn test_prepare 5]
+    set res [pg::exec_prepared $conn test_prepare 5]
 
     set results [pg::result $res -list]
 
