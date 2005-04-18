@@ -24,7 +24,7 @@ REL="STYLESHEET"
 TYPE="text/css"
 HREF="stylesheet.css"><META
 NAME="creation"
-CONTENT="2005-04-16T09:37:34"></HEAD
+CONTENT="2005-04-18T11:38:22"></HEAD
 ><BODY
 CLASS="REFENTRY"
 ><DIV
@@ -95,7 +95,7 @@ NAME="PGTCL-PGCONNECT"
 ><DIV
 CLASS="REFNAMEDIV"
 ><A
-NAME="AEN275"
+NAME="AEN277"
 ></A
 ><H2
 >Name</H2
@@ -106,7 +106,7 @@ NAME="IX-PGTCL-PGCONNECT-2"
 ><DIV
 CLASS="REFSYNOPSISDIV"
 ><A
-NAME="AEN280"
+NAME="AEN282"
 ></A
 ><H2
 >Synopsis</H2
@@ -170,7 +170,7 @@ CLASS="PARAMETER"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN299"
+NAME="AEN301"
 ></A
 ><H2
 >Description</H2
@@ -203,7 +203,7 @@ CLASS="FUNCTION"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN307"
+NAME="AEN309"
 ></A
 ><H2
 >Arguments</H2
@@ -295,7 +295,7 @@ CLASS="LITERAL"
 ><DD
 ><P
 >	  Name of host to connect to.<A
-NAME="AEN335"
+NAME="AEN337"
 ></A
 >
 	  If this begins with a slash, it specifies Unix-domain
@@ -306,7 +306,7 @@ NAME="AEN335"
 CLASS="FILENAME"
 >/tmp</TT
 >.<A
-NAME="AEN338"
+NAME="AEN340"
 ></A
 >
 	 </P
@@ -417,7 +417,7 @@ CLASS="LITERAL"
 >	  Port number to connect to at the server host, or socket file
 	  name extension for Unix-domain
 	  connections.<A
-NAME="AEN371"
+NAME="AEN373"
 ></A
 >
 	 </P
@@ -564,7 +564,7 @@ CLASS="ACRONYM"
 >SSL</ACRONYM
 >
 	   connection.<A
-NAME="AEN427"
+NAME="AEN429"
 ></A
 >
 	  </P
@@ -791,7 +791,10 @@ CLASS="FUNCTION"
        parameters taken from the <TT
 CLASS="LITERAL"
 >connlist</TT
-> string. The parameters are exactly the same for the New Style, but they are stored as a Tcl list, instead of a string.
+> list. The parameters are exactly the same for the New Style, but they are stored as a Tcl list, instead of a string. The list is a name value pair, for example: <TT
+CLASS="COMMAND"
+>[list host localhost port 5400 dbname template1]</TT
+>.
 
 </P><PRE
 CLASS="PROGRAMLISTING"
@@ -814,7 +817,7 @@ CLASS="PROGRAMLISTING"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN511"
+NAME="AEN514"
 ></A
 ><H2
 >Return Value</H2
