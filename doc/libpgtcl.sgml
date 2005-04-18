@@ -259,7 +259,7 @@ package require Pgtcl 1.5
 
 <literal>package require</literal> loads the <literal>libpgtcl</literal>
 shared library, and loads any additional Tcl code that is part of the
-<literal>Pgtcl</literal> package.
+<literal>Pgtcl</literal> package. Note that you need to either manually generate the pkgIndex.tcl file, or use <command>make pkgIndex.tcl</command> or <command>make pkgIndex.tcl-hand</command>
     </para>
 
     <para>
@@ -667,7 +667,7 @@ name automatically. Without the option, the name is auto-generated, prefixed wit
     <listitem>
     <para>
        <function>pg_connect</function> opens a new database connection using the 
-       parameters taken from the <literal>connlist</literal> string. The parameters are exactly the same for the New Style, but they are stored as a Tcl list, instead of a string.
+       parameters taken from the <literal>connlist</literal> list. The parameters are exactly the same for the New Style, but they are stored as a Tcl list, instead of a string. The list is a name value pair, for example: <command>[list host localhost port 5400 dbname template1]</command>.
 
 <programlisting>
 array set conninfo {
@@ -3347,6 +3347,7 @@ $res -clear
 rename $conn {} ;# or $conn disconnect
 </programlisting>
 
+Note that deleting the command (<command>rename $conn {}</command>), has the same effect as <command>pg::result $res -clear</command> (if it is a result handle), and <command>pg::disconnect</command> (if it is a connection handle). Also, if that command get overloaded with a proc definition, then that has the same effect as deleting the command. 
 
 </para>
  </sect1>
