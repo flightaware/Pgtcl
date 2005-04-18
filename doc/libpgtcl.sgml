@@ -667,7 +667,7 @@ name automatically. Without the option, the name is auto-generated, prefixed wit
     <listitem>
     <para>
        <function>pg_connect</function> opens a new database connection using the 
-       parameters taken from the <literal>connlist</literal> list. The parameters are exactly the same for the New Style, but they are stored as a Tcl list, instead of a string. The list is a name value pair, for example: <command>[list host localhost port 5400 dbname template1]</command>.
+       parameters taken from the <literal>connectNameValuelist</literal> list. The parameters are exactly the same for the New Style, but they are stored as a Tcl list, instead of a string. The list is a name value pair, for example: <command>[list host localhost port 5400 dbname template1]</command>.
 
 <programlisting>
 array set conninfo {
