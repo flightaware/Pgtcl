@@ -4,20 +4,20 @@ Commands:
 
 pg_conndefaults
 
-pg_connect dbName [-host hostName] [-port portNumber] [-tty pqtty]
+pg_connect dbName [-host hostName] [-port portNumber] [-tty pqtty] ?-connhandle connHandleName?
 
     The result is either an error message or a handle for a database 
     connection.  Handles start with the prefix "pgp".  
 
     (DEPRECATED, use pg_connect -conninfo instead.)
 
-pg_connect -conninfo conninfoString
+pg_connect -conninfo conninfoString ?-connhandle connHandleName?
 
     The modern way to connect, all necessary information required for
     the connection (host, port, database, user, password, etc.) is
     specified in the connect info string.
 
-pg_connect -connlist name_value_list
+pg_connect -connlist name_value_list ?-connhandle connHandleName?
     This was added to better suit Tcl style of data structures. You can set
     an array with the connection info, such as:
 
@@ -116,6 +116,12 @@ pg_result
 
 	-lAttributes    returns a list of the {name type len} entries of the 
                             tuple attributes
+
+	-list		returns a list with the results
+
+	-llist		returns a list of lists with the results
+
+	-dict		returns a dict object with the results
 
 	-clear		clear the result buffer. Do not reuse after this
 
