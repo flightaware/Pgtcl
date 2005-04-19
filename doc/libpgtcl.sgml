@@ -259,7 +259,7 @@ package require Pgtcl 1.5
 
 <literal>package require</literal> loads the <literal>libpgtcl</literal>
 shared library, and loads any additional Tcl code that is part of the
-<literal>Pgtcl</literal> package. Note that you need to either manually generate the pkgIndex.tcl file, or use <command>make pkgIndex.tcl</command> or <command>make pkgIndex.tcl-hand</command>
+<literal>Pgtcl</literal> package. Note that you can manually generate the pkgIndex.tcl file, or use <command>make pkgIndex.tcl</command> or <command>make pkgIndex.tcl-hand</command> to have make generate it.
     </para>
 
     <para>
@@ -1372,6 +1372,16 @@ pg_result <parameter>resultHandle</parameter> <parameter>resultOption</parameter
          <para>
           Returns a list of lists, where each embedded list represents
 	  a tuple in the result.
+         </para>
+        </listitem>
+       </varlistentry>
+
+       <varlistentry>
+        <term><option>-dict</option></term>
+        <listitem>
+         <para>
+          Returns a dict object with the results. This needs to have dictionary
+          support built into Tcl (Tcl 8.5), and is experimental right now.
          </para>
         </listitem>
        </varlistentry>
@@ -3337,7 +3347,7 @@ set conn [connect template1 -host $host -port $port]
 <sect1 id="pgtcl-commandhandles">
  <title>Connection/result handles as commands</title>
 <para>
-Starting with version 1.5, you can use the connection/result handle as a Tcl command. For example, you can do the following:
+Starting with version 1.5, you can use the connection/result handle as a Tcl command. What this means is that when a handle for a connection or result is generated, a corresponding Tcl command is also generate. For example, you can do the following:
 
 <programlisting>
 set conn [pg::connect template1 -host $host -port $port]
@@ -3347,7 +3357,7 @@ $res -clear
 rename $conn {} ;# or $conn disconnect
 </programlisting>
 
-Note that deleting the command (<command>rename $conn {}</command>), has the same effect as <command>pg::result $res -clear</command> (if it is a result handle), and <command>pg::disconnect</command> (if it is a connection handle). Also, if that command get overloaded with a proc definition, then that has the same effect as deleting the command. 
+Note that deleting the command (<command>rename $conn {}</command>), has the same effect as <command>pg::result $res -clear</command> (if it is a result handle), and <command>pg::disconnect</command> (if it is a connection handle). Also, if that command gets overloaded with a proc definition, then that has the same effect as deleting the command. 
 
 </para>
  </sect1>
