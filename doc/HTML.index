@@ -1,0 +1,287 @@
+INDEXTERM libpgtcl.html
+INDEXPOINT libpgtcl.html#AEN9
+TITLE pgtcl - Tcl Binding Library
+significance NORMAL
+ZONE index.html
+TITLE PostgreSQL Tcl Interface Documentation
+PRIMARY libpgtcl
+/INDEXTERM
+INDEXTERM libpgtcl.html
+INDEXPOINT libpgtcl.html#AEN11
+TITLE pgtcl - Tcl Binding Library
+significance NORMAL
+ZONE index.html
+TITLE PostgreSQL Tcl Interface Documentation
+PRIMARY pgtcl
+/INDEXTERM
+INDEXTERM libpgtcl.html
+INDEXPOINT libpgtcl.html#AEN13
+TITLE pgtcl - Tcl Binding Library
+significance NORMAL
+ZONE index.html
+TITLE PostgreSQL Tcl Interface Documentation
+PRIMARY Tcl
+/INDEXTERM
+INDEXTERM libpgtcl.html#PGTCL-OVERVIEW
+INDEXPOINT libpgtcl.html#AEN224
+TITLE Overview
+significance NORMAL
+PRIMARY large    object
+SECONDARY in pgctl
+/INDEXTERM
+INDEXTERM pgtcl-pgconnect.html
+INDEXPOINT pgtcl-pgconnect.html#IX-PGTCL-PGCONNECT-2
+TITLE pg_connect
+significance NORMAL
+id IX-PGTCL-PGCONNECT-2
+PRIMARY pg_connect
+/INDEXTERM
+INDEXTERM pgtcl-pgconnect.html#AEN307
+INDEXPOINT pgtcl-pgconnect.html#AEN335
+TITLE Arguments
+significance NORMAL
+PRIMARY host name
+/INDEXTERM
+INDEXTERM pgtcl-pgconnect.html#AEN307
+INDEXPOINT pgtcl-pgconnect.html#AEN338
+TITLE Arguments
+significance NORMAL
+PRIMARY Unix domain 	  socket
+/INDEXTERM
+INDEXTERM pgtcl-pgconnect.html#AEN307
+INDEXPOINT pgtcl-pgconnect.html#AEN371
+TITLE Arguments
+significance NORMAL
+PRIMARY port
+/INDEXTERM
+INDEXTERM pgtcl-pgconnect.html#AEN307
+INDEXPOINT pgtcl-pgconnect.html#AEN427
+TITLE Arguments
+significance NORMAL
+PRIMARY SSL
+SECONDARY[libpq] with libpq
+/INDEXTERM
+INDEXTERM pgtcl-pgconninfo.html
+INDEXPOINT pgtcl-pgconninfo.html#IX-PGTCL-PGCONNINFO-2
+TITLE pg_dbinfo
+significance NORMAL
+id IX-PGTCL-PGCONNINFO-2
+PRIMARY pg_dbinfo
+/INDEXTERM
+INDEXTERM pgtcl-pgdisconnect.html
+INDEXPOINT pgtcl-pgdisconnect.html#IX-PGTCL-PGDISCONNECT-2
+TITLE pg_disconnect
+significance NORMAL
+id IX-PGTCL-PGDISCONNECT-2
+PRIMARY pg_disconnect
+/INDEXTERM
+INDEXTERM pgtcl-pgconndefaults.html
+INDEXPOINT pgtcl-pgconndefaults.html#IX-PGTCL-PGCONNDEFAULTS-2
+TITLE pg_conndefaults
+significance NORMAL
+id IX-PGTCL-PGCONNDEFAULTS-2
+PRIMARY pg_conndefaults
+/INDEXTERM
+INDEXTERM pgtcl-pgexec.html
+INDEXPOINT pgtcl-pgexec.html#IX-PGTCL-PGEXEC-2
+TITLE pg_exec
+significance NORMAL
+id IX-PGTCL-PGEXEC-2
+PRIMARY pg_exec
+/INDEXTERM
+INDEXTERM pgtcl-pgexecprepared.html
+INDEXPOINT pgtcl-pgexecprepared.html#IX-PGTCL-PGEXECPREPARED-2
+TITLE pg_exec_prepared
+significance NORMAL
+id IX-PGTCL-PGEXECPREPARED-2
+PRIMARY pg_exec_prepared
+/INDEXTERM
+INDEXTERM pgtcl-pgresult.html
+INDEXPOINT pgtcl-pgresult.html#IX-PGTCL-PGRESULT-2
+TITLE pg_result
+significance NORMAL
+id IX-PGTCL-PGRESULT-2
+PRIMARY pg_result
+/INDEXTERM
+INDEXTERM pgtcl-pgselect.html
+INDEXPOINT pgtcl-pgselect.html#IX-PGTCL-PGSELECT-2
+TITLE pg_select
+significance NORMAL
+id IX-PGTCL-PGSELECT-2
+PRIMARY pg_select
+/INDEXTERM
+INDEXTERM pgtcl-pgexecute.html
+INDEXPOINT pgtcl-pgexecute.html#IX-PGTCL-PGEXECUTE-2
+TITLE pg_execute
+significance NORMAL
+id IX-PGTCL-PGEXECUTE-2
+PRIMARY pg_execute
+/INDEXTERM
+INDEXTERM pgtcl-pgresults.html
+INDEXPOINT pgtcl-pgresults.html#IX-PGTCL-PGRESULTS-2
+TITLE pg_results
+significance NORMAL
+id IX-PGTCL-PGRESULTS-2
+PRIMARY pg_results
+/INDEXTERM
+INDEXTERM pgtcl-pglisten.html
+INDEXPOINT pgtcl-pglisten.html#IX-PGTCL-PGLISTEN-2
+TITLE pg_listen
+significance NORMAL
+id IX-PGTCL-PGLISTEN-2
+PRIMARY pg_listen
+/INDEXTERM
+INDEXTERM pgtcl-pglisten.html#AEN1127
+INDEXPOINT pgtcl-pglisten.html#AEN1138
+TITLE Description
+significance NORMAL
+PRIMARY NOTIFY
+SECONDARY[pgtcl] in pgtcl
+/INDEXTERM
+INDEXTERM pgtcl-pgon-connection-loss.html
+INDEXPOINT pgtcl-pgon-connection-loss.html#IX-PGTCL-PGON-CONNECTION-LOSS-2
+TITLE pg_on_connection_loss
+significance NORMAL
+id IX-PGTCL-PGON-CONNECTION-LOSS-2
+PRIMARY pg_on_connection_loss
+/INDEXTERM
+INDEXTERM pgtcl-pgsendquery.html
+INDEXPOINT pgtcl-pgsendquery.html#IX-PGTCL-PGSENDQUERY-2
+TITLE pg_sendquery
+significance NORMAL
+id IX-PGTCL-PGSENDQUERY-2
+PRIMARY pg_sendquery
+/INDEXTERM
+INDEXTERM pgtcl-pgsendqueryprepared.html
+INDEXPOINT pgtcl-pgsendqueryprepared.html#IX-PGTCL-PGSENDQUERYPREPARED-2
+TITLE pg_sendquery_prepared
+significance NORMAL
+id IX-PGTCL-PGSENDQUERYPREPARED-2
+PRIMARY pg_sendquery_prepared
+/INDEXTERM
+INDEXTERM pgtcl-pggetresult.html
+INDEXPOINT pgtcl-pggetresult.html#IX-PGTCL-PGGETRESULT-2
+TITLE pg_getresult
+significance NORMAL
+id IX-PGTCL-PGGETRESULT-2
+PRIMARY pg_getresult
+/INDEXTERM
+INDEXTERM pgtcl-pgisbusy.html
+INDEXPOINT pgtcl-pgisbusy.html#IX-PGTCL-PGISBUSY-2
+TITLE pg_isbusy
+significance NORMAL
+id IX-PGTCL-PGISBUSY-2
+PRIMARY pg_isbusy
+/INDEXTERM
+INDEXTERM pgtcl-pgblocking.html
+INDEXPOINT pgtcl-pgblocking.html#IX-PGTCL-PGBLOCKING-2
+TITLE pg_blocking
+significance NORMAL
+id IX-PGTCL-PGBLOCKING-2
+PRIMARY pg_blocking
+/INDEXTERM
+INDEXTERM pgtcl-pgcancelrequest.html
+INDEXPOINT pgtcl-pgcancelrequest.html#IX-PGTCL-PGCANCELREQUEST-2
+TITLE pg_cancelrequest
+significance NORMAL
+id IX-PGTCL-PGCANCELREQUEST-2
+PRIMARY pg_cancelrequest
+/INDEXTERM
+INDEXTERM pgtcl-quote.html
+INDEXPOINT pgtcl-quote.html#IX-PGTCL-QUOTE-2
+TITLE pg_quote
+significance NORMAL
+id IX-PGTCL-QUOTE-2
+PRIMARY pg_quote
+/INDEXTERM
+INDEXTERM pgtcl-pgescape-string.html
+INDEXPOINT pgtcl-pgescape-string.html#IX-PGTCL-PGESCAPE-STRING-2
+TITLE pg_escape_string
+significance NORMAL
+id IX-PGTCL-PGESCAPE-STRING-2
+PRIMARY pg_escape_string
+/INDEXTERM
+INDEXTERM pgtcl-pgescape-bytea.html
+INDEXPOINT pgtcl-pgescape-bytea.html#IX-PGTCL-PGESCAPE-BYTEA-2
+TITLE pg_escape_bytea
+significance NORMAL
+id IX-PGTCL-PGESCAPE-BYTEA-2
+PRIMARY pg_escape_bytea
+/INDEXTERM
+INDEXTERM pgtcl-pgunescape-bytea.html
+INDEXPOINT pgtcl-pgunescape-bytea.html#IX-PGTCL-PGUNESCAPE-BYTEA-2
+TITLE pg_unescape_bytea
+significance NORMAL
+id IX-PGTCL-PGUNESCAPE-BYTEA-2
+PRIMARY pg_unescape_bytea
+/INDEXTERM
+INDEXTERM pgtcl-pglocreat.html
+INDEXPOINT pgtcl-pglocreat.html#IX-PGTCL-PGLOCREAT-2
+TITLE pg_lo_creat
+significance NORMAL
+id IX-PGTCL-PGLOCREAT-2
+PRIMARY pg_lo_creat
+/INDEXTERM
+INDEXTERM pgtcl-pgloopen.html
+INDEXPOINT pgtcl-pgloopen.html#IX-PGTCL-PGLOOPEN-2
+TITLE pg_lo_open
+significance NORMAL
+id IX-PGTCL-PGLOOPEN-2
+PRIMARY pg_lo_open
+/INDEXTERM
+INDEXTERM pgtcl-pgloclose.html
+INDEXPOINT pgtcl-pgloclose.html#IX-PGTCL-PGLOCLOSE-2
+TITLE pg_lo_close
+significance NORMAL
+id IX-PGTCL-PGLOCLOSE-2
+PRIMARY pg_lo_close
+/INDEXTERM
+INDEXTERM pgtcl-pgloread.html
+INDEXPOINT pgtcl-pgloread.html#IX-PGTCL-PGLOREAD-2
+TITLE pg_lo_read
+significance NORMAL
+id IX-PGTCL-PGLOREAD-2
+PRIMARY pg_lo_read
+/INDEXTERM
+INDEXTERM pgtcl-pglowrite.html
+INDEXPOINT pgtcl-pglowrite.html#IX-PGTCL-PGLOWRITE-2
+TITLE pg_lo_write
+significance NORMAL
+id IX-PGTCL-PGLOWRITE-2
+PRIMARY pg_lo_write
+/INDEXTERM
+INDEXTERM pgtcl-pglolseek.html
+INDEXPOINT pgtcl-pglolseek.html#IX-PGTCL-PGLOLSEEK-2
+TITLE pg_lo_lseek
+significance NORMAL
+id IX-PGTCL-PGLOLSEEK-2
+PRIMARY pg_lo_lseek
+/INDEXTERM
+INDEXTERM pgtcl-pglotell.html
+INDEXPOINT pgtcl-pglotell.html#IX-PGTCL-PGLOTELL-2
+TITLE pg_lo_tell
+significance NORMAL
+id IX-PGTCL-PGLOTELL-2
+PRIMARY pg_lo_tell
+/INDEXTERM
+INDEXTERM pgtcl-pglounlink.html
+INDEXPOINT pgtcl-pglounlink.html#IX-PGTCL-PGLOUNLINK-2
+TITLE pg_lo_unlink
+significance NORMAL
+id IX-PGTCL-PGLOUNLINK-2
+PRIMARY pg_lo_unlink
+/INDEXTERM
+INDEXTERM pgtcl-pgloimport.html
+INDEXPOINT pgtcl-pgloimport.html#IX-PGTCL-PGLOIMPORT-2
+TITLE pg_lo_import
+significance NORMAL
+id IX-PGTCL-PGLOIMPORT-2
+PRIMARY pg_lo_import
+/INDEXTERM
+INDEXTERM pgtcl-pgloexport.html
+INDEXPOINT pgtcl-pgloexport.html#IX-PGTCL-PGLOEXPORT-2
+TITLE pg_lo_export
+significance NORMAL
+id IX-PGTCL-PGLOEXPORT-2
+PRIMARY pg_lo_export
+/INDEXTERM
