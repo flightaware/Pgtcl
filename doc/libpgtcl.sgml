@@ -1727,64 +1727,6 @@ pg_execute $pgconn "SELECT max(value) AS max, min(value) AS min FROM mytable;"
  </refsect1>
 </refentry>
 
-<refentry ID="PGTCL-PGRESULTS">
- <refmeta>
-  <refentrytitle>pg_results</refentrytitle>
- </refmeta>
-
- <refnamediv>
-  <refname>pg_results</refname>
-  <refpurpose>return a list of all the uncleared result handles for a connection</refpurpose>
-  <indexterm ID="IX-PGTCL-PGRESULTS-2"><primary>pg_results</primary></indexterm>
- </refnamediv>
-
- <refsynopsisdiv>
-<synopsis>
-pg_results <parameter>conn</parameter>
-</synopsis>
- </refsynopsisdiv>
-
- <refsect1>
-  <title>Description</title>
-
-  <para>
-   <function>pg_results</function> returns a list off all of the
-   <productname>PostgreSQL</> result handles returned by
-   <function>pg_exec</function>, <function>pg_exec_prepared</function>,
-   <function>pg_sendquery</function>, 
-   <function>pg_sendquery_prepared</function>, etc.
-  </para>
- </refsect1>
-
- <refsect1>
-  <title>Arguments</title>
-
-  <variablelist>
-   <varlistentry>
-    <term><parameter>conn</parameter></term>
-    <listitem>
-     <para>
-      The handle of the connection on which to listen for notifications.
-     </para>
-    </listitem>
-   </varlistentry>
-
-  </variablelist>
- </refsect1>
-
- <refsect1>
-  <title>Return Value</title>
-
-  <para>
-   A list of all of the result handles that haven't been cleared with
-   <function>pg_result</function> <parameter>-clear</parameter>.
-  </para>
-  <para>
-  The list can be empty if there are no uncleared result handles.
-  </para>
- </refsect1>
-</refentry>
-
 <refentry ID="PGTCL-PGLISTEN">
  <refmeta>
   <refentrytitle>pg_listen</refentrytitle>
