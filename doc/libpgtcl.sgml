@@ -56,7 +56,7 @@ $Header$
 
 <table id="pgtcl-commands-table">
 <title><application>pgtcl</application> Commands</title>
-<tgroup cols="2">
+<tgroup cols="3">
 <thead>
   <row>
     <entry>Command</entry>
@@ -1381,7 +1381,10 @@ pg_result <parameter>resultHandle</parameter> <parameter>resultOption</parameter
         <listitem>
          <para>
           Returns a dict object with the results. This needs to have dictionary
-          support built into Tcl (Tcl 8.5), and is experimental right now.
+          support built into Tcl (Tcl 8.5), and is experimental right now, since 
+          Tcl 8.5 has not been release yet, and the API could change. In
+          order to enable this, you need to add <literal>-DHAVE_TCL_NEWDICTOBJ
+          </literal> to the Makefile in the <literal>DEFS</literal> variable.
          </para>
         </listitem>
        </varlistentry>
@@ -3273,7 +3276,7 @@ pg_lo_export <parameter>conn</parameter> <parameter>loid</parameter> <parameter>
  <title>Tcl Namespace Support</title>
 
  <para>
-With version 1.5, there is proper Tcl namespace support build into <application>pgtcl</application>. There are commands now that mirror the pg_ commands, but use the Tcl namespace convention. For example, there are commands now called: pg::connect, pg::result, etc. However, due to this, there are some incapabilities. For example, pg_exec has a counterpart called pg::sqlexec, since doing a namespace import ::pg::* would clobber the builtin Tcl commmand exec. The old command names, pg_*, are still there for backwards compatibility, but might be phased out eventually.
+With version 1.5, there is proper Tcl namespace support built into <application>pgtcl</application>. There are commands now that mirror the pg_ commands, but use the Tcl namespace convention. For example, there are commands now called: pg::connect, pg::result, etc. However, due to this, there are some incapabilities. For example, pg_exec has a counterpart called pg::sqlexec, since doing a namespace import ::pg::* would clobber the builtin Tcl commmand exec. The old command names, pg_*, are still there for backwards compatibility, but might be phased out eventually.
  </para>
  <para>
 So, one can use Tcl's namespace mechanisms now with <application>pgtcl</application>. For eaxmple, you can import that namespace:
@@ -3346,6 +3349,20 @@ proc getDBs { {host "localhost"} {port "5432"} } {
     pg_disconnect $conn
     return $datnames
 }
+
+## OR an alternative
+
+proc getDBs { {host "localhost"} {port "5432"} } {
+    # datnames is the list to be result
+    set conn [pg_connect template1 -host $host -port $port]
+    set res [$conn "SELECT datname FROM pg_database ORDER BY datname;"]
+
+    set datnames [$res -dict]
+    $res -clear
+    rename $conn {}
+    return [dict get $datnames]
+}
+
 </programlisting>
   </example>
  </sect1>
@@ -3353,3 +3370,4 @@ proc getDBs { {host "localhost"} {port "5432"} } {
 </chapter>
 
 </book>
+
