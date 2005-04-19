@@ -21,7 +21,7 @@ REL="STYLESHEET"
 TYPE="text/css"
 HREF="stylesheet.css"><META
 NAME="creation"
-CONTENT="2005-04-18T11:38:22"></HEAD
+CONTENT="2005-04-19T17:53:13"></HEAD
 ><BODY
 CLASS="SECT1"
 ><DIV
@@ -143,7 +143,20 @@ proc getDBs { {host "localhost"} {port "5432"} } {
     pg_result $res -clear
     pg_disconnect $conn
     return $datnames
-}</PRE
+}
+
+## OR an alternative
+
+proc getDBs { {host "localhost"} {port "5432"} } {
+    # datnames is the list to be result
+    set conn [pg_connect template1 -host $host -port $port]
+    set res [$conn "SELECT datname FROM pg_database ORDER BY datname;"]
+
+    set datnames [$res -dict]
+    $res -clear
+    rename $conn {}
+    return [dict get $datnames]
+}&#13;</PRE
 ></DIV
 ></DIV
 ><DIV

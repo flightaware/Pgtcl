@@ -2,7 +2,7 @@
 <HTML
 ><HEAD
 ><TITLE
->pg_lo_unlink</TITLE
+>Connection/result handles as commands</TITLE
 ><META
 NAME="GENERATOR"
 CONTENT="Modular DocBook HTML Stylesheet Version 1.7"><LINK
@@ -12,21 +12,21 @@ REL="HOME"
 TITLE="PostgreSQL Tcl Interface Documentation"
 HREF="index.html"><LINK
 REL="UP"
-TITLE="pgtcl Command Reference"
-HREF="libpgtcl-ref.html"><LINK
+TITLE="pgtcl - Tcl Binding Library"
+HREF="libpgtcl.html"><LINK
 REL="PREVIOUS"
-TITLE="pg_lo_tell"
-HREF="pgtcl-pglotell.html"><LINK
+TITLE="Tcl Namespace Support"
+HREF="pgtcl-tclnamespace.html"><LINK
 REL="NEXT"
-TITLE="pg_lo_import"
-HREF="pgtcl-pgloimport.html"><LINK
+TITLE="Example Program"
+HREF="pgtcl-examplesect.html"><LINK
 REL="STYLESHEET"
 TYPE="text/css"
 HREF="stylesheet.css"><META
 NAME="creation"
 CONTENT="2005-04-19T17:53:13"></HEAD
 ><BODY
-CLASS="REFENTRY"
+CLASS="SECT1"
 ><DIV
 CLASS="NAVHEADER"
 ><TABLE
@@ -48,7 +48,7 @@ WIDTH="10%"
 ALIGN="left"
 VALIGN="top"
 ><A
-HREF="pgtcl-pglotell.html"
+HREF="pgtcl-tclnamespace.html"
 ACCESSKEY="P"
 >Prev</A
 ></TD
@@ -57,20 +57,23 @@ WIDTH="10%"
 ALIGN="left"
 VALIGN="top"
 ><A
-HREF="pgtcl-pglotell.html"
+HREF="libpgtcl.html"
 >Fast Backward</A
 ></TD
 ><TD
 WIDTH="60%"
 ALIGN="center"
 VALIGN="bottom"
-></TD
+>Chapter 1. <SPAN
+CLASS="APPLICATION"
+>pgtcl</SPAN
+> - Tcl Binding Library</TD
 ><TD
 WIDTH="10%"
 ALIGN="right"
 VALIGN="top"
 ><A
-HREF="pgtcl-pgloimport.html"
+HREF="libpgtcl.html"
 >Fast Forward</A
 ></TD
 ><TD
@@ -78,7 +81,7 @@ WIDTH="10%"
 ALIGN="right"
 VALIGN="top"
 ><A
-HREF="pgtcl-pgloimport.html"
+HREF="pgtcl-examplesect.html"
 ACCESSKEY="N"
 >Next</A
 ></TD
@@ -87,100 +90,36 @@ ACCESSKEY="N"
 ><HR
 ALIGN="LEFT"
 WIDTH="100%"></DIV
+><DIV
+CLASS="SECT1"
 ><H1
+CLASS="SECT1"
 ><A
-NAME="PGTCL-PGLOUNLINK"
-></A
->pg_lo_unlink</H1
-><DIV
-CLASS="REFNAMEDIV"
-><A
-NAME="AEN1810"
-></A
-><H2
->Name</H2
->pg_lo_unlink&nbsp;--&nbsp;delete a large object<A
-NAME="IX-PGTCL-PGLOUNLINK-2"
-></A
-></DIV
-><DIV
-CLASS="REFSYNOPSISDIV"
-><A
-NAME="AEN1815"
-></A
-><H2
->Synopsis</H2
-><PRE
-CLASS="SYNOPSIS"
->pg_lo_unlink <VAR
-CLASS="PARAMETER"
->conn</VAR
-> <VAR
-CLASS="PARAMETER"
->loid</VAR
-></PRE
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN1819"
-></A
-><H2
->Description</H2
+NAME="PGTCL-COMMANDHANDLES"
+>1.5. Connection/result handles as commands</A
+></H1
 ><P
->   <CODE
-CLASS="FUNCTION"
->pg_lo_unlink</CODE
-> deletes the specified large
-   object.
-  </P
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN1823"
-></A
-><H2
->Arguments</H2
-><P
-></P
-><DIV
-CLASS="VARIABLELIST"
-><DL
-><DT
-><VAR
-CLASS="PARAMETER"
->conn</VAR
-></DT
-><DD
-><P
->      The handle of a connection to the database in which the large object
-      exists.
-     </P
-></DD
-><DT
-><VAR
-CLASS="PARAMETER"
->loid</VAR
-></DT
-><DD
-><P
->      The OID of the large object.
-     </P
-></DD
-></DL
-></DIV
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN1836"
-></A
-><H2
->Return Value</H2
-><P
->   None
-  </P
+>Starting with version 1.5, you can use the connection/result handle as a Tcl command. What this means is that when a handle for a connection or result is generated, a corresponding Tcl command is also generate. For example, you can do the following:
+
+</P><PRE
+CLASS="PROGRAMLISTING"
+>set conn [pg::connect template1 -host $host -port $port]
+set res [$conn exec "SELECT datname FROM pg_database ORDER BY datname;"]
+set datnames [$res -list]
+$res -clear
+rename $conn {} ;# or $conn disconnect</PRE
+><P>
+
+Note that deleting the command (<TT
+CLASS="COMMAND"
+>rename $conn {}</TT
+>), has the same effect as <TT
+CLASS="COMMAND"
+>pg::result $res -clear</TT
+> (if it is a result handle), and <TT
+CLASS="COMMAND"
+>pg::disconnect</TT
+> (if it is a connection handle). Also, if that command gets overloaded with a proc definition, then that has the same effect as deleting the command. &#13;</P
 ></DIV
 ><DIV
 CLASS="NAVFOOTER"
@@ -198,7 +137,7 @@ WIDTH="33%"
 ALIGN="left"
 VALIGN="top"
 ><A
-HREF="pgtcl-pglotell.html"
+HREF="pgtcl-tclnamespace.html"
 ACCESSKEY="P"
 >Prev</A
 ></TD
@@ -216,7 +155,7 @@ WIDTH="33%"
 ALIGN="right"
 VALIGN="top"
 ><A
-HREF="pgtcl-pgloimport.html"
+HREF="pgtcl-examplesect.html"
 ACCESSKEY="N"
 >Next</A
 ></TD
@@ -226,13 +165,13 @@ ACCESSKEY="N"
 WIDTH="33%"
 ALIGN="left"
 VALIGN="top"
->pg_lo_tell</TD
+>Tcl Namespace Support</TD
 ><TD
 WIDTH="34%"
 ALIGN="center"
 VALIGN="top"
 ><A
-HREF="libpgtcl-ref.html"
+HREF="libpgtcl.html"
 ACCESSKEY="U"
 >Up</A
 ></TD
@@ -240,7 +179,7 @@ ACCESSKEY="U"
 WIDTH="33%"
 ALIGN="right"
 VALIGN="top"
->pg_lo_import</TD
+>Example Program</TD
 ></TR
 ></TABLE
 ></DIV

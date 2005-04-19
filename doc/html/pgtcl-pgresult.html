@@ -24,7 +24,7 @@ REL="STYLESHEET"
 TYPE="text/css"
 HREF="stylesheet.css"><META
 NAME="creation"
-CONTENT="2005-04-18T11:38:22"></HEAD
+CONTENT="2005-04-19T17:53:13"></HEAD
 ><BODY
 CLASS="REFENTRY"
 ><DIV
@@ -581,6 +581,26 @@ CLASS="OPTION"
 ><DT
 ><VAR
 CLASS="OPTION"
+>-dict</VAR
+></DT
+><DD
+><P
+>          Returns a dict object with the results. This needs to have dictionary
+          support built into Tcl (Tcl 8.5), and is experimental right now, since 
+          Tcl 8.5 has not been release yet, and the API could change. In
+          order to enable this, you need to add <TT
+CLASS="LITERAL"
+>-DHAVE_TCL_NEWDICTOBJ
+          </TT
+> to the Makefile in the <TT
+CLASS="LITERAL"
+>DEFS</TT
+> variable.
+         </P
+></DD
+><DT
+><VAR
+CLASS="OPTION"
 >-clear</VAR
 ></DT
 ><DD
@@ -599,7 +619,7 @@ CLASS="OPTION"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN899"
+NAME="AEN906"
 ></A
 ><H2
 >Return Value</H2

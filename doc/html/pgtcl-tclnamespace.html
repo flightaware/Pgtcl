@@ -2,7 +2,7 @@
 <HTML
 ><HEAD
 ><TITLE
->pg_lo_tell</TITLE
+>Tcl Namespace Support</TITLE
 ><META
 NAME="GENERATOR"
 CONTENT="Modular DocBook HTML Stylesheet Version 1.7"><LINK
@@ -12,21 +12,21 @@ REL="HOME"
 TITLE="PostgreSQL Tcl Interface Documentation"
 HREF="index.html"><LINK
 REL="UP"
-TITLE="pgtcl Command Reference"
-HREF="libpgtcl-ref.html"><LINK
+TITLE="pgtcl - Tcl Binding Library"
+HREF="libpgtcl.html"><LINK
 REL="PREVIOUS"
-TITLE="pg_lo_lseek"
-HREF="pgtcl-pglolseek.html"><LINK
+TITLE="pg_lo_export"
+HREF="pgtcl-pgloexport.html"><LINK
 REL="NEXT"
-TITLE="pg_lo_unlink"
-HREF="pgtcl-pglounlink.html"><LINK
+TITLE="Connection/result handles as commands"
+HREF="pgtcl-commandhandles.html"><LINK
 REL="STYLESHEET"
 TYPE="text/css"
 HREF="stylesheet.css"><META
 NAME="creation"
 CONTENT="2005-04-19T17:53:13"></HEAD
 ><BODY
-CLASS="REFENTRY"
+CLASS="SECT1"
 ><DIV
 CLASS="NAVHEADER"
 ><TABLE
@@ -48,7 +48,7 @@ WIDTH="10%"
 ALIGN="left"
 VALIGN="top"
 ><A
-HREF="pgtcl-pglolseek.html"
+HREF="pgtcl-pgloexport.html"
 ACCESSKEY="P"
 >Prev</A
 ></TD
@@ -57,20 +57,23 @@ WIDTH="10%"
 ALIGN="left"
 VALIGN="top"
 ><A
-HREF="pgtcl-pglolseek.html"
+HREF="libpgtcl.html"
 >Fast Backward</A
 ></TD
 ><TD
 WIDTH="60%"
 ALIGN="center"
 VALIGN="bottom"
-></TD
+>Chapter 1. <SPAN
+CLASS="APPLICATION"
+>pgtcl</SPAN
+> - Tcl Binding Library</TD
 ><TD
 WIDTH="10%"
 ALIGN="right"
 VALIGN="top"
 ><A
-HREF="pgtcl-pglounlink.html"
+HREF="libpgtcl.html"
 >Fast Forward</A
 ></TD
 ><TD
@@ -78,7 +81,7 @@ WIDTH="10%"
 ALIGN="right"
 VALIGN="top"
 ><A
-HREF="pgtcl-pglounlink.html"
+HREF="pgtcl-commandhandles.html"
 ACCESSKEY="N"
 >Next</A
 ></TD
@@ -87,108 +90,30 @@ ACCESSKEY="N"
 ><HR
 ALIGN="LEFT"
 WIDTH="100%"></DIV
+><DIV
+CLASS="SECT1"
 ><H1
+CLASS="SECT1"
 ><A
-NAME="PGTCL-PGLOTELL"
-></A
->pg_lo_tell</H1
-><DIV
-CLASS="REFNAMEDIV"
-><A
-NAME="AEN1776"
-></A
-><H2
->Name</H2
->pg_lo_tell&nbsp;--&nbsp;return the current seek position of a large object<A
-NAME="IX-PGTCL-PGLOTELL-2"
-></A
-></DIV
-><DIV
-CLASS="REFSYNOPSISDIV"
-><A
-NAME="AEN1781"
-></A
-><H2
->Synopsis</H2
+NAME="PGTCL-TCLNAMESPACE"
+>1.4. Tcl Namespace Support</A
+></H1
+><P
+>With version 1.5, there is proper Tcl namespace support built into <SPAN
+CLASS="APPLICATION"
+>pgtcl</SPAN
+>. There are commands now that mirror the pg_ commands, but use the Tcl namespace convention. For example, there are commands now called: pg::connect, pg::result, etc. However, due to this, there are some incapabilities. For example, pg_exec has a counterpart called pg::sqlexec, since doing a namespace import ::pg::* would clobber the builtin Tcl commmand exec. The old command names, pg_*, are still there for backwards compatibility, but might be phased out eventually.
+ </P
+><P
+>So, one can use Tcl's namespace mechanisms now with <SPAN
+CLASS="APPLICATION"
+>pgtcl</SPAN
+>. For eaxmple, you can import that namespace:</P
 ><PRE
-CLASS="SYNOPSIS"
->pg_lo_tell <VAR
-CLASS="PARAMETER"
->conn</VAR
-> <VAR
-CLASS="PARAMETER"
->descriptor</VAR
-></PRE
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN1785"
-></A
-><H2
->Description</H2
-><P
->   <CODE
-CLASS="FUNCTION"
->pg_lo_tell</CODE
-> returns the current read/write
-   position in bytes from the beginning of the large object.
-  </P
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN1789"
-></A
-><H2
->Arguments</H2
-><P
-></P
-><DIV
-CLASS="VARIABLELIST"
-><DL
-><DT
-><VAR
-CLASS="PARAMETER"
->conn</VAR
-></DT
-><DD
-><P
->      The handle of a connection to the database in which the large object
-      exists.
-     </P
-></DD
-><DT
-><VAR
-CLASS="PARAMETER"
->descriptor</VAR
-></DT
-><DD
-><P
->      A descriptor for the large object from
-      <CODE
-CLASS="FUNCTION"
->pg_lo_open</CODE
->.
-     </P
-></DD
-></DL
-></DIV
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN1803"
-></A
-><H2
->Return Value</H2
-><P
->   A zero-based offset in bytes suitable for input to
-   <CODE
-CLASS="FUNCTION"
->pg_lo_lseek</CODE
->.
-  </P
+CLASS="PROGRAMLISTING"
+>namespace import ::pg::*
+
+set conn [connect template1 -host $host -port $port]</PRE
 ></DIV
 ><DIV
 CLASS="NAVFOOTER"
@@ -206,7 +131,7 @@ WIDTH="33%"
 ALIGN="left"
 VALIGN="top"
 ><A
-HREF="pgtcl-pglolseek.html"
+HREF="pgtcl-pgloexport.html"
 ACCESSKEY="P"
 >Prev</A
 ></TD
@@ -224,7 +149,7 @@ WIDTH="33%"
 ALIGN="right"
 VALIGN="top"
 ><A
-HREF="pgtcl-pglounlink.html"
+HREF="pgtcl-commandhandles.html"
 ACCESSKEY="N"
 >Next</A
 ></TD
@@ -234,13 +159,13 @@ ACCESSKEY="N"
 WIDTH="33%"
 ALIGN="left"
 VALIGN="top"
->pg_lo_lseek</TD
+>pg_lo_export</TD
 ><TD
 WIDTH="34%"
 ALIGN="center"
 VALIGN="top"
 ><A
-HREF="libpgtcl-ref.html"
+HREF="libpgtcl.html"
 ACCESSKEY="U"
 >Up</A
 ></TD
@@ -248,7 +173,7 @@ ACCESSKEY="U"
 WIDTH="33%"
 ALIGN="right"
 VALIGN="top"
->pg_lo_unlink</TD
+>Connection/result handles as commands</TD
 ></TR
 ></TABLE
 ></DIV

@@ -2,7 +2,7 @@
 <HTML
 ><HEAD
 ><TITLE
->pg_lo_write</TITLE
+>pg_quote</TITLE
 ><META
 NAME="GENERATOR"
 CONTENT="Modular DocBook HTML Stylesheet Version 1.7"><LINK
@@ -15,11 +15,11 @@ REL="UP"
 TITLE="pgtcl Command Reference"
 HREF="libpgtcl-ref.html"><LINK
 REL="PREVIOUS"
-TITLE="pg_lo_read"
-HREF="pgtcl-pgloread.html"><LINK
+TITLE="pg_cancelrequest"
+HREF="pgtcl-pgcancelrequest.html"><LINK
 REL="NEXT"
-TITLE="pg_lo_lseek"
-HREF="pgtcl-pglolseek.html"><LINK
+TITLE="pg_escape_string"
+HREF="pgtcl-pgescape-string.html"><LINK
 REL="STYLESHEET"
 TYPE="text/css"
 HREF="stylesheet.css"><META
@@ -48,7 +48,7 @@ WIDTH="10%"
 ALIGN="left"
 VALIGN="top"
 ><A
-HREF="pgtcl-pgloread.html"
+HREF="pgtcl-pgcancelrequest.html"
 ACCESSKEY="P"
 >Prev</A
 ></TD
@@ -57,7 +57,7 @@ WIDTH="10%"
 ALIGN="left"
 VALIGN="top"
 ><A
-HREF="pgtcl-pgloread.html"
+HREF="pgtcl-pgcancelrequest.html"
 >Fast Backward</A
 ></TD
 ><TD
@@ -70,7 +70,7 @@ WIDTH="10%"
 ALIGN="right"
 VALIGN="top"
 ><A
-HREF="pgtcl-pglolseek.html"
+HREF="pgtcl-pgescape-string.html"
 >Fast Forward</A
 ></TD
 ><TD
@@ -78,7 +78,7 @@ WIDTH="10%"
 ALIGN="right"
 VALIGN="top"
 ><A
-HREF="pgtcl-pglolseek.html"
+HREF="pgtcl-pgescape-string.html"
 ACCESSKEY="N"
 >Next</A
 ></TD
@@ -89,69 +89,82 @@ ALIGN="LEFT"
 WIDTH="100%"></DIV
 ><H1
 ><A
-NAME="PGTCL-PGLOWRITE"
+NAME="PGTCL-QUOTE"
 ></A
->pg_lo_write</H1
+>pg_quote</H1
 ><DIV
 CLASS="REFNAMEDIV"
 ><A
-NAME="AEN1679"
+NAME="AEN1403"
 ></A
 ><H2
 >Name</H2
->pg_lo_write&nbsp;--&nbsp;write to a large object<A
-NAME="IX-PGTCL-PGLOWRITE-2"
+>pg_quote&nbsp;--&nbsp;escapes a string for inclusion into SQL statements
+ <A
+NAME="IX-PGTCL-QUOTE-2"
 ></A
 ></DIV
 ><DIV
 CLASS="REFSYNOPSISDIV"
 ><A
-NAME="AEN1684"
+NAME="AEN1408"
 ></A
 ><H2
 >Synopsis</H2
 ><PRE
 CLASS="SYNOPSIS"
->pg_lo_write <VAR
+>pg_quote <VAR
 CLASS="PARAMETER"
->conn</VAR
-> <VAR
-CLASS="PARAMETER"
->descriptor</VAR
-> <VAR
-CLASS="PARAMETER"
->buf</VAR
-> <VAR
-CLASS="PARAMETER"
->len</VAR
+>string</VAR
 ></PRE
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN1690"
+NAME="AEN1411"
 ></A
 ><H2
 >Description</H2
 ><P
 >   <CODE
 CLASS="FUNCTION"
->pg_lo_write</CODE
-> writes at most
-   <VAR
-CLASS="PARAMETER"
->len</VAR
-> bytes from a variable
-   <VAR
-CLASS="PARAMETER"
->buf</VAR
-> to a large object.
+>pg_quote</CODE
+> quotes a string and escapes single
+quotes and backslashes within the string, making it safe for inclusion 
+into SQL statements.
+  </P
+><P
+>If you're doing something like
+</P><PRE
+CLASS="PROGRAMLISTING"
+>    pg_exec $conn "insert into foo values ('$name');" </PRE
+><P>
+and <VAR
+CLASS="VARNAME"
+>name</VAR
+> contains text includeing an unescaped single
+quote, such as <TT
+CLASS="LITERAL"
+>Bob's House</TT
+>, the insert will fail.  
+Passing value strings through <CODE
+CLASS="FUNCTION"
+>pg_quote</CODE
+>
+make sure they can be used as values and stuff in PostgreSQL.
+
+</P><PRE
+CLASS="PROGRAMLISTING"
+>    pg_exec $conn "insert into foo values ([pg_quote $name]);" </PRE
+><P>
+...will make sure that any special characters that occur in name, such as
+single quote or backslash, will be properly quoted.
   </P
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN1696"
+NAME="AEN1421"
 ></A
 ><H2
 >Arguments</H2
@@ -163,48 +176,11 @@ CLASS="VARIABLELIST"
 ><DT
 ><VAR
 CLASS="PARAMETER"
->conn</VAR
+>string</VAR
 ></DT
 ><DD
 ><P
->      The handle of a connection to the database in which the large object
-      exists.
-     </P
-></DD
-><DT
-><VAR
-CLASS="PARAMETER"
->descriptor</VAR
-></DT
-><DD
-><P
->      A descriptor for the large object from
-      <CODE
-CLASS="FUNCTION"
->pg_lo_open</CODE
->.
-     </P
-></DD
-><DT
-><VAR
-CLASS="PARAMETER"
->buf</VAR
-></DT
-><DD
-><P
->      The string to write to the large object (not a variable name,
-      but the value itself).
-     </P
-></DD
-><DT
-><VAR
-CLASS="PARAMETER"
->len</VAR
-></DT
-><DD
-><P
->      The maximum number of bytes to write.  The number written will
-      be the smaller of this value and the length of the string.
+>      The string to be escaped.
      </P
 ></DD
 ></DL
@@ -213,14 +189,13 @@ CLASS="PARAMETER"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN1720"
+NAME="AEN1429"
 ></A
 ><H2
 >Return Value</H2
 ><P
->   The number of bytes actually written is returned; this will ordinarily
-   be the same as the number requested.
-   In event of an error, the return value is negative.
+>   Returns the string, escaped for inclusion into SQL queries.  Note that
+   it adds a set of single quotes around the outside of the string as well.
   </P
 ></DIV
 ><DIV
@@ -239,7 +214,7 @@ WIDTH="33%"
 ALIGN="left"
 VALIGN="top"
 ><A
-HREF="pgtcl-pgloread.html"
+HREF="pgtcl-pgcancelrequest.html"
 ACCESSKEY="P"
 >Prev</A
 ></TD
@@ -257,7 +232,7 @@ WIDTH="33%"
 ALIGN="right"
 VALIGN="top"
 ><A
-HREF="pgtcl-pglolseek.html"
+HREF="pgtcl-pgescape-string.html"
 ACCESSKEY="N"
 >Next</A
 ></TD
@@ -267,7 +242,7 @@ ACCESSKEY="N"
 WIDTH="33%"
 ALIGN="left"
 VALIGN="top"
->pg_lo_read</TD
+>pg_cancelrequest</TD
 ><TD
 WIDTH="34%"
 ALIGN="center"
@@ -281,7 +256,7 @@ ACCESSKEY="U"
 WIDTH="33%"
 ALIGN="right"
 VALIGN="top"
->pg_lo_lseek</TD
+>pg_escape_string</TD
 ></TR
 ></TABLE
 ></DIV
