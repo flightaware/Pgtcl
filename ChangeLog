@@ -1,6 +1,9 @@
 
 $Id$
 
+2005-04-16 Brett Schwarz <brett_schwarz@yahoo.com>
+    * added more documentation about the new capabilities
+
 2005-02-25 Brett Schwarz <brett_schwarz@yahoo.com>
     * took away pg::conninfo and pg::results, and made one command
       pg::dbinfo. Usage is pg::dbinfo connections and 
