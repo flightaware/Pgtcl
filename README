@@ -93,9 +93,15 @@ who added the channel handler code, among other things, and we intend to
 identify the rest of them and give them credit as well.
 
 Development and maintenance of Pgtcl since version 1.3 has been done by Brett 
-Schwartz and Karl Lehenbauer.
+Schwarz and Karl Lehenbauer.
 
 VERSION 1.5
+
+New options to pg_connect, -connhandle and -connlist
+
+experimental -dict option in pg_result
+
+Proper Tcl namespace support, in the ::pg namespace.
 
 Connection handles and result handles are now executable commands in their
 own right, while maintaining compatible with their former usage as strictly
