@@ -7,9 +7,17 @@
 
 package require Pgtcl
 
+if {[file exists conninfo.tcl]} {
+     source conninfo.tcl
+}
+
 proc doit {} {
     set fp [open sampledata.txt]
-    set conn [pg_connect -conninfo ""]
+    if {[info exists ::conninfo]} {
+        set conn [pg_connect -connlist [array get ::conninfo]]
+    } else {
+        set conn [pg_connect -conninfo ""]
+    }
 
     while {[gets $fp line] >= 0} {
 	set statement "insert into pgtest_people values ([pg_quote [lindex $line 0]], [pg_quote [lindex $line 1]], [pg_quote [lindex $line 2]], [pg_quote [lindex $line 3]], [pg_quote [lindex $line 4]], [pg_quote [lindex $line 5]]);"

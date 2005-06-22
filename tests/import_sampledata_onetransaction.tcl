@@ -7,9 +7,18 @@
 
 package require Pgtcl
 
+if {[file exists conninfo.tcl]} {
+    source conninfo.tcl
+}
+
 proc doit {} {
     set fp [open sampledata.txt]
-    set conn [pg_connect -conninfo ""]
+
+    if {[info exists ::conninfo]} {
+        set conn [pg_connect -connlist [array get ::conninfo]]
+    } else {
+        set conn [pg_connect -conninfo ""]
+    }
 
     set statement "begin; "
     while {[gets $fp line] >= 0} {

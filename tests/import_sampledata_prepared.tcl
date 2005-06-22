@@ -7,9 +7,18 @@
 
 package require Pgtcl
 
+if {[file exists conninfo.tcl]} {
+    source conninfo.tcl
+}
+
 proc doit {} {
     set fp [open sampledata.txt]
-    set conn [pg_connect -conninfo ""]
+
+    if {[info exists ::conninfo]} {
+        set conn [pg_connect -connlist [array get ::conninfo]]
+    } else {
+        set conn [pg_connect -conninfo ""]
+    }
 
     set result [pg_exec $conn {prepare pgtest_insert_people (varchar, varchar, varchar, varchar, varchar, varchar) as insert into pgtest_people values ($1, $2, $3, $4, $5, $6);}]
     if {[pg_result $result -status] != "PGRES_COMMAND_OK"} {
