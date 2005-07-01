@@ -656,6 +656,7 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 #ifdef HAVE_PQEXECPARAMS
 	} else {
 	    result = PQexecParams(conn, execString, nParams, NULL, paramValues, NULL, NULL, 0);
+	    ckfree ((void *)paramValues);
 	}
 #endif
 
@@ -725,6 +726,19 @@ Pg_exec_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 		return TCL_ERROR;
 	}
 
+	/* figure out the connect string and get the connection ID */
+
+	connString = Tcl_GetStringFromObj(objv[1], NULL);
+	conn = PgGetConnectionId(interp, connString, &connid);
+	if (conn == NULL)
+		return TCL_ERROR;
+
+	if (connid->res_copyStatus != RES_COPY_NONE)
+	{
+		Tcl_SetResult(interp, "Attempt to query while COPY in progress", TCL_STATIC);
+		return TCL_ERROR;
+	}
+
 	/* extra params will substitute for $1, $2, etc, in the statement */
 	/* objc must be 3 or greater at this point */
 	nParams = objc - 3;
@@ -746,22 +760,13 @@ Pg_exec_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 	    }
 	}
 
-	/* figure out the connect string and get the connection ID */
-
-	connString = Tcl_GetStringFromObj(objv[1], NULL);
-	conn = PgGetConnectionId(interp, connString, &connid);
-	if (conn == NULL)
-		return TCL_ERROR;
-
-	if (connid->res_copyStatus != RES_COPY_NONE)
-	{
-		Tcl_SetResult(interp, "Attempt to query while COPY in progress", TCL_STATIC);
-		return TCL_ERROR;
-	}
-
 	statementNameString = Tcl_GetStringFromObj(objv[2], NULL);
 
 	result = PQexecPrepared(conn, statementNameString, nParams, paramValues, NULL, NULL, 0);
+
+	if (paramValues != (const char **)NULL) {
+	    ckfree ((void *)paramValues);
+	}
 
 	/* REPLICATED IN pg_exec -- NEEDS TO BE FACTORED */
 	/* Transfer any notify events from libpq to Tcl event queue. */
@@ -2750,6 +2755,7 @@ Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
 #ifdef HAVE_PQSENDQUERYPARAMS
 	} else {
 	    status = PQsendQueryParams(conn, execString, nParams, NULL, paramValues, NULL, NULL, 1);
+	    ckfree ((void *)paramValues);
 	}
 #endif
 
@@ -2805,6 +2811,19 @@ Pg_sendquery_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *C
 	/* objc must be 3 or greater at this point */
 	nParams = objc - 3;
 
+	/* figure out the connect string and get the connection ID */
+
+	connString = Tcl_GetStringFromObj(objv[1], NULL);
+	conn = PgGetConnectionId(interp, connString, &connid);
+	if (conn == NULL)
+		return TCL_ERROR;
+
+	if (connid->res_copyStatus != RES_COPY_NONE)
+	{
+		Tcl_SetResult(interp, "Attempt to query while COPY in progress", TCL_STATIC);
+		return TCL_ERROR;
+	}
+
 	/* If there are any extra params, allocate paramValues and fill it
 	 * with the string representations of all of the extra parameters
 	 * substituted on the command line.  Otherwise nParams will be 0,
@@ -2822,22 +2841,13 @@ Pg_sendquery_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *C
 	    }
 	}
 
-	/* figure out the connect string and get the connection ID */
-
-	connString = Tcl_GetStringFromObj(objv[1], NULL);
-	conn = PgGetConnectionId(interp, connString, &connid);
-	if (conn == NULL)
-		return TCL_ERROR;
-
-	if (connid->res_copyStatus != RES_COPY_NONE)
-	{
-		Tcl_SetResult(interp, "Attempt to query while COPY in progress", TCL_STATIC);
-		return TCL_ERROR;
-	}
-
 	statementNameString = Tcl_GetStringFromObj(objv[2], NULL);
 
 	status = PQsendQueryPrepared(conn, statementNameString, nParams, paramValues, NULL, NULL, 1);
+
+	if (paramValues != (const char **)NULL) {
+	    ckfree ((void *)paramValues);
+	}
 
 	/* Transfer any notify events from libpq to Tcl event queue. */
 	PgNotifyTransferEvents(connid);

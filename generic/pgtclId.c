@@ -270,6 +270,7 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
     Tcl_Obj         *objvx[25];
     Tcl_CmdInfo     info;
     Pg_ConnectionId *connid;
+	int             returnCode = TCL_ERROR;
 
     static CONST84 char *options[] = {
         "disconnect", "exec", "sqlexec", "execute", "select", "listen",
@@ -311,20 +312,23 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
     connid = (Pg_ConnectionId *) info.objClientData;
 
 
-    objvx[1] = Tcl_NewStringObj(connid->id, -1);
     if (Tcl_GetIndexFromObj(interp, objv[1], options, "command", TCL_EXACT, &optIndex) != TCL_OK)
                     return TCL_ERROR;
+
+    objvx[1] = Tcl_NewStringObj(connid->id, -1);
 
     switch ((enum options) optIndex)
     {
         case DISCONNECT:
         {
-            return Pg_disconnect(cData, interp, objc, objvx);
+            returnCode = Pg_disconnect(cData, interp, objc, objvx);
+			break;
         }
         case EXEC:
         case SQLEXEC:
         {
-            return Pg_exec(cData, interp, objc, objvx);
+            returnCode = Pg_exec(cData, interp, objc, objvx);
+			break;
         }
         case EXECUTE:
         {
@@ -360,76 +364,92 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
             }
             */
                
-            return Pg_execute(cData, interp, objc, objvx);
+            returnCode = Pg_execute(cData, interp, objc, objvx);
+			break;
         }
         case SELECT:
         {
-            return Pg_select(cData, interp, objc, objvx);
+            returnCode = Pg_select(cData, interp, objc, objvx);
+			break;
         }
         case LISTEN:
         {
-            return Pg_listen(cData, interp, objc, objvx);
+            returnCode = Pg_listen(cData, interp, objc, objvx);
+			break;
         }
         case ON_CONNECTION_LOSS:
         {
-            return Pg_listen(cData, interp, objc, objvx);
+            returnCode = Pg_listen(cData, interp, objc, objvx);
+			break;
         }
         case LO_CREAT:
         {
-            return Pg_lo_creat(cData, interp, objc, objvx);
+            returnCode = Pg_lo_creat(cData, interp, objc, objvx);
+			break;
         }
         case LO_OPEN:
         {
-            return Pg_lo_open(cData, interp, objc, objvx);
+            returnCode = Pg_lo_open(cData, interp, objc, objvx);
+			break;
         }
         case LO_CLOSE:
         {
-            return Pg_lo_close(cData, interp, objc, objvx);
+            returnCode = Pg_lo_close(cData, interp, objc, objvx);
+			break;
         }
         case LO_READ:
         {
-            return Pg_lo_read(cData, interp, objc, objvx);
+            returnCode = Pg_lo_read(cData, interp, objc, objvx);
+			break;
         }
         case LO_WRITE:
         {
-            return Pg_lo_write(cData, interp, objc, objvx);
+            returnCode = Pg_lo_write(cData, interp, objc, objvx);
+			break;
         }
         case LO_LSEEK:
         {
-            return Pg_lo_lseek(cData, interp, objc, objvx);
+            returnCode = Pg_lo_lseek(cData, interp, objc, objvx);
+			break;
         }
         case LO_TELL:
         {
-            return Pg_lo_tell(cData, interp, objc, objvx);
+            returnCode = Pg_lo_tell(cData, interp, objc, objvx);
+			break;
         }
         case LO_UNLINK:
         {
-            return Pg_lo_unlink(cData, interp, objc, objvx);
+            returnCode = Pg_lo_unlink(cData, interp, objc, objvx);
+			break;
         }
         case LO_IMPORT:
         {
-            return Pg_lo_import(cData, interp, objc, objvx);
+            returnCode = Pg_lo_import(cData, interp, objc, objvx);
+			break;
         }
         case LO_EXPORT:
         {
-            return Pg_lo_export(cData, interp, objc, objvx);
+            returnCode = Pg_lo_export(cData, interp, objc, objvx);
+			break;
         }
         case SENDQUERY:
         {
-            return Pg_sendquery(cData, interp, objc, objvx);
+            returnCode = Pg_sendquery(cData, interp, objc, objvx);
+			break;
         }
         case EXEC_PREPARED:
         {
-            return Pg_exec_prepared(cData, interp, objc, objvx);
+            returnCode = Pg_exec_prepared(cData, interp, objc, objvx);
+			break;
         }
         case SENDQUERY_PREPARED:
         {
-            return Pg_sendquery_prepared(cData, interp, objc, objvx);
+            returnCode = Pg_sendquery_prepared(cData, interp, objc, objvx);
+			break;
         }
     }
-
-	/* It should not be possible to get here */
-    return TCL_ERROR;
+	Tcl_DecrRefCount(objvx[1]);
+	return returnCode;
 }
 
 /* 

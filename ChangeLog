@@ -1,6 +1,10 @@
 
 $Id$
 
+2005-07-01 Karl Lehenbauer <karl-pg@sc.com>
+    * Fixed memory leaks when connections-as-commands are used
+      ($conn exec $statement, etc)
+
 2005-04-16 Brett Schwarz <brett_schwarz@yahoo.com>
     * added more documentation about the new capabilities
 
