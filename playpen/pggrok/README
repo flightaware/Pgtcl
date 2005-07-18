@@ -1,7 +1,7 @@
 
 pggrok -- code to introspect the postgres database
 
-Copyright (C) 2004 Karl Lehenbauer
+Copyright (C) 2004-2005 Karl Lehenbauer
 freely redistributable under the Berkeley license as long as this copyright
 is maintained.
 
@@ -25,15 +25,15 @@ $Id$
 
     Return a list of the names of all the views in the datbase
 
-::pggrok::attributes $conn tableName
+::pggrok::attributes $conn tableName arrayName codeBody
 
-    Currently uses parray to dump attribute data for each field.
-    Needs to populate a dict or execute code with a filled array
-    or something.
+    Populate the array with information about each field of the table,
+    in turn, executing the code body.
 
-::pggrok::indices $conn tableName
+::pggrok::indices $conn tableName arrayName codeBody
 
-    Same as above
+    Populate the array with information about each index of the table,
+    in turn, executing the code body.
 
 ::pggrok::dump $conn
 
