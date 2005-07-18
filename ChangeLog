@@ -1,6 +1,12 @@
 
 $Id$
 
+2005-07-18 Karl Lehenbauer <karl-pg@sc.com>
+    * Made pggrok database introspection code much more useful -- routines
+      for finding out data about fields and indexes in a table now load
+      on array with data about each field (index) and execute a code body
+      on it, rather than punting with a call to parray
+
 2005-07-01 Karl Lehenbauer <karl-pg@sc.com>
     * Fixed memory leaks when connections-as-commands are used
       ($conn exec $statement, etc)

@@ -7,6 +7,8 @@
 
 package require Pgtcl
 
+package provide pggrok 1.0
+
 namespace eval pggrok {
 
 #
@@ -107,12 +109,14 @@ proc table_to_oid {conn table} {
 }
 
 #
-# table_attributes -- given a connection and a table name, return the
-# parray the data of each attribute -- yes this is stupid, but we are
-# not sure where to take it
+# table_attributes -- given a connection and a table name, fill the
+# specified array name with elements containing data about each
+# field in turn, executing the code body on the result
 #
-proc table_attributes {conn table} {
+proc table_attributes {conn table arrayName codeBody} {
+    upvar $arrayName data
     set oid [table_to_oid $conn $table]
+
     set cmd {
 	SELECT a.attname,
 	  pg_catalog.format_type(a.atttypid, a.atttypmod),
@@ -123,19 +127,24 @@ proc table_attributes {conn table} {
 	WHERE a.attrelid = '%s' AND a.attnum > 0 AND NOT a.attisdropped
 	ORDER BY a.attnum
     }
-    set result ""
+
     pg_execute -array data $conn [format $cmd $oid] {
-	parray data
-	puts ""
+	unset "data(?column?)"
+	uplevel $codeBody
     }
 }
 
 #
-# indices -- parray the data of the fields related to all the indices of
-# a table
+# indices -- given a connection handle and a table name, fill the specified
+# array name with elements containing data about each index defined for the
+# table in turn, executing the code body on each result
 #
-proc indices {conn table} {
+# if there are no indexes, the code body will not be executed
+#
+proc indices {conn table arrayName codeBody} {
+    upvar $arrayName data
     set oid [table_to_oid $conn $table]
+
     set cmd {
 	SELECT c2.relname, i.indisprimary, i.indisunique, 
             pg_catalog.pg_get_indexdef(i.indexrelid)
@@ -144,9 +153,9 @@ proc indices {conn table} {
 	WHERE c.oid = '%s' AND c.oid = i.indrelid AND i.indexrelid = c2.oid
 	ORDER BY i.indisprimary DESC, i.indisunique DESC, c2.relname
     }
+
     pg_execute -array data $conn [format $cmd $oid] {
-	parray data
-	puts ""
+	uplevel $codeBody
     }
 }
 
