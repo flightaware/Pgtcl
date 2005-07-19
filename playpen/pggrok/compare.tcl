@@ -10,6 +10,8 @@
 
 package require Tclx
 
+set suppressColumnChanges 1
+
 proc compare_element {tableName what listVar0 listVar1 name} {
     upvar ${listVar0}::${name} array0
     upvar ${listVar1}::${name} array1
@@ -17,6 +19,9 @@ proc compare_element {tableName what listVar0 listVar1 name} {
     set somethingChanged 0
 
     foreach varName [array names array0] {
+	if {$::suppressColumnChanges && $varName == "attnum"} {
+	    continue
+	}
 	if {$array0($varName) != $array1($varName)} {
 	    puts "Changed $tableName $what \"$name\", $varName from \"$array0($varName)\" to \"$array1($varName)\""
 	    set somethingChanged 1
