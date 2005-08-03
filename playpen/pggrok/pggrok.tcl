@@ -129,7 +129,8 @@ proc table_attributes {conn table arrayName codeBody} {
     }
 
     pg_execute -array data $conn [format $cmd $oid] {
-	unset "data(?column?)"
+	set data(default) $data(?column?)
+	unset data(?column?)
 	uplevel $codeBody
     }
 }

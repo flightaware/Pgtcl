@@ -50,13 +50,53 @@ proc compare_table_info {tableName what namespace0 namespace1} {
     set somethingChanged 0
 
     if {![lempty $deleted]} {
-	puts "Deleted $tableName $what \"$deleted\""
+	puts "-- Deleted $tableName $what \"$deleted\""
 	set somethingChange 1
+
+	if {$what == "fields"} {
+	    foreach field $deleted {
+		puts "alter table $tableName drop column $field;"
+	    }
+	    puts ""
+	}
     }
 
     if {![lempty $added]} {
-	puts "Added $tableName $what \"$added\""
+	puts "-- Added $tableName $what \"$added\""
 	set somethingChange 1
+
+	if {$what == "fields"} {
+	    foreach field $added {
+		set formatType [set ${namespace1}::${tableName}::fields::${field}(format_type)]
+		puts "alter table $tableName add column $field $formatType;"
+
+		# handle null / not null
+		set oldNull [set ${namespace0}::${tableName}::fields::${field}(attnotnull)]
+		set null [set ${namespace1}::${tableName}::fields::${field}(attnotnull)]
+
+		if {$oldNull == "t" && $null == "f"} {
+		    puts "alter table $tableName drop not null;"
+		}
+
+		if {$null == "t"} {
+		    puts "alter table $tableName set not null;"
+		}
+
+		# handle default values
+		set oldDefault [set ${namespace0}::${tableName}::fields::${field}(default)]
+		set default [set ${namespace1}::${tableName}::fields::${field}(default)]
+
+		if {$oldDefault != "" && $default == ""} {
+		    puts "alter table $tableName drop default;"
+		}
+
+		if {$default != ""} {
+		    puts "alter table $tableName set default $default;"
+		}
+
+	    }
+	}
+	puts ""
     }
 
     foreach var $inBoth {

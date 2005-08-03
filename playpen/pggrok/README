@@ -1,11 +1,21 @@
 
-pggrok -- code to introspect the postgres database
+pggrok -- code to introspect the postgres database and compare database schemas
 
 Copyright (C) 2004-2005 Karl Lehenbauer
+
 freely redistributable under the Berkeley license as long as this copyright
 is maintained.
 
 $Id$
+
+programs:
+
+tclsh8.4 dump.tcl oldDbString >olddb.out
+tclsh8.4 dump.tcl newDbString >newdb.out
+
+tclsh8.4 compare.tcl olddb.out newdb.out
+
+pggrok package:
 
 ::pggrok::tables $conn
 
