@@ -6,6 +6,9 @@
 
 package require Itcl
 
+#
+# db_table -- base class inherited by all postgres table classes
+#
 ::itcl::class db_table {
 
     constructor {args} {

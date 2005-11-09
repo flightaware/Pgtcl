@@ -1466,6 +1466,7 @@ Pg_result_errReturn:
 					 "\t-conn\n",
 					 "\t-oid\n",
 					 "\t-numTuples\n",
+					 "\t-cmdTuples\n",
 					 "\t-numAttrs\n"
 					 "\t-assign arrayVarName\n",
 					 "\t-assignbyidx arrayVarName ?appendstr?\n",

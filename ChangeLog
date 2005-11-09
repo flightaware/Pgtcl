@@ -1,6 +1,10 @@
 
 $Id$
 
+2005-11-09 Karl Lehenbauer <karl-pg@sc.com>
+    * List -cmdTuples as one of the possible options when executing
+      pg_result without arguments.
+
 2005-07-18 Karl Lehenbauer <karl-pg@sc.com>
     * Made pggrok database introspection code much more useful -- routines
       for finding out data about fields and indexes in a table now load
