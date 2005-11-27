@@ -1,6 +1,20 @@
 
 $Id$
 
+2005-11-27 Karl Lehenbauer <karl-pg@sc.com>
+    * Add pg_null_string_value, ::pg::null_string_value and
+      "$conn null_string_value" to get and set a special string value that
+      will be returned for fields containing null values from queries.
+
+      pg_select and pg_execute use this value for null values.  If not set,
+      they use the traditional empty string.
+
+      pg_exec, pg_exec_prepared, pg_sendquery and pg_sendquery_prepared use
+      this value as well.  However, it can be overridden or replaced for
+      one specific result using "pg_result $result -null_value_string NULL",
+      etc, or by executing the result handle, as in
+      "$result -null_value_string NULL"
+
 2005-11-09 Karl Lehenbauer <karl-pg@sc.com>
     * List -cmdTuples as one of the possible options when executing
       pg_result without arguments.

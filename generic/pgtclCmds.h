@@ -46,13 +46,14 @@ typedef struct Pg_TclNotifies_s
 	char	   *conn_loss_cmd;	/* pg_on_connection_loss cmd, or NULL */
 }	Pg_TclNotifies;
 
-
 typedef struct Pg_resultid_s
 {
     int                id;
     Tcl_Obj            *str;
     Tcl_Interp         *interp;
     Tcl_Command        cmd_token;
+    char               *nullValueString;
+    struct Pg_ConnectionId_s    *connid;
 } Pg_resultid;
 
 typedef struct Pg_ConnectionId_s
@@ -73,6 +74,7 @@ typedef struct Pg_ConnectionId_s
 										 * is listening */
 	Tcl_Command cmd_token;               /* handle command token */
 	Tcl_Interp *interp;               /* save Interp info */
+	char       *nullValueString; /* null vals are returned as this, if set */
 	Pg_resultid **resultids;       /* resultids (internal storage) */
 }	Pg_ConnectionId;
 
@@ -157,6 +159,9 @@ extern int Pg_isbusy(
   ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 
 extern int Pg_blocking(
+  ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+
+extern int Pg_null_value_string(
   ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 
 extern int Pg_cancelrequest(

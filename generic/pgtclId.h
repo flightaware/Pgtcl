@@ -34,7 +34,7 @@ extern int	PgDelConnectionId(DRIVER_DEL_PROTO);
 extern int	PgOutputProc(DRIVER_OUTPUT_PROTO);
 extern int	PgInputProc(DRIVER_INPUT_PROTO);
 extern int	PgSetResultId(Tcl_Interp *interp, CONST84 char *connid, PGresult *res);
-extern PGresult *PgGetResultId(Tcl_Interp *interp, CONST84 char *id);
+extern PGresult *PgGetResultId(Tcl_Interp *interp, CONST84 char *id, Pg_resultid **resultidPtr);
 extern void PgDelResultId(Tcl_Interp *interp, CONST84 char *id);
 extern int	PgGetConnByResultId(Tcl_Interp *interp, CONST84 char *resid);
 extern void PgStartNotifyEventSource(Pg_ConnectionId * connid);

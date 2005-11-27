@@ -29,7 +29,7 @@
  * Local function forward declarations
  */
 static int execute_put_values(Tcl_Interp *interp, CONST84 char *array_varname,
-				   PGresult *result, int tupno);
+				   PGresult *result, char *nullString, int tupno);
 
 
 #ifdef TCL_ARRAYS
@@ -233,6 +233,46 @@ tcl_value(char *value)
 #define tcl_value(x) x
 #endif   /* TCL_ARRAYS */
 
+/*
+ * PGgetvalue()
+ *
+ * This function gets a field result string for a specified PGresult, tuple 
+ * number and field number.  If the string is empty and the connection has
+ * a non-empty null string value defined, the field is checked to see if
+ * the returned field is actually null and, if so, the null string value
+ * associated with the connection is returned.
+ *
+ * If array-into-list processing has been defined, it is also performed,
+ * which is probably a bad idea, since it can be tricked by legitimate
+ * data, but that's tcl_value's fault, if TCL_ARRAYS is defined.
+ */
+
+static char *
+PGgetvalue ( PGresult *result, char *nullString, int tupno, int fieldNumber )
+{
+    char *string;
+
+    string = PQgetvalue (result, tupno, fieldNumber);
+
+	/* if the returned string is empty, see if we have a non-empty null
+	 * string value set for this connection and, if so, see if the
+	 * value returned is null.  If it is, return the null string.
+	 */
+	if (*string == '\0') {
+		if ((nullString != NULL) && (*nullString != '\0')) {
+			if (PQgetisnull (result, tupno, fieldNumber)) {
+				return nullString;
+			}
+		}
+		/* string is empty but is either not null or null string is empty,
+		 * return the empty string
+		 */
+		return string;
+	}
+
+	/* string is not empty */
+	return tcl_value (string);
+}
 
 /**********************************
  * pg_conndefaults
@@ -852,6 +892,9 @@ Pg_exec_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 
 	-clear	clear the result buffer. Do not reuse after this
 
+	-null_value_string	Set the value returned for fields that are null
+		                (defaults to connection setting, default "")
+
  **********************************/
 int
 Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
@@ -871,7 +914,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	Tcl_Obj* fieldObj = NULL;
     Tcl_Obj    *fieldNameObj;
 	Tcl_Obj* tresult;
-    Tcl_CmdInfo    infoPtr;
+    /* Tcl_CmdInfo    infoPtr; */
 
 
     Pg_resultid        *resultid;
@@ -881,7 +924,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		"-status", "-error", "-conn", "-oid",
 		"-numTuples", "-cmdTuples", "-numAttrs", "-assign", "-assignbyidx",
 		"-getTuple", "-tupleArray", "-attributes", "-lAttributes",
-		"-clear", "-list", "-llist", "-dict", (char *)NULL
+		"-clear", "-list", "-llist", "-dict", "-null_value_string", (char *)NULL
 	};
 
 	enum options
@@ -889,7 +932,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		OPT_STATUS, OPT_ERROR, OPT_CONN, OPT_OID,
 		OPT_NUMTUPLES, OPT_CMDTUPLES, OPT_NUMATTRS, OPT_ASSIGN, OPT_ASSIGNBYIDX,
 		OPT_GETTUPLE, OPT_TUPLEARRAY, OPT_ATTRIBUTES, OPT_LATTRIBUTES,
-		OPT_CLEAR, OPT_LIST, OPT_LLIST, OPT_DICT
+		OPT_CLEAR, OPT_LIST, OPT_LLIST, OPT_DICT, OPT_NULL_VALUE_STRING
 	};
 
 	static CONST84 char *errorOptions[] = {
@@ -919,7 +962,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 	/* figure out the query result handle and look it up */
 	queryResultString = Tcl_GetStringFromObj(objv[1], NULL);
-	result = PgGetResultId(interp, queryResultString);
+	result = PgGetResultId(interp, queryResultString, &resultid);
 	if (result == (PGresult *)NULL)
 	{
             tresult = Tcl_NewStringObj(queryResultString, -1);
@@ -1023,8 +1066,10 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 					return TCL_ERROR;
 				}
 
+                /* we have the resultid already
                      Tcl_GetCommandInfo(interp, queryResultString, &infoPtr);
                      resultid = (Pg_resultid *) infoPtr.objClientData;
+				 */
 
                 Tcl_DeleteCommandFromToken(interp, resultid->cmd_token);
 				return TCL_OK;
@@ -1104,8 +1149,8 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 						if (Tcl_ObjSetVar2(interp, arrVarObj, fieldNameObj,
 										   Tcl_NewStringObj(
-								 tcl_value(PQgetvalue(result, tupno, i)),
-										 -1), TCL_LEAVE_ERR_MSG) == NULL) {
+											 PGgetvalue(result, resultid->nullValueString, tupno, i),
+											 -1), TCL_LEAVE_ERR_MSG) == NULL) {
 							Tcl_DecrRefCount (fieldNameObj);
 							return TCL_ERROR;
 						}
@@ -1145,7 +1190,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				 */
 				for (tupno = 0; tupno < PQntuples(result); tupno++)
 				{
-					CONST84 char *field0 = PQgetvalue(result, tupno, 0);
+					CONST84 char *field0 = PGgetvalue(result, resultid->nullValueString, tupno, 0);
 
 					for (i = 1; i < PQnfields(result); i++)
 					{
@@ -1157,7 +1202,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 							Tcl_AppendObjToObj(fieldNameObj, appendstrObj);
 
 						if (Tcl_ObjSetVar2(interp, arrVarObj, fieldNameObj,
-										   Tcl_NewStringObj( tcl_value(PQgetvalue(result, tupno, i)), -1), TCL_LEAVE_ERR_MSG) == NULL)
+										   Tcl_NewStringObj( PGgetvalue(result, resultid->nullValueString, tupno, i), -1), TCL_LEAVE_ERR_MSG) == NULL)
 						{
                             
 							Tcl_DecrRefCount(fieldNameObj);
@@ -1204,7 +1249,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				{
 					char	   *value;
 
-					value = tcl_value(PQgetvalue(result, tupno, i));
+					value = PGgetvalue(result, resultid->nullValueString, tupno, i);
 					if (Tcl_ListObjAppendElement(interp, resultObj,
 							   Tcl_NewStringObj(value, -1)) == TCL_ERROR)
 						return TCL_ERROR;
@@ -1245,7 +1290,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				for (i = 0; i < PQnfields(result); i++)
 				{
 					if (Tcl_SetVar2(interp, arrayName, PQfname(result, i),
-								 tcl_value(PQgetvalue(result, tupno, i)),
+								 PGgetvalue(result, resultid->nullValueString, tupno, i),
 									TCL_LEAVE_ERR_MSG) == NULL)
 						return TCL_ERROR;
 				}
@@ -1334,7 +1379,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				{
 				    fieldObj = Tcl_NewObj();
 
-				    Tcl_SetStringObj(fieldObj, PQgetvalue(result, tupno, i), -1);
+				    Tcl_SetStringObj(fieldObj, PGgetvalue(result, resultid->nullValueString, tupno, i), -1);
 				    if (Tcl_ListObjAppendElement(interp, listObj, fieldObj) != TCL_OK)
 					{
 						Tcl_DecrRefCount(listObj);
@@ -1376,7 +1421,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	
 					fieldObj = Tcl_NewObj();
 
-					Tcl_SetStringObj(fieldObj, PQgetvalue(result, tupno, i), -1);
+					Tcl_SetStringObj(fieldObj, PGgetvalue(result, resultid->nullValueString, tupno, i), -1);
 	
 					if (Tcl_ListObjAppendElement(interp, subListObj, fieldObj) != TCL_OK)
 					{
@@ -1398,6 +1443,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		
 			return TCL_OK;
 		}
+
 		case OPT_DICT: 
                 {
 
@@ -1428,7 +1474,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 					fieldNameObj = Tcl_NewObj();
 
 					Tcl_SetStringObj(fieldNameObj, PQfname(result, i), -1);
-					Tcl_SetStringObj(fieldObj, PQgetvalue(result, tupno, i), -1);
+					Tcl_SetStringObj(fieldObj, PGgetvalue(result, resultid->nullValueString, tupno, i), -1);
 	
 					if (Tcl_DictObjPut(interp, subListObj, fieldNameObj, fieldObj) != TCL_OK)
 					{
@@ -1451,6 +1497,42 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 #endif /* HAVE_TCL_NEWDICTOBJ */
                 }
+
+		case OPT_NULL_VALUE_STRING:
+			{
+				char       *nullValueString;
+				int         length;
+
+				if ((objc < 3) || (objc > 4))
+				{
+					Tcl_WrongNumArgs(interp, 3, objv, "?nullValueString?");
+					return TCL_ERROR;
+				}
+
+				if (objc == 3)
+				{
+					if (resultid->nullValueString == NULL || *resultid->nullValueString == '\0') {
+						Tcl_SetStringObj(Tcl_GetObjResult(interp), "", 0);
+					} else {
+						Tcl_SetStringObj(Tcl_GetObjResult(interp), resultid->nullValueString, -1);
+					}
+					return TCL_OK;
+				}
+
+				/* objc == 4, they're setting it */
+				if (resultid->nullValueString != NULL) {
+					if (resultid->connid->nullValueString != resultid->nullValueString)
+					ckfree (resultid->nullValueString);
+				}
+
+				nullValueString = Tcl_GetStringFromObj (objv[3], &length);
+				resultid->nullValueString = ckalloc (length + 1);
+				strcpy (resultid->nullValueString, nullValueString);
+
+				Tcl_SetObjResult(interp, objv[3]);
+				return TCL_OK;
+			}
+
 		default:
 			{
                 Tcl_SetObjResult(interp, Tcl_NewStringObj("Invalid option\n", -1));
@@ -1677,7 +1759,7 @@ Pg_execute(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 		 */
 		if (PQntuples(result) > 0)
 		{
-			if (execute_put_values(interp, array_varname, result, 0) != TCL_OK)
+			if (execute_put_values(interp, array_varname, result, connid->nullValueString, 0) != TCL_OK)
 			{
 				PQclear(result);
 				return TCL_ERROR;
@@ -1697,7 +1779,7 @@ Pg_execute(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 	evalObj = objv[i];
 	for (tupno = 0; tupno < ntup; tupno++)
 	{
-		if (execute_put_values(interp, array_varname, result, tupno) != TCL_OK)
+		if (execute_put_values(interp, array_varname, result, connid->nullValueString, tupno) != TCL_OK)
 		{
 			PQclear(result);
 			return TCL_ERROR;
@@ -1747,7 +1829,7 @@ Pg_execute(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
  **********************************/
 static int
 execute_put_values(Tcl_Interp *interp, CONST84 char *array_varname,
-				   PGresult *result, int tupno)
+				   PGresult *result, char *nullValueString, int tupno)
 {
 	int			i;
 	int			n;
@@ -1762,7 +1844,7 @@ execute_put_values(Tcl_Interp *interp, CONST84 char *array_varname,
 	for (i = 0; i < n; i++)
 	{
 		fname = PQfname(result, i);
-		value = PQgetvalue(result, tupno, i);
+		value = PGgetvalue(result, nullValueString, tupno, i);
 
 		if (array_varname != NULL)
 		{
@@ -2422,7 +2504,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		{
 			Tcl_Obj    *valueObj;
 
-			valueObj = Tcl_NewStringObj(tcl_value(PQgetvalue(result, tupno, column)), -1);
+			valueObj = Tcl_NewStringObj(PGgetvalue(result, connid->nullValueString, tupno, column), -1);
 			Tcl_ObjSetVar2(interp, varNameObj, columnNameObjs[column],
 						   valueObj,
 						   0);
@@ -2999,6 +3081,63 @@ Pg_blocking(ClientData cData, Tcl_Interp *interp, int objc,
 		return TCL_ERROR;
 
 	PQsetnonblocking(conn, !boolean);
+	return TCL_OK;
+}
+
+/**********************************
+ * pg_null_value_string
+ see or set whether or not a connection is set to blocking or nonblocking
+
+ syntax:
+ pg_null_value_string connection
+ pg_null_value_string connection nullString
+
+ return is the current null value string if called with two arguments or
+ the new null value string if called with 3.
+ **********************************/
+
+int
+Pg_null_value_string(ClientData cData, Tcl_Interp *interp, int objc,
+			         Tcl_Obj *CONST objv[])
+{
+	Pg_ConnectionId *connid;
+	PGconn	   *conn;
+	char	   *connString;
+	char       *nullValueString;
+	int			length;
+
+	if ((objc < 2) || (objc > 3))
+	{
+		Tcl_WrongNumArgs(interp, 1, objv, "connection ?string?");
+		return TCL_ERROR;
+	}
+
+	connString = Tcl_GetStringFromObj(objv[1], NULL);
+
+	conn = PgGetConnectionId(interp, connString, &connid);
+	if (conn == NULL)
+		return TCL_ERROR;
+
+	if (objc == 2)
+	{
+		if (connid->nullValueString == NULL || *connid->nullValueString == '\0') {
+			Tcl_SetStringObj(Tcl_GetObjResult(interp), "", 0);
+		} else {
+			Tcl_SetStringObj(Tcl_GetObjResult(interp), connid->nullValueString, -1);
+		}
+		return TCL_OK;
+	}
+
+	/* objc == 3, they're setting it */
+	if (connid->nullValueString != NULL) {
+		ckfree (connid->nullValueString);
+	}
+
+	nullValueString = Tcl_GetStringFromObj (objv[2], &length);
+	connid->nullValueString = ckalloc (length + 1);
+	strcpy (connid->nullValueString, nullValueString);
+
+	Tcl_SetObjResult(interp, objv[2]);
 	return TCL_OK;
 }
 

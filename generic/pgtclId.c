@@ -193,6 +193,7 @@ PgSetConnectionId(Tcl_Interp *interp, PGconn *conn, char *chandle)
 	connid->notify_list = NULL;
 	connid->notifier_running = 0;
 	connid->interp = interp;
+	connid->nullValueString = NULL;
 
         nsstr = Tcl_NewStringObj("if {[namespace current] != \"::\"} {set k [namespace current]::}", -1);
 
@@ -277,7 +278,7 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
         "on_connection_loss", "lo_creat", "lo_open", "lo_close", 
         "lo_read", "lo_write", "lo_lseek", "lo_tell", "lo_unlink",
         "lo_import", "lo_export", "sendquery", "exec_prepared", 
-        "sendquery_prepared",  (char *)NULL
+        "sendquery_prepared",  "null_value_string", (char *)NULL
     };
 
     enum options
@@ -285,7 +286,7 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
         DISCONNECT,EXEC, SQLEXEC, EXECUTE, SELECT, LISTEN, 
         ON_CONNECTION_LOSS, LO_CREAT, LO_OPEN, LO_CLOSE, LO_READ, 
         LO_WRITE, LO_LSEEK, LO_TELL, LO_UNLINK, LO_IMPORT, LO_EXPORT, 
-        SENDQUERY, EXEC_PREPARED, SENDQUERY_PREPARED
+        SENDQUERY, EXEC_PREPARED, SENDQUERY_PREPARED, NULL_VALUE_STRING
     };
 
     if (objc == 1 || objc > 25)
@@ -445,6 +446,11 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
         case SENDQUERY_PREPARED:
         {
             returnCode = Pg_sendquery_prepared(cData, interp, objc, objvx);
+			break;
+        }
+        case NULL_VALUE_STRING:
+        {
+            returnCode = Pg_null_value_string(cData, interp, objc, objvx);
 			break;
         }
     }
@@ -697,15 +703,22 @@ PgSetResultId(Tcl_Interp *interp, CONST84 char *connid_c, PGresult *res)
 	}
 
     }
+
     connid->results[resid] = res;
+
     sprintf(buf, "%s.%d", connid_c, resid);
     cmd = Tcl_NewStringObj(buf, -1);
+
     resultid = (Pg_resultid *) ckalloc(sizeof(Pg_resultid));
+
     resultid->interp = interp;
     resultid->id     = resid;
     resultid->str = Tcl_NewStringObj(buf, -1);
     resultid->cmd_token = Tcl_CreateObjCommand(interp, buf, 
         PgResultCmd, (ClientData) resultid, PgDelResultHandle);
+	resultid->connid = connid;
+	resultid->nullValueString = connid->nullValueString;
+
     connid->resultids[resid] = resultid;
 
     Tcl_SetObjResult(interp, cmd);
@@ -760,7 +773,7 @@ getresid(Tcl_Interp *interp, CONST84 char *id, Pg_ConnectionId ** connid_p)
  * Get back the result pointer from the Id
  */
 PGresult *
-PgGetResultId(Tcl_Interp *interp, CONST84 char *id)
+PgGetResultId(Tcl_Interp *interp, CONST84 char *id, Pg_resultid **resultidPtr)
 {
 	Pg_ConnectionId *connid;
 	int			resid;
@@ -770,6 +783,10 @@ PgGetResultId(Tcl_Interp *interp, CONST84 char *id)
 	resid = getresid(interp, id, &connid);
 	if (resid == -1)
 		return NULL;
+
+	if (resultidPtr != NULL) {
+		*resultidPtr = connid->resultids[resid];
+	}
 	return connid->results[resid];
 }
 
@@ -1239,7 +1256,7 @@ PgDelResultHandle(ClientData cData)
 
     resstr = Tcl_GetStringFromObj(resultid->str, NULL);
     
-    result = PgGetResultId(resultid->interp, resstr);
+    result = PgGetResultId(resultid->interp, resstr, NULL);
 
     PgDelResultId(resultid->interp, resstr);
     PQclear(result);
