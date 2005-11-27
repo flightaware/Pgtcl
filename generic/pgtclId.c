@@ -546,18 +546,22 @@ PgDelConnectionId(DRIVER_DEL_PROTO)
 
 	for (i = 0; i < connid->res_max; i++)
 	{
-            resultid = connid->resultids[i];
 	    if (connid->results[i])
-            {
-		PQclear(connid->results[i]);
+		{
+			PQclear(connid->results[i]);
 
-            Tcl_DecrRefCount(resultid->str);
-            }
 
-			if ((resultid->nullValueString != NULL) && (resultid->nullValueString != connid->nullValueString))
-				ckfree (resultid->nullValueString);
+            resultid = connid->resultids[i];
 
-            ckfree((void *)resultid);
+			if (resultid != NULL) {
+				Tcl_DecrRefCount(resultid->str);
+
+				if ((resultid->nullValueString != NULL) && (resultid->nullValueString != connid->nullValueString))
+					ckfree (resultid->nullValueString);
+
+				ckfree((void *)resultid);
+			}
+		}
 	}
 	
 	ckfree((void *)connid->results);
