@@ -23,7 +23,7 @@ TITLE PostgreSQL Tcl Interface Documentation
 PRIMARY Tcl
 /INDEXTERM
 INDEXTERM libpgtcl.html#PGTCL-OVERVIEW
-INDEXPOINT libpgtcl.html#AEN224
+INDEXPOINT libpgtcl.html#AEN230
 TITLE Overview
 significance NORMAL
 PRIMARY large    object
@@ -36,26 +36,26 @@ significance NORMAL
 id IX-PGTCL-PGCONNECT-2
 PRIMARY pg_connect
 /INDEXTERM
-INDEXTERM pgtcl-pgconnect.html#AEN307
-INDEXPOINT pgtcl-pgconnect.html#AEN335
+INDEXTERM pgtcl-pgconnect.html#AEN315
+INDEXPOINT pgtcl-pgconnect.html#AEN343
 TITLE Arguments
 significance NORMAL
 PRIMARY host name
 /INDEXTERM
-INDEXTERM pgtcl-pgconnect.html#AEN307
-INDEXPOINT pgtcl-pgconnect.html#AEN338
+INDEXTERM pgtcl-pgconnect.html#AEN315
+INDEXPOINT pgtcl-pgconnect.html#AEN346
 TITLE Arguments
 significance NORMAL
 PRIMARY Unix domain 	  socket
 /INDEXTERM
-INDEXTERM pgtcl-pgconnect.html#AEN307
-INDEXPOINT pgtcl-pgconnect.html#AEN371
+INDEXTERM pgtcl-pgconnect.html#AEN315
+INDEXPOINT pgtcl-pgconnect.html#AEN379
 TITLE Arguments
 significance NORMAL
 PRIMARY port
 /INDEXTERM
-INDEXTERM pgtcl-pgconnect.html#AEN307
-INDEXPOINT pgtcl-pgconnect.html#AEN427
+INDEXTERM pgtcl-pgconnect.html#AEN315
+INDEXPOINT pgtcl-pgconnect.html#AEN435
 TITLE Arguments
 significance NORMAL
 PRIMARY SSL
@@ -117,13 +117,6 @@ significance NORMAL
 id IX-PGTCL-PGEXECUTE-2
 PRIMARY pg_execute
 /INDEXTERM
-INDEXTERM pgtcl-pgresults.html
-INDEXPOINT pgtcl-pgresults.html#IX-PGTCL-PGRESULTS-2
-TITLE pg_results
-significance NORMAL
-id IX-PGTCL-PGRESULTS-2
-PRIMARY pg_results
-/INDEXTERM
 INDEXTERM pgtcl-pglisten.html
 INDEXPOINT pgtcl-pglisten.html#IX-PGTCL-PGLISTEN-2
 TITLE pg_listen
@@ -131,8 +124,8 @@ significance NORMAL
 id IX-PGTCL-PGLISTEN-2
 PRIMARY pg_listen
 /INDEXTERM
-INDEXTERM pgtcl-pglisten.html#AEN1127
-INDEXPOINT pgtcl-pglisten.html#AEN1138
+INDEXTERM pgtcl-pglisten.html#AEN1117
+INDEXPOINT pgtcl-pglisten.html#AEN1128
 TITLE Description
 significance NORMAL
 PRIMARY NOTIFY
@@ -186,6 +179,13 @@ TITLE pg_cancelrequest
 significance NORMAL
 id IX-PGTCL-PGCANCELREQUEST-2
 PRIMARY pg_cancelrequest
+/INDEXTERM
+INDEXTERM pgtcl-nullvaluestring.html
+INDEXPOINT pgtcl-nullvaluestring.html#IX-PGTCL-NULLVALUESTRING-2
+TITLE pg_null_value_string
+significance NORMAL
+id IX-PGTCL-NULLVALUESTRING-2
+PRIMARY pg_null_value_string
 /INDEXTERM
 INDEXTERM pgtcl-quote.html
 INDEXPOINT pgtcl-quote.html#IX-PGTCL-QUOTE-2

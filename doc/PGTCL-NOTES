@@ -125,6 +125,12 @@ pg_result
 
 	-clear		clear the result buffer. Do not reuse after this
 
+	-null_value_string ?value?
+				if value is specified or has been set via the connection's
+				pg_null_value_string, this string value is returned for
+				the various query styles when the corresponding row element
+				is NULL.
+
 
 pg_results
     returns a list of result handles for a particular connection

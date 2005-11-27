@@ -21,7 +21,7 @@ REL="STYLESHEET"
 TYPE="text/css"
 HREF="stylesheet.css"><META
 NAME="creation"
-CONTENT="2005-04-19T17:53:13"></HEAD
+CONTENT="2005-11-27T13:24:31"></HEAD
 ><BODY
 CLASS="CHAPTER"
 ><DIV
@@ -211,6 +211,12 @@ CLASS="PRODUCTNAME"
 >PostgreSQL</SPAN
 > 
   abandon processing of the current command
+ </DT
+><DT
+><A
+HREF="pgtcl-nullvaluestring.html"
+>pg_null_value_string</A
+>&nbsp;--&nbsp;define a value to be returned for NULL fields distinct from the default value of an empty string.
  </DT
 ><DT
 ><A
@@ -499,6 +505,20 @@ CLASS="FUNCTION"
 ></TD
 ><TD
 >send a query and optionally loop over the results</TD
+></TR
+><TR
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg_null_value_string</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::null_value_string</CODE
+></TD
+><TD
+>set string to be returned for null values in query results</TD
 ></TR
 ><TR
 ><TD
@@ -825,7 +845,7 @@ CLASS="FUNCTION"
 CLASS="PRODUCTNAME"
 >PostgreSQL</SPAN
 >.<A
-NAME="AEN224"
+NAME="AEN230"
 ></A
 > The functions are designed to mimic the analogous file
    system functions in the standard Unix file system interface.  The

@@ -553,6 +553,10 @@ PgDelConnectionId(DRIVER_DEL_PROTO)
 
             Tcl_DecrRefCount(resultid->str);
             }
+
+			if ((resultid->nullValueString != NULL) && (resultid->nullValueString != connid->nullValueString))
+				ckfree (resultid->nullValueString);
+
             ckfree((void *)resultid);
 	}
 	
@@ -586,6 +590,9 @@ PgDelConnectionId(DRIVER_DEL_PROTO)
 	/* Close the libpq connection too */
 	PQfinish(connid->conn);
 	connid->conn = NULL;
+
+	if (connid->nullValueString != NULL)
+		ckfree(connid->nullValueString);
 
 	/*
 	 * Kill the notifier channel, too.	We must not do this until after
@@ -798,6 +805,7 @@ void
 PgDelResultId(Tcl_Interp *interp, CONST84 char *id)
 {
 	Pg_ConnectionId *connid;
+	Pg_resultid     *resultid;
 	int			resid;
 
 	resid = getresid(interp, id, &connid);
@@ -806,8 +814,14 @@ PgDelResultId(Tcl_Interp *interp, CONST84 char *id)
 
 	connid->results[resid] = 0;
 
-Tcl_DecrRefCount((Tcl_Obj *)connid->resultids[resid]->str);
-ckfree((void *)connid->resultids[resid]);
+	resultid = connid->resultids[resid];
+
+	Tcl_DecrRefCount((Tcl_Obj *)resultid->str);
+
+	if ((resultid->nullValueString != NULL) && (resultid->nullValueString != connid->nullValueString))
+		ckfree (resultid->nullValueString);
+
+	ckfree((void *)resultid);
 	connid->resultids[resid] = 0;
 }
 

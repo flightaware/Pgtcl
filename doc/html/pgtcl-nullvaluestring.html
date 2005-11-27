@@ -2,7 +2,7 @@
 <HTML
 ><HEAD
 ><TITLE
->pg_results</TITLE
+>pg_null_value_string</TITLE
 ><META
 NAME="GENERATOR"
 CONTENT="Modular DocBook HTML Stylesheet Version 1.7"><LINK
@@ -15,16 +15,16 @@ REL="UP"
 TITLE="pgtcl Command Reference"
 HREF="libpgtcl-ref.html"><LINK
 REL="PREVIOUS"
-TITLE="pg_execute"
-HREF="pgtcl-pgexecute.html"><LINK
+TITLE="pg_cancelrequest"
+HREF="pgtcl-pgcancelrequest.html"><LINK
 REL="NEXT"
-TITLE="pg_listen"
-HREF="pgtcl-pglisten.html"><LINK
+TITLE="pg_quote"
+HREF="pgtcl-quote.html"><LINK
 REL="STYLESHEET"
 TYPE="text/css"
 HREF="stylesheet.css"><META
 NAME="creation"
-CONTENT="2005-04-18T11:38:22"></HEAD
+CONTENT="2005-11-27T13:24:31"></HEAD
 ><BODY
 CLASS="REFENTRY"
 ><DIV
@@ -48,7 +48,7 @@ WIDTH="10%"
 ALIGN="left"
 VALIGN="top"
 ><A
-HREF="pgtcl-pgexecute.html"
+HREF="pgtcl-pgcancelrequest.html"
 ACCESSKEY="P"
 >Prev</A
 ></TD
@@ -57,7 +57,7 @@ WIDTH="10%"
 ALIGN="left"
 VALIGN="top"
 ><A
-HREF="pgtcl-pgexecute.html"
+HREF="pgtcl-pgcancelrequest.html"
 >Fast Backward</A
 ></TD
 ><TD
@@ -70,7 +70,7 @@ WIDTH="10%"
 ALIGN="right"
 VALIGN="top"
 ><A
-HREF="pgtcl-pglisten.html"
+HREF="pgtcl-quote.html"
 >Fast Forward</A
 ></TD
 ><TD
@@ -78,7 +78,7 @@ WIDTH="10%"
 ALIGN="right"
 VALIGN="top"
 ><A
-HREF="pgtcl-pglisten.html"
+HREF="pgtcl-quote.html"
 ACCESSKEY="N"
 >Next</A
 ></TD
@@ -89,71 +89,62 @@ ALIGN="LEFT"
 WIDTH="100%"></DIV
 ><H1
 ><A
-NAME="PGTCL-PGRESULTS"
+NAME="PGTCL-NULLVALUESTRING"
 ></A
->pg_results</H1
+>pg_null_value_string</H1
 ><DIV
 CLASS="REFNAMEDIV"
 ><A
-NAME="AEN1085"
+NAME="AEN1417"
 ></A
 ><H2
 >Name</H2
->pg_results&nbsp;--&nbsp;return a list of all the uncleared result handles for a connection<A
-NAME="IX-PGTCL-PGRESULTS-2"
+>pg_null_value_string&nbsp;--&nbsp;define a value to be returned for NULL fields distinct from the default value of an empty string.
+ <A
+NAME="IX-PGTCL-NULLVALUESTRING-2"
 ></A
 ></DIV
 ><DIV
 CLASS="REFSYNOPSISDIV"
 ><A
-NAME="AEN1090"
+NAME="AEN1422"
 ></A
 ><H2
 >Synopsis</H2
 ><PRE
 CLASS="SYNOPSIS"
->pg_results <VAR
+>pg_null_value_string ?<SPAN
+CLASS="OPTIONAL"
+><VAR
 CLASS="PARAMETER"
->conn</VAR
-></PRE
+>string</VAR
+></SPAN
+>?</PRE
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN1093"
+NAME="AEN1426"
 ></A
 ><H2
 >Description</H2
 ><P
 >   <CODE
 CLASS="FUNCTION"
->pg_results</CODE
-> returns a list off all of the
-   <SPAN
-CLASS="PRODUCTNAME"
->PostgreSQL</SPAN
-> result handles returned by
-   <CODE
-CLASS="FUNCTION"
->pg_exec</CODE
->, <CODE
-CLASS="FUNCTION"
->pg_exec_prepared</CODE
->,
-   <CODE
-CLASS="FUNCTION"
->pg_sendquery</CODE
->, 
-   <CODE
-CLASS="FUNCTION"
->pg_sendquery_prepared</CODE
->, etc.
+>pg_null_value_string</CODE
+> sets or retrieves a string to
+   be returned in query results for fields whose value is NULL, making it
+   possible to distinguish between NULL values an values that are not null
+   but are comprised of an empty string.  Without setting an alternative
+   null value with this or with pg_result's -null_value_string, it is
+   impossible to tell the difference between a NULL field value and one that
+   is not null but empty.
   </P
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN1102"
+NAME="AEN1430"
 ></A
 ><H2
 >Arguments</H2
@@ -165,11 +156,11 @@ CLASS="VARIABLELIST"
 ><DT
 ><VAR
 CLASS="PARAMETER"
->conn</VAR
+>string</VAR
 ></DT
 ><DD
 ><P
->      The handle of the connection on which to listen for notifications.
+>      The string to be set that will be returned for null fields.
      </P
 ></DD
 ></DL
@@ -178,22 +169,14 @@ CLASS="PARAMETER"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN1110"
+NAME="AEN1438"
 ></A
 ><H2
 >Return Value</H2
 ><P
->   A list of all of the result handles that haven't been cleared with
-   <CODE
-CLASS="FUNCTION"
->pg_result</CODE
-> <VAR
-CLASS="PARAMETER"
->-clear</VAR
->.
-  </P
-><P
->  The list can be empty if there are no uncleared result handles.
+>   Returns the string that is currently being returned for null fields.
+   It will be the passed string value if one was passed, or, otherwise,
+   the value currently being used.
   </P
 ></DIV
 ><DIV
@@ -212,7 +195,7 @@ WIDTH="33%"
 ALIGN="left"
 VALIGN="top"
 ><A
-HREF="pgtcl-pgexecute.html"
+HREF="pgtcl-pgcancelrequest.html"
 ACCESSKEY="P"
 >Prev</A
 ></TD
@@ -230,7 +213,7 @@ WIDTH="33%"
 ALIGN="right"
 VALIGN="top"
 ><A
-HREF="pgtcl-pglisten.html"
+HREF="pgtcl-quote.html"
 ACCESSKEY="N"
 >Next</A
 ></TD
@@ -240,7 +223,7 @@ ACCESSKEY="N"
 WIDTH="33%"
 ALIGN="left"
 VALIGN="top"
->pg_execute</TD
+>pg_cancelrequest</TD
 ><TD
 WIDTH="34%"
 ALIGN="center"
@@ -254,7 +237,7 @@ ACCESSKEY="U"
 WIDTH="33%"
 ALIGN="right"
 VALIGN="top"
->pg_listen</TD
+>pg_quote</TD
 ></TR
 ></TABLE
 ></DIV

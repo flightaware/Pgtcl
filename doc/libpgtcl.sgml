@@ -112,6 +112,11 @@ $Header$
     <entry>send a query and optionally loop over the results</entry>
   </row>
   <row>
+    <entry><function>pg_null_value_string</function></entry>
+    <entry><function>pg::null_value_string</function></entry>
+    <entry>set string to be returned for null values in query results</entry>
+  </row>
+  <row>
     <entry><function>pg_quote</function></entry>
     <entry><function>pg::quote</function></entry>
     <entry>escape a string for inclusion into SQL statements</entry>
@@ -1390,6 +1395,15 @@ pg_result <parameter>resultHandle</parameter> <parameter>resultOption</parameter
        </varlistentry>
 
        <varlistentry>
+        <term><option>-null_value_string <optional role="tcl"><parameter>string</></optional></option></term>
+        <listitem>
+         <para>
+          Defines or retrieves the string that will be returned for null values in query results.  Defaults to whatever was set by <function>pg_null_value_string</function> but can be set here and, in this case, affects only this query result.
+         </para>
+        </listitem>
+       </varlistentry>
+
+       <varlistentry>
         <term><option>-clear</option></term>
         <listitem>
          <para>
@@ -2295,6 +2309,64 @@ pg_cancelrequest <parameter>conn</parameter>
   <para>
    Returns nothing if the command was successfully dispatched or if no
    query was being processed.  Otherwise, returns an error.
+  </para>
+ </refsect1>
+</refentry>
+
+<refentry ID="PGTCL-NULLVALUESTRING">
+ <refmeta>
+  <refentrytitle>pg_null_value_string</refentrytitle>
+ </refmeta>
+
+ <refnamediv>
+  <refname>pg_null_value_string</refname>
+  <refpurpose>define a value to be returned for NULL fields distinct from the default value of an empty string.
+ </refpurpose>
+  <indexterm ID="IX-PGTCL-NULLVALUESTRING-2"><primary>pg_null_value_string</primary></indexterm>
+ </refnamediv>
+
+ <refsynopsisdiv>
+<synopsis>
+pg_null_value_string <optional role="tcl"><parameter>string</parameter></optional>
+</synopsis>
+ </refsynopsisdiv>
+
+ <refsect1>
+  <title>Description</title>
+
+  <para>
+   <function>pg_null_value_string</function> sets or retrieves a string to
+   be returned in query results for fields whose value is NULL, making it
+   possible to distinguish between NULL values an values that are not null
+   but are comprised of an empty string.  Without setting an alternative
+   null value with this or with pg_result's -null_value_string, it is
+   impossible to tell the difference between a NULL field value and one that
+   is not null but empty.
+  </para>
+ </refsect1>
+
+ <refsect1>
+  <title>Arguments</title>
+
+  <variablelist>
+   <varlistentry>
+    <term><parameter>string</parameter></term>
+    <listitem>
+     <para>
+      The string to be set that will be returned for null fields.
+     </para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+ </refsect1>
+
+ <refsect1>
+  <title>Return Value</title>
+
+  <para>
+   Returns the string that is currently being returned for null fields.
+   It will be the passed string value if one was passed, or, otherwise,
+   the value currently being used.
   </para>
  </refsect1>
 </refentry>

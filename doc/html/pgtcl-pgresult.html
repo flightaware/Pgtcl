@@ -24,7 +24,7 @@ REL="STYLESHEET"
 TYPE="text/css"
 HREF="stylesheet.css"><META
 NAME="creation"
-CONTENT="2005-04-19T17:53:13"></HEAD
+CONTENT="2005-11-27T13:24:31"></HEAD
 ><BODY
 CLASS="REFENTRY"
 ><DIV
@@ -95,7 +95,7 @@ NAME="PGTCL-PGRESULT"
 ><DIV
 CLASS="REFNAMEDIV"
 ><A
-NAME="AEN704"
+NAME="AEN710"
 ></A
 ><H2
 >Name</H2
@@ -106,7 +106,7 @@ NAME="IX-PGTCL-PGRESULT-2"
 ><DIV
 CLASS="REFSYNOPSISDIV"
 ><A
-NAME="AEN709"
+NAME="AEN715"
 ></A
 ><H2
 >Synopsis</H2
@@ -123,7 +123,7 @@ CLASS="PARAMETER"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN713"
+NAME="AEN719"
 ></A
 ><H2
 >Description</H2
@@ -154,7 +154,7 @@ CLASS="APPLICATION"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN721"
+NAME="AEN727"
 ></A
 ><H2
 >Arguments</H2
@@ -601,6 +601,25 @@ CLASS="LITERAL"
 ><DT
 ><VAR
 CLASS="OPTION"
+>-null_value_string ?<SPAN
+CLASS="OPTIONAL"
+><VAR
+CLASS="PARAMETER"
+>string</VAR
+></SPAN
+>?</VAR
+></DT
+><DD
+><P
+>          Defines or retrieves the string that will be returned for null values in query results.  Defaults to whatever was set by <CODE
+CLASS="FUNCTION"
+>pg_null_value_string</CODE
+> but can be set here and, in this case, affects only this query result.
+         </P
+></DD
+><DT
+><VAR
+CLASS="OPTION"
 >-clear</VAR
 ></DT
 ><DD
@@ -619,7 +638,7 @@ CLASS="OPTION"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN906"
+NAME="AEN920"
 ></A
 ><H2
 >Return Value</H2
