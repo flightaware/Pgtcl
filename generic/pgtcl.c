@@ -198,7 +198,7 @@ Pgtcl_Init(Tcl_Interp *interp)
         return TCL_ERROR;
 
 
-	return Tcl_PkgProvide(interp, "Pgtcl", "1.5");
+	return Tcl_PkgProvide(interp, "Pgtcl", PACKAGE_VERSION);
 }
 
 int
