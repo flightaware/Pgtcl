@@ -755,8 +755,7 @@ Pg_exec_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 #ifndef HAVE_PQEXECPREPARED
     Tcl_SetObjResult(interp, 
         Tcl_NewStringObj(
-        "function unavailable with this version ",
-        " of the postgres libpq library", -1));
+        "function unavailable with this version of the postgres libpq library\n", -1));
 
 	return TCL_ERROR;
 #else
