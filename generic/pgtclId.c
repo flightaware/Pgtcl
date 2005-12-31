@@ -267,6 +267,7 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
     int             optIndex;
     int             objvxi;
+    int             idx = 1;
     char            *arg;
     Tcl_Obj         *objvx[25];
     Tcl_CmdInfo     info;
@@ -316,7 +317,14 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
     if (Tcl_GetIndexFromObj(interp, objv[1], options, "command", TCL_EXACT, &optIndex) != TCL_OK)
                     return TCL_ERROR;
 
-    objvx[1] = Tcl_NewStringObj(connid->id, -1);
+    /*
+     *  Need to test here, since EXECUTE branch does things
+     *  things a little different
+     */
+    if (optIndex != EXECUTE)
+    {
+        objvx[1] = Tcl_NewStringObj(connid->id, -1);
+    }
 
     switch ((enum options) optIndex)
     {
@@ -356,7 +364,7 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
                 objvx[objvxi++] = objv[0];
                 
             }
-            /* DEBUGGING
+            /*  DEBUGGING
             for (objvxi = 0; objvxi < objc; objvxi++)
             {
                 printf("ID: %d OBJV %s OBJVX %s\n", objvxi, 
@@ -365,6 +373,8 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
             }
             */
                
+            idx += num;
+            objvx[idx] = Tcl_NewStringObj(connid->id, -1);
             returnCode = Pg_execute(cData, interp, objc, objvx);
 			break;
         }
@@ -454,7 +464,7 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 			break;
         }
     }
-	Tcl_DecrRefCount(objvx[1]);
+	Tcl_DecrRefCount(objvx[idx]);
 	return returnCode;
 }
 
