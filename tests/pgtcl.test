@@ -3,22 +3,26 @@ if {[lsearch [namespace children] ::tcltest] == -1} {
     namespace import -force ::tcltest::*
 }
 
-foreach F [list ../libpgtcl1.5[info sharedlibextension] ./libpgtcl1.5[info sharedlibextension]] {
+#tcltest::verbose 100
+#tcltest::debug 100
 
-    if {[file exists $F]} {
+set flist [glob -nocomplain -dir .. libpgtcl*[info sharedlibextension]]
+set flist [concat $flist [glob -nocomplain libpgtcl*[info sharedlibextension]]]
 
-        load $F
-    }
-}
+load [lindex $flist end]
 
 #
 #   set this to your specific location
 #
 array set conninfo {
     host    192.168.123.180
-    port    5801
+    port    5747
     dbname  template1
     user    postgres
+}
+
+if {[file exists conninfo.tcl]} {
+    source conninfo.tcl
 }
 
 #
@@ -322,7 +326,7 @@ test pgtcl-5.2 {escape a binary string} {
     set qstr [pg::escape_bytea $bn]
 
     set qstr
-} \\\\000\\\\\\\\HELLO\\'s
+} \\\\000\\\\\\\\HELLO''s
 
 #
 #
