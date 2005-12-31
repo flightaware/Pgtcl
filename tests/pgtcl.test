@@ -9,6 +9,11 @@ if {[lsearch [namespace children] ::tcltest] == -1} {
 set flist [glob -nocomplain -dir .. libpgtcl*[info sharedlibextension]]
 set flist [concat $flist [glob -nocomplain libpgtcl*[info sharedlibextension]]]
 
+if {[llength $flist] == 0} {
+    puts "\nCan not find a shared lib file\n"
+    exit
+}
+
 load [lindex $flist end]
 
 #
@@ -479,7 +484,7 @@ test pgtcl-8.3 {using connection command handle for pg_execute, -array option} {
 
     set conn [pg::connect -connlist [array get ::conninfo]]
 
-    $conn execute -array resultArr "SELECT relname FROM Pg_class LIMIT 5" {
+    $conn execute -array resultArr -oid OID "SELECT relname FROM Pg_class LIMIT 5" {
         lappend ::names $resultArr(relname)
         
     } 
