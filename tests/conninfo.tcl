@@ -2,7 +2,7 @@
 #   set this to your specific location
 #
 array set conninfo {
-    port    5748
-    dbname  pgtcltest
+    port    5747
+    dbname  template1
     user    postgres
 }
