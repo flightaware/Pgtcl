@@ -658,6 +658,10 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 	    for (param = 0; param < nParams; param++) {
 		paramValues[param] = Tcl_GetStringFromObj (objv[3+param], NULL);
+		if (strcmp(paramValues[param], "NULL") == 0)
+                {
+                    paramValues[param] = '\0';
+                }
 	    }
 	}
 #else /* HAVE_PQEXECPARAMS */
@@ -796,6 +800,10 @@ Pg_exec_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 
 	    for (param = 0; param < nParams; param++) {
 		paramValues[param] = Tcl_GetStringFromObj (objv[3+param], NULL);
+		if (strcmp(paramValues[param], "NULL") == 0)
+                {
+                    paramValues[param] = '\0';
+                }
 	    }
 	}
 
@@ -2806,6 +2814,10 @@ Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
 
 	    for (param = 0; param < nParams; param++) {
 		paramValues[param] = Tcl_GetStringFromObj (objv[3+param], NULL);
+		if (strcmp(paramValues[param], "NULL") == 0)
+                {
+                    paramValues[param] = '\0';
+                }
 	    }
 	}
 #else /* HAVE_PQSENDQUERYPARAMS */
@@ -2920,6 +2932,10 @@ Pg_sendquery_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *C
 
 	    for (param = 0; param < nParams; param++) {
 		paramValues[param] = Tcl_GetStringFromObj (objv[3+param], NULL);
+		if (strcmp(paramValues[param], "NULL") == 0)
+                {
+                    paramValues[param] = '\0';
+                }
 	    }
 	}
 
