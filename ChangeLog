@@ -1,6 +1,11 @@
 
 $Id$
 
+2006-01-01 Brett Schwarz <brett_schwarz@yahoo.com>
+    * changed the commands that handle params, such that if a value is NULL
+      then the lib will change the paramValues value to '\0' so that
+      the backend will insert a NULL correctly
+
 2005-11-27 Karl Lehenbauer <karl-pg@sc.com>
     * Bumped version number to 1.6
 
