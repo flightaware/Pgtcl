@@ -3427,7 +3427,7 @@ proc getDBs { {host "localhost"} {port "5432"} } {
 proc getDBs { {host "localhost"} {port "5432"} } {
     # datnames is the list to be result
     set conn [pg_connect template1 -host $host -port $port]
-    set res [$conn "SELECT datname FROM pg_database ORDER BY datname;"]
+    set res [$conn exec "SELECT datname FROM pg_database ORDER BY datname;"]
 
     set datnames [$res -dict]
     $res -clear
