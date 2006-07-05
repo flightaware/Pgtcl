@@ -1,3 +1,265 @@
+2006-03-28  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl.m4: []-quote AC_DEFUN functions.
+	(TEA_PATH_TKCONFIG): Fixed Windows-specific check for tkConfig.sh.
+	(TEA_MAKE_LIB): Prepend 'lib' for Windows-gcc configs.
+
+2006-03-07  Joe English  <jenglish@users.sourceforge.net>
+
+	* tcl.m4: Set SHLIB_LD_FLAGS='${LIBS}' on NetBSD,
+	as per the other *BSD variants [Bug 1334613].
+
+2006-01-25  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	*** Bump to TEA version 3.5 ***
+
+	* tcl.m4: keep LD_SEARCH_FLAGS and CC_SEARCH_FLAGS synchronous
+	with core tcl.m4 meaning.
+
+2006-01-24  Daniel Steffen  <das@users.sourceforge.net>
+
+	* tcl.m4 (Darwin): use makefile variable LDFLAGS_DEFAULT instead of
+	LDFLAGS in SHLIB_LD, to ensure linker flags in sampleextension Makefile
+	are picked up. [Bug 1403343]
+
+2006-01-23  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl.m4: add C:/Tcl/lib and C:/Progra~1/Tcl/lib dirs to check for
+	*Config.sh on Windows. [Bug 1407544]
+
+2006-01-23  Daniel Steffen  <das@users.sourceforge.net>
+
+	* tcl.m4 (Darwin): for Tk extensions, remove -arch ppc64 from CFLAGS
+	like in the Tk configure, as neither TkAqua nor TkX11 can be built for
+	64bit at present (no 64bit GUI libraries).
+
+2006-01-22  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl.m4: restore system=windows on Windows.
+	Remove error if 'ar' isn't found (it may not be on Windows).
+	Do not add -lxnet or define _XOPEN_SOURCE on HP-UX by default.
+	Ensure the C|LDFLAGS_DEFAULT gets the fully sub'd value at
+	configure time.
+
+2006-01-10  Daniel Steffen  <das@users.sourceforge.net>
+
+	* tcl.m4: add caching, use AC_CACHE_CHECK instead of AC_CACHE_VAL
+	where possible, consistent message quoting, sync relevant
+	tcl/unix/tcl.m4 HEAD changes and gratuitous formatting differences
+	(notably sunc removal of support for for ancient BSD's, IRIX 4,
+	RISCos and Ultrix by kennykb), Darwin improvements to
+	TEA_LOAD_*CONFIG to make linking work against Tcl/Tk frameworks
+	installed in arbitrary location, change TEA_PROG_* search order
+	(look in *_BIN_DIR parents before *_PREFIX).
+
+2006-01-05  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl.m4: add dkf's system config refactor
+
+2006-01-04  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl.m4: remove extraneous ' that causes bash 3.1 to choke
+
+2005-12-19  Joe English  <jenglish@users.sourceforge.net>
+
+	* tcl.m4 (TEA_PATH_TCLCONFIG &c): Look for tclConfig.sh &c 
+	in ${libdir}, where they are installed by default [Patch #1377407].
+
+2005-12-05  Don Porter  <dgp@users.sf.net>
+
+	* tcl.m4 (TEA_PUBLIC_*_HEADERS):	Better support for finding
+	header files for uninstalled Tcl and Tk.
+
+2005-12-02  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl.m4: correctly bump TEA_VERSION var to 3.4
+
+2005-12-01  Daniel Steffen  <das@users.sourceforge.net>
+
+	* unix/tcl.m4 (Darwin): fixed error when MACOSX_DEPLOYMENT_TARGET unset
+
+2005-11-29  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl.m4:  *** Bump to TEA version 3.4 ***
+	Add Windows x64 build support.
+	Remove TEA_PATH_NOSPACE and handle the problem with ""s where
+	necessary - the macro relied on TCLSH_PROG which didn't work for
+	cross-compiles.
+
+2005-11-27  Daniel Steffen  <das@users.sourceforge.net>
+
+	* tcl.m4 (Darwin): add 64bit support, add CFLAGS to SHLIB_LD to
+	support passing -isysroot in env(CFLAGS) to configure (flag can't
+	be present twice, so can't be in both CFLAGS and LDFLAGS during
+	configure), don't use -prebind when deploying on 10.4.
+	(TEA_ENABLE_LANGINFO, TEA_TIME_HANDLER): add/fix caching.
+
+2005-10-30  Daniel Steffen  <das@users.sourceforge.net>
+
+	* tcl.m4: fixed two tests for TEA_WINDOWINGSYSTEM = "aqua" that
+	should have been for `uname -s` = "Darwin" instead; added some
+	missing quoting.
+	(TEA_PROG_TCLSH, TEA_PROG_WISH): fix incorrect assumption that
+	install location of tclConfig.sh/tkConfig.sh allows to determine
+	the tclsh/wish install dir via ../bin. Indeed tcl/tk can be
+	configured with arbitrary --libdir and --bindir (independent of
+	prefix) and such a configuration is in fact standard with Darwin
+	framework builds. At least now also check ${TCL_PREFIX}/bin
+	resp. ${TK_PREFIX}/bin for presence of tclsh resp. wish (if tcl/tk
+	have been configured with arbitrary --bindir, this will still not
+	find them, for a general solution *Config.sh would need to contain
+	the values of bindir/libdir/includedir passed to configure).
+
+2005-10-07  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl.m4: Fix Solaris 5.10 check and Solaris AMD64 64-bit builds.
+
+2005-10-04  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl.m4 (TEA_PRIVATE_TCL_HEADERS): add / to finish sed macro
+	(TEA_ENABLE_THREADS): don't check for pthread_attr_setstacksize func
+
+2005-09-13  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl.m4: *** Update to TEA version 3.3 ***
+	define TEA_WINDOWINGSYSTEM in TEA_LOAD_TKCONFIG.
+	Make --enable-threads the default (users can --disable-threads).
+	Improve AIX ${CC}_r fix to better check existing ${CC} value.
+	Do the appropriate evals to not require the *TOP_DIR_NATIVE vars
+	be set for extensions that use private headers.
+	Make aqua check for Xlib compat headers the same as win32.
+
+2005-07-26  Mo DeJong  <mdejong@users.sourceforge.net>
+
+	* tcl.m4 (TEA_PROG_TCLSH, TEA_BUILD_TCLSH,
+	TEA_PROG_WISH, TEA_BUILD_WISH): Remove
+	TEA_BUILD_TCLSH and TEA_BUILD_WISH because
+	of complaints that it broke the build when
+	only an installed version of Tcl was available
+	at extension build time. The TEA_PROG_TCLSH and
+	TEA_PROG_WISH macros will no longer search the
+	path at all. The build tclsh or installed
+	tclsh shell will now be found by TEA_PROG_TCLSH.
+
+2005-07-24  Mo DeJong  <mdejong@users.sourceforge.net>
+
+	* tcl.m4 (TEA_PROG_TCLSH, TEA_BUILD_TCLSH,
+	TEA_PROG_WISH, TEA_BUILD_WISH):
+	Split confused search for tclsh on PATH and
+	build and install locations into two macros.
+	TEA_PROG_TCLSH and TEA_PROG_WISH search the
+	system PATH for an installed tclsh or wish.
+	The TEA_BUILD_TCLSH and TEA_BUILD_WISH
+	macros determine the name of tclsh or
+	wish in the Tcl or Tk build directory even
+	if tclsh or wish has not yet been built.
+	[Tcl bug 1160114]
+	[Tcl patch 1244153]
+
+2005-06-23  Daniel Steffen  <das@users.sourceforge.net>
+
+	* tcl.m4 (TEA_PRIVATE_TK_HEADERS): add ${TK_SRC_DIR}/macosx to
+	TK_INCLUDES when building against TkAqua.
+
+	* tcl.m4 (TEA_PATH_X): fixed missing comma in AC_DEFINE
+
+	* tcl.m4: changes to better support framework builds of Tcl and Tk out
+	of the box: search framework install locations for *Config.sh, and if in
+	presence of a framework build, use the framework's Headers and
+	PrivateHeaders directories for public and private includes. [FR 947735]
+
+2005-06-18  Daniel Steffen  <das@users.sourceforge.net>
+
+	* tcl.m4 (Darwin): add -headerpad_max_install_names to LDFLAGS to
+	ensure we can always relocate binaries with install_name_tool.
+
+2005-06-04  Daniel Steffen  <das@users.sourceforge.net>
+
+	* tcl.m4 (TEA_PATH_X): for TEA_WINDOWINGSYSTEM == aqua, check if xlib
+	compat headers are available in tkheaders location, otherwise add xlib
+	sourcedir to TK_XINCLUDES.
+
+2005-04-25  Daniel Steffen  <das@users.sourceforge.net>
+
+	* tcl.m4: added AC_DEFINE* descriptions (from core tcl.m4) to allow
+	use with autoheader.
+	(Darwin): added configure checks for recently added linker flags
+	-single_module and -search_paths_first to allow building with older
+	tools (and on Mac OS X 10.1), use -single_module in SHLIB_LD.
+	(TEA_MISSING_POSIX_HEADERS): added caching of dirent.h check.
+	(TEA_BUGGY_STRTOD): added caching (sync with core tcl.m4).
+
+2005-03-24  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl.m4 (TEA_TCL_64BIT_FLAGS): use Tcl header defaults for wide
+	int type only on Windows when __int64 is detected as valid.
+
+2005-03-24  Don Porter  <dgp@users.sf.net>
+
+	* README.txt:	Update reference to "SC_* macros" to "TEA_* macros".
+	* tcl.m4:	Incorporated recent improvements in SC_PATH_TCLCONFIG
+	and SC_PATH_TKCONFIG into TEA_PATH_TCLCONFIG and TEA_PATH_TKCONFIG.
+	Corrected search path in TEA_PATH_CONFIG and added
+	AC_SUBST($1_BIN_DIR) to TEA_LOAD_CONFIG so that packages that load
+	the configuration of another package can know where they loaded
+	it from.
+
+2005-03-18  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl.m4 (TEA_CONFIG_CFLAGS): correct 2005-03-17 change to have
+	variant LD_SEARCH_FLAGS for gcc and cc builds.
+
+	* tcl.m4 (TEA_PROG_TCLSH, TEA_PROG_WISH): correct x-compile check.
+
+2005-03-17  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl.m4: Correct gcc build and HP-UX-11.
+
+2005-02-08  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl.m4 (TEA_ADD_LIBS): don't touch lib args starting with -.
+	(TEA_CONFIG_CFLAGS): only define _DLL for CE in shared build.
+	(TEA_MAKE_LIB): set RANLIB* to : on Windows (it's not needed).
+
+2005-02-01  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl.m4: redo of 2005-01-27 changes to correctly handle paths
+	with spaces.  Win/CE and Win/64 builds now require a prebuilt
+	tclsh to handle conversion to short pathnames.  This is done in
+	the new TEA_PATH_NOSPACE macro.  For Win/CE|64, make CC just the
+	compiler and move the necessary includes to CFLAGS.
+	(TEA_CONFIG_CFLAGS): Add Solaris 64-bit gcc build support.
+	(TEA_PROG_TCLSH, TEA_PROG_WISH): Allow TCLSH_PROG and WISH_PROG to
+	be set in the env and prevent resetting.
+	(TEA_ADD_LIBS): On Windows using GCC (mingw), convert foo.lib
+	args to -lfoo, for use with mingw.
+		*** POTENTIAL INCOMPATABILITY ***
+	(TEA_CONFIG_CFLAGS): Fix AIX gcc builds to work out-of-box.
+	Bumped TEA to 3.2.
+
+2005-01-27  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl.m4: remove cygpath calls to support msys.
+	Update base CE build assumption to "420,ARMV4,ARM,Pocket PC 2003".
+	Make STLIB_LD use $LINKBIN -lib.
+
+2005-01-25  Daniel Steffen  <das@users.sourceforge.net>
+
+	* tcl.m4 (Darwin): fixed bug with static build linking to dynamic
+	library in /usr/lib etc instead of linking to static library earlier
+	in search path. [Tcl Bug 956908]
+	Removed obsolete references to Rhapsody. 
+	
+2004-12-29  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl.m4: Updates for VC7 compatibility, fixing CFLAGS and LDFLAGS
+	options, using better default -O levels. [Bug 1092952, 1091967]
+
+2004-12-29  Joe English  <jenglish@users.sourceforge.net>
+
+	* tcl.m4: Do not use ${DBGX} suffix when building
+	shared libraries [patch #1081595, TIP #34]
+
 2004-09-07  Jeff Hobbs  <jeffh@ActiveState.com>
 
 	* tcl.m4 (TEA_CONFIG_CFLAGS): support eVC4 Win/CE builds

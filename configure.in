@@ -27,7 +27,7 @@ AC_INIT([pgtcl], [1.6])
 # as well as PKG_LIB_FILE and PKG_STUB_LIB_FILE.
 #--------------------------------------------------------------------
 
-TEA_INIT([3.1])
+TEA_INIT([3.5])
 
 AC_CONFIG_AUX_DIR(tclconfig)
 
@@ -158,12 +158,12 @@ TEA_ADD_TCL_SOURCES([runtime/pgtcl.tcl])
 #--------------------------------------------------------------------
 
 if test "${TEA_PLATFORM}" = "windows" ; then
-    AC_DEFINE(BUILD_libpgtcl)
-    CLEANFILES="pkgIndex.tcl *.lib *.dll *.exp *.ilk *.pdb vc*.pch"
+    AC_DEFINE(BUILD_libpgtcl, 1, [Build windows export dll])
+    CLEANFILES="*.lib *.dll *.exp *.ilk *.pdb vc*.pch"
     #TEA_ADD_SOURCES([win/winFile.c])
     #TEA_ADD_INCLUDES([-I\"$(${CYGPATH} ${srcdir}/win)\"])
 else
-    CLEANFILES="pkgIndex.tcl"
+    CLEANFILES=""
     #TEA_ADD_SOURCES([unix/unixFile.c])
     #TEA_ADD_LIBS([-lsuperfly])
 fi
@@ -205,7 +205,7 @@ TEA_ENABLE_SHARED
 # can be taken from the tclConfig.sh file, but this figures it all out.
 #--------------------------------------------------------------------
 
-# NOTE -- WE HAVE A SPECIAL VERSION OF TEA_CONFIG_CFLAGS that includes
+# NOTE - WE HAVE A SPECIFAL VERSION OF TEA_CONFIG_CFLAGS that includes
 # paths to the postgres libraries alongside the Tcl libraries.
 # see aclocal.m4
 PGTCL_CONFIG_CFLAGS
@@ -223,8 +223,8 @@ TEA_ENABLE_SYMBOLS
 # link against the non-stubbed Tcl library.  Add Tk too if necessary.
 #--------------------------------------------------------------------
 
-AC_DEFINE(USE_TCL_STUBS)
-#AC_DEFINE(USE_TK_STUBS)
+AC_DEFINE(USE_TCL_STUBS, 1, [Use Tcl stubs])
+#AC_DEFINE(USE_TK_STUBS, 1, [Use Tk stubs])
 
 #--------------------------------------------------------------------
 # This macro generates a line to use when building a library.  It
@@ -235,12 +235,11 @@ AC_DEFINE(USE_TCL_STUBS)
 TEA_MAKE_LIB
 
 #--------------------------------------------------------------------
-# Find tclsh so that we can run pkg_mkIndex to generate the pkgIndex.tcl
-# file during the install process.  Don't run the TCLSH_PROG through
-# ${CYGPATH} because it's being used directly by make.
-# Require that we use a tclsh shell version 8.2 or later since earlier
-# versions have bugs in the pkg_mkIndex routine.
-# Add WISH as well if this is a Tk extension.
+# Determine the name of the tclsh and/or wish executables in the
+# Tcl and Tk build directories or the location they were installed
+# into. These paths are used to support running test cases only,
+# the Makefile should not be making use of these paths to generate
+# a pkgIndex.tcl file or anything else at extension build time.
 #--------------------------------------------------------------------
 
 TEA_PROG_TCLSH
@@ -252,5 +251,6 @@ TEA_PROG_TCLSH
 # which require substituting th AC variables in.  Include these here.
 #--------------------------------------------------------------------
 
-AC_OUTPUT([Makefile])
+AC_OUTPUT([Makefile pkgIndex.tcl])
+
 
