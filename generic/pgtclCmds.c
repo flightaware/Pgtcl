@@ -303,7 +303,7 @@ Pg_conndefaults(ClientData cData, Tcl_Interp *interp, int objc,
 
 	if (options)
 	{
-		Tcl_Obj    *resultList = Tcl_GetObjResult(interp);
+		Tcl_Obj    *resultList = Tcl_NewListObj(0, NULL);
 
 		Tcl_SetListObj(resultList, 0, NULL);
 
@@ -338,6 +338,7 @@ Pg_conndefaults(ClientData cData, Tcl_Interp *interp, int objc,
 										 subList) == TCL_ERROR)
 				return TCL_ERROR;
 		}
+        Tcl_SetObjResult(interp, resultList);
 		PQconninfoFree(options);
 	}
 	return TCL_OK;
@@ -1036,8 +1037,8 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 					return TCL_ERROR;
 				}
 
-				Tcl_SetStringObj(Tcl_GetObjResult(interp), 
-				    PQresultErrorField (result, pgDiagCodes[errorOptIndex]), -1);
+				Tcl_SetObjResult(interp, Tcl_NewStringObj(
+                    PQresultErrorField(result,pgDiagCodes[errorOptIndex]),-1));
 
 				return TCL_OK;
 			}
@@ -1061,7 +1062,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 					return TCL_ERROR;
 				}
 
-				Tcl_SetLongObj(Tcl_GetObjResult(interp), PQoidValue(result));
+				Tcl_SetObjResult(interp, Tcl_NewLongObj(PQoidValue(result)));
 				return TCL_OK;
 			}
 
@@ -1090,7 +1091,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 					return TCL_ERROR;
 				}
 
-				Tcl_SetIntObj(Tcl_GetObjResult(interp), PQntuples(result));
+				Tcl_SetObjResult(interp, Tcl_NewIntObj(PQntuples(result)));
 				return TCL_OK;
 			}
 		case OPT_CMDTUPLES:
@@ -1101,7 +1102,8 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 					return TCL_ERROR;
 				}
 
-				Tcl_SetStringObj(Tcl_GetObjResult(interp), PQcmdTuples(result), -1);
+				Tcl_SetObjResult(interp, Tcl_NewStringObj(
+                  PQcmdTuples(result), -1));
 				return TCL_OK;
 			}
 
@@ -1113,7 +1115,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 					return TCL_ERROR;
 				}
 
-				Tcl_SetIntObj(Tcl_GetObjResult(interp), PQnfields(result));
+				Tcl_SetObjResult(interp, Tcl_NewIntObj(PQnfields(result)));
 				return TCL_OK;
 			}
 
@@ -1248,8 +1250,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				}
 
 				/* set the result object to be an empty list */
-				resultObj = Tcl_GetObjResult(interp);
-				Tcl_SetListObj(resultObj, 0, NULL);
+                resultObj = Tcl_NewListObj(0, NULL);
 
 				/* build up a return list, Tcl-object-style */
 				for (i = 0; i < PQnfields(result); i++)
@@ -1261,6 +1262,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 							   Tcl_NewStringObj(value, -1)) == TCL_ERROR)
 						return TCL_ERROR;
 				}
+                Tcl_SetObjResult(interp, resultObj);
 				return TCL_OK;
 			}
 
@@ -1306,35 +1308,32 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 		case OPT_ATTRIBUTES:
 			{
-				Tcl_Obj    *resultObj = Tcl_GetObjResult(interp);
+				Tcl_Obj    *resultObj = Tcl_NewListObj(0, NULL);
 
 				if (objc != 3)
 				{
 					Tcl_WrongNumArgs(interp, 3, objv, "");
 					return TCL_ERROR;
 				}
-
-				Tcl_SetListObj(resultObj, 0, NULL);
 
 				for (i = 0; i < PQnfields(result); i++)
 				{
 					Tcl_ListObjAppendElement(interp, resultObj,
 							   Tcl_NewStringObj(PQfname(result, i), -1));
 				}
+                Tcl_SetObjResult(interp, resultObj);
 				return TCL_OK;
 			}
 
 		case OPT_LATTRIBUTES:
 			{
-				Tcl_Obj    *resultObj = Tcl_GetObjResult(interp);
+				Tcl_Obj    *resultObj = Tcl_NewListObj(0, NULL);
 
 				if (objc != 3)
 				{
 					Tcl_WrongNumArgs(interp, 3, objv, "");
 					return TCL_ERROR;
 				}
-
-				Tcl_SetListObj(resultObj, 0, NULL);
 
 				for (i = 0; i < PQnfields(result); i++)
 				{
@@ -1360,6 +1359,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 						== TCL_ERROR)
 						return TCL_ERROR;
 				}
+                Tcl_SetObjResult(interp, resultObj);
 				return TCL_OK;
 			}
 
@@ -1518,10 +1518,13 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 				if (objc == 3)
 				{
-					if (resultid->nullValueString == NULL || *resultid->nullValueString == '\0') {
-						Tcl_SetStringObj(Tcl_GetObjResult(interp), "", 0);
+					if (resultid->nullValueString == NULL || 
+                           *resultid->nullValueString == '\0') {
+
+                        Tcl_SetResultObj(interp, Tcl_NewStringObj("", 0));
 					} else {
-						Tcl_SetStringObj(Tcl_GetObjResult(interp), resultid->nullValueString, -1);
+                        Tcl_SetResultObj(interp, 
+                          Tcl_NewStringObj(resultid->nullValueString, -1));
 					}
 					return TCL_OK;
 				}
@@ -1739,8 +1742,7 @@ Pg_execute(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 		default:
 			/* anything else must be an error */
 			/* set the result object to be an empty list */
-			resultObj = Tcl_GetObjResult(interp);
-			Tcl_SetListObj(resultObj, 0, NULL);
+			resultObj = Tcl_NewListObj(0, NULL);
 			if (Tcl_ListObjAppendElement(interp, resultObj,
 			   Tcl_NewStringObj(PQresStatus(PQresultStatus(result)), -1))
 				== TCL_ERROR)
@@ -1751,6 +1753,7 @@ Pg_execute(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 				== TCL_ERROR)
 				return TCL_ERROR;
 
+            Tcl_SetObjResult(interp, resultObj);
 			PQclear(result);
 			return TCL_ERROR;
 	}
@@ -2362,7 +2365,7 @@ Pg_lo_import(ClientData cData, Tcl_Interp *interp, int objc,
             return TCL_ERROR;
 	}
 
-	Tcl_SetLongObj(Tcl_GetObjResult(interp), (long)lobjId);
+	Tcl_SetObjResult(interp, Tcl_NewLongObj((long)lobjId));
 	return TCL_OK;
 }
 
@@ -3047,7 +3050,7 @@ Pg_isbusy(ClientData cData, Tcl_Interp *interp, int objc,
 
 	PQconsumeInput(conn);
 
-	Tcl_SetIntObj(Tcl_GetObjResult(interp), PQisBusy(conn));
+	Tcl_SetObjResult(interp, Tcl_NewIntObj(PQisBusy(conn)));
 	return TCL_OK;
 }
 
@@ -3087,7 +3090,7 @@ Pg_blocking(ClientData cData, Tcl_Interp *interp, int objc,
 
 	if (objc == 2)
 	{
-		Tcl_SetBooleanObj(Tcl_GetObjResult(interp), !PQisnonblocking(conn));
+		Tcl_SetObjResult(interp, Tcl_NewBooleanObj(!PQisnonblocking(conn)));
 		return TCL_OK;
 	}
 
@@ -3136,9 +3139,10 @@ Pg_null_value_string(ClientData cData, Tcl_Interp *interp, int objc,
 	if (objc == 2)
 	{
 		if (connid->nullValueString == NULL || *connid->nullValueString == '\0') {
-			Tcl_SetStringObj(Tcl_GetObjResult(interp), "", 0);
+			Tcl_SetObjResult(interp, Tcl_NewStringObj("", 0));
 		} else {
-			Tcl_SetStringObj(Tcl_GetObjResult(interp), connid->nullValueString, -1);
+			Tcl_SetObjResult(interp, 
+                          Tcl_NewStringObj(connid->nullValueString, -1));
 		}
 		return TCL_OK;
 	}
@@ -3516,9 +3520,7 @@ Pg_dbinfo(ClientData cData, Tcl_Interp *interp, int objc,
 
     Tcl_GetChannelNames(interp);
 
-
     Tcl_ListObjGetElements(interp, Tcl_GetObjResult(interp), &count, &elemPtrs);
-
 
     for (i = 0; i < count; i++) {
 
