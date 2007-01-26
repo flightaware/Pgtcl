@@ -115,7 +115,7 @@ fi
 
 SAVE_LIBS=$LIBS
 LIBS="$PG_LIBS $LIBS $TCL_LIB_SPEC"
-AC_CHECK_FUNCS(Tcl_NewDictObj PQexecParams PQexecPrepared PQsendQueryParams PQsendQueryPrepared)
+AC_CHECK_FUNCS(Tcl_NewDictObj PQexecParams PQexecPrepared PQsendQueryParams PQsendQueryPrepared PQserverVersion)
 #LIBS=$SAVE_LIBS
 
 
