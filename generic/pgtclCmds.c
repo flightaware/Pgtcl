@@ -658,7 +658,7 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	    paramValues = (const char **)ckalloc (nParams * sizeof (char *));
 
 	    for (param = 0; param < nParams; param++) {
-		paramValues[param] = Tcl_GetStringFromObj (objv[3+param], NULL);
+		paramValues[param] = Tcl_GetStringFromObj(objv[3+param], NULL);
 		if (strcmp(paramValues[param], "NULL") == 0)
                 {
                     paramValues[param] = '\0';
@@ -973,13 +973,9 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	result = PgGetResultId(interp, queryResultString, &resultid);
 	if (result == (PGresult *)NULL)
 	{
-            tresult = Tcl_NewStringObj(queryResultString, -1);
-            Tcl_AppendStringsToObj(tresult, " is not a valid query result", NULL);
-            Tcl_SetObjResult(interp, tresult);
-       /*
-        Tcl_AppendStringsToObj(Tcl_GetObjResult(interp), "\n", 
-           queryResultString, " is not a valid query result", NULL);
-        */
+        tresult = Tcl_NewStringObj(queryResultString, -1);
+        Tcl_AppendStringsToObj(tresult, " is not a valid query result", NULL);
+        Tcl_SetObjResult(interp, tresult);
 
 		return TCL_ERROR;
 	}
@@ -992,7 +988,8 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 #ifndef HAVE_TCL_NEWDICTOBJ
     if ((enum options) optIndex == OPT_DICT)
     {
-        Tcl_SetObjResult(interp, Tcl_NewStringObj("You need a Tcl version (8.5+) that supports dicts in order to use the -dict option", -1));
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(
+          "You need a Tcl version (8.5+) that supports dicts in order to use the -dict option", -1));
 	    return TCL_ERROR;
     }
 
@@ -1074,11 +1071,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 					return TCL_ERROR;
 				}
 
-                /* we have the resultid already
-                     Tcl_GetCommandInfo(interp, queryResultString, &infoPtr);
-                     resultid = (Pg_resultid *) infoPtr.objClientData;
-				 */
-
+                /* This will take care of the cleanup */
                 Tcl_DeleteCommandFromToken(interp, resultid->cmd_token);
 				return TCL_OK;
 			}
@@ -1521,9 +1514,9 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 					if (resultid->nullValueString == NULL || 
                            *resultid->nullValueString == '\0') {
 
-                        Tcl_SetResultObj(interp, Tcl_NewStringObj("", 0));
+                        Tcl_SetObjResult(interp, Tcl_NewStringObj("", 0));
 					} else {
-                        Tcl_SetResultObj(interp, 
+                        Tcl_SetObjResult(interp, 
                           Tcl_NewStringObj(resultid->nullValueString, -1));
 					}
 					return TCL_OK;
@@ -2043,7 +2036,7 @@ Pg_lo_read(ClientData cData, Tcl_Interp *interp, int objc,
         if (nbytes >= 0)
         {
             #if TCL_MAJOR_VERSION == 8 && TCL_MINOR_VERSION >= 1 || TCL_MAJOR_VERSION > 8
-	        bufObj = Tcl_NewByteArrayObj(buf, nbytes);
+	        bufObj = Tcl_NewByteArrayObj((unsigned char*)buf, nbytes);
             #else
 	        bufObj = Tcl_NewStringObj(buf, nbytes);
             #endif
@@ -2056,7 +2049,7 @@ Pg_lo_read(ClientData cData, Tcl_Interp *interp, int objc,
         if (rc == TCL_OK)
 		Tcl_SetObjResult(interp, Tcl_NewIntObj(nbytes));
 
-	ckfree(buf);
+	ckfree((char*)buf);
 	return rc;
 }
 
@@ -2092,7 +2085,7 @@ Pg_lo_write(ClientData cData, Tcl_Interp *interp, int objc,
 	if (Tcl_GetIntFromObj(interp, objv[2], &fd) != TCL_OK)
 		return TCL_ERROR;
 
-	buf = Tcl_GetByteArrayFromObj(objv[3], &nbytes);
+	buf = (char*)Tcl_GetByteArrayFromObj(objv[3], &nbytes);
 
 	if (Tcl_GetIntFromObj(interp, objv[4], &len) != TCL_OK)
 		return TCL_ERROR;
@@ -2106,7 +2099,7 @@ Pg_lo_write(ClientData cData, Tcl_Interp *interp, int objc,
 		return TCL_OK;
 	}
 
-	nbytes = lo_write(conn, fd, buf, len);
+	nbytes = lo_write(conn, fd, (char*)buf, len);
 	Tcl_SetObjResult(interp, Tcl_NewIntObj(nbytes));
 	return TCL_OK;
 }
@@ -3468,6 +3461,11 @@ Pg_unescapeBytea(ClientData cData, Tcl_Interp *interp, int objc,
  * Syntax:
  *    pg_dbinfo connections
  *    pg_dbinfo results connHandle 
+ *    pg_dbinfo version connHandle 
+ *    pg_dbinfo protocol connHandle 
+ *    pg_dbinfo param connHandle paramName
+ *    pg_dbinfo backendpid connHandle
+ *    pg_dbinfo socket connHandle
  *
  * Results:
  *    the return result is either an error message or a list of
@@ -3484,23 +3482,27 @@ Pg_dbinfo(ClientData cData, Tcl_Interp *interp, int objc,
     char	    buf[32];
     Tcl_Obj         *listObj;
     Tcl_Obj         *tresult;
+    Tcl_Obj         **elemPtrs;
+    int             i, count, optIndex;
+    Tcl_Channel     conn_chan;
+    const char      *paramname;
 
-    Tcl_Obj   **elemPtrs;
-    int       i, count, optIndex;
-    Tcl_Channel conn_chan;
+    static CONST84 char *cmdargs = "connections|results|version|protocol|param|backendpid|socket";
 
     static CONST84 char *options[] = {
-    	"connections", "results", NULL
+    	"connections", "results", "version", "protocol", 
+        "param", "backendpid", "socket", NULL
     };
 
     enum options
     {
-    	OPT_CONNECTIONS, OPT_RESULTS
+    	OPT_CONNECTIONS, OPT_RESULTS, OPT_VERSION, OPT_PROTOCOL,
+        OPT_PARAM, OPT_BACKENDPID, OPT_SOCKET
     };
     
-	if (objc <= 1)
+    if (objc <= 1)
     {
-	Tcl_WrongNumArgs(interp,1,objv,"connections|results");
+	Tcl_WrongNumArgs(interp,1,objv,cmdargs);
         return TCL_ERROR;
     }
 
@@ -3509,86 +3511,134 @@ Pg_dbinfo(ClientData cData, Tcl_Interp *interp, int objc,
 		return TCL_ERROR;
     }
 
+    /* 
+     * this is common for most cmdargs, so do it upfront
+     */
+    if (optIndex != OPT_CONNECTIONS)
+    {
+        connString = Tcl_GetStringFromObj(objv[2], NULL);
+        conn_chan = Tcl_GetChannel(interp, connString, 0);
+
+        /* Check that it is a PG connection and not something else */
+        connid = (Pg_ConnectionId *) Tcl_GetChannelInstanceData(conn_chan);
+
+
+        if (conn_chan == NULL || connid->conn == NULL)
+        {
+            tresult = Tcl_NewStringObj(connString, -1);
+                    Tcl_AppendStringsToObj(tresult, " is not a valid connection", NULL);
+            Tcl_SetObjResult(interp, tresult);
+
+            return TCL_ERROR;
+        }
+    }
+
     switch ((enum options) optIndex)
     {
         case OPT_CONNECTIONS:
         {
 
-    
+            listObj = Tcl_NewListObj(0, (Tcl_Obj **) NULL);
 
-    listObj = Tcl_NewListObj(0, (Tcl_Obj **) NULL);
+            /*
+             * This is not a very robust method to use.
+             * Will have to re-think this
+             */
+            Tcl_GetChannelNames(interp);
 
-    Tcl_GetChannelNames(interp);
+            Tcl_ListObjGetElements(interp, Tcl_GetObjResult(interp), 
+                &count, &elemPtrs);
 
-    Tcl_ListObjGetElements(interp, Tcl_GetObjResult(interp), &count, &elemPtrs);
+            for (i = 0; i < count; i++) {
 
-    for (i = 0; i < count; i++) {
+                char *name = Tcl_GetStringFromObj(elemPtrs[i], NULL);
 
-        char *name = Tcl_GetStringFromObj(elemPtrs[i], NULL);
+                conn_chan = Tcl_GetChannel(interp, name, 0);
+                if (conn_chan != NULL && 
+                    Tcl_GetChannelType(conn_chan) == &Pg_ConnType)
+                {
 
-        conn_chan = Tcl_GetChannel(interp, name, 0);
-        if (conn_chan != NULL && Tcl_GetChannelType(conn_chan) == &Pg_ConnType)
-        {
-
-        if (Tcl_ListObjAppendElement(interp, listObj, elemPtrs[i]) != TCL_OK)
-        {
-            Tcl_DecrRefCount(listObj);
-            return TCL_ERROR;
-        }
-        }
+                    if (Tcl_ListObjAppendElement(interp, listObj, elemPtrs[i]) != TCL_OK)
+                    {
+                        Tcl_DecrRefCount(listObj);
+                        return TCL_ERROR;
+                    }
+                }
 
 
-    }
-        break;
+            }
+             break;
         }
         case OPT_RESULTS:
         {
 
-    if (objc != 3)
-    {
-	Tcl_WrongNumArgs(interp,1,objv,"results connHandle");
-        return TCL_ERROR;
-    }
-    listObj = Tcl_NewListObj(0, (Tcl_Obj **) NULL);
-
-    connString = Tcl_GetStringFromObj(objv[2], NULL);
-    conn_chan = Tcl_GetChannel(interp, connString, 0);
-    if (conn_chan == NULL)
-    {
-        tresult = Tcl_NewStringObj(connString, -1);
-		Tcl_AppendStringsToObj(tresult, " is not a valid connection", NULL);
-        Tcl_SetObjResult(interp, tresult);
-
-        return TCL_ERROR;
-    }
-
-
-    /* Check that it is a PG connection and not something else */
-    connid = (Pg_ConnectionId *) Tcl_GetChannelInstanceData(conn_chan);
-
-    if (connid->conn == NULL)
-        return TCL_ERROR;
-
-    for (i = 0; i <= connid->res_last; i++)
-    {
- 
-        if (connid->results[i] == 0)
+        if (objc != 3)
         {
-            continue;
-        }
-
-        sprintf(buf, "%s.%d", connString, i);
-        if (Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj(buf, -1)) != TCL_OK)
-        {
-            Tcl_DecrRefCount(listObj);
+    	Tcl_WrongNumArgs(interp,1,objv,"results connHandle");
             return TCL_ERROR;
         }
-    }
-        break;
+        listObj = Tcl_NewListObj(0, (Tcl_Obj **) NULL);
+    
+        for (i = 0; i <= connid->res_last; i++)
+        {
+     
+            if (connid->results[i] == 0)
+            {
+                continue;
+            }
+    
+            sprintf(buf, "%s.%d", connString, i);
+            if (Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj(buf, -1)) != TCL_OK)
+            {
+                Tcl_DecrRefCount(listObj);
+                return TCL_ERROR;
+            }
+        }
+            break;
+        }
+        case OPT_VERSION:
+        {
+#ifdef HAVE_PQSERVERVERSION
+
+            Tcl_SetObjResult(interp, Tcl_NewIntObj(
+                             PQserverVersion(connid->conn)));
+    
+            return TCL_OK;
+
+#else /* HAVE_PQSERVERVERSION */
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(
+          "You need a PG version > 7.4 that supports server version", -1));
+	    return TCL_ERROR;
+#endif /* HAVE_PQSERVERVERSION */
+        }
+        case OPT_PROTOCOL:
+        {
+            Tcl_SetObjResult(interp, Tcl_NewIntObj(
+                            PQprotocolVersion(connid->conn)));
+            return TCL_OK;
+        }
+        case OPT_PARAM:
+        {
+            paramname = Tcl_GetStringFromObj(objv[3], NULL);
+            Tcl_SetObjResult(interp, Tcl_NewStringObj(
+                             PQparameterStatus(connid->conn, paramname), -1));
+            return TCL_OK;
+        }
+        case OPT_BACKENDPID:
+        {
+            Tcl_SetObjResult(interp, Tcl_NewIntObj(
+                             PQbackendPID(connid->conn)));
+            return TCL_OK;
+        }
+        case OPT_SOCKET:
+        {
+            Tcl_SetObjResult(interp, Tcl_NewIntObj(
+                             PQsocket(connid->conn)));
+            return TCL_OK;
         }
         default:
         {
-	    Tcl_WrongNumArgs(interp,1,objv,"connections|results connHandle");
+	    Tcl_WrongNumArgs(interp,1,objv,cmdargs);
             return TCL_ERROR;
         }
 

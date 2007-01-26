@@ -272,14 +272,15 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
     Tcl_Obj         *objvx[25];
     Tcl_CmdInfo     info;
     Pg_ConnectionId *connid;
-	int             returnCode = TCL_ERROR;
+    int             returnCode = TCL_ERROR;
 
     static CONST84 char *options[] = {
         "disconnect", "exec", "sqlexec", "execute", "select", "listen",
         "on_connection_loss", "lo_creat", "lo_open", "lo_close", 
         "lo_read", "lo_write", "lo_lseek", "lo_tell", "lo_unlink",
         "lo_import", "lo_export", "sendquery", "exec_prepared", 
-        "sendquery_prepared",  "null_value_string", (char *)NULL
+        "sendquery_prepared",  "null_value_string", "version", 
+        "protocol", "param", "backendpid", "socket", (char *)NULL
     };
 
     enum options
@@ -287,7 +288,8 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
         DISCONNECT,EXEC, SQLEXEC, EXECUTE, SELECT, LISTEN, 
         ON_CONNECTION_LOSS, LO_CREAT, LO_OPEN, LO_CLOSE, LO_READ, 
         LO_WRITE, LO_LSEEK, LO_TELL, LO_UNLINK, LO_IMPORT, LO_EXPORT, 
-        SENDQUERY, EXEC_PREPARED, SENDQUERY_PREPARED, NULL_VALUE_STRING
+        SENDQUERY, EXEC_PREPARED, SENDQUERY_PREPARED, NULL_VALUE_STRING,
+        VERSION, PROTOCOL, PARAM, BACKENDPID, SOCKET
     };
 
     if (objc == 1 || objc > 25)
@@ -320,22 +322,24 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
     /*
      *  Need to test here, since EXECUTE branch does things
      *  things a little different
-     */
     if (optIndex != EXECUTE)
     {
         objvx[1] = Tcl_NewStringObj(connid->id, -1);
     }
+*/
 
     switch ((enum options) optIndex)
     {
         case DISCONNECT:
         {
+            objvx[1] = Tcl_NewStringObj(connid->id, -1);
             returnCode = Pg_disconnect(cData, interp, objc, objvx);
-			break;
+            break;
         }
         case EXEC:
         case SQLEXEC:
         {
+            objvx[1] = Tcl_NewStringObj(connid->id, -1);
             returnCode = Pg_exec(cData, interp, objc, objvx);
 			break;
         }
@@ -380,88 +384,131 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
         }
         case SELECT:
         {
+            objvx[1] = Tcl_NewStringObj(connid->id, -1);
             returnCode = Pg_select(cData, interp, objc, objvx);
 			break;
         }
         case LISTEN:
         {
+            objvx[1] = Tcl_NewStringObj(connid->id, -1);
             returnCode = Pg_listen(cData, interp, objc, objvx);
 			break;
         }
         case ON_CONNECTION_LOSS:
         {
+            objvx[1] = Tcl_NewStringObj(connid->id, -1);
             returnCode = Pg_listen(cData, interp, objc, objvx);
 			break;
         }
         case LO_CREAT:
         {
+            objvx[1] = Tcl_NewStringObj(connid->id, -1);
             returnCode = Pg_lo_creat(cData, interp, objc, objvx);
 			break;
         }
         case LO_OPEN:
         {
+            objvx[1] = Tcl_NewStringObj(connid->id, -1);
             returnCode = Pg_lo_open(cData, interp, objc, objvx);
 			break;
         }
         case LO_CLOSE:
         {
+            objvx[1] = Tcl_NewStringObj(connid->id, -1);
             returnCode = Pg_lo_close(cData, interp, objc, objvx);
 			break;
         }
         case LO_READ:
         {
+            objvx[1] = Tcl_NewStringObj(connid->id, -1);
             returnCode = Pg_lo_read(cData, interp, objc, objvx);
 			break;
         }
         case LO_WRITE:
         {
+            objvx[1] = Tcl_NewStringObj(connid->id, -1);
             returnCode = Pg_lo_write(cData, interp, objc, objvx);
 			break;
         }
         case LO_LSEEK:
         {
+            objvx[1] = Tcl_NewStringObj(connid->id, -1);
             returnCode = Pg_lo_lseek(cData, interp, objc, objvx);
 			break;
         }
         case LO_TELL:
         {
+            objvx[1] = Tcl_NewStringObj(connid->id, -1);
             returnCode = Pg_lo_tell(cData, interp, objc, objvx);
 			break;
         }
         case LO_UNLINK:
         {
+            objvx[1] = Tcl_NewStringObj(connid->id, -1);
             returnCode = Pg_lo_unlink(cData, interp, objc, objvx);
 			break;
         }
         case LO_IMPORT:
         {
+            objvx[1] = Tcl_NewStringObj(connid->id, -1);
             returnCode = Pg_lo_import(cData, interp, objc, objvx);
 			break;
         }
         case LO_EXPORT:
         {
+            objvx[1] = Tcl_NewStringObj(connid->id, -1);
             returnCode = Pg_lo_export(cData, interp, objc, objvx);
 			break;
         }
         case SENDQUERY:
         {
+            objvx[1] = Tcl_NewStringObj(connid->id, -1);
             returnCode = Pg_sendquery(cData, interp, objc, objvx);
 			break;
         }
         case EXEC_PREPARED:
         {
+            objvx[1] = Tcl_NewStringObj(connid->id, -1);
             returnCode = Pg_exec_prepared(cData, interp, objc, objvx);
 			break;
         }
         case SENDQUERY_PREPARED:
         {
+            objvx[1] = Tcl_NewStringObj(connid->id, -1);
             returnCode = Pg_sendquery_prepared(cData, interp, objc, objvx);
 			break;
         }
         case NULL_VALUE_STRING:
         {
+            objvx[1] = Tcl_NewStringObj(connid->id, -1);
             returnCode = Pg_null_value_string(cData, interp, objc, objvx);
 			break;
+        }
+        case PROTOCOL:
+        case BACKENDPID:
+        case SOCKET:
+        case VERSION:
+        {
+            
+            objc = 3;
+            objvx[2] = objv[0];
+            objvx[1] = objv[1];
+            idx++;
+            objvx[idx] = Tcl_NewStringObj(connid->id, -1);
+            returnCode= Pg_dbinfo(cData, interp, objc, objvx);
+	    break;
+        }
+        case PARAM:
+        {
+            
+            objc = 4;
+            objvx[2] = objv[0];
+            objvx[1] = objv[1];
+            objvx[3] = objv[2];
+            idx++;
+            objvx[idx] = Tcl_NewStringObj(connid->id, -1);
+            returnCode= Pg_dbinfo(cData, interp, objc, objvx);
+	    break;
         }
     }
 	Tcl_DecrRefCount(objvx[idx]);
