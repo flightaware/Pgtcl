@@ -1,7 +1,13 @@
 
 $Id$
 
-20006-07-05 Karl Lehenbauer <karl-pg@sc.com>
+version, protocol,
+param, backendpid, socket
+2007-01-24 Brett Schwarz <brett_schwarz@yahoo.com>
+    * added additional sub commands to dbinfo (version, protocol, param,
+    backendpid, socket)
+
+2006-07-05 Karl Lehenbauer <karl-pg@sc.com>
     * Updated autoconf build to Tcl Extension Architecture (TEA) 3.5
 
 2006-01-01 Brett Schwarz <brett_schwarz@yahoo.com>
