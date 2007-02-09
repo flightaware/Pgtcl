@@ -1,8 +1,11 @@
 
 $Id$
 
-version, protocol,
-param, backendpid, socket
+2007-02-08 Brett Schwarz <brett_schwarz@yahoo.com>
+    * Added support for async connections. Note that you will have to 
+      use [after] command to find the result of the connection. Callbacks
+      won't work, since the sock isn't established yet
+
 2007-01-24 Brett Schwarz <brett_schwarz@yahoo.com>
     * added additional sub commands to dbinfo (version, protocol, param,
     backendpid, socket)
