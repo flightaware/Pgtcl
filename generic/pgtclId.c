@@ -148,17 +148,17 @@ PgGetHandleProc(ClientData instanceData, int direction,
 }
 
 Tcl_ChannelType Pg_ConnType = {
-	"pgsql",					/* channel type */
-	NULL,						/* blockmodeproc */
-	PgDelConnectionId,			/* closeproc */
-	PgInputProc,				/* inputproc */
-	PgOutputProc,				/* outputproc */
-	NULL,						/* SeekProc, Not used */
-	NULL,						/* SetOptionProc, Not used */
-	NULL,						/* GetOptionProc, Not used */
-	PgWatchProc,				/* WatchProc, must be defined */
-	PgGetHandleProc,			/* GetHandleProc, must be defined */
-	NULL						/* Close2Proc, Not used */
+    "pgsql",             /* channel type */
+    NULL,                /* blockmodeproc */
+    PgDelConnectionId,   /* closeproc */
+    PgInputProc,         /* inputproc */
+    PgOutputProc,        /* outputproc */
+    NULL,                /* SeekProc, Not used */
+    NULL,                /* SetOptionProc, Not used */
+    NULL,                /* GetOptionProc, Not used */
+    PgWatchProc,         /* WatchProc, must be defined */
+    PgGetHandleProc,     /* GetHandleProc, must be defined */
+    NULL                 /* Close2Proc, Not used */
 };
 
 /*
@@ -167,11 +167,11 @@ Tcl_ChannelType Pg_ConnType = {
 int
 PgSetConnectionId(Tcl_Interp *interp, PGconn *conn, char *chandle)
 {
-	Tcl_Channel conn_chan;
-        Tcl_Obj     *nsstr;
+	Tcl_Channel     conn_chan;
+        Tcl_Obj         *nsstr;
 	Pg_ConnectionId *connid;
-	int			i;
-        CONST   char      *ns = "";
+	int             i;
+        CONST char      *ns = "";
 
 	connid = (Pg_ConnectionId *) ckalloc(sizeof(Pg_ConnectionId));
 	connid->conn = conn;
@@ -217,11 +217,11 @@ PgSetConnectionId(Tcl_Interp *interp, PGconn *conn, char *chandle)
 	    sprintf(connid->id, "%s%s", ns, chandle);
         }
 
-    conn_chan = Tcl_GetChannel(interp, connid->id, 0);
+        conn_chan = Tcl_GetChannel(interp, connid->id, 0);
 
 	if (conn_chan != NULL)
 	{
-	    return 0;
+	    return NULL;
 	}
 	
 	connid->notifier_channel = Tcl_MakeTcpClientChannel((ClientData)(long)PQsocket(conn));
@@ -244,9 +244,9 @@ PgSetConnectionId(Tcl_Interp *interp, PGconn *conn, char *chandle)
 	Tcl_SetResult(interp, connid->id, TCL_VOLATILE);
 	Tcl_RegisterChannel(interp, conn_chan);
 
-        connid->cmd_token=Tcl_CreateObjCommand(interp, connid->id, PgConnCmd, (ClientData) connid, PgDelCmdHandle);
+    connid->cmd_token=Tcl_CreateObjCommand(interp, connid->id, PgConnCmd, (ClientData) connid, PgDelCmdHandle);
 
-    return 1;
+    return connid;
 }
 
 /* 
@@ -371,7 +371,6 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
             /*  DEBUGGING
             for (objvxi = 0; objvxi < objc; objvxi++)
             {
-                printf("ID: %d OBJV %s OBJVX %s\n", objvxi, 
                      Tcl_GetStringFromObj(objv[objvxi], NULL), 
                      Tcl_GetStringFromObj(objvx[objvxi], NULL));
             }
@@ -598,6 +597,7 @@ PgDelConnectionId(DRIVER_DEL_PROTO)
 	Pg_TclNotifies *notifies;
 	int			i;
         Pg_resultid    *resultid;
+
 
 	connid = (Pg_ConnectionId *) cData;
 
@@ -1214,6 +1214,7 @@ Pg_Notify_FileHandler(ClientData clientData, int mask)
 	{
 		/* Transfer notify events from libpq to Tcl event queue. */
 		PgNotifyTransferEvents(connid);
+
 	}
 	else
 	{

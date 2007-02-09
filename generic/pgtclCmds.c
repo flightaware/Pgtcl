@@ -369,22 +369,26 @@ int
 Pg_connect(ClientData cData, Tcl_Interp *interp, int objc,
 		   Tcl_Obj *CONST objv[])
 {
-    PGconn	   *conn;
-    char	   *connhandle = NULL;
-    int            optIndex, i, skip = 0;
-    Tcl_DString    ds;
-    Tcl_Obj        *tresult;
+    PGconn	    *conn;
+    Pg_ConnectionId *connid;
+    char	    *connhandle = NULL;
+    int             optIndex, i, skip = 0;
+    Tcl_DString     ds;
+    Tcl_Obj         *tresult;
+    int             async = 0;
         
 
     static CONST84 char *options[] = {
     	"-host", "-port", "-tty", "-options", "-user", 
-        "-password", "-conninfo", "-connlist", "-connhandle", (char *)NULL
+        "-password", "-conninfo", "-connlist", "-connhandle",
+        "-async", (char *)NULL
     };
 
     enum options
     {
     	OPT_HOST, OPT_PORT, OPT_TTY, OPT_OPTIONS, OPT_USER, 
-        OPT_PASSWORD, OPT_CONNINFO, OPT_CONNLIST, OPT_CONNHANDLE
+        OPT_PASSWORD, OPT_CONNINFO, OPT_CONNLIST, OPT_CONNHANDLE,
+        OPT_ASYNC
     };
 
     Tcl_DStringInit(&ds);
@@ -407,7 +411,6 @@ Pg_connect(ClientData cData, Tcl_Interp *interp, int objc,
     while (i + 1 < objc)
     {
         char	   *nextArg = Tcl_GetStringFromObj(objv[i + 1], NULL);
-
 
         if (Tcl_GetIndexFromObj(interp, objv[i], options,
 		   "option", TCL_EXACT, &optIndex) != TCL_OK)
@@ -468,10 +471,10 @@ Pg_connect(ClientData cData, Tcl_Interp *interp, int objc,
 
                 if (count % 2 != 0)
                 {
-	                Tcl_WrongNumArgs(interp,1,objv,"-connlist {opt val ...}");
+	            Tcl_WrongNumArgs(interp,1,objv,"-connlist {opt val ...}");
                     Tcl_DStringFree(&ds);
 
-		            return TCL_ERROR;
+		    return TCL_ERROR;
                 }
 
                 for (lelem = 0; lelem < count; lelem=lelem+2) {
@@ -490,6 +493,22 @@ Pg_connect(ClientData cData, Tcl_Interp *interp, int objc,
             case OPT_CONNHANDLE:
             {
                 connhandle = nextArg;
+                i += 2;
+                skip = 1;
+                break;
+            }
+            case OPT_ASYNC:
+            {
+                /*
+                 *  Hummm, since we make the arg a string
+                 *  at the very beginning, we have to deal
+                 *  with that, in regards to finding the
+                 *  boolean value for the -async flag
+                 */
+                 if (strcmp(nextArg, "1") == 0)
+                 {
+                     async = 1;
+                 }
                 i += 2;
                 skip = 1;
             }
@@ -522,33 +541,48 @@ Pg_connect(ClientData cData, Tcl_Interp *interp, int objc,
         Tcl_DStringAppend(&ds, Tcl_GetStringFromObj(objv[1], NULL), -1);
     }
 
-    conn = PQconnectdb(Tcl_DStringValue(&ds));
+
+    if (async)
+    {
+        conn = PQconnectStart(Tcl_DStringValue(&ds));
+      
+    } 
+    else 
+    {
+
+        conn = PQconnectdb(Tcl_DStringValue(&ds));
+    }
+
+    if (conn == NULL)
+    {
+        Tcl_SetResult(interp, "Could not allocate connection", TCL_STATIC);
+        return TCL_ERROR;
+    }
 
  
     Tcl_DStringFree(&ds);
 
-    if (PQstatus(conn) == CONNECTION_OK)
+    if (PQstatus(conn) != CONNECTION_BAD)
     {
-        
-		if (PgSetConnectionId(interp, conn, connhandle) == 1)
-		{
-
+        if (PgSetConnectionId(interp, conn, connhandle))
+        {
             return TCL_OK;
-		}
+        }
+
     }
    
 
         tresult = Tcl_NewStringObj("Connection to database failed\n", -1);
         if (PQstatus(conn) != CONNECTION_OK)
-		{
-		    Tcl_AppendStringsToObj(tresult, PQerrorMessage(conn), NULL);
+	{
+	    Tcl_AppendStringsToObj(tresult, PQerrorMessage(conn), NULL);
         }
-		else
-		{
-			Tcl_AppendStringsToObj(tresult, "handle already exists", NULL);
-		}
+	else
+	{
+            Tcl_AppendStringsToObj(tresult, "handle already exists", NULL);
+	}
 
-		Tcl_SetObjResult(interp, tresult);
+	Tcl_SetObjResult(interp, tresult);
         PQfinish(conn);
 
         return TCL_ERROR;
@@ -3009,6 +3043,125 @@ Pg_getresult(ClientData cData, Tcl_Interp *interp, int objc,
 		}
 	}
 	return TCL_OK;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * Pg_getdata --
+ *
+ *    returns the data from the connection, from either a async
+ *    connection, or a async query
+ *
+ * Syntax:
+ *    pg_getdata $conn -result|-connection
+ *
+ * Results:
+ *    the return result is a handle for the data that has
+ *    arrived on that connection channel
+ *
+ *----------------------------------------------------------------------
+ */
+
+int
+Pg_getdata(ClientData cData, Tcl_Interp *interp, int objc,
+			 Tcl_Obj *CONST objv[])
+{
+    Pg_ConnectionId *connid;
+    PGconn	    *conn;
+    char	    *connString;
+    int             optIndex;
+
+    static CONST84 char *options[] = {
+    	"-result", "-connection", NULL
+    };
+
+    enum options
+    {
+    	OPT_RESULT, OPT_CONNECTION
+    };
+    
+    if (objc != 3)
+    {
+    	Tcl_WrongNumArgs(interp, 1, objv, "connection -result|-connection");
+        return TCL_ERROR;
+    }
+
+    if (Tcl_GetIndexFromObj(interp, objv[2], options, "option", TCL_EXACT, &optIndex) != TCL_OK)
+    {
+		return TCL_ERROR;
+    }
+
+    connString = Tcl_GetStringFromObj(objv[1], NULL);
+
+    conn = PgGetConnectionId(interp, connString, &connid);
+    if (conn == NULL)
+    	return TCL_ERROR;
+
+    if (optIndex == OPT_RESULT)
+    {
+        PGresult        *result;
+        result = PQgetResult(conn);
+
+        /* if there's a non-null result, give the caller the handle */
+        if (result)
+        {
+            int    rId = PgSetResultId(interp, connString, result);
+    
+            ExecStatusType rStat = PQresultStatus(result);
+    
+            if (rStat == PGRES_COPY_IN || rStat == PGRES_COPY_OUT)
+            {
+                connid->res_copyStatus = RES_COPY_INPROGRESS;
+                connid->res_copy = rId;
+            }
+        }
+    }
+    else if (optIndex == OPT_CONNECTION)
+    {
+        PostgresPollingStatusType pollstatus;
+        Tcl_Obj         *res;
+
+        pollstatus = PQconnectPoll(conn);
+
+        switch (pollstatus)
+        {
+            case PGRES_POLLING_FAILED:
+            {
+                res = Tcl_NewStringObj("PGRES_POLLING_FAILED", -1);
+                break;
+            }
+            case PGRES_POLLING_READING:
+            {
+                res = Tcl_NewStringObj("PGRES_POLLING_READING", -1);
+                break;
+            }
+            case PGRES_POLLING_WRITING:
+            {
+                res = Tcl_NewStringObj("PGRES_POLLING_WRITING", -1);
+                break;
+            }
+            case PGRES_POLLING_OK:
+            {
+                res = Tcl_NewStringObj("PGRES_POLLING_OK", -1);
+                break;
+            }
+            case PGRES_POLLING_ACTIVE:
+            {
+                res = Tcl_NewStringObj("PGRES_POLLING_ACTIVE", -1);
+            }
+        }
+
+	Tcl_SetObjResult(interp, res);
+    }
+    else
+    {
+    	Tcl_WrongNumArgs(interp, 1, objv, "connection -result|-connection");
+        return TCL_ERROR;
+    }
+        /* Transfer any notify events from libpq to Tcl event queue. */
+        PgNotifyTransferEvents(connid);
+    return TCL_OK;
 }
 
 /**********************************

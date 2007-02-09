@@ -182,4 +182,7 @@ extern int Pg_unescapeBytea(
 extern int Pg_dbinfo(
   ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 
+extern int Pg_getdata(
+  ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+
 #endif   /* PGTCLCMDS_H */
