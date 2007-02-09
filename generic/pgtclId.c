@@ -221,7 +221,7 @@ PgSetConnectionId(Tcl_Interp *interp, PGconn *conn, char *chandle)
 
 	if (conn_chan != NULL)
 	{
-	    return NULL;
+	    return 0;
 	}
 	
 	connid->notifier_channel = Tcl_MakeTcpClientChannel((ClientData)(long)PQsocket(conn));
@@ -246,7 +246,7 @@ PgSetConnectionId(Tcl_Interp *interp, PGconn *conn, char *chandle)
 
     connid->cmd_token=Tcl_CreateObjCommand(interp, connid->id, PgConnCmd, (ClientData) connid, PgDelCmdHandle);
 
-    return connid;
+    return 1;
 }
 
 /* 
