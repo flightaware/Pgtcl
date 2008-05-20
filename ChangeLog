@@ -1,6 +1,27 @@
 
 $Id$
 
+2008-05-20 Karl Lehenbauer
+    * Add support for the lo_truncate function that truncates a large object
+      to a given length.
+
+    * Version bump to 1.7.
+
+2007-12-14 Karl Lehenbauer <karl-pg@sc.com>
+    * Update autoconf build to Tcl Extension Architecture (TEA) 3.6
+
+    * Add new command, pg_quote_ex, which takes a connection handle
+      and a string to quote.  If the string matches the null string,
+      returns NULL.  If not, returns the string quoted for inclusion
+      in SQL commands.
+
+    * pg_quote_ex can be invoked as a method of the connection handle
+      as well.  For instance, "$db quote $string".
+
+    * Removed unused variables and silence compiler warnings with casting.
+
+    * Added "internal_position" and "internal_query" to the error options.
+
 2007-02-08 Brett Schwarz <brett_schwarz@yahoo.com>
     * Added support for async connections. Note that you will have to 
       use [after] command to find the result of the connection. Callbacks

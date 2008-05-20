@@ -85,6 +85,7 @@ static PgCmd commands[] = {
     {"pg_lo_lseek", "::pg::lo_lseek", Pg_lo_lseek,2},
     {"pg_lo_creat", "::pg::lo_creat", Pg_lo_creat,2},
     {"pg_lo_tell", "::pg::lo_tell", Pg_lo_tell,2},
+    {"pg_lo_truncate", "::pg::lo_truncate", Pg_lo_truncate,2},
     {"pg_lo_unlink", "::pg::lo_unlink", Pg_lo_unlink,2},
     {"pg_lo_import", "::pg::lo_import", Pg_lo_import,2},
     {"pg_lo_export", "::pg::lo_export", Pg_lo_export,2},

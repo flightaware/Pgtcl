@@ -72,9 +72,10 @@ exec_prefix	= @exec_prefix@
 
 bindir		= @bindir@
 libdir		= @libdir@
+includedir	= @includedir@
+datarootdir	= @datarootdir@
 datadir		= @datadir@
 mandir		= @mandir@
-includedir	= @includedir@
 
 DESTDIR		=
 
@@ -95,7 +96,6 @@ PACKAGE_VERSION	= @PACKAGE_VERSION@
 CC		= @CC@
 CFLAGS_DEFAULT	= @CFLAGS_DEFAULT@
 CFLAGS_WARNING	= @CFLAGS_WARNING@
-CLEANFILES	= @CLEANFILES@
 EXEEXT		= @EXEEXT@
 LDFLAGS_DEFAULT	= @LDFLAGS_DEFAULT@
 MAKE_LIB	= @MAKE_LIB@
@@ -107,17 +107,14 @@ RANLIB		= @RANLIB@
 RANLIB_STUB	= @RANLIB_STUB@
 SHLIB_CFLAGS	= @SHLIB_CFLAGS@
 SHLIB_LD	= @SHLIB_LD@
-SHLIB_LD_FLAGS	= @SHLIB_LD_FLAGS@
 SHLIB_LD_LIBS	= @SHLIB_LD_LIBS@
 STLIB_LD	= @STLIB_LD@
-TCL_DEFS	= @TCL_DEFS@
+#TCL_DEFS	= @TCL_DEFS@
 TCL_BIN_DIR	= @TCL_BIN_DIR@
 TCL_SRC_DIR	= @TCL_SRC_DIR@
-TCL_LIB_SPEC    = @TCL_LIB_SPEC@
-# This is necessary for packages that use private Tcl headers
-#TCL_TOP_DIR_NATIVE	= @TCL_TOP_DIR_NATIVE@
+
 # Not used, but retained for reference of what libs Tcl required
-TCL_LIBS	= @TCL_LIBS@
+#TCL_LIBS	= @TCL_LIBS@
 
 #========================================================================
 # TCLLIBPATH seeds the auto_path in Tcl's init.tcl so we can test our
@@ -127,12 +124,15 @@ TCL_LIBS	= @TCL_LIBS@
 #========================================================================
 
 EXTRA_PATH	= $(top_builddir):$(TCL_BIN_DIR)
-TCLSH_ENV	= TCL_LIBRARY=`@CYGPATH@ $(TCL_SRC_DIR)/library` \
-		  @LD_LIBRARY_PATH_VAR@="$(EXTRA_PATH):$(@LD_LIBRARY_PATH_VAR@)" \
+TCLLIBPATH	= $(top_builddir)
+TCLSH_ENV	= TCL_LIBRARY=`@CYGPATH@ $(TCL_SRC_DIR)/library`
+PKG_ENV		= @LD_LIBRARY_PATH_VAR@="$(EXTRA_PATH):$(@LD_LIBRARY_PATH_VAR@)" \
 		  PATH="$(EXTRA_PATH):$(PATH)" \
-		  TCLLIBPATH="$(top_builddir)"
+		  TCLLIBPATH="$(TCLLIBPATH)"
+
 TCLSH_PROG	= @TCLSH_PROG@
-TCLSH		= $(TCLSH_ENV) $(TCLSH_PROG)
+TCLSH		= $(PKG_ENV) $(TCLSH_ENV) $(TCLSH_PROG)
+
 SHARED_BUILD	= @SHARED_BUILD@
 
 INCLUDES	= @PKG_INCLUDES@ @TCL_INCLUDES@
@@ -147,11 +147,13 @@ PKG_CFLAGS	= @PKG_CFLAGS@
 #DEFS		= $(TCL_DEFS) @DEFS@ $(PKG_CFLAGS)
 DEFS		= @DEFS@ $(PKG_CFLAGS)
 
+# Move pkgIndex.tl to 'BINARIES' var if it is generated in the Makefile
 CONFIG_CLEAN_FILES = Makefile pkgIndex.tcl
+CLEANFILES	= @CLEANFILES@
 
 CPPFLAGS	= @CPPFLAGS@
 LIBS		= @PKG_LIBS@ @LIBS@
-AR		= ar
+AR		= @AR@
 CFLAGS		= @CFLAGS@
 COMPILE		= $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 
@@ -167,7 +169,7 @@ COMPILE		= $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(C
 # for the BINARIES that you specified above have already been done.
 #========================================================================
 
-all: binaries libraries
+all: binaries libraries doc
 
 #========================================================================
 # The binaries target builds executable programs, Windows .dll's, unix
@@ -176,9 +178,15 @@ all: binaries libraries
 # of the Makefile, in the "BINARIES" variable.
 #========================================================================
 
-binaries: $(BINARIES) pkgIndex.tcl
+binaries: $(BINARIES)
 
 libraries:
+
+#========================================================================
+# Your doc target should differentiate from doc builds (by the developer)
+# and doc installs (see install-doc), which just install the docs on the
+# end user machine when building from source.
+#========================================================================
 
 doc:
 	@echo "If you have documentation to create, place the commands to"
@@ -275,22 +283,6 @@ VPATH = $(srcdir):$(srcdir)/generic:$(srcdir)/unix:$(srcdir)/win
 	$(COMPILE) -c `@CYGPATH@ $<` -o $@
 
 #========================================================================
-# Create the pkgIndex.tcl file.
-# It is usually easiest to let Tcl do this for you with pkg_mkIndex, but
-# you may find that you need to customize the package.  If so, either
-# modify the -hand version, or create a pkgIndex.tcl.in file and have
-# the configure script output the pkgIndex.tcl by editing configure.in.
-#========================================================================
-
-pkgIndex.tcl: $(PKG_LIB_FILE)
-	( echo pkg_mkIndex . $(PKG_LIB_FILE) \; exit; ) | $(TCLSH)
-
-pkgIndex.tcl-hand: $(PKG_LIB_FILE)
-	(echo 'package ifneeded $(PACKAGE_NAME) $(PACKAGE_VERSION) \
-	    [list load [file join $$dir $(PKG_LIB_FILE)]]'\
-	) > pkgIndex.tcl
-
-#========================================================================
 # Distribution creation
 # You may need to tweak this target to make it work correctly.
 #========================================================================
@@ -311,7 +303,11 @@ dist: dist-clean
 	chmod 664 $(DIST_DIR)/Makefile.in $(DIST_DIR)/aclocal.m4
 	chmod 775 $(DIST_DIR)/configure $(DIST_DIR)/configure.in
 
-	cp -p $(srcdir)/*.[ch] $(DIST_DIR)/
+	for i in $(srcdir)/*.[ch]; do \
+	    if [ -f $$i ]; then \
+		cp -p $$i $(DIST_DIR)/ ; \
+	    fi; \
+	done;
 
 	mkdir $(DIST_DIR)/tclconfig
 	cp $(srcdir)/tclconfig/install-sh $(srcdir)/tclconfig/tcl.m4 \
@@ -359,7 +355,7 @@ distclean: clean
 # You should not have to modify this target.
 #========================================================================
 
-install-lib-binaries:
+install-lib-binaries: binaries
 	@mkdir -p $(DESTDIR)$(pkglibdir)
 	@list='$(lib_BINARIES)'; for p in $$list; do \
 	  if test -f $$p; then \
@@ -404,7 +400,7 @@ install-lib-binaries:
 # above if necessary.
 #========================================================================
 
-install-bin-binaries:
+install-bin-binaries: binaries
 	@mkdir -p $(DESTDIR)$(bindir)
 	@list='$(bin_BINARIES)'; for p in $$list; do \
 	  if test -f $$p; then \

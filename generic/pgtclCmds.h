@@ -134,6 +134,9 @@ extern int Pg_lo_creat(
 extern int Pg_lo_tell(
   ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 
+extern int Pg_lo_truncate(
+  ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+
 extern int Pg_lo_unlink(
   ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 
@@ -171,6 +174,9 @@ extern int Pg_on_connection_loss(
   ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 
 extern int Pg_quote(
+  ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+
+extern int Pg_quote_ex(
   ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 
 extern int Pg_escapeBytea(

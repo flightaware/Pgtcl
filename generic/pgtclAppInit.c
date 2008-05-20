@@ -7,6 +7,7 @@
  * Portions Copyright (c) 1996-2000, PostgreSQL, Inc
  * Portions Copyright (c) 1993 The Regents of the University of California.
  * Copyright (c) 1994 Sun Microsystems, Inc.
+ * Copyright (c) 1997-2007 Karl Lehenbauer, Brett Schwartz
  *
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.

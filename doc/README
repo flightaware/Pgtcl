@@ -17,6 +17,6 @@ and (re)populate it with html files documenting libpgtcl.
 If you're using FreeBSD, it's pretty easy.
 
 There are some good hints on everything you need and how to get it built
-and installed at http://www.postgresql.org/docs/7.3/static/doc-toolsets.html
+and installed at http://www.postgresql.org/docs/8.3/static/docguide.html
 
 

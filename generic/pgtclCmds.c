@@ -370,7 +370,6 @@ Pg_connect(ClientData cData, Tcl_Interp *interp, int objc,
 		   Tcl_Obj *CONST objv[])
 {
     PGconn	    *conn;
-    Pg_ConnectionId *connid;
     char	    *connhandle = NULL;
     int             optIndex, i, skip = 0;
     Tcl_DString     ds;
@@ -397,7 +396,7 @@ Pg_connect(ClientData cData, Tcl_Interp *interp, int objc,
     {
         Tcl_DStringAppend(&ds, "pg_connect: database name missing\n", -1);
         Tcl_DStringAppend(&ds, "pg_connect databaseName [-host hostName] [-port portNumber] [-tty pgtty]\n", -1);
-        Tcl_DStringAppend(&ds, "pg_connect -conninfo conninfoString", -1);
+        Tcl_DStringAppend(&ds, "pg_connect -conninfo conninfoString\n", -1);
         Tcl_DStringAppend(&ds, "pg_connect -connlist [connlist]", -1);
         Tcl_DStringResult(interp, &ds);
 
@@ -979,8 +978,8 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 	static CONST84 char *errorOptions[] = {
 		"severity", "sqlstate", "primary", "detail",
-		"hint", "position", "context", "file", "line",
-		"function", (char *)NULL
+		"hint", "position", "internal_position", "internal_query",
+		"context", "file", "line", "function", (char *)NULL
 	};
 
 	static CONST char pgDiagCodes[] = {
@@ -990,6 +989,8 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		PG_DIAG_MESSAGE_DETAIL, 
 		PG_DIAG_MESSAGE_HINT, 
 		PG_DIAG_STATEMENT_POSITION, 
+		PG_DIAG_INTERNAL_POSITION,
+		PG_DIAG_INTERNAL_QUERY,
 		PG_DIAG_CONTEXT,
 		PG_DIAG_SOURCE_FILE, 
 		PG_DIAG_SOURCE_LINE, 
@@ -2300,6 +2301,48 @@ Pg_lo_tell(ClientData cData, Tcl_Interp *interp, int objc,
 }
 
 /***********************************
+Pg_lo_truncate
+	truncates a large object to the given length.  If length is greater
+	than the current large object length, the large object is extended
+	with null bytes.
+
+ syntax:
+   pg_lo_truncate conn fd len
+
+***********************************/
+int
+Pg_lo_truncate(ClientData cData, Tcl_Interp *interp, int objc,
+		   Tcl_Obj *CONST objv[])
+{
+	PGconn	   *conn;
+	int			fd;
+	int			len = 0;
+	char	   *connString;
+
+	if ((objc < 3) || (objc > 4))
+	{
+		Tcl_WrongNumArgs(interp, 1, objv, "conn fd ?len?");
+		return TCL_ERROR;
+	}
+
+	connString = Tcl_GetStringFromObj(objv[1], NULL);
+	conn = PgGetConnectionId(interp, connString, NULL);
+	if (conn == NULL)
+		return TCL_ERROR;
+
+	if (Tcl_GetIntFromObj(interp, objv[2], &fd) != TCL_OK)
+		return TCL_ERROR;
+
+	if (objc == 4) {
+		if (Tcl_GetIntFromObj(interp, objv[3], &len) != TCL_OK)
+			return TCL_ERROR;
+	}
+
+	Tcl_SetObjResult(interp, Tcl_NewIntObj(lo_truncate(conn, fd, len)));
+	return TCL_OK;
+}
+
+/***********************************
 Pg_lo_unlink
 	unlink a file based on lobject id
 
@@ -3120,7 +3163,7 @@ Pg_getdata(ClientData cData, Tcl_Interp *interp, int objc,
     else if (optIndex == OPT_CONNECTION)
     {
         PostgresPollingStatusType pollstatus;
-        Tcl_Obj         *res;
+        Tcl_Obj         *res = NULL;
 
         pollstatus = PQconnectPoll(conn);
 
@@ -3250,7 +3293,7 @@ Pg_blocking(ClientData cData, Tcl_Interp *interp, int objc,
 
 /**********************************
  * pg_null_value_string
- see or set whether or not a connection is set to blocking or nonblocking
+ see or set the null value string
 
  syntax:
  pg_null_value_string connection
@@ -3443,37 +3486,105 @@ Pg_on_connection_loss(ClientData cData, Tcl_Interp *interp, int objc,
  *    returns the quoted version of the passed in string
  *
  * Syntax:
- *    pg_quote string
+ *    pg_quote ?connection? string
  *
  * Results:
+ *
+ *    If the connection handle is specified, we examine the string to
+ *    see if it matches the null value string defined in the connection
+ *    ID.  If it is, we return the string "NULL", unquoted.
+ *
+ *    If the passed in string doesn't match the null value string or if
+ *    pg_quote was invoked with only one argument, the string is escaped
+ *    using P
+ *
  *    the return result is either an error message or the passed
  *    in string after going through PQescapeString
  *
  *----------------------------------------------------------------------
  */
 int
-Pg_quote(ClientData cData, Tcl_Interp *interp, int objc,
-				 Tcl_Obj *CONST objv[])
+Pg_quote (ClientData cData, Tcl_Interp *interp, int objc,
+		  Tcl_Obj *CONST objv[])
 {
-	char	   *fromString;
+	char	   *fromString = NULL;
 	char	   *toString;
 	int         fromStringLen;
 	int         stringSize;
+	Pg_ConnectionId *connid;
+	PGconn	   *conn = NULL;
+	char	   *connString;
+	int         error = 0;
+	static Tcl_Obj *nullStringObj = NULL;
 
-	if (objc != 2)
+	/* allocate the null string object if we don't have it and increment
+	 * its reference count so it'll never be freed.  We can use it over
+	 * and over and it'll keep using the same string object
+	 */
+	if (nullStringObj == NULL) 
 	{
-		Tcl_WrongNumArgs(interp, 1, objv, "string");
+		nullStringObj = Tcl_NewStringObj ("NULL", -1);
+		Tcl_IncrRefCount (nullStringObj);
+	}
+
+	if ((objc < 2) || (objc > 3)) 
+	{
+		Tcl_WrongNumArgs(interp, 1, objv, "?connection? string");
 		return TCL_ERROR;
 	}
 
-	/*
-	 * Get the "from" string.
-	 */
-	fromString = Tcl_GetStringFromObj(objv[1], &fromStringLen);
+	if (objc == 2)
+	{
+	    /*
+	     * Get the "from" string.
+	     */
+	    fromString = Tcl_GetStringFromObj(objv[1], &fromStringLen);
+	} else
+	{
+	    connString = Tcl_GetStringFromObj(objv[1], NULL);
+	    conn = PgGetConnectionId(interp, connString, &connid);
+	    if (conn == NULL)
+		    return TCL_ERROR;
+
+	    /*
+	     * Get the "from" string.
+	     */
+	    fromString = Tcl_GetStringFromObj(objv[2], &fromStringLen);
+
+	    /*
+	     * If the from string is empty, see if the null value string is also
+	     * empty and if so, return the string NULL rather than something
+	     * quoted
+	     */
+	    if (fromStringLen == 0) 
+		{
+		    if (connid->nullValueString == NULL 
+			  || *connid->nullValueString == '\0') 
+			{
+			    Tcl_SetObjResult (interp, nullStringObj);
+			    return TCL_OK;
+		    }
+	    } else {
+		    /*
+		     * The from string wasn't null, see if the connection's null value
+		     * string also isn't null and if so, if they match and if so,
+		     * return the string NULL
+		     */
+		    if (connid->nullValueString != NULL)
+			{
+			    if (strcmp (fromString, connid->nullValueString) == 0)
+				{
+				    Tcl_SetObjResult (interp, nullStringObj);
+				    return TCL_OK;
+			    }
+		    }
+	    }
+	}
 
 	/* 
-	 * allocate the "to" string, max size is documented in the
-	 * postgres docs as 2 * fromStringLen + 1, we add two more
+	 * It wasn't the null string or we were called with two args,
+	 * allocate the "to" string, the max size is documented in the
+	 * postgres docs as 2 * fromStringLen + 1 and we add two more
 	 * for the leading and trailing single quotes
 	 */
 	toString = (char *) ckalloc((2 * fromStringLen) + 3);
@@ -3482,9 +3593,26 @@ Pg_quote(ClientData cData, Tcl_Interp *interp, int objc,
 	 * call the library routine to escape the string, use
 	 * Tcl_SetResult to set the command result to be that string,
 	 * with TCL_DYNAMIC, we tell Tcl to free the memory when it's
-	 * done with it */
+	 * done with it 
+	 */
 	 *toString = '\'';
-	stringSize = PQescapeString (toString+1, fromString, fromStringLen);
+
+	 if (objc == 3) 
+	 {
+		stringSize = PQescapeStringConn (conn, toString+1, fromString, 
+										 fromStringLen, &error);
+		if (error) 
+		{
+			/* error returned from PQescapeStringConn, send it on up */
+			ckfree (toString);
+			Tcl_SetObjResult (interp, Tcl_NewStringObj ( PQerrorMessage (conn),
+							  -1));
+			return TCL_ERROR;
+		}
+	} else {
+		stringSize = PQescapeString (toString+1, fromString, fromStringLen);
+	}
+
 	toString[stringSize+1] = '\'';
 	toString[stringSize+2] = '\0';
 	Tcl_SetResult(interp, toString, TCL_DYNAMIC);
@@ -3516,10 +3644,10 @@ int
 Pg_escapeBytea(ClientData cData, Tcl_Interp *interp, int objc,
                                  Tcl_Obj *CONST objv[])
 {
-        const unsigned char    *from;
-        unsigned char          *to;
-        size_t                    fromLen;
-        size_t                    toLen;
+        unsigned char    	*from;
+        unsigned char           *to;
+        int                      fromLen;
+        size_t                   toLen;
 
         if (objc != 2)
         {
@@ -3576,7 +3704,7 @@ Pg_unescapeBytea(ClientData cData, Tcl_Interp *interp, int objc,
     const unsigned char  *from;
     unsigned char        *to;
     int         fromLen;
-    int         toLen;
+    size_t      toLen;
 
     if (objc != 2)
     {
@@ -3630,8 +3758,8 @@ int
 Pg_dbinfo(ClientData cData, Tcl_Interp *interp, int objc,
 				 Tcl_Obj *CONST objv[])
 {
-    Pg_ConnectionId *connid;
-    char	    *connString;
+    Pg_ConnectionId *connid = NULL;
+    char	    *connString = NULL;
     char	    buf[32];
     Tcl_Obj         *listObj;
     Tcl_Obj         *tresult;

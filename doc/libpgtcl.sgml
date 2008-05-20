@@ -214,6 +214,11 @@ $Header$
     <entry>return the current seek position of a large object</entry>
   </row>
   <row>
+    <entry><function>pg_lo_truncate</function></entry>
+    <entry><function>pg::lo_truncate</function></entry>
+    <entry>Truncate (or pad) a large object to a specified length</entry>
+  </row>
+  <row>
     <entry><function>pg_lo_unlink</function></entry>
     <entry><function>pg::lo_unlink</function></entry>
     <entry>delete a large object</entry>
@@ -1202,6 +1207,32 @@ pg_result <parameter>resultHandle</parameter> <parameter>resultOption</parameter
 	     <para>
 	      The first character has index <literal>1</literal>, and 
 	      positions are measured in characters not bytes. 
+	     </para>
+	    </listitem>
+	   </varlistentry>
+
+	   <varlistentry>
+	    <term><option>internal_position</option></term>
+	    <listitem>
+	     <para>
+	      This is the same as "position", but it is used when the cursor
+	      position refers to an internally generated command rather than
+	      the one submitted by the client.
+	     </para>
+	     <para>
+	      The first character has index <literal>1</literal>, and 
+	      positions are measured in characters not bytes. 
+	     </para>
+	    </listitem>
+	   </varlistentry>
+
+	   <varlistentry>
+	    <term><option>internal_query</option></term>
+	    <listitem>
+	     <para>
+	      This is the text of a failed internally generated command.
+	      This could be, for example, a SQL query issued by a
+	      PL/pgSQL function.
 	     </para>
 	    </listitem>
 	   </varlistentry>
@@ -3117,6 +3148,78 @@ pg_lo_tell <parameter>conn</parameter> <parameter>descriptor</parameter>
      <para>
       A descriptor for the large object from
       <function>pg_lo_open</function>.
+     </para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+ </refsect1>
+
+ <refsect1>
+  <title>Return Value</title>
+
+  <para>
+   A zero-based offset in bytes suitable for input to
+   <function>pg_lo_lseek</function>.
+  </para>
+ </refsect1>
+</refentry>
+
+<refentry ID="PGTCL-PGTRUNCATE">
+ <refmeta>
+  <refentrytitle>pg_lo_truncate</refentrytitle>
+ </refmeta>
+
+ <refnamediv>
+  <refname>pg_lo_truncate</refname>
+  <refpurpose>Truncate a large object to a given length</refpurpose>
+  <indexterm ID="IX-PGTCL-PGLOTRUNCATE-2"><primary>pg_lo_truncate</primary></indexterm>
+ </refnamediv>
+
+ <refsynopsisdiv>
+<synopsis>
+pg_lo_truncate <parameter>conn</parameter> <parameter>descriptor</parameter> <parameter>length</parameter>
+</synopsis>
+ </refsynopsisdiv>
+
+ <refsect1>
+  <title>Description</title>
+
+  <para>
+   <function>pg_lo_truncate</function> truncates the specified large
+   object to the given length.  If the length is greater than the current
+   large object length, the large object is extended with null bytes.
+  </para>
+ </refsect1>
+
+ <refsect1>
+  <title>Arguments</title>
+
+  <variablelist>
+   <varlistentry>
+    <term><parameter>conn</parameter></term>
+
+    <listitem>
+     <para>
+      The handle of a connection to the database in which the large object
+      exists.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><parameter>descriptor</parameter></term>
+    <listitem>
+     <para>
+      A descriptor for the large object from
+      <function>pg_lo_open</function>.
+     </para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><parameter>length</parameter></term>
+    <listitem>
+     <para>
+      The length to which the large object is to be truncated or padded.
      </para>
     </listitem>
    </varlistentry>

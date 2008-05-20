@@ -19,7 +19,7 @@ dnl	to configure the system for the local environment.
 # so you can encode the package version directly into the source files.
 #-----------------------------------------------------------------------
 
-AC_INIT([pgtcl], [1.6])
+AC_INIT([pgtcl], [1.7])
 
 #--------------------------------------------------------------------
 # Call TEA_INIT as the first TEA_ macro to set up initial vars.
@@ -27,7 +27,7 @@ AC_INIT([pgtcl], [1.6])
 # as well as PKG_LIB_FILE and PKG_STUB_LIB_FILE.
 #--------------------------------------------------------------------
 
-TEA_INIT([3.5])
+TEA_INIT([3.6])
 
 AC_CONFIG_AUX_DIR(tclconfig)
 
@@ -157,13 +157,15 @@ TEA_ADD_TCL_SOURCES([runtime/pgtcl.tcl])
 # TEA_ADD_* any platform specific compiler/build info here.
 #--------------------------------------------------------------------
 
+#CLEANFILES="pkgIndex.tcl"
 if test "${TEA_PLATFORM}" = "windows" ; then
     AC_DEFINE(BUILD_libpgtcl, 1, [Build windows export dll])
-    CLEANFILES="*.lib *.dll *.exp *.ilk *.pdb vc*.pch"
+    CLEANFILES="$CLEANFILES *.lib *.dll *.exp *.ilk *.pdb vc*.pch"
     #TEA_ADD_SOURCES([win/winFile.c])
     #TEA_ADD_INCLUDES([-I\"$(${CYGPATH} ${srcdir}/win)\"])
 else
-    CLEANFILES=""
+    # Ensure no empty else clauses
+    :
     #TEA_ADD_SOURCES([unix/unixFile.c])
     #TEA_ADD_LIBS([-lsuperfly])
 fi

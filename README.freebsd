@@ -13,7 +13,7 @@ For now, you need to build and install Tcl and Postgres
     make
     make install
 
-    cd /usr/ports/databases/postgresql7
+    cd /usr/ports/databases/postgresql83-client
     make
     make install
 

@@ -275,21 +275,22 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
     int             returnCode = TCL_ERROR;
 
     static CONST84 char *options[] = {
-        "disconnect", "exec", "sqlexec", "execute", "select", "listen",
-        "on_connection_loss", "lo_creat", "lo_open", "lo_close", 
-        "lo_read", "lo_write", "lo_lseek", "lo_tell", "lo_unlink",
-        "lo_import", "lo_export", "sendquery", "exec_prepared", 
+        "quote", "disconnect", "exec", "sqlexec", "execute", "select", 
+	"listen", "on_connection_loss", "lo_creat", "lo_open", "lo_close", 
+        "lo_read", "lo_write", "lo_lseek", "lo_tell", "lo_truncate", 
+	"lo_unlink", "lo_import", "lo_export", "sendquery", "exec_prepared", 
         "sendquery_prepared",  "null_value_string", "version", 
         "protocol", "param", "backendpid", "socket", (char *)NULL
     };
 
     enum options
     {
-        DISCONNECT,EXEC, SQLEXEC, EXECUTE, SELECT, LISTEN, 
-        ON_CONNECTION_LOSS, LO_CREAT, LO_OPEN, LO_CLOSE, LO_READ, 
-        LO_WRITE, LO_LSEEK, LO_TELL, LO_UNLINK, LO_IMPORT, LO_EXPORT, 
-        SENDQUERY, EXEC_PREPARED, SENDQUERY_PREPARED, NULL_VALUE_STRING,
-        VERSION, PROTOCOL, PARAM, BACKENDPID, SOCKET
+        QUOTE, DISCONNECT ,EXEC, SQLEXEC, EXECUTE, SELECT, 
+	LISTEN, ON_CONNECTION_LOSS, LO_CREAT, LO_OPEN, LO_CLOSE, 
+	LO_READ, LO_WRITE, LO_LSEEK, LO_TELL, LO_TRUNCATE, LO_UNLINK, 
+	LO_IMPORT, LO_EXPORT, SENDQUERY, EXEC_PREPARED, 
+	SENDQUERY_PREPARED, NULL_VALUE_STRING, VERSION, 
+	PROTOCOL, PARAM, BACKENDPID, SOCKET
     };
 
     if (objc == 1 || objc > 25)
@@ -330,6 +331,22 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
     switch ((enum options) optIndex)
     {
+	case QUOTE:
+	{
+	    /* error if only two args, we gotta pick it up here or
+	     * Pg_quote will happily quote and return the connection ID.
+	     */
+	    if (objc == 2)
+	    {
+		Tcl_WrongNumArgs(interp, 1, objv, "quote string");
+		return TCL_ERROR;
+	    }
+
+            objvx[1] = Tcl_NewStringObj(connid->id, -1);
+            returnCode = Pg_quote(cData, interp, objc, objvx);
+            break;
+	}
+
         case DISCONNECT:
         {
             objvx[1] = Tcl_NewStringObj(connid->id, -1);
@@ -439,6 +456,12 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
         {
             objvx[1] = Tcl_NewStringObj(connid->id, -1);
             returnCode = Pg_lo_tell(cData, interp, objc, objvx);
+			break;
+        }
+        case LO_TRUNCATE:
+        {
+            objvx[1] = Tcl_NewStringObj(connid->id, -1);
+            returnCode = Pg_lo_truncate(cData, interp, objc, objvx);
 			break;
         }
         case LO_UNLINK:
