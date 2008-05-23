@@ -672,7 +672,7 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 	if (objc < 3)
 	{
-		Tcl_WrongNumArgs(interp, 1, objv, "connection queryString [parm...]");
+		Tcl_WrongNumArgs(interp, 1, objv, "connection queryString ?parm...?");
 		return TCL_ERROR;
 	}
 
@@ -2314,10 +2314,12 @@ int
 Pg_lo_truncate(ClientData cData, Tcl_Interp *interp, int objc,
 		   Tcl_Obj *CONST objv[])
 {
+#ifdef HAVE_LO_TRUNCATE
 	PGconn	   *conn;
 	int			fd;
 	int			len = 0;
 	char	   *connString;
+#endif
 
 	if ((objc < 3) || (objc > 4))
 	{
@@ -2325,6 +2327,11 @@ Pg_lo_truncate(ClientData cData, Tcl_Interp *interp, int objc,
 		return TCL_ERROR;
 	}
 
+#ifndef HAVE_LO_TRUNCATE
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(
+          "The version of libpq that Pgtcl was compiled against does not have lo_truncate", -1));
+	    return TCL_ERROR;
+#else
 	connString = Tcl_GetStringFromObj(objv[1], NULL);
 	conn = PgGetConnectionId(interp, connString, NULL);
 	if (conn == NULL)
@@ -2337,8 +2344,9 @@ Pg_lo_truncate(ClientData cData, Tcl_Interp *interp, int objc,
 		if (Tcl_GetIntFromObj(interp, objv[3], &len) != TCL_OK)
 			return TCL_ERROR;
 	}
-
 	Tcl_SetObjResult(interp, Tcl_NewIntObj(lo_truncate(conn, fd, len)));
+
+#endif /* HAVE_LO_TRUNCATE */
 	return TCL_OK;
 }
 
@@ -3648,16 +3656,37 @@ Pg_escapeBytea(ClientData cData, Tcl_Interp *interp, int objc,
         unsigned char           *to;
         int                      fromLen;
         size_t                   toLen;
+	PGconn	                *conn = NULL;
+	char                    *connString;
 
-        if (objc != 2)
+        if ((objc < 2) || (objc > 3))
         {
-                Tcl_WrongNumArgs(interp, 1, objv, "binaryString");
+                Tcl_WrongNumArgs(interp, 1, objv, "?connection? binaryString");
                 return TCL_ERROR;
         }
 
-        from = Tcl_GetByteArrayFromObj(objv[1], &fromLen);
+	if (objc == 2)
+	{
+	    /*
+	     * Get the "from" string.
+	     */
+	    from = Tcl_GetByteArrayFromObj(objv[1], &fromLen);
 
-        to = PQescapeBytea(from, fromLen, &toLen);
+	    to = PQescapeBytea(from, fromLen, &toLen);
+	} else
+	{
+	    connString = Tcl_GetStringFromObj(objv[1], NULL);
+	    conn = PgGetConnectionId(interp, connString, NULL);
+	    if (conn == NULL)
+		return TCL_ERROR;
+
+	    /*
+	     * Get the "from" string.
+	     */
+	    from = Tcl_GetByteArrayFromObj(objv[2], &fromLen);
+
+	    to = PQescapeByteaConn(conn, from, fromLen, &toLen);
+	}
 
         if (! to)
         {

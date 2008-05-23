@@ -275,7 +275,8 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
     int             returnCode = TCL_ERROR;
 
     static CONST84 char *options[] = {
-        "quote", "disconnect", "exec", "sqlexec", "execute", "select", 
+        "quote", "escape_bytea", "unescape_bytea", "disconnect", "exec", 
+	"sqlexec", "execute", "select", 
 	"listen", "on_connection_loss", "lo_creat", "lo_open", "lo_close", 
         "lo_read", "lo_write", "lo_lseek", "lo_tell", "lo_truncate", 
 	"lo_unlink", "lo_import", "lo_export", "sendquery", "exec_prepared", 
@@ -285,7 +286,8 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
     enum options
     {
-        QUOTE, DISCONNECT ,EXEC, SQLEXEC, EXECUTE, SELECT, 
+        QUOTE, ESCAPE_BYTEA, UNESCAPE_BYTEA, DISCONNECT ,EXEC, 
+	SQLEXEC, EXECUTE, SELECT, 
 	LISTEN, ON_CONNECTION_LOSS, LO_CREAT, LO_OPEN, LO_CLOSE, 
 	LO_READ, LO_WRITE, LO_LSEEK, LO_TELL, LO_TRUNCATE, LO_UNLINK, 
 	LO_IMPORT, LO_EXPORT, SENDQUERY, EXEC_PREPARED, 
@@ -321,9 +323,9 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
                     return TCL_ERROR;
 
     /*
-     *  Need to test here, since EXECUTE branch does things
-     *  things a little different
-    if (optIndex != EXECUTE)
+     *  Need to test here, since EXECUTE and UNESCAPE_BYTEA branches do things
+     *  a little differently
+    if ((optIndex != EXECUTE) && (optIndex != UNESCAPE_BYTEA))
     {
         objvx[1] = Tcl_NewStringObj(connid->id, -1);
     }
@@ -345,6 +347,34 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
             objvx[1] = Tcl_NewStringObj(connid->id, -1);
             returnCode = Pg_quote(cData, interp, objc, objvx);
             break;
+	}
+
+	case ESCAPE_BYTEA:
+	{
+	    /* error if only two args, we gotta pick it up here or
+	     * Pg_escapeBytea will happily quote and return the connection ID.
+	     */
+	    if (objc == 2)
+	    {
+		Tcl_WrongNumArgs(interp, 1, objv, "escape_bytea byteArray");
+		return TCL_ERROR;
+	    }
+
+            objvx[1] = Tcl_NewStringObj(connid->id, -1);
+            returnCode = Pg_escapeBytea(cData, interp, objc, objvx);
+            break;
+	}
+
+	case UNESCAPE_BYTEA:
+	{
+	    if (objc != 3)
+	    {
+		Tcl_WrongNumArgs(interp, 1, objv, "unescape_bytea string");
+		return TCL_ERROR;
+	    }
+	    objvx[1] = objv[2];
+            returnCode = Pg_unescapeBytea(cData, interp, 2, objvx);
+	    return returnCode;
 	}
 
         case DISCONNECT:
