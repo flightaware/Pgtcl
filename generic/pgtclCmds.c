@@ -916,7 +916,14 @@ Pg_exec_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 
 	-tupleArray tupleNumber arrayName
 		stores the values of the tuple in array arrayName, indexed
-		by the attributes returned
+		by the attributes returned.  If a value is null, sets an
+		empty string or the default string into the array, if
+		a default string has been defined.
+
+	-tupleArrayWithoutNulls tupleNumber arrayName
+		...stores the values of the tuple in array arrayName, indexed
+		by the attributes returned.  If a value is null, unsets the
+		field from the array.
 
 	-attributes
 		returns a list of the name/type pairs of the tuple attributes
@@ -964,7 +971,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	static CONST84 char *options[] = {
 		"-status", "-error", "-conn", "-oid",
 		"-numTuples", "-cmdTuples", "-numAttrs", "-assign", "-assignbyidx",
-		"-getTuple", "-tupleArray", "-attributes", "-lAttributes",
+		"-getTuple", "-tupleArray", "-tupleArrayWithoutNulls", "-attributes", "-lAttributes",
 		"-clear", "-list", "-llist", "-dict", "-null_value_string", (char *)NULL
 	};
 
@@ -972,7 +979,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	{
 		OPT_STATUS, OPT_ERROR, OPT_CONN, OPT_OID,
 		OPT_NUMTUPLES, OPT_CMDTUPLES, OPT_NUMATTRS, OPT_ASSIGN, OPT_ASSIGNBYIDX,
-		OPT_GETTUPLE, OPT_TUPLEARRAY, OPT_ATTRIBUTES, OPT_LATTRIBUTES,
+		OPT_GETTUPLE, OPT_TUPLEARRAY, OPT_TUPLEARRAY_WITHOUT_NULLS, OPT_ATTRIBUTES, OPT_LATTRIBUTES,
 		OPT_CLEAR, OPT_LIST, OPT_LLIST, OPT_DICT, OPT_NULL_VALUE_STRING
 	};
 
@@ -1295,6 +1302,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 			}
 
 		case OPT_TUPLEARRAY:
+		case OPT_TUPLEARRAY_WITHOUT_NULLS:
 			{
 				char	   *arrayName;
 
@@ -1309,27 +1317,49 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 				if (tupno < 0 || tupno >= PQntuples(result))
 				{
-                    tresult = Tcl_NewStringObj("argument to tupleArray cannot exceed ", -1);
-                    Tcl_AppendStringsToObj(tresult, "number of tuples - 1", NULL);
+                    tresult = Tcl_NewStringObj("argument to tupleArray cannot exceed number of tuples - 1", -1);
                     Tcl_SetObjResult(interp, tresult);
-
-/*
-                    Tcl_AppendStringsToObj(Tcl_GetObjResult(interp),
-                        "argument to tupleArray cannot exceed ",
-                        "number of tuples - 1", NULL);
-*/
-
 					return TCL_ERROR;
 				}
 
 				arrayName = Tcl_GetStringFromObj(objv[4], NULL);
 
-				for (i = 0; i < PQnfields(result); i++)
+				if (optIndex == OPT_TUPLEARRAY)
 				{
-					if (Tcl_SetVar2(interp, arrayName, PQfname(result, i),
-								 PGgetvalue(result, resultid->nullValueString, tupno, i),
-									TCL_LEAVE_ERR_MSG) == NULL)
+					/* it's the -array variant, if the field is null,
+					 * set it in the array as the empty string or
+					 * as the set null value string if one is set
+					 */
+					for (i = 0; i < PQnfields(result); i++)
+					{
+						if (Tcl_SetVar2(interp, arrayName, PQfname(result, i),
+							 PGgetvalue(result, resultid->nullValueString, 
+								 tupno, i), TCL_LEAVE_ERR_MSG) == NULL)
 						return TCL_ERROR;
+					}
+				} else
+				{
+					/* it's the array_without_nulls variant,
+					 * unset the field name from the array
+					 * if it's null, else set it.
+					 */
+					for (i = 0; i < PQnfields(result); i++)
+					{
+						char *string;
+
+						string = PQgetvalue (result, tupno, i);
+						if (*string == '\0') {
+							if (PQgetisnull (result, tupno, i)) {
+							   Tcl_UnsetVar2 (interp, arrayName, PQfname(result, i), 0);
+							   continue;
+							}
+						}
+
+						if (Tcl_SetVar2(interp, arrayName, PQfname(result, i),
+									 string,
+										TCL_LEAVE_ERR_MSG) == NULL)
+							return TCL_ERROR;
+					}
 				}
 				return TCL_OK;
 			}

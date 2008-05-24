@@ -1,6 +1,11 @@
 
 $Id$
 
+2005-05-24 Karl Lehenbauer
+    * Add new pg_result suboption -tupleArrayWithoutNulls.  It works like
+      -tupleArray except if a field is null, it unsets the field from
+      the array.
+
 2008-05-23 Karl Lehenbauer
     * Add "escape_bytea" and "unescape_bytea" to the methods that can be
       invoked from $conn.

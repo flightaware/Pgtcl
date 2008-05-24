@@ -1368,7 +1368,21 @@ pg_result <parameter>resultHandle</parameter> <parameter>resultOption</parameter
          <para>
           Stores the columns of the row in array
           <parameter>arrayName</parameter>, indexed by column names.
-          Row numbers start at zero.
+          Row numbers start at zero.  If a field's value is null,
+	  sets an empty string or the default string, if a default
+	  string has been defined.
+         </para>
+        </listitem>
+       </varlistentry>
+
+       <varlistentry>
+        <term><option>-tupleArrayWithoutNulls <parameter>rowNumber</> <parameter>arrayName</></option></term>
+        <listitem>
+         <para>
+          Stores the columns of the row in array
+          <parameter>arrayName</parameter>, indexed by column names.
+          Row numbers start at zero.  If a field's value is null,
+	  unsets the column from the array.
          </para>
         </listitem>
        </varlistentry>
