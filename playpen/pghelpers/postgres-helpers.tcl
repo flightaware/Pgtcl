@@ -21,7 +21,7 @@
 # $Id$
 #
 
-package provide sc_postgres 1.0
+package provide sc_postgres 1.1
 
 package require Tclx
 package require Pgtcl
@@ -156,10 +156,19 @@ proc clock_to_sql_time {clock} {
 
 #
 # clock_to_precise_sql_time - generate a SQL time from an integer clock
-#  time (seconds since 1970), accurate to the second.
+#  time (seconds since 1970), accurate to the second, with timezone
 #
 proc clock_to_precise_sql_time {clock} {
     return [clock format $clock -format "%b %d %H:%M:%S %Y GMT" -gmt 1]
+}
+
+#
+# clock_to_precise_sql_time_without_timezone - generate a SQL time from an 
+# integer clock time (seconds since 1970), accurate to the second, without
+# timezone info (using local timezone)
+#
+proc clock_to_precise_sql_time_without_timezone {clock} {
+    return [clock format $clock -format "%b %d %H:%M:%S %Y"]
 }
 
 #
@@ -170,7 +179,27 @@ proc sql_time_to_clock {date} {
     if {$date == ""} {
 	return 0
     }
+    set firstPeriod [string first "." $date]
+    if {$firstPeriod >= 0} {
+	set date [string range $date 0 [expr $firstPeriod - 1]]
+    }
     return [clock scan $date]
+}
+
+#
+# convert a sql time with timezone to a clock value (seconds since 1970)
+#
+# ERROR - this ain't right, it discards timezone and assumes local
+#
+proc sql_time_with_timezone_to_clock {date} {
+    if {$date == ""} {
+	return 0
+    }
+
+    if {![regexp {(.*:..)[^-]*(.*)} $date dummy a b]} {
+	error "unable to convert time-with-timezone value $date"
+    }
+    return [clock scan "$a"]
 }
 
 #
@@ -179,7 +208,9 @@ proc sql_time_to_clock {date} {
 #
 proc res_must_succeed {res} {
     if {[pg_result $res -status] != "PGRES_COMMAND_OK"} {
-	error "[pg_result $res -error]"
+	set errorString [pg_result $res -error]
+	pg_result $res -clear
+	error $errorString
     }
     pg_result $res -clear
 }
@@ -191,8 +222,11 @@ proc res_must_succeed {res} {
 proc res_dont_care {res} {
     if {[pg_result $res -status] != "PGRES_COMMAND_OK"} {
 	puts "[pg_result $res -error] (ignored)"
+	pg_result $res -clear
+	return 0
     }
     pg_result $res -clear
+    return 1
 }
 
 }

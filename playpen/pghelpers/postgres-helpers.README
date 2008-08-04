@@ -69,3 +69,4 @@ sc_pg::res_dont_care
     Whether or not the give postgres result is PGRES_COMMAND_OK, the
     result is cleared.  By default we write something to stdout,
     but that's probably dumb.
+
