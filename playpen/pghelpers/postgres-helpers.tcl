@@ -207,7 +207,8 @@ proc sql_time_with_timezone_to_clock {date} {
 # if not throw an error, and if so, clear the postgres result.
 #
 proc res_must_succeed {res} {
-    if {[pg_result $res -status] != "PGRES_COMMAND_OK"} {
+    set status [pg_result $res -status]
+    if {$status != "PGRES_COMMAND_OK" && $status != "PGRES_TUPLES_OK"} {
 	set errorString [pg_result $res -error]
 	pg_result $res -clear
 	error $errorString
@@ -220,7 +221,8 @@ proc res_must_succeed {res} {
 # clear the postgres result and return.
 #
 proc res_dont_care {res} {
-    if {[pg_result $res -status] != "PGRES_COMMAND_OK"} {
+    set status [pg_result $res -status]
+    if {$status != "PGRES_COMMAND_OK" && $status != "PGRES_TUPLES_OK"} {
 	puts "[pg_result $res -error] (ignored)"
 	pg_result $res -clear
 	return 0

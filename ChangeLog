@@ -1,7 +1,12 @@
 
 $Id$
 
-2005-05-24 Karl Lehenbauer
+2009-02-26 Karl Lehenbauer
+    * Make PostgreSQL helpers "res_dont_care" and "res_must_succeed"
+      accept PGRES_TUPLES_OK as a sucessful result as well as
+      PGRES_COMMAND_OK.
+
+2008-05-24 Karl Lehenbauer
     * Add new pg_result suboption -tupleArrayWithoutNulls.  It works like
       -tupleArray except if a field is null, it unsets the field from
       the array.
