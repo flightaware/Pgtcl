@@ -1,6 +1,9 @@
 
 $Id$
 
+2009-04-06 Karl Lehenbauer
+    * Pgtcl 1.7 released.
+
 2009-02-26 Karl Lehenbauer
     * Make PostgreSQL helpers "res_dont_care" and "res_must_succeed"
       accept PGRES_TUPLES_OK as a sucessful result as well as
