@@ -1156,8 +1156,6 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 		case OPT_ASSIGN:
 			{
-				Tcl_Obj    *fieldNameObj;
-
 				if (objc != 4)
 				{
 					Tcl_WrongNumArgs(interp, 3, objv, "arrayName");
@@ -1166,7 +1164,6 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 				arrVarObj = objv[3];
 				arrVar = Tcl_GetStringFromObj(arrVarObj, NULL);
-				fieldNameObj = Tcl_NewObj ();
 
 				/*
 				 * this assignment assigns the table of result tuples into
@@ -1177,6 +1174,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				{
 					for (i = 0; i < PQnfields(result); i++)
 					{
+						Tcl_Obj    *fieldNameObj;
 
 						/*
 						 * construct the array element name consisting
@@ -1186,6 +1184,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 						 * to an int but the append following will force a
 						 * string conversion.
 						 */
+						fieldNameObj = Tcl_NewObj ();
 						Tcl_SetIntObj(fieldNameObj, tupno);
 						Tcl_AppendToObj(fieldNameObj, ",", 1);
 						Tcl_AppendToObj(fieldNameObj, PQfname(result, i), -1);
@@ -1200,7 +1199,6 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 						}
 					}
 				}
-				Tcl_DecrRefCount (fieldNameObj);
 				return TCL_OK;
 			}
 
@@ -2604,8 +2602,21 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	ncols = PQnfields(result);
 	columnNameObjs = (Tcl_Obj **)ckalloc(sizeof(Tcl_Obj) * ncols);
 
-	for (column = 0; column < ncols; column++)
-		columnNameObjs[column] = Tcl_NewStringObj(PQfname(result, column), -1);
+	for (column = 0; column < ncols; column++) {
+		char *colName = PQfname(result, column);
+		if (colName == NULL) {
+			// PQfname failed, shouldn't happen, but we've seen it
+			char		msg[60];
+
+			sprintf(msg, "PQfname() returned NULL for column %d, ncols %d",
+						column, ncols);
+			Tcl_SetResult(interp, msg, TCL_VOLATILE);
+			PQclear(result);
+			return TCL_ERROR;
+		} else {
+			columnNameObjs[column] = Tcl_NewStringObj(colName, -1);
+		}
+	}
 
 	columnListObj = Tcl_NewListObj(ncols, columnNameObjs);
 

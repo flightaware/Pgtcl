@@ -1,6 +1,14 @@
 
 $Id$
 
+2009-06-30 Karl Lehenbauer
+    * Fixed bug in "pgresult -assign" that could cuase a Tcl panic by 
+      attempting to set a value into a shared Tcl object.
+
+    * libpq's PQfname can return NULL if the column requested is out of 
+      range.  We have seen it return NULL when the column is in range,
+      so instead of dumping core, we treat such a return as a Tcl error.
+
 2009-04-06 Karl Lehenbauer
     * Pgtcl 1.7 released.
 
