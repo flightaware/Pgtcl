@@ -2600,7 +2600,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	}
 
 	ncols = PQnfields(result);
-	columnNameObjs = (Tcl_Obj **)ckalloc(sizeof(Tcl_Obj) * ncols);
+	columnNameObjs = (Tcl_Obj **)ckalloc(sizeof(Tcl_Obj *) * ncols);
 
 	for (column = 0; column < ncols; column++) {
 		char *colName = PQfname(result, column);

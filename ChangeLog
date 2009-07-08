@@ -7,6 +7,10 @@ $Id$
       scalar variable, no error was returned to denote this, and it caused 
       a coredump in Tcl 8.5.  This has now been fixed.
 
+    * In pg_select code, correct memory allocation for columnNameObjs to
+      use the size of a pointer to Tcl_Obj times the number of columns,
+      rather than the size of a Tcl_Obj times the number of columns..
+
 2009-06-30 Karl Lehenbauer
     * Fixed bug in "pgresult -assign" that could cuase a Tcl panic by 
       attempting to set a value into a shared Tcl object.
