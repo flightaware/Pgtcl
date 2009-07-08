@@ -1,6 +1,12 @@
 
 $Id$
 
+2009-07-07 Karl Lehenbauer
+    * pg_select was not checking returns from Tcl_ObjSetVar2 and friends.
+      The problem was that if the pg_select array already existed as a
+      scalar variable, no error was returned to denote this, and it caused 
+      a coredump in Tcl 8.5.  This has now been fixed.
+
 2009-06-30 Karl Lehenbauer
     * Fixed bug in "pgresult -assign" that could cuase a Tcl panic by 
       attempting to set a value into a shared Tcl object.

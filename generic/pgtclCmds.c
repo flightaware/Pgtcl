@@ -2550,7 +2550,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	PGconn	   *conn;
 	PGresult   *result;
 	int			r,
-				retval;
+				retval = TCL_ERROR;
 	int			tupno,
 				column,
 				ncols;
@@ -2560,7 +2560,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	Tcl_Obj    *varNameObj;
 	Tcl_Obj    *procStringObj;
 	Tcl_Obj    *columnListObj;
-	Tcl_Obj   **columnNameObjs;
+	Tcl_Obj   **columnNameObjs = NULL;
 
 	if (objc != 5)
 	{
@@ -2620,26 +2620,35 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 	columnListObj = Tcl_NewListObj(ncols, columnNameObjs);
 
-	Tcl_SetVar2Ex(interp, varNameString, ".headers", columnListObj, 0);
-	Tcl_SetVar2Ex(interp, varNameString, ".numcols", Tcl_NewIntObj(ncols), 0);
+	if (Tcl_SetVar2Ex(interp, varNameString, ".headers", 
+	                  columnListObj, TCL_LEAVE_ERR_MSG) == NULL) goto done;
+
+	if (Tcl_SetVar2Ex(interp, varNameString, ".numcols", 
+	                  Tcl_NewIntObj(ncols), TCL_LEAVE_ERR_MSG) == NULL) goto done;
 
 	retval = TCL_OK;
 
 	for (tupno = 0; tupno < PQntuples(result); tupno++)
 	{
-		Tcl_SetVar2Ex(interp, varNameString, ".tupno", Tcl_NewIntObj(tupno), 0);
+		if (Tcl_SetVar2Ex(interp, varNameString, ".tupno", 
+		    Tcl_NewIntObj(tupno), TCL_LEAVE_ERR_MSG) == NULL)
+		{
+		    retval = TCL_ERROR;
+			goto done;
+		}
 
 		for (column = 0; column < ncols; column++)
 		{
 			Tcl_Obj    *valueObj;
 
 			valueObj = Tcl_NewStringObj(PGgetvalue(result, connid->nullValueString, tupno, column), -1);
-			Tcl_ObjSetVar2(interp, varNameObj, columnNameObjs[column],
-						   valueObj,
-						   0);
+			if (Tcl_ObjSetVar2(interp, varNameObj, columnNameObjs[column],
+						       valueObj, TCL_LEAVE_ERR_MSG) == NULL)
+			{
+			    retval = TCL_ERROR;
+				goto done;
+			}
 		}
-
-		Tcl_SetVar2(interp, varNameString, ".command", "update", 0);
 
 		r = Tcl_EvalObjEx(interp, procStringObj, 0);
 		if ((r != TCL_OK) && (r != TCL_CONTINUE))
@@ -2661,7 +2670,11 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		}
 	}
 
-	ckfree((void *)columnNameObjs);
+	done:
+	if (columnNameObjs != NULL)
+	{
+		ckfree((void *)columnNameObjs);
+	}
 	Tcl_UnsetVar(interp, varNameString, 0);
 	PQclear(result);
 	return retval;
