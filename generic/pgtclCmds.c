@@ -1204,7 +1204,6 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 		case OPT_ASSIGNBYIDX:
 			{
-				fieldNameObj = Tcl_NewObj();
 
 				if ((objc != 4) && (objc != 5))
 				{
@@ -1236,6 +1235,10 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 					for (i = 1; i < PQnfields(result); i++)
 					{
+						Tcl_Obj    *fieldNameObj;
+
+
+						fieldNameObj = Tcl_NewObj ();
 						Tcl_SetStringObj(fieldNameObj, field0, -1);
 						Tcl_AppendToObj(fieldNameObj, ",", 1);
 						Tcl_AppendToObj(fieldNameObj, PQfname(result, i), -1);
@@ -1252,7 +1255,6 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 						}
 					}
 				}
-				Tcl_DecrRefCount(fieldNameObj);
 				return TCL_OK;
 			}
 
