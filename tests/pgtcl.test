@@ -20,8 +20,8 @@ load [lindex $flist end]
 #   set this to your specific location
 #
 array set conninfo {
-    host    192.168.123.180
-    port    5432
+    host    localhost
+    port    5840
     dbname  template1
     user    postgres
 }
@@ -181,7 +181,7 @@ test pgtcl-3.4 {test deleting of a command handle} -body {
 #
 test pgtcl-4.1 {get result handles} -body {
 
-    unset res
+    unset -nocomplain res
 
     set conn [pg::connect -connlist [array get ::conninfo] -connhandle pgsql9]
 
@@ -246,7 +246,7 @@ if {[llength [info commands dict]] == 1} {
 #
 test pgtcl-4.4 {get results as a DICT} -body {
 
-    unset res
+    unset -nocomplain res
 
     set conn [pg::connect -connlist [array get ::conninfo]]
 
@@ -265,7 +265,7 @@ test pgtcl-4.4 {get results as a DICT} -body {
 
 test pgtcl-4.5 {get results as a list} -body {
 
-    unset res
+    unset -nocomplain res
 
     set conn [pg::connect -connlist [array get ::conninfo]]
 
@@ -291,7 +291,7 @@ test pgtcl-4.5 {get results as a list} -body {
 #
 test pgtcl-4.6 {get results as a list of lists} -body {
 
-    unset res
+    unset -nocomplain res
 
     set conn [pg::connect -connlist [array get ::conninfo]]
 
@@ -311,6 +311,294 @@ test pgtcl-4.6 {get results as a list of lists} -body {
     
 } -result [list [list pg_aggregate r] [list pg_aggregate_fnoid_index i] [list pg_am r]]
 
+#
+#
+#
+test pgtcl-4.7 {get results an array with -assign} -body {
+
+    unset -nocomplain res ARR
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+
+    set res [$conn exec "SELECT relname, relkind
+                           FROM Pg_class 
+                          WHERE relname LIKE 'pg_%' 
+                       ORDER BY relname 
+                          LIMIT 1"]
+
+    pg::result $res -assign ARR
+
+    pg_result $res -clear
+
+    pg_disconnect $conn
+
+    lsort [array get ARR]
+
+} -result [lsort [list 0,relname pg_aggregate 0,relkind r]]
+
+#
+#
+#
+test pgtcl-4.8 {get results an array with -assignbyidx} -body {
+
+    unset -nocomplain ARR res
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+
+    set res [$conn exec "SELECT oid, relname, relkind
+                           FROM Pg_class 
+                          WHERE relname LIKE 'pg_%' 
+                       ORDER BY relname 
+                          LIMIT 1"]
+
+    pg::result $res -assignbyidx ARR
+
+    pg_result $res -clear
+
+    pg_disconnect $conn
+
+    lsort [array get ARR]
+
+} -result [lsort [list 2600,relname pg_aggregate 2600,relkind r]]
+
+#
+#
+#
+test pgtcl-4.9 {get results an array with -assignbyidx with appendstr} -body {
+
+    unset -nocomplain ARR res
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+
+    set res [$conn exec "SELECT '0', relname, relkind
+                           FROM Pg_class 
+                          WHERE relname LIKE 'pg_%' 
+                       ORDER BY relname 
+                          LIMIT 1"]
+
+    pg::result $res -assignbyidx ARR X
+
+    pg_result $res -clear
+
+    pg_disconnect $conn
+
+    lsort [array get ARR]
+
+} -result [lsort [list 0,relnameX pg_aggregate 0,relkindX r]]
+
+#
+#
+#
+test pgtcl-4.10 {test pg_result -numAttrs} -body {
+
+    unset -nocomplain res num
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+
+    set res [$conn exec "SELECT oid, relname, relkind
+                           FROM Pg_class 
+                          WHERE relname LIKE 'pg_%' 
+                       ORDER BY relname 
+                          LIMIT 1"]
+
+    set num [pg::result $res -numAttrs]
+
+    pg_result $res -clear
+
+    pg_disconnect $conn
+
+    set num
+} -result 3
+
+#
+#
+#
+test pgtcl-4.11 {test pg_result -numTuples} -body {
+
+    unset -nocomplain res num
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+
+    set res [$conn exec "SELECT oid, relname, relkind
+                           FROM Pg_class 
+                          WHERE relname LIKE 'pg_%' 
+                       ORDER BY relname 
+                          LIMIT 10"]
+
+    set num [pg::result $res -numTuples]
+
+    pg_result $res -clear
+
+    pg_disconnect $conn
+
+    set num
+} -result 10
+
+
+#
+#
+#
+test pgtcl-4.12 {test pg_result -status} -body {
+
+    unset -nocomplain res stat
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+
+    set res [$conn exec "SELECT 1
+                           FROM Pg_class 
+                          WHERE relname LIKE 'pg_%' 
+                       ORDER BY relname 
+                          LIMIT 1"]
+
+    set stat [pg::result $res -status]
+
+    pg_result $res -clear
+
+    pg_disconnect $conn
+
+    set stat
+} -result "PGRES_TUPLES_OK"
+
+#
+#
+#
+test pgtcl-4.13 {test pg_result -error} -body {
+
+    unset -nocomplain res stat
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+
+    set res [$conn exec "SELECT 1
+                           FROM Pg_junk"]
+
+    set stat [string match "*does not exist*" [pg::result $res -error]]
+
+    pg_result $res -clear
+
+    pg_disconnect $conn
+
+    set stat
+} -result 1
+
+#
+#
+#
+test pgtcl-4.14 {test pg_result -conn} -body {
+
+    unset -nocomplain res stat
+
+    set conn [pg::connect -connlist [array get ::conninfo] -connhandle PGTEST]
+
+    set res [$conn exec "SELECT 1
+                           FROM Pg_class"]
+
+    set stat [pg_result $res -conn]
+
+    pg_result $res -clear
+
+    pg_disconnect $conn
+
+    set stat
+} -result PGTEST
+
+#
+#
+#
+test pgtcl-4.15 {test pg_result -getTuple} -body {
+
+    unset -nocomplain res stat
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+
+    set res [$conn exec "SELECT 'one', 'two'
+                           FROM Pg_class 
+                          WHERE relname LIKE 'pg_%' 
+                       ORDER BY relname 
+                          LIMIT 1"]
+
+    set stat [pg_result $res -getTuple 0]
+
+    pg_result $res -clear
+
+    pg_disconnect $conn
+
+    set stat
+} -result [list one two]
+
+#
+#
+#
+test pgtcl-4.16 {test pg_result -typleArray} -body {
+
+    unset -nocomplain res ARR
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+
+    set res [$conn exec "SELECT 'one' AS col1, 'two' AS col2
+                           FROM Pg_class 
+                          WHERE relname LIKE 'pg_%' 
+                       ORDER BY relname 
+                          LIMIT 1"]
+
+    pg_result $res -tupleArray 0 ARR
+
+    pg_result $res -clear
+
+    pg_disconnect $conn
+
+    lsort [array get ARR]
+
+} -result [lsort [list col1 one col2 two]]
+
+#
+#
+#
+test pgtcl-4.17 {test pg_result -attributes} -body {
+
+    unset -nocomplain res stat
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+
+    set res [$conn exec "SELECT 'one' AS col1, 'two' AS col2
+                           FROM Pg_class 
+                          WHERE relname LIKE 'pg_%' 
+                       ORDER BY relname 
+                          LIMIT 1"]
+
+    set stat [pg_result $res -attributes]
+
+    pg_result $res -clear
+
+    pg_disconnect $conn
+
+    lsort $stat
+
+} -result [lsort [list col1 col2]]
+
+#
+#
+#
+test pgtcl-4.18 {test pg_result -lAttributes} -body {
+
+    unset -nocomplain res stat
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+
+    set res [$conn exec "SELECT 'one' AS col1, 'two' AS col2
+                           FROM Pg_class 
+                          WHERE relname LIKE 'pg_%' 
+                       ORDER BY relname 
+                          LIMIT 1"]
+
+    set stat [pg_result $res -lAttributes]
+
+    pg_result $res -clear
+
+    pg_disconnect $conn
+
+    set stat
+
+} -result [list [list col1 705 -2] [list col2 705 -2]]
 
 #
 #
@@ -351,7 +639,7 @@ test pgtcl-5.3 {unescape a binary string} -body {
 #
 test pgtcl-6.1 {using pg_exec with params} -body {
 
-    unset res
+    unset -nocomplain res
 
     set conn [pg::connect -connlist [array get ::conninfo]]
 
@@ -377,7 +665,7 @@ test pgtcl-6.1 {using pg_exec with params} -body {
 #
 test pgtcl-6.2 {using pg_exec_prepared with params} -body {
 
-    unset res
+    unset -nocomplain res
 
     set conn [pg::connect -connlist [array get ::conninfo]]
 
@@ -410,7 +698,7 @@ test pgtcl-6.2 {using pg_exec_prepared with params} -body {
 #
 test pgtcl-7.1 {using pg_select} -body {
 
-    unset res
+    unset -nocomplain res
 
     set conn [pg::connect -connlist [array get ::conninfo]]
 
@@ -436,8 +724,7 @@ test pgtcl-7.1 {using pg_select} -body {
 #
 test pgtcl-8.1 {using pg_execute} -body {
 
-    catch {unset res}
-    catch {unset names}
+    unset -nocomplain res names
 
     set conn [pg::connect -connlist [array get ::conninfo]]
 
@@ -458,8 +745,7 @@ test pgtcl-8.1 {using pg_execute} -body {
 #
 test pgtcl-8.2 {using connection command handle for pg_execute, no options} -body {
 
-    catch {unset res}
-    catch {unset names}
+    unset -nocomplain res names
 
     set conn [pg::connect -connlist [array get ::conninfo]]
 
@@ -479,8 +765,7 @@ test pgtcl-8.2 {using connection command handle for pg_execute, no options} -bod
 #
 test pgtcl-8.3 {using connection command handle for pg_execute, -array option} -body {
 
-    catch {unset res}
-    catch {unset names}
+    unset -nocomplain res names
 
     set conn [pg::connect -connlist [array get ::conninfo]]
 
