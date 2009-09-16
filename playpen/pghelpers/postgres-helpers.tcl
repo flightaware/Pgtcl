@@ -69,6 +69,31 @@ proc gen_insert_from_array {tableName arrayName} {
 }
 
 #
+# gen_sql_update_from_array - return a sql update statement based on the
+#   contents of an array and a list of key fields
+#
+proc gen_update_from_array {tableName arrayName keyFields} {
+    upvar $arrayName array
+
+    set result "update $tableName ("
+
+    foreach element [array names array] {
+        # don't emit key fields into the update body
+        if {[lsearch $keyFields $element] >= 0} {
+	    continue
+	}
+	append result "$element = [pg_quote $array($element)], "
+    }
+    set result "[string range $result 0 end-2]) where ("
+
+    foreach key $keyFields {
+        append result "$key = [pg_quote $array($key)] and"
+    }
+    return "[string range $result 0 end-4]);"
+}
+
+
+#
 # gen_insert_front_part - generate a sql insert front part
 #
 proc gen_insert_front_part {tableName nameList} {
@@ -77,7 +102,7 @@ proc gen_insert_front_part {tableName nameList} {
 }
 
 #
-# gen_isnert_back_part - generate a sql insert back part
+# gen_insert_back_part - generate a sql insert back part
 #
 proc gen_insert_back_part {valueList} {
     set result ""
@@ -139,6 +164,18 @@ proc perform_insert_from_lists {session tableName nameList valueList} {
 proc perform_insert_from_array {session tableName arrayName} {
     upvar $arrayName array
     set result [pg_exec $session [gen_insert_from_array $tableName array]]
+    set status [pg_result $result -status]
+    pg_result $result -clear
+    return $status
+}
+
+#
+# perform_update_from_array - generate a sql update command based on the
+# contents of an array and execute it against the specified database session
+#
+proc perform_update_from_array {session tableName arrayName keyFields} {
+    upvar $arrayName array
+    set result [pg_exec $session [gen_update_from_array $tableName array $keyFields]]
     set status [pg_result $result -status]
     pg_result $result -clear
     return $status

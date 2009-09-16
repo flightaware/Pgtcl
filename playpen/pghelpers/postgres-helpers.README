@@ -20,14 +20,26 @@ sc_pg::quote string
     Quote a string for Postgres.  Puts single quotes around it and quotes
     single quotes if they're contained within it.
 
-sc_pg::gen_sql_insert_from_array
+sc_pg::gen_sql_insert_from_array tableName array
 
     Return a postgres SQL insert statement based on the contents of an array.
+
+sc_pg::gen_update_from_array tableName array keyFieldList
+
+    Return a postgres SQL update statement based on the contents of an array.
+    Key field list specifies the keys and their values must be in the array.
+    The where clause is generated as a big "and", so all the keys in the
+    key field list must match for a row to be updated.
 
 sc_pg::perform_insert session insertStatement
 
     Execute a statement on the given database session.  Grab the
     status out of the result.  Clear the result.  Return the status.
+
+sc_pg::perform_update_from_array session tableName array keyFieldList
+
+    Generate an update statement and execute it on the given session.
+    Grab the status out of the result.  Clear the result.  Return the status.
 
 sc_pg::gen_insert_from_lists tableName nameList valueList
 

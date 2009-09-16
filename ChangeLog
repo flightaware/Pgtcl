@@ -1,6 +1,10 @@
 
 $Id$
 
+2009-09-16 Karl Lehenbauer
+    * Add gen_update_from_array and perform_update_from_array to Postgres
+      helper package.
+
 2009-07-07 Karl Lehenbauer
     * pg_select was not checking returns from Tcl_ObjSetVar2 and friends.
       The problem was that if the pg_select array already existed as a
