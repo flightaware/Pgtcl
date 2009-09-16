@@ -75,7 +75,7 @@ proc gen_insert_from_array {tableName arrayName} {
 proc gen_update_from_array {tableName arrayName keyFields} {
     upvar $arrayName array
 
-    set result "update $tableName ("
+    set result "update $tableName set "
 
     foreach element [array names array] {
         # don't emit key fields into the update body
@@ -84,7 +84,7 @@ proc gen_update_from_array {tableName arrayName keyFields} {
 	}
 	append result "$element = [pg_quote $array($element)], "
     }
-    set result "[string range $result 0 end-2]) where ("
+    set result "[string range $result 0 end-2] where ("
 
     foreach key $keyFields {
         if {![info exists array($key)]} {
