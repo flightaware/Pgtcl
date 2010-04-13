@@ -21,6 +21,16 @@
 #define RES_START 16
 
 /*
+ * Tcl 8.6 and TIP 330/336 compatability
+ * New function in 8.6 Tcl_GetErrorLine instead of direct access
+ * to errorLine in struct. Define Tcl_GetErrorLine here if less
+ * 8.6
+ */
+#if (TCL_MAJOR_VERSION < 8) || (TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION < 6)
+#define Tcl_GetErrorLine(interp) (interp->errorLine)
+#endif
+
+/*
  * Each Pg_ConnectionId has a list of Pg_TclNotifies structs, one for each
  * Tcl interpreter that has executed any pg_listens on the connection.
  * We need this arrangement to be able to clean up if an interpreter is

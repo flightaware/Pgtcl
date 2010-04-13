@@ -1,6 +1,12 @@
 
 $Id$
 
+2010-04-12 Brett Schwarz
+    * Added Tcl 8.6 compatability by gettting rid of errorLine direct struct
+      access and using Tcl_GetErrorLine, introduced in 8.6. Also added define
+      for Tcl versions less than 8.6 so they can use the Tcl_GetErrorLine call.
+      I ripped this off from the aolserver fix :)
+
 2009-09-16 Karl Lehenbauer
     * Add gen_update_from_array and perform_update_from_array to Postgres
       helper package.

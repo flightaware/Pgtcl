@@ -2663,7 +2663,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				char		msg[60];
 
 				sprintf(msg, "\n    (\"pg_select\" body line %d)",
-						interp->errorLine);
+						Tcl_GetErrorLine(interp));
 				Tcl_AddErrorInfo(interp, msg);
 			}
 
