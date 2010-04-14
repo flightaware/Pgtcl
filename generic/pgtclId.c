@@ -194,6 +194,7 @@ PgSetConnectionId(Tcl_Interp *interp, PGconn *conn, char *chandle)
 	connid->notifier_running = 0;
 	connid->interp = interp;
 	connid->nullValueString = NULL;
+	connid->sql_count = 0;
 
         nsstr = Tcl_NewStringObj("if {[namespace current] != \"::\"} {set k [namespace current]::}", -1);
 

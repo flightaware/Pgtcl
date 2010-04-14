@@ -738,6 +738,8 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	}
 #endif
 
+	connid->sql_count++;
+
 	/* REPLICATED IN pg_exec_prepared -- NEEDS TO BE FACTORED */
 	/* Transfer any notify events from libpq to Tcl event queue. */
 	PgNotifyTransferEvents(connid);
@@ -848,6 +850,8 @@ Pg_exec_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 	if (paramValues != (const char **)NULL) {
 	    ckfree ((void *)paramValues);
 	}
+
+	connid->sql_count++;
 
 	/* REPLICATED IN pg_exec -- NEEDS TO BE FACTORED */
 	/* Transfer any notify events from libpq to Tcl event queue. */
@@ -1208,7 +1212,6 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				if ((objc != 4) && (objc != 5))
 				{
 					Tcl_WrongNumArgs(interp, 3, objv, "arrayName ?append_string?");
-					Tcl_DecrRefCount(fieldNameObj);
 					return TCL_ERROR;
 				}
 
@@ -1748,6 +1751,7 @@ Pg_execute(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 	 */
 	queryString = Tcl_GetStringFromObj(objv[i++], NULL);
 	result = PQexec(conn, queryString);
+	connid->sql_count++;
 
 	/*
 	 * Transfer any notify events from libpq to Tcl event queue.
@@ -2582,6 +2586,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	if (conn == NULL)
 		return TCL_ERROR;
 
+	connid->sql_count++;
 	if ((result = PQexec(conn, queryString)) == 0)
 	{
 		/* error occurred sending the query */
@@ -2989,6 +2994,7 @@ Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
 	    ckfree ((void *)paramValues);
 	}
 #endif
+	connid->sql_count++;
 
 	/* Transfer any notify events from libpq to Tcl event queue. */
 	PgNotifyTransferEvents(connid);
@@ -3079,6 +3085,7 @@ Pg_sendquery_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *C
 	statementNameString = Tcl_GetStringFromObj(objv[2], NULL);
 
 	status = PQsendQueryPrepared(conn, statementNameString, nParams, paramValues, NULL, NULL, 1);
+	connid->sql_count++;
 
 	if (paramValues != (const char **)NULL) {
 	    ckfree ((void *)paramValues);
@@ -3832,6 +3839,7 @@ Pg_unescapeBytea(ClientData cData, Tcl_Interp *interp, int objc,
  *    pg_dbinfo param connHandle paramName
  *    pg_dbinfo backendpid connHandle
  *    pg_dbinfo socket connHandle
+ *    pg_dbinfo sql_count connHandle
  *
  * Results:
  *    the return result is either an error message or a list of
@@ -3853,17 +3861,17 @@ Pg_dbinfo(ClientData cData, Tcl_Interp *interp, int objc,
     Tcl_Channel     conn_chan;
     const char      *paramname;
 
-    static CONST84 char *cmdargs = "connections|results|version|protocol|param|backendpid|socket";
+    static CONST84 char *cmdargs = "connections|results|version|protocol|param|backendpid|socket|sql_count";
 
     static CONST84 char *options[] = {
     	"connections", "results", "version", "protocol", 
-        "param", "backendpid", "socket", NULL
+        "param", "backendpid", "socket", "sql_count", NULL
     };
 
     enum options
     {
     	OPT_CONNECTIONS, OPT_RESULTS, OPT_VERSION, OPT_PROTOCOL,
-        OPT_PARAM, OPT_BACKENDPID, OPT_SOCKET
+        OPT_PARAM, OPT_BACKENDPID, OPT_SOCKET, OPT_SQL_COUNT
     };
     
     if (objc <= 1)
@@ -3882,6 +3890,10 @@ Pg_dbinfo(ClientData cData, Tcl_Interp *interp, int objc,
      */
     if (optIndex != OPT_CONNECTIONS)
     {
+        if (objc != 3) {
+			Tcl_WrongNumArgs(interp, 2, objv, "connHandle");
+			return TCL_ERROR;
+		}
         connString = Tcl_GetStringFromObj(objv[2], NULL);
         conn_chan = Tcl_GetChannel(interp, connString, 0);
 
@@ -3938,11 +3950,6 @@ Pg_dbinfo(ClientData cData, Tcl_Interp *interp, int objc,
         case OPT_RESULTS:
         {
 
-        if (objc != 3)
-        {
-    	Tcl_WrongNumArgs(interp,1,objv,"results connHandle");
-            return TCL_ERROR;
-        }
         listObj = Tcl_NewListObj(0, (Tcl_Obj **) NULL);
     
         for (i = 0; i <= connid->res_last; i++)
@@ -4002,6 +4009,12 @@ Pg_dbinfo(ClientData cData, Tcl_Interp *interp, int objc,
                              PQsocket(connid->conn)));
             return TCL_OK;
         }
+        case OPT_SQL_COUNT:
+        {
+            Tcl_SetObjResult(interp, Tcl_NewIntObj(
+                             connid->sql_count));
+            return TCL_OK;
+        }
         default:
         {
 	    Tcl_WrongNumArgs(interp,1,objv,cmdargs);
@@ -4011,7 +4024,6 @@ Pg_dbinfo(ClientData cData, Tcl_Interp *interp, int objc,
     }
     Tcl_SetObjResult(interp, listObj);
     return TCL_OK;
-
 }
 
 /*

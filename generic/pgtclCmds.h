@@ -86,6 +86,7 @@ typedef struct Pg_ConnectionId_s
 	Tcl_Interp *interp;               /* save Interp info */
 	char       *nullValueString; /* null vals are returned as this, if set */
 	Pg_resultid **resultids;       /* resultids (internal storage) */
+	int			sql_count;       /* number of pg_exec, pg_select, etc, done */
 }	Pg_ConnectionId;
 
 
