@@ -87,6 +87,8 @@ typedef struct Pg_ConnectionId_s
 	char       *nullValueString; /* null vals are returned as this, if set */
 	Pg_resultid **resultids;       /* resultids (internal storage) */
 	int			sql_count;       /* number of pg_exec, pg_select, etc, done */
+        Tcl_Obj           *callbackPtr;      /* callback for async queries */
+        Tcl_Interp        *callbackInterp;   /* interp where the callback should run */
 }	Pg_ConnectionId;
 
 
@@ -197,6 +199,9 @@ extern int Pg_dbinfo(
   ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 
 extern int Pg_getdata(
+  ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+
+extern int Pg_sql(
   ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 
 #endif   /* PGTCLCMDS_H */
