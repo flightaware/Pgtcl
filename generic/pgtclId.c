@@ -183,6 +183,9 @@ PgSetConnectionId(Tcl_Interp *interp, PGconn *conn, char *chandle)
 	connid->res_copyStatus = RES_COPY_NONE;
 	connid->results = (PGresult **)ckalloc(sizeof(PGresult *) * RES_START);
 	connid->resultids = (Pg_resultid **)ckalloc(sizeof(Pg_resultid *) * RES_START);
+        connid->callbackPtr = (Tcl_Obj *) NULL;
+        connid->callbackInterp = (Tcl_Interp *) NULL;
+
 
 	for (i = 0; i < RES_START; i++)
 	{
@@ -729,6 +732,21 @@ PgDelConnectionId(DRIVER_DEL_PROTO)
          }
 #endif
 
+       /*
+        * Clear any async result callback, if present.
+        */
+
+        if (connid->callbackPtr)    {
+           Tcl_DecrRefCount(connid->callbackPtr);
+           connid->callbackPtr = NULL;
+        }
+
+        if (connid->callbackInterp) {
+           Tcl_Release((ClientData) connid->interp);
+           connid->callbackInterp = NULL;
+        }
+
+
 	/*
 	 * We must use Tcl_EventuallyFree because we don't want the connid
 	 * struct to vanish instantly if Pg_Notify_EventProc is active for it.
@@ -1247,6 +1265,38 @@ AllNotifyEventDeleteProc(Tcl_Event *evPtr, ClientData clientData)
 	}
 	return 0;
 }
+static int
+Pg_Result_EventProc(Tcl_Event *evPtr, int flags)
+{
+    NotifyEvent *event = (NotifyEvent *) evPtr;
+
+    /* Results can only come from file events. */
+    if (!(flags & TCL_FILE_EVENTS))
+       return 0;
+
+    /* If connection's been closed, just forget the whole thing. */
+    if (event->connid) {
+       Pg_ConnectionId *connid = event->connid;
+       Tcl_Obj *callbackPtr = connid->callbackPtr;
+       Tcl_Interp *interp = connid->callbackInterp;
+
+       /* Clear the result callback for this connection, so that the callback
+        * script may safely establish a new one. */
+
+       connid->callbackPtr = NULL;
+       connid->callbackInterp = NULL;
+
+       if (callbackPtr || interp) {
+           if (TCL_OK != Tcl_EvalObjEx(interp, callbackPtr, TCL_EVAL_GLOBAL)) {
+               Tcl_BackgroundError(interp);
+           }
+           Tcl_DecrRefCount(callbackPtr);
+           Tcl_Release((ClientData) interp);
+       }
+    }
+    /* never deliver this event twice */
+    return 1;
+}
 
 /*
  * File handler callback: called when Tcl has detected read-ready on socket.
@@ -1268,6 +1318,24 @@ Pg_Notify_FileHandler(ClientData clientData, int mask)
 	{
 		/* Transfer notify events from libpq to Tcl event queue. */
 		PgNotifyTransferEvents(connid);
+
+               /* If the connection is still alive, and if there is a
+                * callback for results, check if a result is ready. If it is,
+                * transfer the event to the Tcl event queue.
+                */
+
+               if ((PQsocket(connid->conn) >= 0)
+                       && connid->callbackPtr
+                       && !PQisBusy(connid->conn)) {
+
+                   NotifyEvent *event = (NotifyEvent *) ckalloc(sizeof(NotifyEvent));
+
+                   event->header.proc = Pg_Result_EventProc;
+                   event->notify = NULL;
+                   event->connid = connid;
+                   Tcl_QueueEvent((Tcl_Event *) event, TCL_QUEUE_TAIL);
+                }
+
 
 	}
 	else

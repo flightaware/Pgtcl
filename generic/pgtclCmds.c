@@ -719,6 +719,12 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		return TCL_ERROR;
 	}
 
+        if (connid->callbackPtr || connid->callbackInterp)
+        {
+               Tcl_SetResult(interp, "Attempt to query while waiting for callback", TCL_STATIC);
+               return TCL_ERROR;
+         }
+
 	execString = Tcl_GetStringFromObj(objv[2], NULL);
 
 	/* we could call PQexecParams when nParams is 0, but PQexecParams
@@ -817,6 +823,13 @@ Pg_exec_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 		Tcl_SetResult(interp, "Attempt to query while COPY in progress", TCL_STATIC);
 		return TCL_ERROR;
 	}
+
+        if (connid->callbackPtr || connid->callbackInterp)
+        {
+               Tcl_SetResult(interp, "Attempt to query while waiting for callback", TCL_STATIC);
+               return TCL_ERROR;
+         }
+
 
 	/* extra params will substitute for $1, $2, etc, in the statement */
 	/* objc must be 3 or greater at this point */
@@ -1745,6 +1758,13 @@ Pg_execute(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 
 		return TCL_ERROR;
 	}
+
+        if (connid->callbackPtr || connid->callbackInterp)
+        {
+               Tcl_SetResult(interp, "Attempt to query while waiting for callback", TCL_STATIC);
+               return TCL_ERROR;
+         }
+
 
 	/*
 	 * Execute the query
@@ -2754,6 +2774,13 @@ Pg_listen(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		return TCL_ERROR;
 	}
 
+        if (connid->callbackPtr || connid->callbackInterp)
+        {
+               Tcl_SetResult(interp, "Attempt to query while waiting for callback", TCL_STATIC);
+               return TCL_ERROR;
+         }
+
+
 	/*
 	 * Get the command arguments. Note that the relation name will be
 	 * copied by Tcl_CreateHashEntry while the callback string must be
@@ -3138,6 +3165,18 @@ Pg_getresult(ClientData cData, Tcl_Interp *interp, int objc,
 	if (conn == NULL)
 		return TCL_ERROR;
 
+        if (connid->callbackPtr || connid->callbackInterp)
+        {
+           /* Cancel any callback script: the user lost patience */
+
+           Tcl_DecrRefCount(connid->callbackPtr);
+           Tcl_Release((ClientData) connid->callbackInterp);
+
+           connid->callbackPtr=NULL;
+           connid->callbackInterp=NULL;
+        }
+
+
 	result = PQgetResult(conn);
 
 	/* Transfer any notify events from libpq to Tcl event queue. */
@@ -3450,6 +3489,21 @@ Pg_cancelrequest(ClientData cData, Tcl_Interp *interp, int objc,
 	conn = PgGetConnectionId(interp, connString, &connid);
 	if (conn == NULL)
 		return TCL_ERROR;
+
+       /*
+        * Clear any async result callback, if present.
+        */
+
+        if (connid->callbackPtr)    {
+           Tcl_DecrRefCount(connid->callbackPtr);
+           connid->callbackPtr = NULL;
+        }
+
+        if (connid->callbackInterp) {
+           Tcl_Release((ClientData) connid->callbackInterp);
+           connid->callbackInterp = NULL;
+        }
+
 
 	if (PQrequestCancel(conn) == 0)
 	{
