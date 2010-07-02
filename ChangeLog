@@ -1,6 +1,10 @@
 
 $Id$
 
+2010-07-01 Brett Schwarz
+    * Added result callback for async queries via pg_sql. Based on code from Miguel Sofer. I
+      had this code laying around and thought I had already committed, but turned out no.
+
 2010-04-14 Karl Lehenbauer
     * Added new option to pg_dbinfo, "sql_count", returns the number of calls
       to pg_exec, pg_exec_prepared, pg_sendquery, pg_sendquery_prepared,
