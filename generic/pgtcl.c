@@ -104,6 +104,7 @@ static PgCmd commands[] = {
     {"pg_unescape_bytea", "::pg::unescape_bytea", Pg_unescapeBytea,2},
     {"pg_dbinfo", "::pg::dbinfo", Pg_dbinfo,2},
     {"pg_getdata", "::pg::getdata", Pg_getdata,2},
+    {"pg_sql", "::pg::sql", Pg_sql,2},
     {NULL, NULL, NULL, 0}
 };
 

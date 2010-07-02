@@ -4027,6 +4027,297 @@ Pg_dbinfo(ClientData cData, Tcl_Interp *interp, int objc,
 }
 
 /*
+ *----------------------------------------------------------------------
+ *
+ * Pg_sql --
+ *
+ *    returns result handle
+ *
+ * Syntax:
+ *    pg_sql connhandle sqlStmt \
+ *        ?-params {list}? \
+ *        ?-binparams {list}? \
+ *        ?-binresults? \
+ *        ?-callback script? \
+ *        ?-async yes|no? \
+ *        ?-prepared yes|no?
+ *
+ * Results:
+ *    the return result is either an error message or a list of
+ *    the connection/result handles.
+ *
+ *----------------------------------------------------------------------
+ */
+int
+Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
+				 Tcl_Obj *CONST objv[])
+{
+
+    PGconn          *conn;
+    PGresult        *result;
+    CONST84 char    *connString;
+    const char      *execString;
+    const char      **paramValues = NULL;
+    const int      *binValues = NULL;
+    const int      *paramLengths = NULL;
+    Pg_ConnectionId *connid;
+    char	    buf[32];
+    Tcl_Obj         *listObj;
+    Tcl_Obj         *tresult;
+    Tcl_Obj         **elemPtrs;
+    Tcl_Obj         **elembinPtrs;
+    int             i=3;
+    int             count=0, countbin=0, optIndex;
+    int             params=0,binparams=0,binresults=0,callback=0,async=0,prepared=0;
+    unsigned char   flags = 0;
+    Tcl_Channel     conn_chan;
+    const char      *paramname;
+
+    static CONST84 char *cmdargs = "";
+
+    static CONST84 char *options[] = {
+    	"-params", "-binparams", "-binresults", "-callback", 
+        "-async", "-prepared", NULL
+    };
+
+    enum options
+    {
+    	OPT_PARAMS, OPT_BINPARAMS, OPT_BINRESULTS, OPT_CALLBACK,
+        OPT_ASYNC, OPT_PREPARED
+    };
+    
+    if (objc < 3)
+    {
+	Tcl_WrongNumArgs(interp,1,objv,cmdargs);
+        return TCL_ERROR;
+    }
+
+    /*
+     *  We just loop through now to set some
+     *  flags, since some of the options are
+     *  dependent on others
+     */
+    while (i < objc)
+    {
+
+        if (Tcl_GetIndexFromObj(interp, objv[i], options,
+		   "option", TCL_EXACT, &optIndex) != TCL_OK)
+		    return TCL_ERROR;
+
+        switch ((enum options) optIndex)
+        {
+            case OPT_PARAMS:
+            {
+
+#ifndef HAVE_PQEXECPARAMS
+                Tcl_SetObjResult(interp, 
+                    Tcl_NewStringObj(
+                        "function unavailable with this version of the postgres libpq library\n", -1));
+
+	        return TCL_ERROR;
+#endif
+
+                flags = flags | 0x01;
+                params = i+1;
+                i=i+2;
+                Tcl_ListObjGetElements(interp, objv[params], &count, &elemPtrs);
+                if (count == 0) {
+                    params = 0;
+                }
+
+                break;
+            }
+            case OPT_BINPARAMS:
+            {
+                flags = flags | 0x02;
+                binparams = i+1;
+                i=i+2;
+                break;
+            }
+            case OPT_BINRESULTS:
+            {
+                flags = flags | 0x04;
+                Tcl_GetBooleanFromObj(interp, objv[i+1], &binresults);
+                /*
+                binresults = i+1;
+                */
+                i=i+2;
+                break;
+            }
+            case OPT_CALLBACK:
+            {
+                /* assume async if -callback too */
+                flags = flags | 0x10;
+                flags = flags | 0x08;
+                callback = i+1;
+                async = 1;
+                i=i+2;
+                break;
+            }
+            case OPT_ASYNC:
+            {
+                flags = flags | 0x10;
+                Tcl_GetBooleanFromObj(interp, objv[i+1], &async);
+                /*
+                async = i+1;
+                */
+                i=i+2;
+                break;
+            }
+            case OPT_PREPARED:
+            {
+#ifndef HAVE_PQEXECPREPARED
+                Tcl_SetObjResult(interp, 
+                    Tcl_NewStringObj(
+                        "function unavailable with this version of the postgres libpq library\n", -1));
+
+	        return TCL_ERROR;
+#endif
+                flags = flags | 0x20;
+                /*
+                prepared = i+1;
+                */
+                Tcl_GetBooleanFromObj(interp, objv[i+1], &prepared);
+                i=i+2;
+            }
+        } /* end switch */
+
+
+        /*
+         * Check error case where -binparams or
+         * -binresults are given but -params is not
+         if ((flags == 0x06) || (flags == 0x04) || (flags == 0x02)) {
+            Tcl_SetResult(interp, "Need to specify -params", TCL_STATIC);
+            return TCL_ERROR;
+         }
+*/
+
+    } /* end while */
+
+    /*
+     * Check error case where -binparams or
+     * -binresults are given but -params is not
+     */
+     if (!params && (binparams != 0 || binresults != 0)) {
+        Tcl_SetResult(interp, "Need to specify -params option", TCL_STATIC);
+        return TCL_ERROR;
+     }
+
+    /*
+     *  Handle param options
+     */
+     if (params) {
+         Tcl_ListObjGetElements(interp, objv[binparams], &countbin, &elembinPtrs);
+
+         if (countbin != 0 && countbin != count) {
+            Tcl_SetResult(interp, "-params and -binparams need the same number of elements", TCL_STATIC); 
+            return TCL_ERROR;
+         }
+
+	 int param;
+
+	 paramValues = (const char **)ckalloc (count * sizeof (char *));
+	 binValues = (const char **)ckalloc (countbin * sizeof (char *));
+
+	 for (param = 0; param < count; param++) {
+	     paramValues[param] = Tcl_GetStringFromObj (elemPtrs[param], NULL);
+	     if (strcmp(paramValues[param], "NULL") == 0)
+             {
+                 paramValues[param] = '\0';
+             }
+	 }
+
+	 for (param = 0; param < countbin; param++) {
+	     Tcl_GetBooleanFromObj (interp, elembinPtrs[param], &binValues[param]);
+	 }
+     }
+
+    connString = Tcl_GetStringFromObj(objv[1], NULL);
+    conn = PgGetConnectionId(interp, connString, &connid);
+    if (conn == NULL) 
+            return TCL_ERROR;
+
+    if (connid->res_copyStatus != RES_COPY_NONE)
+    {
+        Tcl_SetResult(interp, "Attempt to query while COPY in progress", TCL_STATIC); 
+        return TCL_ERROR;
+    }
+
+    execString = Tcl_GetStringFromObj(objv[2], NULL);
+
+    /*
+     * Handle the callback first, before executing statments
+     */
+    if (callback) {
+        if (connid->callbackPtr || connid->callbackInterp)
+        {
+            Tcl_SetResult(interp, "Attempt to wait for result while already waiting", TCL_STATIC);
+            return TCL_ERROR;
+       }
+
+       /* Start the notify event source if it isn't already running */
+       PgStartNotifyEventSource(connid);
+
+       connid->callbackPtr= objv[callback];
+       connid->callbackInterp= interp;
+
+       Tcl_IncrRefCount(objv[callback]);
+       Tcl_Preserve((ClientData) interp);
+
+       /* 
+        *  invoke function based on type 
+        *  of query 
+        */
+        if (prepared) {
+	    result = PQsendQueryPrepared(conn, execString, count, paramValues, paramLengths, binValues, binresults);
+        } else if (params) {
+            result = PQsendQueryParams(conn, execString, count, NULL, paramValues, paramLengths, binValues, binresults);
+
+        } else {
+    
+            result = PQsendQuery(conn, execString);
+/*
+            ckfree ((void *)paramValues);
+*/
+        }
+    } else {
+
+        if (prepared) {
+	    result = PQexecPrepared(conn, execString, count, paramValues, paramLengths, binValues, binresults);
+        } else if (params) {
+            result = PQexecParams(conn, execString, count, NULL, paramValues, paramLengths, binValues, binresults);
+        } else {
+            result = PQexec(conn, execString);
+            ckfree ((void *)paramValues);
+        }
+    } /* end if callback */
+
+    PgNotifyTransferEvents(connid);
+
+    if (result && !callback)
+    {
+	int              rId = PgSetResultId(interp, connString, result);
+	ExecStatusType rStat = PQresultStatus(result);
+
+	if (rStat == PGRES_COPY_IN || rStat == PGRES_COPY_OUT)
+	{
+		connid->res_copyStatus = RES_COPY_INPROGRESS;
+		connid->res_copy = rId;
+	}
+	return TCL_OK;
+    }
+    else if (!result)
+    {
+	/* error occurred during the query */
+	Tcl_SetObjResult(interp, Tcl_NewStringObj(PQerrorMessage(conn), -1));
+	return TCL_ERROR;
+    }
+
+    
+    return TCL_OK;
+}
+
+/*
 error severity
 error sqlstate
 error message
