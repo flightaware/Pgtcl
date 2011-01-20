@@ -372,7 +372,7 @@ Pg_connect(ClientData cData, Tcl_Interp *interp, int objc,
     PGconn	    *conn;
     char	    *connhandle = NULL;
     int             optIndex, i, skip = 0;
-    Tcl_DString     ds;
+    Tcl_DString     ds, utfds;
     Tcl_Obj         *tresult;
     int             async = 0;
         
@@ -540,16 +540,18 @@ Pg_connect(ClientData cData, Tcl_Interp *interp, int objc,
         Tcl_DStringAppend(&ds, Tcl_GetStringFromObj(objv[1], NULL), -1);
     }
 
+    Tcl_ExternalToUtfDString(NULL, Tcl_DStringValue(&ds), -1, &utfds);
+    Tcl_DStringFree(&ds);
 
     if (async)
     {
-        conn = PQconnectStart(Tcl_DStringValue(&ds));
+        conn = PQconnectStart(Tcl_DStringValue(&utfds));
       
     } 
     else 
     {
 
-        conn = PQconnectdb(Tcl_DStringValue(&ds));
+        conn = PQconnectdb(Tcl_DStringValue(&utfds));
     }
 
     if (conn == NULL)
@@ -559,7 +561,7 @@ Pg_connect(ClientData cData, Tcl_Interp *interp, int objc,
     }
 
  
-    Tcl_DStringFree(&ds);
+    Tcl_DStringFree(&utfds);
 
     if (PQstatus(conn) != CONNECTION_BAD)
     {

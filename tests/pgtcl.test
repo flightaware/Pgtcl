@@ -21,7 +21,7 @@ load [lindex $flist end]
 #
 array set conninfo {
     host    localhost
-    port    5840
+    port    5843
     dbname  template1
     user    postgres
 }
