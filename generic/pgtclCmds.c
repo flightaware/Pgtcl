@@ -969,7 +969,6 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	PGresult   *result;
 	int			i;
 	int			tupno;
-	CONST84 char	   *arrVar;
 	Tcl_Obj    *arrVarObj;
 	Tcl_Obj    *appendstrObj;
 	char	   *queryResultString;
@@ -1182,7 +1181,6 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				}
 
 				arrVarObj = objv[3];
-				arrVar = Tcl_GetStringFromObj(arrVarObj, NULL);
 
 				/*
 				 * this assignment assigns the table of result tuples into
@@ -1231,7 +1229,6 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				}
 
 				arrVarObj = objv[3];
-				arrVar = Tcl_GetStringFromObj(arrVarObj, NULL);
 
 				if (objc == 5)
 					appendstrObj = objv[4];

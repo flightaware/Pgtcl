@@ -1,6 +1,10 @@
 
 $Id$
 
+2011-02-15 Karl Lehenbauer
+    * Removed arrVar variable and setting of it in Pg_result because it
+      didn't do anything.
+
 2010-07-01 Brett Schwarz
     * Added result callback for async queries via pg_sql. Based on code from Miguel Sofer. I
       had this code laying around and thought I had already committed, but turned out no.
