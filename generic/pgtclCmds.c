@@ -620,7 +620,7 @@ Pg_disconnect(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
     conn_chan = Tcl_GetChannel(interp, connString, 0);
     if (conn_chan == NULL)
     {
-        tresult = Tcl_NewStringObj("connString", -1);
+        tresult = Tcl_NewStringObj(connString, -1);
         Tcl_AppendStringsToObj(tresult, " is not a valid connection", NULL);
         Tcl_SetObjResult(interp, tresult);
 
@@ -3894,6 +3894,19 @@ Pg_unescapeBytea(ClientData cData, Tcl_Interp *interp, int objc,
  *    pg_dbinfo socket connHandle
  *    pg_dbinfo sql_count connHandle
  *
+ *    pg_dbinfo dbname connHandle
+ *    pg_dbinfo user connHandle
+ *    pg_dbinfo pass connHandle
+ *    pg_dbinfo host connHandle
+ *    pg_dbinfo port connHandle
+ *    pg_dbinfo options connHandle
+ *    pg_dbinfo status connHandle
+ *    pg_dbinfo transaction_status connHandle
+ *    pg_dbinfo error_message connHandle
+ *    pg_dbinfo needs_password connHandle
+ *    pg_dbinfo used_password connHandle
+ *    pg_dbinfo used_ssl connHandle
+ *
  * Results:
  *    the return result is either an error message or a list of
  *    the connection/result handles.
@@ -3914,17 +3927,26 @@ Pg_dbinfo(ClientData cData, Tcl_Interp *interp, int objc,
     Tcl_Channel     conn_chan;
     const char      *paramname;
 
-    static CONST84 char *cmdargs = "connections|results|version|protocol|param|backendpid|socket|sql_count";
+    static CONST84 char *cmdargs = "connections|results|version|protocol|param|backendpid|socket|sql_count|dbname|user|pass|host|port|options|status|transaction_status|error_message|needs_password|used_password|used_ssl";
 
     static CONST84 char *options[] = {
     	"connections", "results", "version", "protocol", 
-        "param", "backendpid", "socket", "sql_count", NULL
+        "param", "backendpid", "socket", "sql_count", 
+	"dbname", "user", "pass", "host", "port",
+	"options", "status", "transaction_status",
+	"error_message", "needs_password", "used_password",
+	"used_ssl",
+	NULL
     };
 
     enum options
     {
     	OPT_CONNECTIONS, OPT_RESULTS, OPT_VERSION, OPT_PROTOCOL,
-        OPT_PARAM, OPT_BACKENDPID, OPT_SOCKET, OPT_SQL_COUNT
+        OPT_PARAM, OPT_BACKENDPID, OPT_SOCKET, OPT_SQL_COUNT,
+	OPT_DBNAME, OPT_USER, OPT_PASS, OPT_HOST, OPT_PORT,
+	OPT_OPTIONS, OPT_STATUS, OPT_TRANSACTION_STATUS,
+	OPT_ERROR_MESSAGE, OPT_NEEDS_PASSWORD, OPT_USED_PASSWORD,
+	OPT_USED_SSL
     };
     
     if (objc <= 1)
@@ -3933,8 +3955,7 @@ Pg_dbinfo(ClientData cData, Tcl_Interp *interp, int objc,
         return TCL_ERROR;
     }
 
-    if (Tcl_GetIndexFromObj(interp, objv[1], options, "option", TCL_EXACT, &optIndex) != TCL_OK)
-    {
+    if (Tcl_GetIndexFromObj(interp, objv[1], options, "option", TCL_EXACT, &optIndex) != TCL_OK) {
 		return TCL_ERROR;
     }
 
@@ -3947,21 +3968,24 @@ Pg_dbinfo(ClientData cData, Tcl_Interp *interp, int objc,
 			Tcl_WrongNumArgs(interp, 2, objv, "connHandle");
 			return TCL_ERROR;
 		}
-        connString = Tcl_GetStringFromObj(objv[2], NULL);
-        conn_chan = Tcl_GetChannel(interp, connString, 0);
 
-        /* Check that it is a PG connection and not something else */
-        connid = (Pg_ConnectionId *) Tcl_GetChannelInstanceData(conn_chan);
+	connString = Tcl_GetStringFromObj(objv[2], NULL);
+	conn_chan = Tcl_GetChannel(interp, connString, 0);
+	if (conn_chan == NULL)
+	{
+	    tresult = Tcl_NewStringObj(connString, -1);
+	    Tcl_AppendStringsToObj(tresult, " is not a valid connection", NULL);
+	    Tcl_SetObjResult(interp, tresult);
 
+	    return TCL_ERROR;
+	}
 
-        if (conn_chan == NULL || connid->conn == NULL)
-        {
-            tresult = Tcl_NewStringObj(connString, -1);
-                    Tcl_AppendStringsToObj(tresult, " is not a valid connection", NULL);
-            Tcl_SetObjResult(interp, tresult);
+	/* Check that it is a PG connection and not something else */
+	connid = (Pg_ConnectionId *) Tcl_GetChannelInstanceData(conn_chan);
 
-            return TCL_ERROR;
-        }
+	if (connid->conn == NULL) {
+	    return TCL_ERROR;
+	}
     }
 
     switch ((enum options) optIndex)
@@ -4068,6 +4092,135 @@ Pg_dbinfo(ClientData cData, Tcl_Interp *interp, int objc,
                              connid->sql_count));
             return TCL_OK;
         }
+
+	case OPT_DBNAME:
+	{
+            Tcl_SetObjResult(interp, Tcl_NewStringObj(
+                             PQdb(connid->conn), -1));
+            return TCL_OK;
+	}
+
+	case OPT_USER:
+	{
+            Tcl_SetObjResult(interp, Tcl_NewStringObj(
+                             PQuser(connid->conn), -1));
+            return TCL_OK;
+	}
+
+	case OPT_PASS:
+	{
+            Tcl_SetObjResult(interp, Tcl_NewStringObj(
+                             PQpass(connid->conn), -1));
+            return TCL_OK;
+	}
+
+	case OPT_HOST:
+	{
+            Tcl_SetObjResult(interp, Tcl_NewStringObj(
+                             PQhost(connid->conn), -1));
+            return TCL_OK;
+	}
+
+	case OPT_PORT:
+	{
+            Tcl_SetObjResult(interp, Tcl_NewStringObj(
+                             PQport(connid->conn), -1));
+            return TCL_OK;
+	}
+
+	case OPT_OPTIONS: {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj(
+                             PQoptions(connid->conn), -1));
+            return TCL_OK;
+	}
+
+	case OPT_STATUS: {
+	    switch (PQstatus(connid->conn)) {
+	        case CONNECTION_OK:
+		{
+		    Tcl_SetObjResult(interp, 
+		        Tcl_NewStringObj("connection_ok", -1));
+		    return TCL_OK;
+		}
+
+		case CONNECTION_BAD: {
+		    Tcl_SetObjResult(interp, 
+		        Tcl_NewStringObj("connection_bad", -1));
+		    return TCL_OK;
+		}
+
+		default: {
+		    Tcl_SetObjResult(interp, 
+		        Tcl_NewStringObj("unrecognized_status", -1));
+		    return TCL_OK;
+		}
+	    }
+	}
+
+	case OPT_TRANSACTION_STATUS: {
+	    switch (PQtransactionStatus(connid->conn)) {
+	        case PQTRANS_IDLE: {
+		    Tcl_SetObjResult(interp, 
+		        Tcl_NewStringObj("idle", -1));
+		    return TCL_OK;
+		}
+
+	        case PQTRANS_ACTIVE: {
+		    Tcl_SetObjResult(interp, 
+		        Tcl_NewStringObj("command_in_progress", -1));
+		    return TCL_OK;
+		}
+
+		case PQTRANS_INTRANS: {
+		    Tcl_SetObjResult(interp, 
+		        Tcl_NewStringObj("idle_in_valid_block", -1));
+		    return TCL_OK;
+		}
+
+		case PQTRANS_INERROR: {
+		    Tcl_SetObjResult(interp, 
+		        Tcl_NewStringObj("idle_in_failed_block", -1));
+		    return TCL_OK;
+		}
+
+		case PQTRANS_UNKNOWN: {
+		    Tcl_SetObjResult(interp, 
+		        Tcl_NewStringObj("connection_bad", -1));
+		    return TCL_OK;
+		}
+
+		default: {
+		    Tcl_SetObjResult(interp, 
+		        Tcl_NewStringObj("unrecognized_status", -1));
+		    return TCL_OK;
+		}
+	    }
+	}
+
+	case OPT_ERROR_MESSAGE: {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj(
+                             PQerrorMessage(connid->conn), -1));
+            return TCL_OK;
+	}
+
+	case OPT_NEEDS_PASSWORD: {
+            Tcl_SetObjResult(interp, Tcl_NewBooleanObj(
+                             PQconnectionNeedsPassword(connid->conn)));
+            return TCL_OK;
+	}
+
+	case OPT_USED_PASSWORD: {
+            Tcl_SetObjResult(interp, Tcl_NewBooleanObj(
+                             PQconnectionUsedPassword(connid->conn)));
+            return TCL_OK;
+	}
+
+	case OPT_USED_SSL: {
+            Tcl_SetObjResult(interp, Tcl_NewBooleanObj(
+                             (PQgetssl(connid->conn) != NULL)));
+            return TCL_OK;
+	}
+
         default:
         {
 	    Tcl_WrongNumArgs(interp,1,objv,cmdargs);

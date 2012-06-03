@@ -1,6 +1,17 @@
 
 $Id$
 
+2012-06-02 Karl Lehenbauer
+    * Add new pg_dbinfo options "dbname", "user", "pass", "host", "port",
+      "options", "status", "transaction_status", "error_message",
+      "needs_password", "used_password", "used_ssl" to provide Tcl access
+      to libpq connection parameter values established at connection time.
+
+    * Fixed bug where pg_dbinfo would get a segmentation violation if passed
+      an invalid connection handle.
+
+    * Version bump to 1.9.
+
 2011-02-15 Karl Lehenbauer
     * Removed arrVar variable and setting of it in Pg_result because it
       didn't do anything.
