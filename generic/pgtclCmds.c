@@ -2773,13 +2773,6 @@ Pg_listen(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		return TCL_ERROR;
 	}
 
-        if (connid->callbackPtr || connid->callbackInterp)
-        {
-               Tcl_SetResult(interp, "Attempt to query while waiting for callback", TCL_STATIC);
-               return TCL_ERROR;
-         }
-
-
 	/*
 	 * Get the command arguments. Note that the relation name will be
 	 * copied by Tcl_CreateHashEntry while the callback string must be
@@ -2789,6 +2782,12 @@ Pg_listen(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	conn = PgGetConnectionId(interp, connString, &connid);
 	if (conn == NULL)
 		return TCL_ERROR;
+
+        if (connid->callbackPtr || connid->callbackInterp)
+        {
+               Tcl_SetResult(interp, "Attempt to query while waiting for callback", TCL_STATIC);
+               return TCL_ERROR;
+         }
 
 	/*
 	 * LISTEN/NOTIFY do not preserve case unless the relation name is
@@ -3927,12 +3926,12 @@ Pg_dbinfo(ClientData cData, Tcl_Interp *interp, int objc,
     Tcl_Channel     conn_chan;
     const char      *paramname;
 
-    static CONST84 char *cmdargs = "connections|results|version|protocol|param|backendpid|socket|sql_count|dbname|user|pass|host|port|options|status|transaction_status|error_message|needs_password|used_password|used_ssl";
+    static CONST84 char *cmdargs = "connections|results|version|protocol|param|backendpid|socket|sql_count|dbname|user|password|host|port|options|status|transaction_status|error_message|needs_password|used_password|used_ssl";
 
     static CONST84 char *options[] = {
     	"connections", "results", "version", "protocol", 
         "param", "backendpid", "socket", "sql_count", 
-	"dbname", "user", "pass", "host", "port",
+	"dbname", "user", "password", "host", "port",
 	"options", "status", "transaction_status",
 	"error_message", "needs_password", "used_password",
 	"used_ssl",
@@ -3943,7 +3942,7 @@ Pg_dbinfo(ClientData cData, Tcl_Interp *interp, int objc,
     {
     	OPT_CONNECTIONS, OPT_RESULTS, OPT_VERSION, OPT_PROTOCOL,
         OPT_PARAM, OPT_BACKENDPID, OPT_SOCKET, OPT_SQL_COUNT,
-	OPT_DBNAME, OPT_USER, OPT_PASS, OPT_HOST, OPT_PORT,
+	OPT_DBNAME, OPT_USER, OPT_PASSWORD, OPT_HOST, OPT_PORT,
 	OPT_OPTIONS, OPT_STATUS, OPT_TRANSACTION_STATUS,
 	OPT_ERROR_MESSAGE, OPT_NEEDS_PASSWORD, OPT_USED_PASSWORD,
 	OPT_USED_SSL
@@ -4107,7 +4106,7 @@ Pg_dbinfo(ClientData cData, Tcl_Interp *interp, int objc,
             return TCL_OK;
 	}
 
-	case OPT_PASS:
+	case OPT_PASSWORD:
 	{
             Tcl_SetObjResult(interp, Tcl_NewStringObj(
                              PQpass(connid->conn), -1));
@@ -4267,17 +4266,12 @@ Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
     const int      *binValues = NULL;
     const int      *paramLengths = NULL;
     Pg_ConnectionId *connid;
-    char	    buf[32];
-    Tcl_Obj         *listObj;
-    Tcl_Obj         *tresult;
     Tcl_Obj         **elemPtrs;
     Tcl_Obj         **elembinPtrs;
     int             i=3;
     int             count=0, countbin=0, optIndex;
     int             params=0,binparams=0,binresults=0,callback=0,async=0,prepared=0;
     unsigned char   flags = 0;
-    Tcl_Channel     conn_chan;
-    const char      *paramname;
 
     static CONST84 char *cmdargs = "";
 
