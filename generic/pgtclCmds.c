@@ -2687,7 +2687,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 			if (*string == '\0') {
 			    if (PQgetisnull (result, tupno, column)) {
 				if (withoutNulls) {
-				    Tcl_UnsetVar2 (interp, varNameString, columnNameObjs[column], 0);
+				    Tcl_UnsetVar2 (interp, varNameString, PQfname(result, column), 0);
 				    continue;
 				}
 
