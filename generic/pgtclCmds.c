@@ -2579,6 +2579,9 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	int			tupno,
 				column,
 				ncols;
+	int         withoutNulls = 0;
+	int         index = 1;
+	char       *optString;
 	char	   *connString;
 	char	   *queryString;
 	char	   *varNameString;
@@ -2587,19 +2590,31 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	Tcl_Obj    *columnListObj;
 	Tcl_Obj   **columnNameObjs = NULL;
 
-	if (objc != 5)
+	if (objc < 5 || objc > 6)
 	{
-		Tcl_WrongNumArgs(interp, 1, objv, "connection queryString var proc");
+	    wrongargs:
+		Tcl_WrongNumArgs(interp, 1, objv, "?-withoutnulls? connection queryString var proc");
 		return TCL_ERROR;
 	}
 
-	connString = Tcl_GetStringFromObj(objv[1], NULL);
-	queryString = Tcl_GetStringFromObj(objv[2], NULL);
+	if (objc == 6)
+	{
+	    optString = Tcl_GetString (objv[index]);
+	    if (*optString == '-' && strcmp (optString, "-withoutnulls") == 0) {
+	        withoutNulls = 1;
+		index++;
+	    } else {
+	        goto wrongargs;
+	    }
+	}
 
-	varNameObj = objv[3];
+	connString = Tcl_GetStringFromObj(objv[index++], NULL);
+	queryString = Tcl_GetStringFromObj(objv[index++], NULL);
+
+	varNameObj = objv[index++];
 	varNameString = Tcl_GetStringFromObj(varNameObj, NULL);
 
-	procStringObj = objv[4];
+	procStringObj = objv[index++];
 
 	conn = PgGetConnectionId(interp, connString, &connid);
 	if (conn == NULL)
@@ -2665,14 +2680,32 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 		for (column = 0; column < ncols; column++)
 		{
-			Tcl_Obj    *valueObj;
+			Tcl_Obj    *valueObj = NULL;
+			char *string;
 
-			valueObj = Tcl_NewStringObj(PGgetvalue(result, connid->nullValueString, tupno, column), -1);
+			string = PQgetvalue (result, tupno, column);
+			if (*string == '\0') {
+			    if (PQgetisnull (result, tupno, column)) {
+				if (withoutNulls) {
+				    Tcl_UnsetVar2 (interp, varNameString, columnNameObjs[column], 0);
+				    continue;
+				}
+
+				if ((connid->nullValueString != NULL) && (*connid->nullValueString != '\0')) {
+				    valueObj = Tcl_NewStringObj(connid->nullValueString, -1);
+				}
+			    }
+			}
+
+			if (valueObj == NULL) {
+			    valueObj = Tcl_NewStringObj(string, -1);
+			}
+
 			if (Tcl_ObjSetVar2(interp, varNameObj, columnNameObjs[column],
-						       valueObj, TCL_LEAVE_ERR_MSG) == NULL)
+						   valueObj, TCL_LEAVE_ERR_MSG) == NULL)
 			{
 			    retval = TCL_ERROR;
-				goto done;
+			    goto done;
 			}
 		}
 

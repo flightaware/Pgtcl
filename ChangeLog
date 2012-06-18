@@ -2,6 +2,10 @@
 $Id$
 
 2012-06-02 Karl Lehenbauer
+    * Add new -withoutnulls option to pg_select, if set will remove null 
+      fields from the row result array.
+
+2012-06-02 Karl Lehenbauer
     * Add new pg_dbinfo options "dbname", "user", "pass", "host", "port",
       "options", "status", "transaction_status", "error_message",
       "needs_password", "used_password", "used_ssl" to provide Tcl access
