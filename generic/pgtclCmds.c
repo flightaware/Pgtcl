@@ -3174,6 +3174,52 @@ Pg_sendquery_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *C
 #endif /* HAVE_PQSENDQUERYPREPARED */
 }
 
+/**********************************
+ * pg_set_single_row_mode
+ if called at the correct time and referencing new enough libpq (9.2+)
+ this activates single-row return mode for the current query and returns 1,
+ else returns 0.
+
+ syntax:
+ pg_set_single_row_mode connection
+
+ the return result is either 1 or 0.
+ **********************************/
+
+int
+Pg_set_single_row_mode(ClientData cData, Tcl_Interp *interp, int objc,
+			Tcl_Obj *CONST objv[])
+{
+	Pg_ConnectionId *connid;
+	PGconn	   *conn;
+	char	   *connString;
+	int         setRowModeResult;
+
+	if (objc != 2)
+	{
+		Tcl_WrongNumArgs(interp, 1, objv, "connection");
+		return TCL_ERROR;
+	}
+
+	connString = Tcl_GetStringFromObj(objv[1], NULL);
+
+	conn = PgGetConnectionId(interp, connString, &connid);
+	if (conn == NULL)
+		return TCL_ERROR;
+
+#ifndef HAVE_PQSETSINGLEROWMODE
+                Tcl_SetObjResult(interp, 
+                    Tcl_NewStringObj(
+                        "function unavailable with this version of the postgres libpq library\n", -1));
+
+	        return TCL_ERROR;
+#else
+	setRowModeResult = PQsetSingleRowMode (conn);
+	Tcl_SetObjResult (interp, Tcl_NewIntObj (setRowModeResult));
+	return TCL_OK;
+#endif
+}
+
 
 /**********************************
  * pg_getresult

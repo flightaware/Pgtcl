@@ -93,6 +93,7 @@ static PgCmd commands[] = {
     {"pg_sendquery", "::pg::sendquery", Pg_sendquery,2},
     {"pg_sendquery_prepared", "::pg::sendquery_prepared", Pg_sendquery_prepared,3},
     {"pg_getresult", "::pg::getresult", Pg_getresult,2},
+    {"pg_set_single_row_mode", "::pg::set_single_row_mode", Pg_set_single_row_mode,3},
     {"pg_isbusy", "::pg::isbusy", Pg_isbusy,2},
     {"pg_blocking", "::pg::blocking", Pg_blocking,2},
     {"pg_null_value_string", "::pg::null_value_string", Pg_null_value_string,2},

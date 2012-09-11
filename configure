@@ -4864,7 +4864,7 @@ fi
 
 SAVE_LIBS=$LIBS
 LIBS="$PG_LIBS $LIBS $TCL_LIB_SPEC"
-for ac_func in Tcl_NewDictObj PQexecParams PQexecPrepared PQsendQueryParams PQsendQueryPrepared PQserverVersion lo_truncate
+for ac_func in Tcl_NewDictObj PQexecParams PQexecPrepared PQsendQueryParams PQsendQueryPrepared PQserverVersion lo_truncate PQsetSingleRowMode
 do :
   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
 ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"

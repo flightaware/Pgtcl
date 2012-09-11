@@ -7,6 +7,17 @@ Tue Sep 11 13:17:55 CDT 2012
       the creation of the .tupno, .numcols and .headers fields
       in pg_select results.
 
+    * Added new command, pg_set_single_row_mode aka ::pg::set_single_row_mode 
+      to enable retrieving query results row-by-row.
+
+    * Add subcommands for direct execution of connection handles for
+      conndefaults, set_single_row_mode, is_busy, blocking and
+      cancel_request.
+
+    * Make "make distclean" get rid of more autoconf work product.
+
+    * Update README.freebsd.
+
 2012-06-02 Karl Lehenbauer
     * Add new -withoutnulls option to pg_select, if set will remove null 
       fields from the row result array.

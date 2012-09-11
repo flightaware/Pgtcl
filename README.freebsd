@@ -9,22 +9,17 @@ build could be even more automatic.
 
 For now, you need to build and install Tcl and Postgres
 
-    cd /usr/ports/lang/tcl84
+    cd /usr/ports/lang/tcl85
     make
     make install
 
-    cd /usr/ports/databases/postgresql83-client
-    make
-    make install
-
-You might need postgres-tcltk package, I'm not sure
-
-    cd /usr/ports/databases/postgresql-tcltk
+    cd /usr/ports/databases/postgresql92-client
     make
     make install
 
 Then run configure in this directory with the following parameters:
 
-./configure  --with-tcl=/usr/local/lib/tcl8.4 --with-tclinclude=/usr/local/include/tcl8.4 
+./configure --with-tcl=/usr/local/lib/tcl8.5 
 
+Add "--enable-symbols" if you want debugging.
 

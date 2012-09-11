@@ -285,18 +285,22 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
         "lo_read", "lo_write", "lo_lseek", "lo_tell", "lo_truncate", 
 	"lo_unlink", "lo_import", "lo_export", "sendquery", "exec_prepared", 
         "sendquery_prepared",  "null_value_string", "version", 
-        "protocol", "param", "backendpid", "socket", (char *)NULL
+        "protocol", "param", "backendpid", "socket", 
+	"conndefaults",  "set_single_row_mode", "is_busy", "blocking",
+	"cancel_request", (char *)NULL
     };
 
     enum options
     {
-        QUOTE, ESCAPE_BYTEA, UNESCAPE_BYTEA, DISCONNECT ,EXEC, 
+        QUOTE, ESCAPE_BYTEA, UNESCAPE_BYTEA, DISCONNECT, EXEC, 
 	SQLEXEC, EXECUTE, SELECT, 
 	LISTEN, ON_CONNECTION_LOSS, LO_CREAT, LO_OPEN, LO_CLOSE, 
 	LO_READ, LO_WRITE, LO_LSEEK, LO_TELL, LO_TRUNCATE, LO_UNLINK, 
 	LO_IMPORT, LO_EXPORT, SENDQUERY, EXEC_PREPARED, 
 	SENDQUERY_PREPARED, NULL_VALUE_STRING, VERSION, 
-	PROTOCOL, PARAM, BACKENDPID, SOCKET
+	PROTOCOL, PARAM, BACKENDPID, SOCKET,
+	CONNDEFAULTS, SET_SINGLE_ROW_MODE, ISBUSY, BLOCKING,
+	CANCELREQUEST
     };
 
     if (objc == 1 || objc > 25)
@@ -566,6 +570,39 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
             returnCode= Pg_dbinfo(cData, interp, objc, objvx);
 	    break;
         }
+	case CONNDEFAULTS:
+	{
+            returnCode = Pg_conndefaults(cData, interp, 1, objvx);
+	    break;
+	}
+	
+	case SET_SINGLE_ROW_MODE:
+	{
+            objvx[1] = Tcl_NewStringObj(connid->id, -1);
+            returnCode = Pg_set_single_row_mode(cData, interp, objc, objvx);
+	    break;
+	}
+	
+	case ISBUSY:
+	{
+            objvx[1] = Tcl_NewStringObj(connid->id, -1);
+            returnCode = Pg_isbusy(cData, interp, objc, objvx);
+	    break;
+	}
+	
+	case BLOCKING:
+	{
+            objvx[1] = Tcl_NewStringObj(connid->id, -1);
+            returnCode = Pg_blocking(cData, interp, objc, objvx);
+	    break;
+	}
+
+	case CANCELREQUEST:
+	{
+            objvx[1] = Tcl_NewStringObj(connid->id, -1);
+            returnCode = Pg_cancelrequest(cData, interp, objc, objvx);
+	    break;
+	}
     }
 	Tcl_DecrRefCount(objvx[idx]);
 	return returnCode;

@@ -171,6 +171,9 @@ extern int Pg_sendquery_prepared(
 extern int Pg_getresult(
   ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 
+extern int Pg_set_single_row_mode(
+  ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+
 extern int Pg_isbusy(
   ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 
