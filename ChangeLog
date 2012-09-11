@@ -18,6 +18,8 @@ Tue Sep 11 13:17:55 CDT 2012
 
     * Update README.freebsd.
 
+    * Clean up compiler warnings.
+
 2012-06-02 Karl Lehenbauer
     * Add new -withoutnulls option to pg_select, if set will remove null 
       fields from the row result array.

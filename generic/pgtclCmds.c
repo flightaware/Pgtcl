@@ -2531,7 +2531,7 @@ Pg_lo_export(ClientData cData, Tcl_Interp *interp, int objc,
 	if (conn == NULL)
 		return TCL_ERROR;
 
-	if (Tcl_GetIntFromObj(interp, objv[2], &lobjId) == TCL_ERROR)
+	if (Tcl_GetIntFromObj(interp, objv[2], (int *)&lobjId) == TCL_ERROR)
 		return TCL_ERROR;
 
 	filename = Tcl_GetStringFromObj(objv[3], NULL);
@@ -3193,7 +3193,9 @@ Pg_set_single_row_mode(ClientData cData, Tcl_Interp *interp, int objc,
 	Pg_ConnectionId *connid;
 	PGconn	   *conn;
 	char	   *connString;
+#ifdef HAVE_PQSETSINGLEROWMODE
 	int         setRowModeResult;
+#endif
 
 	if (objc != 2)
 	{
@@ -3899,7 +3901,7 @@ Pg_escapeBytea(ClientData cData, Tcl_Interp *interp, int objc,
             return TCL_ERROR;
         }
 
-        Tcl_SetObjResult(interp, Tcl_NewStringObj(to, -1));
+        Tcl_SetObjResult(interp, Tcl_NewStringObj((char *)to, -1));
 
         #ifdef PQfreemem
             PQfreemem(to);
@@ -3946,7 +3948,7 @@ Pg_unescapeBytea(ClientData cData, Tcl_Interp *interp, int objc,
         return TCL_ERROR;
     }
 
-    from = Tcl_GetStringFromObj(objv[1], &fromLen);
+    from = (const unsigned char *)Tcl_GetStringFromObj(objv[1], &fromLen);
     to   = PQunescapeBytea(from, &toLen);
     if (! to)
     {
@@ -4352,9 +4354,9 @@ Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
     PGresult        *result;
     CONST84 char    *connString;
     const char      *execString;
-    const char      **paramValues = NULL;
-    const int      *binValues = NULL;
-    const int      *paramLengths = NULL;
+    const char     **paramValues = NULL;
+    int             *binValues = NULL;
+    const int       *paramLengths = NULL;
     Pg_ConnectionId *connid;
     Tcl_Obj         **elemPtrs;
     Tcl_Obj         **elembinPtrs;
@@ -4507,7 +4509,7 @@ Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
 	 int param;
 
 	 paramValues = (const char **)ckalloc (count * sizeof (char *));
-	 binValues = (const char **)ckalloc (countbin * sizeof (char *));
+	 binValues = (int *)ckalloc (countbin * sizeof (char *));
 
 	 for (param = 0; param < count; param++) {
 	     paramValues[param] = Tcl_GetStringFromObj (elemPtrs[param], NULL);
