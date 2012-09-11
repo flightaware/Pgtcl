@@ -1,5 +1,11 @@
 
 $Id$
+Tue Sep 11 13:17:55 CDT 2012
+
+2012-09-11 Karl Lehenbauer
+    * Add -nodotfields option to pg_select.  if set it will inhibit
+      the creation of the .tupno, .numcols and .headers fields
+      in pg_select results.
 
 2012-06-02 Karl Lehenbauer
     * Add new -withoutnulls option to pg_select, if set will remove null 

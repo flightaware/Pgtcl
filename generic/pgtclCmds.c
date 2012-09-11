@@ -2552,11 +2552,19 @@ Pg_lo_export(ClientData cData, Tcl_Interp *interp, int objc,
  send a select query string to the backend connection
 
  syntax:
- pg_select connection query var proc
+ pg_select ?-nodotfields? ?-withoutnulls? connection query var proc
 
  The query must be a select statement
+
  The var is used in the proc as an array
+
  The proc is run once for each row found
+
+ .headers, .numcols and .tupno are not set if -nodotfields is specified
+
+ null variables are set as empty strings unless -withoutnulls is specified,
+ in which case null variables are made to simply be absent from the
+ array
 
  Originally I was also going to update changes but that has turned out
  to be not so simple.  Instead, the caller should get the OID of any
@@ -2580,6 +2588,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				column,
 				ncols;
 	int         withoutNulls = 0;
+	int         noDotFields = 0;
 	int         index = 1;
 	char       *optString;
 	char	   *connString;
@@ -2590,18 +2599,20 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	Tcl_Obj    *columnListObj;
 	Tcl_Obj   **columnNameObjs = NULL;
 
-	if (objc < 5 || objc > 6)
+	if (objc < 5 || objc > 7)
 	{
 	    wrongargs:
-		Tcl_WrongNumArgs(interp, 1, objv, "?-withoutnulls? connection queryString var proc");
+		Tcl_WrongNumArgs(interp, 1, objv, "?-nodotfields? ?-withoutnulls? connection queryString var proc");
 		return TCL_ERROR;
 	}
 
-	if (objc == 6)
-	{
+	while (objc - index >= 5) {
 	    optString = Tcl_GetString (objv[index]);
 	    if (*optString == '-' && strcmp (optString, "-withoutnulls") == 0) {
 	        withoutNulls = 1;
+		index++;
+	    } else if (*optString == '-' && strcmp (optString, "-nodotfields") == 0) {
+	        noDotFields = 1;
 		index++;
 	    } else {
 	        goto wrongargs;
@@ -2661,17 +2672,17 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 	columnListObj = Tcl_NewListObj(ncols, columnNameObjs);
 
-	if (Tcl_SetVar2Ex(interp, varNameString, ".headers", 
+	if (!noDotFields && Tcl_SetVar2Ex(interp, varNameString, ".headers", 
 	                  columnListObj, TCL_LEAVE_ERR_MSG) == NULL) goto done;
 
-	if (Tcl_SetVar2Ex(interp, varNameString, ".numcols", 
+	if (!noDotFields && Tcl_SetVar2Ex(interp, varNameString, ".numcols", 
 	                  Tcl_NewIntObj(ncols), TCL_LEAVE_ERR_MSG) == NULL) goto done;
 
 	retval = TCL_OK;
 
 	for (tupno = 0; tupno < PQntuples(result); tupno++)
 	{
-		if (Tcl_SetVar2Ex(interp, varNameString, ".tupno", 
+		if (!noDotFields && Tcl_SetVar2Ex(interp, varNameString, ".tupno", 
 		    Tcl_NewIntObj(tupno), TCL_LEAVE_ERR_MSG) == NULL)
 		{
 		    retval = TCL_ERROR;
