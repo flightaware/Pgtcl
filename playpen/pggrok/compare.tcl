@@ -124,7 +124,7 @@ proc compare_dumpfiles {file0 file1} {
     }
 }
 
-proc doit {argv} {
+proc main {argv} {
     if {[llength $argv] != 2} {
 	puts stderr "usage: $::argv0 dumpfile1 dumpfile2"
 	exit 1
@@ -132,4 +132,4 @@ proc doit {argv} {
     compare_dumpfiles [lindex $argv 0] [lindex $argv 1]
 }
 
-if !$tcl_interactive {doit $argv}
+if !$tcl_interactive {main $argv}

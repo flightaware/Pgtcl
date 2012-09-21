@@ -51,14 +51,15 @@ proc load_database_metadata {db} {
     }
 }
 
-proc doit {argv} {
+proc main {argv} {
     if {[llength $argv] != 1} {
 	puts stderr "usage: $::argv0 dbstring"
 	exit 1
     }
-    set db [pg_connect $argv]
+    set connectString [lindex $argv 0]
+    set db [pg_connect $connectString]
     load_database_metadata $db
     pg_disconnect $db
 }
 
-if !$tcl_interactive {doit $argv}
+if !$tcl_interactive {main $argv}
