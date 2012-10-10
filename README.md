@@ -203,15 +203,18 @@ Here are some features that were added back in the 1998 - 1999 timeframe:
    connection.
 
  * I/O routines are now defined for the connection handle.  I/O to/from
-   the connection is only valid under certain circumstances: following
-   the execution of the queries "copy <table> from stdin" or
-   "copy <table> to stdout".  In these cases, the result handle obtains
-   an intermediate status of "PGRES_COPY_IN" or "PGRES_COPY_OUT".  The
-   programmer is then expected to use Tcl gets or read commands on the
+   the connection is only valid under certain circumstances:
+
+   Following the execution of the queries `copy <table> from stdin` or
+   `copy <table> to stdout`  In these cases, the result handle obtains
+   an intermediate status of "PGRES_COPY_IN" or "PGRES_COPY_OUT".
+
+   The programmer is then expected to use Tcl gets or read commands on the
    database connection (not the result handle) to extract the copy data.
    For copy outs, read until the standard EOF indication is encountered.
    For copy ins, puts a single terminator (\.).  The statement for this
    would be `puts $conn "\\."` or `puts $conn {\.}`
+
    In either case (upon detecting the EOF or putting the '\.', the status
    of the result handle will change to "PGRES_COMMAND_OK", and any further
    I/O attempts will cause a Tcl error.
