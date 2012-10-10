@@ -74,7 +74,7 @@ extensions.  You might have more than one Tclsh installed.  Try adding
 a path to the parent directory of where the thing installed, for example,
 if it installed into /opt/local/bin
 
-    tclsh8.4
+    tclsh8.5
     % lappend auto_path /opt/local/lib
     ...
     % package require Pgtcl
