@@ -67,7 +67,7 @@ versions of Pgtcl, and using "package require" will make that code available
 to your application.  Also it keeps you from hard-coding the path to the
 library and hard-coding a dependency on a specific version.
 
-IF IT COMPILES AND INSTALLS OK BUT "PACKAGE REQUIRE" DOESN'T WORK
+## IF IT COMPILES AND INSTALLS OK BUT "PACKAGE REQUIRE" DOESN'T WORK
 
 ...it probably didn't install into the search path Tcl uses to find
 extensions.  You might have more than one Tclsh installed.  Try adding
