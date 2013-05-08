@@ -2586,9 +2586,11 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				retval = TCL_ERROR;
 	int			tupno,
 				column,
-				ncols;
+				ncols = 0;
 	int         withoutNulls = 0;
 	int         noDotFields = 0;
+	int         rowByRow = 0;
+	int         firstPass = 1;
 	int         index = 1;
 	char       *optString;
 	char	   *connString;
@@ -2599,10 +2601,10 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	Tcl_Obj    *columnListObj;
 	Tcl_Obj   **columnNameObjs = NULL;
 
-	if (objc < 5 || objc > 7)
+	if (objc < 5 || objc > 8)
 	{
 	    wrongargs:
-		Tcl_WrongNumArgs(interp, 1, objv, "?-nodotfields? ?-withoutnulls? connection queryString var proc");
+		Tcl_WrongNumArgs(interp, 1, objv, "?-nodotfields? ?-rowbyrow? ?-withoutnulls? connection queryString var proc");
 		return TCL_ERROR;
 	}
 
@@ -2610,6 +2612,9 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	    optString = Tcl_GetString (objv[index]);
 	    if (*optString == '-' && strcmp (optString, "-withoutnulls") == 0) {
 	        withoutNulls = 1;
+		index++;
+	    } else if (*optString == '-' && strcmp (optString, "-rowbyrow") == 0) {
+	        rowByRow = 1;
 		index++;
 	    } else if (*optString == '-' && strcmp (optString, "-nodotfields") == 0) {
 	        noDotFields = 1;
@@ -2632,121 +2637,151 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		return TCL_ERROR;
 
 	connid->sql_count++;
-	if ((result = PQexec(conn, queryString)) == 0)
+	if (PQsendQuery(conn, queryString) == 0)
 	{
 		/* error occurred sending the query */
 		Tcl_SetResult(interp, PQerrorMessage(conn), TCL_VOLATILE);
 		return TCL_ERROR;
 	}
 
-	/* Transfer any notify events from libpq to Tcl event queue. */
-	PgNotifyTransferEvents(connid);
-
-	if (PQresultStatus(result) != PGRES_TUPLES_OK)
+	if (rowByRow)
 	{
-		/* query failed, or it wasn't SELECT */
-		Tcl_SetResult(interp, (char *)PQresultErrorMessage(result),
-					  TCL_VOLATILE);
-		PQclear(result);
-		return TCL_ERROR;
+		PQsetSingleRowMode (conn);
 	}
 
-	ncols = PQnfields(result);
-	columnNameObjs = (Tcl_Obj **)ckalloc(sizeof(Tcl_Obj *) * ncols);
+	/* Transfer any notify events from libpq to Tcl event queue. */
+	// PgNotifyTransferEvents(connid);
 
-	for (column = 0; column < ncols; column++) {
-		char *colName = PQfname(result, column);
-		if (colName == NULL) {
-			// PQfname failed, shouldn't happen, but we've seen it
-			char		msg[60];
+	while ((result = PQgetResult (conn)) != NULL)
+	{
+		int resultStatus = PQresultStatus(result);
 
-			sprintf(msg, "PQfname() returned NULL for column %d, ncols %d",
-						column, ncols);
-			Tcl_SetResult(interp, msg, TCL_VOLATILE);
+		if (resultStatus != PGRES_TUPLES_OK 
+			&& (rowByRow && resultStatus != PGRES_SINGLE_TUPLE))
+		{
+			/* query failed, or it wasn't SELECT */
+			/* NB FIX there isn't necessarily an error here,
+			 * meaning we can get an empty string */
+			char *errString = PQresultErrorMessage(result);
+
+			if (*errString == '\0')
+			{
+				errString = PQresStatus (resultStatus);
+			}
+
+			Tcl_SetResult(interp, errString, TCL_VOLATILE);
 			PQclear(result);
 			return TCL_ERROR;
-		} else {
-			columnNameObjs[column] = Tcl_NewStringObj(colName, -1);
-		}
-	}
-
-	columnListObj = Tcl_NewListObj(ncols, columnNameObjs);
-
-	if (!noDotFields && Tcl_SetVar2Ex(interp, varNameString, ".headers", 
-	                  columnListObj, TCL_LEAVE_ERR_MSG) == NULL) goto done;
-
-	if (!noDotFields && Tcl_SetVar2Ex(interp, varNameString, ".numcols", 
-	                  Tcl_NewIntObj(ncols), TCL_LEAVE_ERR_MSG) == NULL) goto done;
-
-	retval = TCL_OK;
-
-	for (tupno = 0; tupno < PQntuples(result); tupno++)
-	{
-		if (!noDotFields && Tcl_SetVar2Ex(interp, varNameString, ".tupno", 
-		    Tcl_NewIntObj(tupno), TCL_LEAVE_ERR_MSG) == NULL)
-		{
-		    retval = TCL_ERROR;
-			goto done;
 		}
 
-		for (column = 0; column < ncols; column++)
+		if (firstPass)
 		{
-			Tcl_Obj    *valueObj = NULL;
-			char *string;
+			ncols = PQnfields(result);
+			columnNameObjs = (Tcl_Obj **)ckalloc(sizeof(Tcl_Obj *) * ncols);
 
-			string = PQgetvalue (result, tupno, column);
-			if (*string == '\0') {
-			    if (PQgetisnull (result, tupno, column)) {
-				if (withoutNulls) {
-				    Tcl_UnsetVar2 (interp, varNameString, PQfname(result, column), 0);
-				    continue;
+			for (column = 0; column < ncols; column++) {
+				char *colName = PQfname(result, column);
+				if (colName == NULL) {
+					// PQfname failed, shouldn't happen, but we've seen it
+					char		msg[60];
+
+					sprintf(msg, "PQfname() returned NULL for column %d, ncols %d",
+								column, ncols);
+					Tcl_SetResult(interp, msg, TCL_VOLATILE);
+					PQclear(result);
+					return TCL_ERROR;
+				} else {
+					columnNameObjs[column] = Tcl_NewStringObj(colName, -1);
+				}
+			}
+
+			columnListObj = Tcl_NewListObj(ncols, columnNameObjs);
+
+			if (!noDotFields && Tcl_SetVar2Ex(interp, varNameString, ".headers", 
+							  columnListObj, TCL_LEAVE_ERR_MSG) == NULL) goto done;
+
+			if (!noDotFields && Tcl_SetVar2Ex(interp, varNameString, ".numcols", 
+							  Tcl_NewIntObj(ncols), TCL_LEAVE_ERR_MSG) == NULL) goto done;
+
+			firstPass = 0;
+		}
+
+		retval = TCL_OK;
+
+		for (tupno = 0; tupno < PQntuples(result); tupno++)
+		{
+			if (!noDotFields && Tcl_SetVar2Ex(interp, varNameString, ".tupno", 
+				Tcl_NewIntObj(tupno), TCL_LEAVE_ERR_MSG) == NULL)
+			{
+				retval = TCL_ERROR;
+				goto done;
+			}
+
+			for (column = 0; column < ncols; column++)
+			{
+				Tcl_Obj    *valueObj = NULL;
+				char *string;
+
+				string = PQgetvalue (result, tupno, column);
+				if (*string == '\0') {
+					if (PQgetisnull (result, tupno, column)) {
+					if (withoutNulls) {
+						Tcl_UnsetVar2 (interp, varNameString, PQfname(result, column), 0);
+						continue;
+					}
+
+					if ((connid->nullValueString != NULL) && (*connid->nullValueString != '\0')) {
+						valueObj = Tcl_NewStringObj(connid->nullValueString, -1);
+					}
+					}
 				}
 
-				if ((connid->nullValueString != NULL) && (*connid->nullValueString != '\0')) {
-				    valueObj = Tcl_NewStringObj(connid->nullValueString, -1);
+				if (valueObj == NULL) {
+					valueObj = Tcl_NewStringObj(string, -1);
 				}
-			    }
+
+				if (Tcl_ObjSetVar2(interp, varNameObj, columnNameObjs[column],
+							   valueObj, TCL_LEAVE_ERR_MSG) == NULL)
+				{
+					retval = TCL_ERROR;
+					goto done;
+				}
 			}
 
-			if (valueObj == NULL) {
-			    valueObj = Tcl_NewStringObj(string, -1);
-			}
-
-			if (Tcl_ObjSetVar2(interp, varNameObj, columnNameObjs[column],
-						   valueObj, TCL_LEAVE_ERR_MSG) == NULL)
+			r = Tcl_EvalObjEx(interp, procStringObj, 0);
+			if ((r != TCL_OK) && (r != TCL_CONTINUE))
 			{
-			    retval = TCL_ERROR;
-			    goto done;
+				if (r == TCL_BREAK)
+					break;			/* exit loop, but return TCL_OK */
+
+				if (r == TCL_ERROR)
+				{
+					char		msg[60];
+
+					sprintf(msg, "\n    (\"pg_select\" body line %d)",
+							Tcl_GetErrorLine(interp));
+					Tcl_AddErrorInfo(interp, msg);
+				}
+
+				retval = r;
+				break;
 			}
 		}
-
-		r = Tcl_EvalObjEx(interp, procStringObj, 0);
-		if ((r != TCL_OK) && (r != TCL_CONTINUE))
-		{
-			if (r == TCL_BREAK)
-				break;			/* exit loop, but return TCL_OK */
-
-			if (r == TCL_ERROR)
-			{
-				char		msg[60];
-
-				sprintf(msg, "\n    (\"pg_select\" body line %d)",
-						Tcl_GetErrorLine(interp));
-				Tcl_AddErrorInfo(interp, msg);
-			}
-
-			retval = r;
-			break;
-		}
+		PQclear(result);
 	}
 
 	done:
+	/* drain output */
+	while ((result = PQgetResult (conn)) != NULL)
+	{
+		PQclear(result);
+	}
+
 	if (columnNameObjs != NULL)
 	{
 		ckfree((void *)columnNameObjs);
 	}
 	Tcl_UnsetVar(interp, varNameString, 0);
-	PQclear(result);
 	return retval;
 }
 
