@@ -90,9 +90,9 @@ proc gen_update_from_array {tableName arrayName keyFields} {
         if {![info exists array($key)]} {
 	    error "required key field '$key' not found in array '$arrayName'"
 	}
-        append result "$key = [pg_quote $array($key)] and"
+        append result "$key = [pg_quote $array($key)] and "
     }
-    return "[string range $result 0 end-4]);"
+    return "[string range $result 0 end-5]);"
 }
 
 
