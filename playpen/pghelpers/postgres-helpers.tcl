@@ -223,7 +223,7 @@ proc sql_time_to_clock {date} {
     if {$firstPeriod >= 0} {
 	set date [string range $date 0 [expr $firstPeriod - 1]]
     }
-    return [clock scan $date]
+    return [clock scan $date -gmt 1]
 }
 
 #
