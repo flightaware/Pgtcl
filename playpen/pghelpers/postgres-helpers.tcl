@@ -191,7 +191,7 @@ proc perform_update_from_array {session tableName arrayName keyFields} {
 #        Month  Day [ Hour : Minute : Second ]  Year [ Timezone ]
 #
 proc clock_to_sql_time {clock} {
-    return [clock format $clock -format "%b %d %Y"]
+    return [clock format $clock -format "%b %d %Y" -gmt 1]
 }
 
 #
@@ -223,7 +223,7 @@ proc sql_time_to_clock {date} {
     if {$firstPeriod >= 0} {
 	set date [string range $date 0 [expr $firstPeriod - 1]]
     }
-    return [clock scan $date]
+    return [clock scan $date -gmt 1]
 }
 
 #
