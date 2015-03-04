@@ -696,7 +696,7 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		paramValues[param] = Tcl_GetStringFromObj(objv[3+param], NULL);
 		if (strcmp(paramValues[param], "NULL") == 0)
                 {
-                    paramValues[param] = '\0';
+                    paramValues[param] = NULL;
                 }
 	    }
 	}
@@ -853,7 +853,7 @@ Pg_exec_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 		paramValues[param] = Tcl_GetStringFromObj (objv[3+param], NULL);
 		if (strcmp(paramValues[param], "NULL") == 0)
                 {
-                    paramValues[param] = '\0';
+                    paramValues[param] = NULL;
                 }
 	    }
 	}
@@ -3062,7 +3062,7 @@ Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
 		paramValues[param] = Tcl_GetStringFromObj (objv[3+param], NULL);
 		if (strcmp(paramValues[param], "NULL") == 0)
                 {
-                    paramValues[param] = '\0';
+                    paramValues[param] = NULL;
                 }
 	    }
 	}
@@ -3181,7 +3181,7 @@ Pg_sendquery_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *C
 		paramValues[param] = Tcl_GetStringFromObj (objv[3+param], NULL);
 		if (strcmp(paramValues[param], "NULL") == 0)
                 {
-                    paramValues[param] = '\0';
+                    paramValues[param] = NULL;
                 }
 	    }
 	}
@@ -4398,6 +4398,7 @@ Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
     int             i=3;
     int             count=0, countbin=0, optIndex;
     int             params=0,binparams=0,binresults=0,callback=0,async=0,prepared=0;
+	int			status;
     unsigned char   flags = 0;
 
     static CONST84 char *cmdargs = "";
@@ -4550,7 +4551,7 @@ Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
 	     paramValues[param] = Tcl_GetStringFromObj (elemPtrs[param], NULL);
 	     if (strcmp(paramValues[param], "NULL") == 0)
              {
-                 paramValues[param] = '\0';
+                 paramValues[param] = NULL;
              }
 	 }
 
@@ -4599,9 +4600,7 @@ Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
 	    result = PQsendQueryPrepared(conn, execString, count, paramValues, paramLengths, binValues, binresults);
         } else if (params) {
             result = PQsendQueryParams(conn, execString, count, NULL, paramValues, paramLengths, binValues, binresults);
-
         } else {
-    
             result = PQsendQuery(conn, execString);
 /*
             ckfree ((void *)paramValues);
