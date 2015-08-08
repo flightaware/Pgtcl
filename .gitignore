@@ -1,5 +1,6 @@
 *.so
 *.o
+*.swp
 Makefile
 pkgIndex.tcl
 autom4te.cache

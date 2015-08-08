@@ -690,8 +690,8 @@ AC_DEFUN([TEA_CONFIG_CFLAGS], [
 	    SHLIB_SUFFIX=".so"
 	    LDFLAGS="$LDFLAGS -export-dynamic"
 	    AS_IF([test $doRpath = yes], [
-		CC_SEARCH_FLAGS='-Wl,-rpath,${LIB_RUNTIME_DIR},-rpath,${LIB_PGTCL_RUNTIME_DIR}'
-	    LD_SEARCH_FLAGS='-rpath ${LIB_RUNTIME_DIR} -rpath ${LIB_PGTCL_RUNTIME_DIR}'])
+		CC_SEARCH_FLAGS='-Wl,-rpath,${LIB_RUNTIME_DIR},-rpath,${LIB_PGTCL_RUNTIME_DIR}'])
+	    LD_SEARCH_FLAGS=${CC_SEARCH_FLAGS}
 	    AS_IF([test "${TCL_THREADS}" = "1"], [
 		# The -pthread needs to go in the CFLAGS, not LIBS
 		LIBS=`echo $LIBS | sed s/-pthread//`
@@ -707,8 +707,8 @@ AC_DEFUN([TEA_CONFIG_CFLAGS], [
 	    SHLIB_SUFFIX=".so"
 	    LDFLAGS=""
 	    AS_IF([test $doRpath = yes], [
-		CC_SEARCH_FLAGS='-Wl,-rpath,${LIB_RUNTIME_DIR},-rpath,${LIB_PGTCL_RUNTIME_DIR}'])
-		LD_SEARCH_FLAGS=${CC_SEARCH_FLAGS}
+		CC_SEARCH_FLAGS='-Wl,-rpath,${LIB_RUNTIME_DIR},-rpath,${LIB_PGTCL_RUNTIME_DIR}'
+		LD_SEARCH_FLAGS='-Wl,-rpath,${LIB_RUNTIME_DIR},-rpath,${LIB_PGTCL_RUNTIME_DIR}'])
 	    AS_IF([test "${TCL_THREADS}" = "1"], [
 		# The -pthread needs to go in the LDFLAGS, not LIBS
 		LIBS=`echo $LIBS | sed s/-pthread//`
@@ -986,7 +986,7 @@ AC_DEFUN([TEA_CONFIG_CFLAGS], [
 	    SHLIB_SUFFIX=".so"
 	    AS_IF([test "$GCC" = yes], [
 		SHLIB_LD='${CC} -shared'
-		CC_SEARCH_FLAGS='-Wl,-R,${LIB_RUNTIME_DIR},-R,${LIB_PGTCL_RUNTIME_DIR}
+		CC_SEARCH_FLAGS='-Wl,-R,${LIB_RUNTIME_DIR},-R,${LIB_PGTCL_RUNTIME_DIR}'
 		LD_SEARCH_FLAGS=${CC_SEARCH_FLAGS}
 		AS_IF([test "$do64bit_ok" = yes], [
 		    AS_IF([test "$arch" = "sparcv9 sparc"], [
@@ -1014,7 +1014,7 @@ AC_DEFUN([TEA_CONFIG_CFLAGS], [
 			SHLIB_LD='/usr/ccs/bin/ld -G -z text';;
 		esac
 		CC_SEARCH_FLAGS='-Wl,-R,${LIB_RUNTIME_DIR},-R,${LIB_PGTCL_RUNTIME_DIR}'
-		LD_SEARCH_FLAGS=${CC_SEARCH_FLAGS}
+		LD_SEARCH_FLAGS='-R ${LIB_RUNTIME_DIR} -R ${LIB_PGTCL_RUNTIME_DIR}'
 	    ])
 	    ;;
 	UNIX_SV* | UnixWare-5*)
