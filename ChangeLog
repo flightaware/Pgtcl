@@ -1,6 +1,6 @@
 
-$Id$
-Tue Sep 11 13:17:55 CDT 2012
+2015-08-08 Karl Lehenbauer
+    * Update autoconf build to Tcl Extension Architecture (TEA) 3.9
 
 2012-09-11 Karl Lehenbauer
     * Add -nodotfields option to pg_select.  if set it will inhibit
