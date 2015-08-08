@@ -1,0 +1,7 @@
+*.so
+*.o
+Makefile
+pkgIndex.tcl
+autom4te.cache
+config.status
+config.log
