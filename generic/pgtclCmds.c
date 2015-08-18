@@ -894,6 +894,69 @@ Pg_exec_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 #endif /* HAVE_PQEXECPREPARED */
 }
 
+/**********************************
+ * Pg_result_foreach - iterate Tcl code over a result handle
+ */
+
+int
+Pg_result_foreach(Tcl_Interp *interp, PGresult *result, Tcl_Obj *arrayNameObj, Tcl_Obj *code)
+{
+    int retval = TCL_OK;
+    int tupno;
+    int column;
+	char *arrayName = Tcl_GetString (arrayNameObj);
+
+    if (PQresultStatus(result) != PGRES_TUPLES_OK)
+    {
+	    /* query failed, or it wasn't SELECT */
+	    Tcl_SetResult(interp, (char *)PQresultErrorMessage(result),
+				      TCL_VOLATILE);
+	    return TCL_ERROR;
+    }
+
+    int ncols = PQnfields(result);
+
+    for (tupno = 0; tupno < PQntuples(result); tupno++)
+    {
+	    for (column = 0; column < ncols; column++)
+	    {
+		    char *columnName = PQfname (result, column);
+
+		    if (PQgetisnull (result, tupno, column)) {
+			Tcl_UnsetVar2 (interp, arrayName, columnName, 0);
+			continue;
+		    }
+
+		    char *string = PQgetvalue (result, tupno, column);
+
+		    if (Tcl_SetVar2(interp, arrayName, columnName, string, (TCL_LEAVE_ERR_MSG)) == NULL) 
+		    {
+			return TCL_ERROR;
+		    }
+	    }
+
+	    int r = Tcl_EvalObjEx(interp, code, 0);
+
+	    if ((r != TCL_OK) && (r != TCL_CONTINUE))
+	    {
+		    if (r == TCL_BREAK)
+			    break;			/* exit loop, but return TCL_OK */
+
+		    if (r == TCL_ERROR)
+		    {
+			    char		msg[60];
+
+			    sprintf(msg, "\n    (\"pg_select\" body line %d)",
+					    Tcl_GetErrorLine(interp));
+			    Tcl_AddErrorInfo(interp, msg);
+		    }
+
+		    retval = r;
+		    break;
+	    }
+    }
+    return retval;
+}
 
 /**********************************
  * pg_result
@@ -923,6 +986,10 @@ Pg_exec_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 	-assign arrayName
 		assign the results to an array, using subscripts of the form
 			(tupno,attributeName)
+
+	-foreach arrayName code
+		for each tuple assigns the results to the named array, using
+		subscripts matching the column names, executing the code body.
 
 	-assignbyidx arrayName ?appendstr?
 		assign the results to an array using the first field's value
@@ -987,7 +1054,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 
 	static CONST84 char *options[] = {
-		"-status", "-error", "-conn", "-oid",
+		"-status", "-error", "-foreach", "-conn", "-oid",
 		"-numTuples", "-cmdTuples", "-numAttrs", "-assign", "-assignbyidx",
 		"-getTuple", "-tupleArray", "-tupleArrayWithoutNulls", "-attributes", "-lAttributes",
 		"-clear", "-list", "-llist", "-dict", "-null_value_string", (char *)NULL
@@ -995,7 +1062,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 	enum options
 	{
-		OPT_STATUS, OPT_ERROR, OPT_CONN, OPT_OID,
+		OPT_STATUS, OPT_ERROR, OPT_FOREACH, OPT_CONN, OPT_OID,
 		OPT_NUMTUPLES, OPT_CMDTUPLES, OPT_NUMATTRS, OPT_ASSIGN, OPT_ASSIGNBYIDX,
 		OPT_GETTUPLE, OPT_TUPLEARRAY, OPT_TUPLEARRAY_WITHOUT_NULLS, OPT_ATTRIBUTES, OPT_LATTRIBUTES,
 		OPT_CLEAR, OPT_LIST, OPT_LLIST, OPT_DICT, OPT_NULL_VALUE_STRING
@@ -1098,6 +1165,17 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
                     PQresultErrorField(result,pgDiagCodes[errorOptIndex]),-1));
 
 				return TCL_OK;
+			}
+
+		case OPT_FOREACH:
+			{
+			    if (objc != 5)
+			    {
+				    Tcl_WrongNumArgs(interp, 3, objv, "array code");
+				    return TCL_ERROR;
+			    }
+
+			    return Pg_result_foreach(interp, result, objv[3], objv[4]);
 			}
 
 		case OPT_CONN:
@@ -1628,6 +1706,7 @@ Pg_result_errReturn:
 	tresult = Tcl_NewStringObj("pg_result result ?option? where option is\n", -1);
 	Tcl_AppendStringsToObj(tresult, "\t-status\n",
 					 "\t-error\n",
+					 "\t-foreach\n",
 					 "\t-conn\n",
 					 "\t-oid\n",
 					 "\t-numTuples\n",
@@ -4351,7 +4430,8 @@ Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
 {
 
     PGconn          *conn;
-    PGresult        *result;
+    PGresult        *result = NULL;
+    int              iResult = 0;
     CONST84 char    *connString;
     const char      *execString;
     const char     **paramValues = NULL;
@@ -4561,13 +4641,13 @@ Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
         *  of query 
         */
         if (prepared) {
-	    result = PQsendQueryPrepared(conn, execString, count, paramValues, paramLengths, binValues, binresults);
+	    iResult = PQsendQueryPrepared(conn, execString, count, paramValues, paramLengths, binValues, binresults);
         } else if (params) {
-            result = PQsendQueryParams(conn, execString, count, NULL, paramValues, paramLengths, binValues, binresults);
+            iResult = PQsendQueryParams(conn, execString, count, NULL, paramValues, paramLengths, binValues, binresults);
 
         } else {
     
-            result = PQsendQuery(conn, execString);
+            iResult = PQsendQuery(conn, execString);
 /*
             ckfree ((void *)paramValues);
 */
@@ -4586,7 +4666,7 @@ Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
 
     PgNotifyTransferEvents(connid);
 
-    if (result && !callback)
+    if (((result != NULL) || (iResult > 0)) && !callback)
     {
 	int              rId = PgSetResultId(interp, connString, result);
 	ExecStatusType rStat = PQresultStatus(result);
@@ -4598,7 +4678,7 @@ Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
 	}
 	return TCL_OK;
     }
-    else if (!result)
+    else if ((result == NULL) && (iResult == 0))
     {
 	/* error occurred during the query */
 	Tcl_SetObjResult(interp, Tcl_NewStringObj(PQerrorMessage(conn), -1));
