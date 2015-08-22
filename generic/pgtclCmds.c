@@ -1092,13 +1092,6 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 							&optIndex) != TCL_OK)
 		return TCL_ERROR;
 
-    if ((enum options) optIndex == OPT_DICT)
-    {
-        Tcl_SetObjResult(interp, Tcl_NewStringObj(
-          "You need a Tcl version (8.5+) that supports dicts in order to use the -dict option", -1));
-	    return TCL_ERROR;
-    }
-
 	switch ((enum options) optIndex)
 	{
 		case OPT_STATUS:
