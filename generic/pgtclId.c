@@ -321,7 +321,7 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
     objvx[0] = objv[1];
     objvx[1] = objv[0];
 
-    if (Tcl_GetCommandInfo(interp, Tcl_GetStringFromObj(objvx[1], NULL), &info) == 0)
+    if (Tcl_GetCommandInfo(interp, Tcl_GetString(objvx[1]), &info) == 0)
         return TCL_ERROR;
 
     connid = (Pg_ConnectionId *) info.objClientData;
@@ -406,11 +406,11 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
              * before the connection handle -- arrggh
              */
             int num = 2;
-            arg = Tcl_GetStringFromObj(objvx[2], NULL);
+            arg = Tcl_GetString(objvx[2]);
             if (arg[0] == '-')
             {
                 /* see if there are 2 options on the command line */
-                arg = Tcl_GetStringFromObj(objvx[4], NULL);
+                arg = Tcl_GetString(objvx[4]);
                 if (arg[0] == '-')
                 {
                     num = 4;
@@ -426,8 +426,8 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
             /*  DEBUGGING
             for (objvxi = 0; objvxi < objc; objvxi++)
             {
-                     Tcl_GetStringFromObj(objv[objvxi], NULL), 
-                     Tcl_GetStringFromObj(objvx[objvxi], NULL));
+                     Tcl_GetString(objv[objvxi]), 
+                     Tcl_GetString(objvx[objvxi]));
             }
             */
                
@@ -1487,7 +1487,7 @@ PgDelResultHandle(ClientData cData)
     Pg_resultid    *resultid = (Pg_resultid *) cData;
     char           *resstr;
 
-    resstr = Tcl_GetStringFromObj(resultid->str, NULL);
+    resstr = Tcl_GetString(resultid->str);
     
     result = PgGetResultId(resultid->interp, resstr, NULL);
 
