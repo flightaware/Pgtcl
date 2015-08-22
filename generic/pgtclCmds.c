@@ -669,7 +669,6 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	const char **paramValues = NULL;
 
 	/* THIS CODE IS REPLICATED IN Pg_sendquery AND SHOULD BE FACTORED */
-#ifdef HAVE_PQEXECPARAMS
 	int         nParams;
 
 	if (objc < 3)
@@ -700,13 +699,6 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
                 }
 	    }
 	}
-#else /* HAVE_PQEXECPARAMS */
-	if (objc != 3)
-	{
-		Tcl_WrongNumArgs(interp, 1, objv, "connection queryString");
-		return TCL_ERROR;
-	}
-#endif /* HAVE_PQEXECPARAMS */
 
 	/* figure out the connect string and get the connection ID */
 
@@ -735,16 +727,12 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	 * are included, we maintain compatibility for code that doesn't
 	 * use params and might have had multiple statements in a single 
 	 * request */
-#ifdef HAVE_PQEXECPARAMS
 	if (nParams == 0) {
-#endif
 	    result = PQexec(conn, execString);
-#ifdef HAVE_PQEXECPARAMS
 	} else {
 	    result = PQexecParams(conn, execString, nParams, NULL, paramValues, NULL, NULL, 0);
 	    ckfree ((void *)paramValues);
 	}
-#endif
 
 	connid->sql_count++;
 
@@ -800,13 +788,6 @@ Pg_exec_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 	int         nParams;
 
     /* THIS CODE IS REPLICATED IN Pg_sendquery_prepared AND NEEDS TO BE FACTORED */
-#ifndef HAVE_PQEXECPREPARED
-    Tcl_SetObjResult(interp, 
-        Tcl_NewStringObj(
-        "function unavailable with this version of the postgres libpq library\n", -1));
-
-	return TCL_ERROR;
-#else
 	if (objc < 3)
 	{
 		Tcl_WrongNumArgs(interp, 1, objv, "connection statementName [parm...]");
@@ -891,7 +872,6 @@ Pg_exec_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 		Tcl_SetObjResult(interp, Tcl_NewStringObj(PQerrorMessage(conn), -1));
 		return TCL_ERROR;
 	}
-#endif /* HAVE_PQEXECPREPARED */
 }
 
 /**********************************
@@ -1112,16 +1092,12 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 							&optIndex) != TCL_OK)
 		return TCL_ERROR;
 
-#ifndef HAVE_TCL_NEWDICTOBJ
     if ((enum options) optIndex == OPT_DICT)
     {
         Tcl_SetObjResult(interp, Tcl_NewStringObj(
           "You need a Tcl version (8.5+) that supports dicts in order to use the -dict option", -1));
 	    return TCL_ERROR;
     }
-
-#endif
-
 
 	switch ((enum options) optIndex)
 	{
@@ -1604,8 +1580,6 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 		case OPT_DICT: 
                 {
-
-#ifdef HAVE_TCL_NEWDICTOBJ
 			listObj = Tcl_NewDictObj();
 	
 			/*
@@ -1653,7 +1627,6 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 			Tcl_SetObjResult(interp, listObj);
 			return TCL_OK;
 
-#endif /* HAVE_TCL_NEWDICTOBJ */
                 }
 
 		case OPT_NULL_VALUE_STRING:
@@ -2442,12 +2415,10 @@ int
 Pg_lo_truncate(ClientData cData, Tcl_Interp *interp, int objc,
 		   Tcl_Obj *CONST objv[])
 {
-#ifdef HAVE_LO_TRUNCATE
 	PGconn	   *conn;
 	int			fd;
 	int			len = 0;
 	char	   *connString;
-#endif
 
 	if ((objc < 3) || (objc > 4))
 	{
@@ -2455,11 +2426,6 @@ Pg_lo_truncate(ClientData cData, Tcl_Interp *interp, int objc,
 		return TCL_ERROR;
 	}
 
-#ifndef HAVE_LO_TRUNCATE
-        Tcl_SetObjResult(interp, Tcl_NewStringObj(
-          "The version of libpq that Pgtcl was compiled against does not have lo_truncate", -1));
-	    return TCL_ERROR;
-#else
 	connString = Tcl_GetString(objv[1]);
 	conn = PgGetConnectionId(interp, connString, NULL);
 	if (conn == NULL)
@@ -2474,7 +2440,6 @@ Pg_lo_truncate(ClientData cData, Tcl_Interp *interp, int objc,
 	}
 	Tcl_SetObjResult(interp, Tcl_NewIntObj(lo_truncate(conn, fd, len)));
 
-#endif /* HAVE_LO_TRUNCATE */
 	return TCL_OK;
 }
 
@@ -3074,7 +3039,6 @@ Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
 	int			status;
 
 	/* THIS CODE IS REPLICATED IN Pg_exec AND SHOULD BE FACTORED */
-#ifdef HAVE_PQSENDQUERYPARAMS
 	int         nParams;
 	const char **paramValues = NULL;
 
@@ -3106,13 +3070,6 @@ Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
                 }
 	    }
 	}
-#else /* HAVE_PQSENDQUERYPARAMS */
-	if (objc != 3)
-	{
-		Tcl_WrongNumArgs(interp, 1, objv, "connection queryString");
-		return TCL_ERROR;
-	}
-#endif /* HAVE_PQSENDQUERYPARAMS */
 
 	connString = Tcl_GetString(objv[1]);
 
@@ -3128,16 +3085,12 @@ Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
 
 	execString = Tcl_GetString(objv[2]);
 
-#ifdef HAVE_PQSENDQUERYPARAMS
 	if (nParams == 0) {
-#endif
 		status = PQsendQuery(conn, execString);
-#ifdef HAVE_PQSENDQUERYPARAMS
 	} else {
 	    status = PQsendQueryParams(conn, execString, nParams, NULL, paramValues, NULL, NULL, 1);
 	    ckfree ((void *)paramValues);
 	}
-#endif
 	connid->sql_count++;
 
 	/* Transfer any notify events from libpq to Tcl event queue. */
@@ -3178,10 +3131,6 @@ Pg_sendquery_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *C
 	int         status;
 
     /* THIS CODE IS REPLICATED IN Pg_exec_prepared AND NEEDS TO BE FACTORED */
-#ifndef HAVE_PQSENDQUERYPREPARED
-        Tcl_SetObjResult(interp, Tcl_NewStringObj("function unavailable with this version of the postgres libpq library", -1));
-	return TCL_ERROR;
-#else /* HAVE_PQSENDQUERYPREPARED */
 	if (objc < 3)
 	{
 		Tcl_WrongNumArgs(interp, 1, objv, "connection statementName [parm...]");
@@ -3246,7 +3195,6 @@ Pg_sendquery_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *C
 		Tcl_SetObjResult(interp, Tcl_NewStringObj(PQerrorMessage(conn), -1));
 		return TCL_ERROR;
 	}
-#endif /* HAVE_PQSENDQUERYPREPARED */
 }
 
 /**********************************
@@ -4214,18 +4162,12 @@ Pg_dbinfo(ClientData cData, Tcl_Interp *interp, int objc,
         }
         case OPT_VERSION:
         {
-#ifdef HAVE_PQSERVERVERSION
 
             Tcl_SetObjResult(interp, Tcl_NewIntObj(
                              PQserverVersion(connid->conn)));
     
             return TCL_OK;
 
-#else /* HAVE_PQSERVERVERSION */
-        Tcl_SetObjResult(interp, Tcl_NewStringObj(
-          "You need a PG version > 7.4 that supports server version", -1));
-	    return TCL_ERROR;
-#endif /* HAVE_PQSERVERVERSION */
         }
         case OPT_PROTOCOL:
         {
@@ -4476,15 +4418,6 @@ Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
         {
             case OPT_PARAMS:
             {
-
-#ifndef HAVE_PQEXECPARAMS
-                Tcl_SetObjResult(interp, 
-                    Tcl_NewStringObj(
-                        "function unavailable with this version of the postgres libpq library\n", -1));
-
-	        return TCL_ERROR;
-#endif
-
                 flags = flags | 0x01;
                 params = i+1;
                 i=i+2;
@@ -4534,13 +4467,6 @@ Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
             }
             case OPT_PREPARED:
             {
-#ifndef HAVE_PQEXECPREPARED
-                Tcl_SetObjResult(interp, 
-                    Tcl_NewStringObj(
-                        "function unavailable with this version of the postgres libpq library\n", -1));
-
-	        return TCL_ERROR;
-#endif
                 flags = flags | 0x20;
                 /*
                 prepared = i+1;
