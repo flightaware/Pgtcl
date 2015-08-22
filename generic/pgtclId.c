@@ -762,12 +762,10 @@ PgDelConnectionId(DRIVER_DEL_PROTO)
 	 * Note we are not leaking a socket, since libpq closed that already.
 	 */
 
-#if TCL_MAJOR_VERSION >= 8
 	if (connid->notifier_channel != NULL && interp != NULL)
         {
 		Tcl_UnregisterChannel(NULL, connid->notifier_channel);
          }
-#endif
 
        /*
         * Clear any async result callback, if present.

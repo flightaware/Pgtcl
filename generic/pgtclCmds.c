@@ -2202,11 +2202,7 @@ Pg_lo_read(ClientData cData, Tcl_Interp *interp, int objc,
 	nbytes = lo_read(conn, fd, buf, len);
         if (nbytes >= 0)
         {
-            #if TCL_MAJOR_VERSION == 8 && TCL_MINOR_VERSION >= 1 || TCL_MAJOR_VERSION > 8
 	        bufObj = Tcl_NewByteArrayObj((unsigned char*)buf, nbytes);
-            #else
-	        bufObj = Tcl_NewStringObj(buf, nbytes);
-            #endif
 
 	    if (Tcl_ObjSetVar2(interp, bufVar, NULL, bufObj,
 					   TCL_LEAVE_ERR_MSG | TCL_PARSE_PART1) == NULL)

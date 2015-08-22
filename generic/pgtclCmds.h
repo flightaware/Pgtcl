@@ -26,7 +26,7 @@
  * to errorLine in struct. Define Tcl_GetErrorLine here if less
  * 8.6
  */
-#if (TCL_MAJOR_VERSION < 8) || (TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION < 6)
+#if (TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION < 6)
 #define Tcl_GetErrorLine(interp) (interp->errorLine)
 #endif
 
