@@ -1671,8 +1671,8 @@ Pg_result_errReturn:
 
 	tresult = Tcl_NewStringObj("pg_result result ?option? where option is\n", -1);
 	Tcl_AppendStringsToObj(tresult, "\t-status\n",
-					 "\t-error\n",
-					 "\t-foreach\n",
+					 "\t-error ?subCode?\n",
+					 "\t-foreach array code\n",
 					 "\t-conn\n",
 					 "\t-oid\n",
 					 "\t-numTuples\n",
@@ -1688,6 +1688,7 @@ Pg_result_errReturn:
 					 "\t-llist\n",
 					 "\t-clear\n",
 					 "\t-dict\n",
+					 "\t-null_value_string ?nullValueString?\n",
 					 (char *)NULL);
         Tcl_SetObjResult(interp, tresult);
 	return TCL_ERROR;
