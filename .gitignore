@@ -1,7 +1,8 @@
-Makefile
-autom4te.cache/
-config.log
-config.status
-libpgtcl*.so
+*.so
 *.o
+*.swp
+Makefile
 pkgIndex.tcl
+autom4te.cache
+config.status
+config.log

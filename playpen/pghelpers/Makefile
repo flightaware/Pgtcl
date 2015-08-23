@@ -9,7 +9,7 @@ INSTALLDIR= /usr/local/lib/sc_postgres
 all:	pkgIndex.tcl
 
 pkgIndex.tcl:	$(FILES)
-	echo 'pkg_mkIndex -verbose -- .' | tclsh8.5
+	echo 'pkg_mkIndex -verbose -- .' | tclsh
 
 
 install:	all
