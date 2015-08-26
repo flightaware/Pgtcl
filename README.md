@@ -1,46 +1,36 @@
-Thank you for downloading Pgtcl, a package that adds PostgreSQL interface
-extensions to the Tcl programming language... an open source project that's 
-been in existence for more than ten years.
+Thank you for downloading Pgtcl, a package that adds PostgreSQL interface extensions to the Tcl programming language... an open source project that's been in existence for nearly twenty years.
 
 # CONFIGURING
 
-Pgtcl is now Tcl Extension Architecture (TEA) compliant, shipping with
-a standard "configure" script.  It no longer needs to reside in a specific
-place within the Postgres source tree in order to build.  
+Pgtcl is now Tcl Extension Architecture (TEA) compliant, shipping with a standard "configure" script.  It no longer needs to reside in a specific place within the Postgres source tree in order to build.  
 
-For standard builds to put things in subdirectories of /usr/local, you
-can often simply execute configure with no arguments at all...
+For standard builds to put things in subdirectories of /usr/local, you can often simply execute configure with no arguments at all...
 
-    ./configure
+```sh
+./configure
+```
 
-The configure script will attempt to find where the Postgres includes and
-libraries are using pg_config, a program built and installed as part of
-Postgres.  Alternatively, you can specify a path to the Postgres 
-include files using --with-postgres-include and to the Postgres libraries 
-using --with-postgres-lib.  
+The configure script will attempt to find where the Postgres includes and libraries are using pg_config, a program built and installed as part of Postgres.  Alternatively, you can specify a path to the Postgres include files using --with-postgres-include and to the Postgres libraries using --with-postgres-lib.  
 
-If you had PostgreSQL installed into /usr/postgres and a Tcl build in
-/usr/pptcl, you might use something like
+If you had PostgreSQL installed into /usr/postgres and a Tcl build in /usr/pptcl, you might use something like
 
-    ./configure --prefix=/usr/pptcl
+```sh
+./configure --prefix=/usr/pptcl
+```
 
-With this style of configure command, you'll need to make sure pg_config
-(and the correct pg_config if you have postgres installed in multiple
-places) is in the PATH.
+With this style of configure command, you'll need to make sure pg_config (and the correct pg_config if you have postgres installed in multiple places) is in the PATH.
 
-Alternatively you can still explicitly specify where the Postgres includes
-and libraries are found:
+Alternatively you can still explicitly specify where the Postgres includes and libraries are found:
 
-    ./configure --prefix=/usr/pptcl --with-postgres-include=/usr/postgres/include --with-postgres-lib=/usr/postgres/lib
+```sh
+./configure --prefix=/usr/pptcl --with-postgres-include=/usr/postgres/include --with-postgres-lib=/usr/postgres/lib
+```
 
-The other configure parameters that may need tweaking are where Tcl's
-includes and libraries (and tclConfig.sh) are.  Although normally they
-will be in /usr/local/include and /usr/local/lib, in some cases they
-may reside elsewhere.  If Tcl is built and installed from the FreeBSD ports 
-tree, for example, they'll be in versioned subdirectories...
+The other configure parameters that may need tweaking are where Tcl's includes and libraries (and tclConfig.sh) are.  Although normally they will be in /usr/local/include and /usr/local/lib, in some cases they may reside elsewhere.  If Tcl is built and installed from the FreeBSD ports tree, for example, they'll be in versioned subdirectories...
 
-    ./configure  --with-tcl=/usr/local/lib/tcl8.4 --with-tclinclude=/usr/local/include/tcl8.4
-
+```sh
+./configure  --with-tcl=/usr/local/lib/tcl8.4 --with-tclinclude=/usr/local/include/tcl8.4
+```
 
 # BUILDING
 
@@ -52,29 +42,23 @@ Do a `make install`
 
 # USING IT
 
-With version 1.4, Pgtcl is a standard package and can be loaded with
-"package require" instead of the shared library load routine, "load".
+With version 1.4, Pgtcl is a standard package and can be loaded with "package require" instead of the shared library load routine, "load".
 
 Fire up your tclsh:
 
-    tclsh8.5
-    % package require Pgtcl
-    1.4
+```
+tclsh8.6
+% package require Pgtcl
+1.4
+```
 
-It's a good idea to switch to using the "package require' instead of "load"
-to pick up Pgtcl, because there will be additional Tcl code shipped in future 
-versions of Pgtcl, and using "package require" will make that code available 
-to your application.  Also it keeps you from hard-coding the path to the
-library and hard-coding a dependency on a specific version.
+It's a good idea to switch to using the "package require' instead of "load" to pick up Pgtcl, because there will be additional Tcl code shipped in future versions of Pgtcl, and using "package require" will make that code available to your application.  Also it keeps you from hard-coding the path to the library and hard-coding a dependency on a specific version.
 
 ## IF IT COMPILES AND INSTALLS OK BUT "PACKAGE REQUIRE" DOESN'T WORK
 
-...it probably didn't install into the search path Tcl uses to find
-extensions.  You might have more than one Tclsh installed.  Try adding
-a path to the parent directory of where the thing installed, for example,
-if it installed into /opt/local/bin
+...it probably didn't install into the search path Tcl uses to find extensions.  You might have more than one Tclsh installed.  Try adding a path to the parent directory of where the thing installed, for example, if it installed into /opt/local/bin
 
-    tclsh8.5
+    tclsh8.6
     % lappend auto_path /opt/local/lib
     ...
     % package require Pgtcl
@@ -82,13 +66,9 @@ if it installed into /opt/local/bin
 
 # CREDITS
 
-Pgtcl was originally written by Jolly Chen.  Many people have contributed to 
-the further development of Pgtcl over the years, including Randy Kunkee,
-who added the channel handler code, among other things, and we intend to
-identify the rest of them and give them credit as well.
+Pgtcl was originally written by Jolly Chen.  Many people have contributed to the further development of Pgtcl over the years, including Randy Kunkee, who added the channel handler code, among other things, and we intend to identify the rest of them and give them credit as well.
 
-Development and maintenance of Pgtcl since version 1.3 has been done by Brett 
-Schwarz and Karl Lehenbauer.
+Development and maintenance of Pgtcl since version 1.3 has been done by Brett Schwarz and Karl Lehenbauer.
 
 # CHANGELOG
 
@@ -100,9 +80,7 @@ experimental -dict option in pg_result
 
 Proper Tcl namespace support, in the ::pg namespace.
 
-Connection handles and result handles are now executable commands in their
-own right, while maintaining compatible with their former usage as strictly
-handles.
+Connection handles and result handles are now executable commands in their own right, while maintaining compatible with their former usage as strictly handles.
 
 Upgraded to TEA 3.1 compliant build.
 
@@ -110,24 +88,13 @@ Documentation overhauled and brought current with the code.
 
 ## VERSION 1.4
 
-With version 1.4, Pgtcl has been internally overhauled and brought up to
-date with the latest Tcl C-interface technology, while maintaining
-nearly 100% compatibility with the pg_* Tcl interface provided by Pgtcl 1.3.
+With version 1.4, Pgtcl has been internally overhauled and brought up to date with the latest Tcl C-interface technology, while maintaining nearly 100% compatibility with the pg_* Tcl interface provided by Pgtcl 1.3.
 
-Just about every Tcl program that uses Pgtcl 1.3 will work without modification
-under Pgtcl 1.4.
+Just about every Tcl program that uses Pgtcl 1.3 will work without modification under Pgtcl 1.4.
 
-Version 1.4 was something of a transitional release, as pgtcl moved out the 
-of core and into its this distribution.  Previously, for example, the
-Pgtcl documentation resided with the rest of the PostgreSQL documentation,
-and Pgtcl's source code accessed PostgreSQL's include files and libraries
-in a fraternal manner that had to be divorced and reworked to use the same
-APIs and build methods that any external application would use to build against
-PostgreSQL's libpq C interface library.  
+Version 1.4 was something of a transitional release, as pgtcl moved out the of core and into its this distribution.  Previously, for example, the Pgtcl documentation resided with the rest of the PostgreSQL documentation, and Pgtcl's source code accessed PostgreSQL's include files and libraries in a fraternal manner that had to be divorced and reworked to use the same APIs and build methods that any external application would use to build against PostgreSQL's libpq C interface library.  
 
-The Pgtcl documentation is now included with this release.  As building the
-documentation requires a number of fairly major tools and packages, the
-release also includes the docs prebuilt in HTML and PDF format.
+The Pgtcl documentation is now included with this release.  As building the documentation requires a number of fairly major tools and packages, the release also includes the docs prebuilt in HTML and PDF format.
 
 ## CHANGES
 

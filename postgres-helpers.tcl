@@ -14,14 +14,15 @@
 # Copyright (C) 2004 Superconnect, Ltd.
 #  Berkeley copyright as above.
 #
+# Copyright (C) 2005-2015 FlightAware, LLC
+#  Berkeley copyright as above.
+#
 
 #
 # postgres interface stuff
 #
-# $Id$
-#
 
-package provide sc_postgres 1.1
+package provide sc_postgres 1.2
 
 package require Tclx
 package require Pgtcl
