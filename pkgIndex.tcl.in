@@ -1,1 +1,3 @@
 package ifneeded Pgtcl @PACKAGE_VERSION@  [list load [file join $dir @PKG_LIB_FILE@]]
+package ifneeded sc_postgres 1.2 \
+    [list source [file join $dir postgres-helpers.tcl]]

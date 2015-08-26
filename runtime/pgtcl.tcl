@@ -1,7 +1,0 @@
-#
-# Pgtcl runtime files
-#
-# $Id$
-#
-
-
