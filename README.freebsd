@@ -1,7 +1,4 @@
 
-
-$Id$
-
 libpgtcl can now be built under FreeBSD without any special tweaks.
 
 We'd love some help in making this a port in the FreeBSD ports tree, so this 
@@ -9,7 +6,7 @@ build could be even more automatic.
 
 For now, you need to build and install Tcl and Postgres
 
-    cd /usr/ports/lang/tcl85
+    cd /usr/ports/lang/tcl86
     make
     make install
 
@@ -19,7 +16,7 @@ For now, you need to build and install Tcl and Postgres
 
 Then run configure in this directory with the following parameters:
 
-./configure --with-tcl=/usr/local/lib/tcl8.5 
+./configure --with-tcl=/usr/local/lib/tcl8.6
 
 Add "--enable-symbols" if you want debugging.
 
