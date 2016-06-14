@@ -2630,7 +2630,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	char	   *varNameString;
 	Tcl_Obj    *varNameObj;
 	Tcl_Obj    *procStringObj;
-	Tcl_Obj    *columnListObj;
+	Tcl_Obj    *columnListObj = NULL;
 	Tcl_Obj   **columnNameObjs = NULL;
 
 	if (objc < 5 || objc > 7)
@@ -2705,6 +2705,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	}
 
 	columnListObj = Tcl_NewListObj(ncols, columnNameObjs);
+	Tcl_IncrRefCount (columnListObj);
 
 	if (!noDotFields && Tcl_SetVar2Ex(interp, varNameString, ".headers", 
 	                  columnListObj, TCL_LEAVE_ERR_MSG) == NULL) goto done;
@@ -2775,6 +2776,10 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	}
 
 	done:
+	if (columnListObj != NULL)
+	{
+		Tcl_DecrRefCount (columnListObj);
+	}
 	if (columnNameObjs != NULL)
 	{
 		ckfree((void *)columnNameObjs);

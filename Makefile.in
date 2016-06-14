@@ -189,10 +189,10 @@ libraries:
 #========================================================================
 
 doc:
-	@echo "If you have documentation to create, place the commands to"
-	@echo "build the docs in the 'doc:' target.  For example:"
-	@echo "        xml2nroff sample.xml > sample.n"
-	@echo "        xml2html sample.xml > sample.html"
+#	@echo "If you have documentation to create, place the commands to"
+#	@echo "build the docs in the 'doc:' target.  For example:"
+#	@echo "        xml2nroff sample.xml > sample.n"
+#	@echo "        xml2html sample.xml > sample.html"
 
 install: all install-binaries install-libraries install-doc
 
@@ -217,13 +217,13 @@ install-libraries: libraries
 #========================================================================
 
 install-doc: doc
-	@mkdir -p $(DESTDIR)$(mandir)/mann
-	@echo "Installing documentation in $(DESTDIR)$(mandir)"
-	@list='$(srcdir)/doc/*.n'; for i in $$list; do \
-	    echo "Installing $$i"; \
-	    rm -f $(DESTDIR)$(mandir)/mann/`basename $$i`; \
-	    $(INSTALL_DATA) $$i $(DESTDIR)$(mandir)/mann ; \
-	done
+#	@mkdir -p $(DESTDIR)$(mandir)/mann
+#	@echo "Installing documentation in $(DESTDIR)$(mandir)"
+#	@list='$(srcdir)/doc/*.n'; for i in $$list; do \
+#	    echo "Installing $$i"; \
+#	    rm -f $(DESTDIR)$(mandir)/mann/`basename $$i`; \
+#	    $(INSTALL_DATA) $$i $(DESTDIR)$(mandir)/mann ; \
+#	done
 
 test: binaries libraries
 	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/all.tcl` $(TESTFLAGS)
@@ -260,7 +260,7 @@ pgtclsh: pgtclAppInit.o $(BINARIES)
 	-rm -f pgtclsh
 	$(CC) $(CFLAGS) $(DEFS) -o $@ pgtclAppInit.o \
         $(PKG_LIB_FILE) ${LIBS} $(TCL_LIB_SPEC) $(LDFLAGS_DEFAULT)
-	
+
 
 #========================================================================
 # We need to enumerate the list of .c to .o lines here.
