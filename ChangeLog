@@ -10,7 +10,7 @@
       the creation of the .tupno, .numcols and .headers fields
       in pg_select results.
 
-    * Added new command, pg_set_single_row_mode aka ::pg::set_single_row_mode 
+    * Added new command, pg_set_single_row_mode aka ::pg::set_single_row_mode
       to enable retrieving query results row-by-row.
 
     * Add subcommands for direct execution of connection handles for
@@ -24,7 +24,7 @@
     * Clean up compiler warnings.
 
 2012-06-02 Karl Lehenbauer
-    * Add new -withoutnulls option to pg_select, if set will remove null 
+    * Add new -withoutnulls option to pg_select, if set will remove null
       fields from the row result array.
 
 2012-06-02 Karl Lehenbauer
@@ -69,7 +69,7 @@
 2009-07-07 Karl Lehenbauer
     * pg_select was not checking returns from Tcl_ObjSetVar2 and friends.
       The problem was that if the pg_select array already existed as a
-      scalar variable, no error was returned to denote this, and it caused 
+      scalar variable, no error was returned to denote this, and it caused
       a coredump in Tcl 8.5.  This has now been fixed.
 
     * In pg_select code, correct memory allocation for columnNameObjs to
@@ -77,10 +77,10 @@
       rather than the size of a Tcl_Obj times the number of columns..
 
 2009-06-30 Karl Lehenbauer
-    * Fixed bug in "pgresult -assign" that could cuase a Tcl panic by 
+    * Fixed bug in "pgresult -assign" that could cuase a Tcl panic by
       attempting to set a value into a shared Tcl object.
 
-    * libpq's PQfname can return NULL if the column requested is out of 
+    * libpq's PQfname can return NULL if the column requested is out of
       range.  We have seen it return NULL when the column is in range,
       so instead of dumping core, we treat such a return as a Tcl error.
 
@@ -109,7 +109,7 @@
       If the "$conn escape_bytea ..." method is used, the connection-handle
       version is automatically used.
 
-    * Detect if lo_truncate is available in libpq or not and, if not, return 
+    * Detect if lo_truncate is available in libpq or not and, if not, return
       an error if it is attempted.
 
 2008-05-20 Karl Lehenbauer
@@ -122,8 +122,8 @@
     * Update autoconf build to Tcl Extension Architecture (TEA) 3.6
 
     * Extend pg_quote to allow a connection handle to be specified.
-      If the connection handle is specified and the string matches the 
-      null string, returns "NULL" (without quotes).  If not, returns 
+      If the connection handle is specified and the string matches the
+      null string, returns "NULL" (without quotes).  If not, returns
       the string quoted for inclusion in SQL commands.
 
     * pg_quote can be invoked as a method of the connection handle
@@ -134,7 +134,7 @@
     * Added "internal_position" and "internal_query" to the error options.
 
 2007-02-08 Brett Schwarz <brett_schwarz@yahoo.com>
-    * Added support for async connections. Note that you will have to 
+    * Added support for async connections. Note that you will have to
       use [after] command to find the result of the connection. Callbacks
       won't work, since the sock isn't established yet
 
@@ -187,16 +187,16 @@
 
 2005-02-25 Brett Schwarz <brett_schwarz@yahoo.com>
     * took away pg::conninfo and pg::results, and made one command
-      pg::dbinfo. Usage is pg::dbinfo connections and 
+      pg::dbinfo. Usage is pg::dbinfo connections and
       pg::dbinfo results $conn
 
 2004-11-30 Karl Lehenbauer <karl-pg@sc.com>
     * Document pg_exec_prepared, pg_results, and pg_sendquery_prepared.
 
-    * Document pg_exec's ability to take optional arguments for 
+    * Document pg_exec's ability to take optional arguments for
       $-substitution in PostgreSQL 7.4+.
 
-    * Documented pg_getresult and pg_result -error suboptions.  
+    * Documented pg_getresult and pg_result -error suboptions.
 
     * Pasted connect string options from the libpq manual rather
       than simply referring Pgtcl users to the libpq manual.
@@ -227,7 +227,7 @@
 
 2004-11-22 Karl Lehenbauer <karl-pg@sc.com>
     * Created playpen directory where interesting things that are not
-      yet ready for prime time can be examined and messed with.  
+      yet ready for prime time can be examined and messed with.
       Added code for turning OIDs returned by pg_result -lAttributes
       into data type names.
 
@@ -241,14 +241,14 @@
       where we don't copy and then swap, we copy it the way we want it to
       end up (first and second elements of objv reversed).
 
-    * connections-as-commands and results-as-commands now error out when 
+    * connections-as-commands and results-as-commands now error out when
       called with no arguments
 
 2004-11-16 Karl Lehenbauer <karl-pg@sc.com>
     * libpgtcl will again build with versions of Tcl < 8.5 thanks to a little
       extra checking for HAVETCL_NEWDICTOBJ
 
-    * Fixed several calls to Tcl_AppendStringsToObj whose arguments were 
+    * Fixed several calls to Tcl_AppendStringsToObj whose arguments were
       terminated with -1 instead of NULL, eliminating several segmentation
       violations that could occur while preparing error messages.
 
@@ -263,7 +263,7 @@
 
 2004-09-20 Brett Schwarz <brett_schwarz@yahoo.com>
     * added preliminary support for dicts in pg_result. Need to have
-      Tcl 8.5 or the dicts package extension. Need to set            
+      Tcl 8.5 or the dicts package extension. Need to set
       HAVETCL_NEWDICTOBJ manually for now.
 
 2004-08-23 Brett Schwarz <brett_schwarz@yahoo.com>
@@ -302,7 +302,7 @@
     * Version 1.4 released
 
 2004-06-22 Karl Lehenbauer <karl-pg@sc.com>
-    * Added new optional subidentifiers to pg_result $resultID -error. 
+    * Added new optional subidentifiers to pg_result $resultID -error.
       You can specify one of "severity", "sqlstate", "primary", "detail",
       "hint", "position", "context", "file", "line", or "function" to
       get the severity (ERROR, FATAL, PANIC, WARNING, NOTICE, DEBUG,
@@ -342,7 +342,7 @@
       functions PQexecParams and PQexecPrepared are available or not.
 
 2004-05-21 Karl Lehenbauer <karl-pg@sc.com>
-    * Add pg_exec_prepared to execute pre-prepared SQL statements with 
+    * Add pg_exec_prepared to execute pre-prepared SQL statements with
       parameters.
 
 2004-04-23 Karl Lehenbauer <karl-pg@sc.com>
@@ -379,9 +379,9 @@
 
 2002-11-15  Karl Lehenbauer <karl-pg@sc.com>
 
-    * Convert all the "#ifdef TCL_ARRAYS" where tcl_value was called if 
-      defined and not called if not defined to always "call" tcl_value.  
-      In the case where TCL_ARRAYS isn't defined, tcl_value is now defined 
+    * Convert all the "#ifdef TCL_ARRAYS" where tcl_value was called if
+      defined and not called if not defined to always "call" tcl_value.
+      In the case where TCL_ARRAYS isn't defined, tcl_value is now defined
       as a macro that returns whatever was given to it, making it a no-op.
 
       This change allows the code to be compiled with TCL_MEM_DEBUG enabled
@@ -391,7 +391,7 @@
 
     * Tagged for 1.4b2
 
-    * Create the libpgtcl shared library in a way where it can find both 
+    * Create the libpgtcl shared library in a way where it can find both
       the Postgres shared library it needs (libpq) and the Tcl shared
       library it needs (libtcl).
 
