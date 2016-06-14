@@ -1,3 +1,6 @@
+2016-06-14 Jeff Lawson
+    * Fix possible segfault in pg_select if you unset the array variable
+      inside of the code body.
 
 2015-08-08 Karl Lehenbauer
     * Update autoconf build to Tcl Extension Architecture (TEA) 3.9
