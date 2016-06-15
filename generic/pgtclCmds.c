@@ -498,16 +498,10 @@ Pg_connect(ClientData cData, Tcl_Interp *interp, int objc,
             }
             case OPT_ASYNC:
             {
-                /*
-                 *  Hummm, since we make the arg a string
-                 *  at the very beginning, we have to deal
-                 *  with that, in regards to finding the
-                 *  boolean value for the -async flag
-                 */
-                 if (strcmp(nextArg, "1") == 0)
-                 {
-                     async = 1;
-                 }
+				 if (Tcl_GetBooleanFromObj(interp, objv[i + 1], &async) == TCL_ERROR) {
+					Tcl_AddErrorInfo (interp, " while converting -async argument");
+					return TCL_ERROR;
+				 }
                 i += 2;
                 skip = 1;
             }
@@ -2677,7 +2671,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	char	   *varNameString;
 	Tcl_Obj    *varNameObj;
 	Tcl_Obj    *procStringObj;
-	Tcl_Obj    *columnListObj;
+	Tcl_Obj    *columnListObj = NULL;
 	Tcl_Obj   **columnNameObjs = NULL;
 
 	if (objc < 5 || objc > 8)
@@ -2775,6 +2769,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 			}
 
 			columnListObj = Tcl_NewListObj(ncols, columnNameObjs);
+			Tcl_IncrRefCount (columnListObj);
 
 			if (!noDotFields && Tcl_SetVar2Ex(interp, varNameString, ".headers", 
 							  columnListObj, TCL_LEAVE_ERR_MSG) == NULL) goto done;
@@ -2855,7 +2850,10 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	{
 		PQclear(result);
 	}
-
+	if (columnListObj != NULL)
+	{
+		Tcl_DecrRefCount (columnListObj);
+	}
 	if (columnNameObjs != NULL)
 	{
 		ckfree((void *)columnNameObjs);

@@ -5522,7 +5522,7 @@ LIBS=$SAVE_LIBS
 
 
 
-    vars="runtime/pgtcl.tcl"
+    vars="postgres-helpers.tcl"
     for i in $vars; do
 	# check for existence, be strict because it is installed
 	if test ! -f "${srcdir}/$i" ; then
