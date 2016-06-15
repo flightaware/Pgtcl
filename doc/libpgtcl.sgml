@@ -1283,6 +1283,18 @@ pg_result <parameter>resultHandle</parameter> <parameter>resultOption</parameter
        </varlistentry>
 
        <varlistentry>
+        <term><option>-foreach <parameter>arrayName</> <parameter>tclCode</></option></term>
+        <listitem>
+         <para>
+          Iterates through each row of the result, filling
+          <parameter>arrayName</parameter> with the columns and their values and
+		  executing <parameter>tclCode</parameter> for each row in turn.
+          Null columns will be not be present in the array.
+         </para>
+        </listitem>
+       </varlistentry>
+
+       <varlistentry>
         <term><option>-conn</option></term>
         <listitem>
          <para>
@@ -1489,7 +1501,7 @@ pg_result <parameter>resultHandle</parameter> <parameter>resultOption</parameter
 
  <refsynopsisdiv>
 <synopsis>
-pg_select <parameter>conn</parameter> <parameter>commandString</parameter> <parameter>arrayVar</parameter> <parameter>procedure</parameter>
+pg_select <optional role="tcl"><parameter>-nodotfields</parameter></optional> <optional role="tcl"><parameter>-withoutnulls</parameter></optional> <parameter>conn</parameter> <parameter>commandString</parameter> <parameter>arrayVar</parameter> <parameter>procedure</parameter>
 </synopsis>
  </refsynopsisdiv>
 
@@ -1548,6 +1560,26 @@ pg_select <parameter>conn</parameter> <parameter>commandString</parameter> <para
 
  <refsect1>
   <title>Arguments</title>
+
+  <variablelist>
+   <varlistentry>
+    <term><option>-nodotfields</option></term>
+    <listitem>
+     <para>
+	  If specified inhibits the creation of the special entries described above.
+     </para>
+    </listitem>
+   </varlistentry>
+
+  <variablelist>
+   <varlistentry>
+    <term><option>-withoutnulls</option></term>
+    <listitem>
+     <para>
+	  If specified null columns will be unset from the array rather than being defined and containing the null string, typically an empty string.
+     </para>
+    </listitem>
+   </varlistentry>
 
   <variablelist>
    <varlistentry>

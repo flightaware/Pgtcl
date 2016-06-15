@@ -19,7 +19,7 @@ dnl	to configure the system for the local environment.
 # so you can encode the package version directly into the source files.
 #-----------------------------------------------------------------------
 
-AC_INIT([pgtcl], [1.9])
+AC_INIT([pgtcl], [2.0])
 
 #--------------------------------------------------------------------
 # Call TEA_INIT as the first TEA_ macro to set up initial vars.
@@ -115,7 +115,7 @@ fi
 
 SAVE_LIBS=$LIBS
 LIBS="$PG_LIBS $LIBS $TCL_LIB_SPEC"
-AC_CHECK_FUNCS(Tcl_NewDictObj PQexecParams PQexecPrepared PQsendQueryParams PQsendQueryPrepared PQserverVersion lo_truncate PQsetSingleRowMode)
+AC_CHECK_FUNCS(PQsetSingleRowMode)
 LIBS=$SAVE_LIBS
 
 
