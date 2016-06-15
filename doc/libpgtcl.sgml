@@ -336,7 +336,7 @@ load libpgtcl[info sharedlibextension]
  <refsynopsisdiv>
 <synopsis>
 pg_connect -conninfo <parameter>connectOptions</parameter> <optional role="tcl">-connhandle <parameter>connectionHandleName</parameter></optional>
-pg_connect <parameter>dbName</parameter> <optional role="tcl">-host <parameter>hostName</parameter></optional> <optional role="tcl">-port <parameter>portNumber</parameter></optional> <optional role="tcl">-tty <parameter>tty</parameter</optional> <optional role="tcl">-options <parameter>serverOptions</parameter></optional> <optional role="tcl">-connhandle <parameter>connectionHandleName</parameter></optional>
+pg_connect <parameter>dbName</parameter> <optional role="tcl">-host <parameter>hostName</parameter></optional> <optional role="tcl">-port <parameter>portNumber</parameter></optional> <optional role="tcl">-tty <parameter>tty</parameter></optional> <optional role="tcl">-options <parameter>serverOptions</parameter></optional> <optional role="tcl">-connhandle <parameter>connectionHandleName</parameter></optional>
 pg_connect -connlist <parameter>connectNameValueList</parameter> <optional role="tcl">-connhandle <parameter>connectionHandleName</parameter></optional>
 </synopsis>
  </refsynopsisdiv>
@@ -687,12 +687,13 @@ array set conninfo {
     user    postgres
 }
 set conn [pg::connect -connlist [array get ::conninfo]]
-<programlisting>
+</programlisting>
 
 
 	 </para>
 	 </listitem>
 	</varlistentry>
+   </variablelist>
  </refsect1>
 
  <refsect1>
@@ -1277,7 +1278,9 @@ pg_result <parameter>resultHandle</parameter> <parameter>resultOption</parameter
 	    </listitem>
 	   </varlistentry>
 
-        </variablelist>
+         </variablelist>
+	</listitem>
+       </varlistentry>
 
        <varlistentry>
         <term><option>-conn</option></term>

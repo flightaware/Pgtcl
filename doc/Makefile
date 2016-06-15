@@ -23,6 +23,7 @@ all:	libpgtcl.pdf
 
 dohtml:	$(SGMLSOURCE)
 	-rm html/*.html
+	-rmdir html
 	-openjade -V draft-mode -wall -wno-unused-param -wno-empty -D . -c $(DOCBOOKDIR) -d $(STYLESHEET) -i output-html -t sgml $(SGMLSOURCE)
 	-mkdir html
 	mv *.html html
