@@ -4417,7 +4417,6 @@ Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
     int             i=3;
     int             count=0, countbin=0, optIndex;
     int             params=0,binparams=0,binresults=0,callback=0,async=0,prepared=0;
-	int			status;
     unsigned char   flags = 0;
 
     static CONST84 char *cmdargs = "";
