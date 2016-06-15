@@ -2702,6 +2702,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 			return TCL_ERROR;
 		}
 
+		// Save the list of column names.
 		if (firstPass)
 		{
 			ncols = PQnfields(result);
@@ -2726,12 +2727,6 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 			columnListObj = Tcl_NewListObj(ncols, columnNameObjs);
 			Tcl_IncrRefCount (columnListObj);
 
-			if (!noDotFields && Tcl_SetVar2Ex(interp, varNameString, ".headers", 
-							  columnListObj, TCL_LEAVE_ERR_MSG) == NULL) goto done;
-
-			if (!noDotFields && Tcl_SetVar2Ex(interp, varNameString, ".numcols", 
-							  Tcl_NewIntObj(ncols), TCL_LEAVE_ERR_MSG) == NULL) goto done;
-
 			firstPass = 0;
 		}
 
@@ -2739,13 +2734,26 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 		for (tupno = 0; tupno < PQntuples(result); tupno++)
 		{
-			if (!noDotFields && Tcl_SetVar2Ex(interp, varNameString, ".tupno", 
-				Tcl_NewIntObj(tupno), TCL_LEAVE_ERR_MSG) == NULL)
+			// Clear array before filling it in. Ignore failure because it's
+			// OK for the array not to exist at this point.
+			Tcl_UnsetVar2(interp, varNameString, NULL, 0);
+
+			// Set the dot fields in the array.
+			if (!noDotFields)
 			{
-				retval = TCL_ERROR;
-				goto done;
+				if (Tcl_SetVar2Ex(interp, varNameString, ".headers",
+						  columnListObj, TCL_LEAVE_ERR_MSG) == NULL ||
+				    Tcl_SetVar2Ex(interp, varNameString, ".numcols",
+						  Tcl_NewIntObj(ncols), TCL_LEAVE_ERR_MSG) == NULL ||
+				    Tcl_SetVar2Ex(interp, varNameString, ".tupno",
+						  Tcl_NewIntObj(tupno), TCL_LEAVE_ERR_MSG) == NULL)
+				{
+					retval = TCL_ERROR;
+					goto done;
+				}
 			}
 
+			// Set all of the column values for this row.
 			for (column = 0; column < ncols; column++)
 			{
 				Tcl_Obj    *valueObj = NULL;
@@ -2777,6 +2785,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				}
 			}
 
+			// Run the code body.
 			r = Tcl_EvalObjEx(interp, procStringObj, 0);
 			if ((r != TCL_OK) && (r != TCL_CONTINUE))
 			{
