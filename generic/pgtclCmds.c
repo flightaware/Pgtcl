@@ -498,16 +498,10 @@ Pg_connect(ClientData cData, Tcl_Interp *interp, int objc,
             }
             case OPT_ASYNC:
             {
-                /*
-                 *  Hummm, since we make the arg a string
-                 *  at the very beginning, we have to deal
-                 *  with that, in regards to finding the
-                 *  boolean value for the -async flag
-                 */
-                 if (strcmp(nextArg, "1") == 0)
-                 {
-                     async = 1;
-                 }
+				 if (Tcl_GetBooleanFromObj(interp, objv[i + 1], &async) == TCL_ERROR) {
+					Tcl_AddErrorInfo (interp, " while converting -async argument");
+					return TCL_ERROR;
+				 }
                 i += 2;
                 skip = 1;
             }

@@ -1,4 +1,3 @@
-$Id$
 
 libpgtcl.sgml is in docbook 4.2 format, and started out as the documentation 
 from the PostgreSQL package when Pgtcl was part of the Postgres core.  
@@ -17,6 +16,6 @@ and (re)populate it with html files documenting libpgtcl.
 If you're using FreeBSD, it's pretty easy.
 
 There are some good hints on everything you need and how to get it built
-and installed at http://www.postgresql.org/docs/8.3/static/docguide.html
+and installed at https://www.postgresql.org/docs/current/static/docguide.html
 
 
