@@ -1571,7 +1571,7 @@ pg_select <optional>-nodotfields</optional> <optional>-withoutnulls</optional> <
    </varlistentry>
 
    <varlistentry>
-    <term><optional>conn</optional></term>
+    <term><parameter>conn</parameter></term>
     <listitem>
      <para>
       The handle of the connection on which to execute the query.
