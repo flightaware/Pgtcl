@@ -28,9 +28,8 @@ all:	html
 html:	$(SGMLSOURCE)
 	-rm html/*.html
 	-rmdir html
-	-openjade -V draft-mode -wall -wno-unused-param -wno-empty -D . -c $(DOCBOOKDIR) -d $(STYLESHEET) -i output-html -t sgml $(SGMLSOURCE)
 	-mkdir html
-	mv *.html html
+	cd html && openjade -V draft-mode -wall -wno-unused-param -wno-empty -D .. -c $(DOCBOOKDIR) -d $(STYLESHEET) -i output-html -t sgml $(SGMLSOURCE)
 
 libpgtcl.pdf:	$(SGMLSOURCE)
 	openjade -V draft-mode -D . -c $(DOCBOOKDIR) -d $(STYLESHEET) -t tex -V tex-backend -i output-print -V texpdf-output -o libpgtcl.tex-pdf $(SGMLSOURCE)
