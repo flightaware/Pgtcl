@@ -2665,31 +2665,41 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		return TCL_ERROR;
 
 	connid->sql_count++;
-	if (PQsendQuery(conn, queryString) == 0)
-	{
-		/* error occurred sending the query */
-		Tcl_SetResult(interp, PQerrorMessage(conn), TCL_VOLATILE);
-		return TCL_ERROR;
-	}
-
 	if (rowByRow)
 	{
-		if (PQsetSingleRowMode (conn) == 0)
+		// Make the call
+		if (PQsendQuery(conn, queryString) == 0)
 		{
-			// error enabling single-row mode, so just use normal mode.
-			rowByRow = 0;
+			/* error occurred sending the query */
+			Tcl_SetResult(interp, PQerrorMessage(conn), TCL_VOLATILE);
+			return TCL_ERROR;
+		}
+
+		// It doesn't matter if this fails, the logic for handling the results is the same, we'll
+		// just have a big wait before the first result comes out.
+		PQsetSingleRowMode (conn);
+
+		// Queue up the result.
+		result = PQgetResult (conn);
+	} else {
+		// Make the call AND queue up the result.
+		if ((result = PQexec(conn, queryString)) == 0)
+		{
+			/* error occurred sending the query */
+			Tcl_SetResult(interp, PQerrorMessage(conn), TCL_VOLATILE);
+			return TCL_ERROR;
 		}
 	}
 
 	/* Transfer any notify events from libpq to Tcl event queue. */
 	// PgNotifyTransferEvents(connid);
 
-	while ((result = PQgetResult (conn)) != NULL)
+	while (result != NULL)
 	{
 		int resultStatus = PQresultStatus(result);
 
-		if ((!rowByRow && resultStatus != PGRES_TUPLES_OK)
-			|| (rowByRow && !(resultStatus == PGRES_SINGLE_TUPLE || resultStatus == PGRES_TUPLES_OK)))
+		// Don't care if it's row-by-row or not, these are the only good result statuses either way.
+		if (resultStatus != PGRES_TUPLES_OK && resultStatus != PGRES_SINGLE_TUPLE)
 		{
 			/* query failed, or it wasn't SELECT */
 			/* NB FIX there isn't necessarily an error here,
@@ -2702,7 +2712,8 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 			}
 
 			Tcl_SetResult(interp, errString, TCL_VOLATILE);
-			PQclear(result);
+			if(rowByRow)
+				PQclear(result);
 			retval = TCL_ERROR;
 			goto done;
 		}
@@ -2722,7 +2733,8 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 					sprintf(msg, "PQfname() returned NULL for column %d, ncols %d",
 								column, ncols);
 					Tcl_SetResult(interp, msg, TCL_VOLATILE);
-					PQclear(result);
+					if(rowByRow)
+						PQclear(result);
 					retval = TCL_ERROR;
 					goto done;
 				} else {
@@ -2754,7 +2766,8 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				    Tcl_SetVar2Ex(interp, varNameString, ".tupno",
 						  Tcl_NewIntObj(tupno), TCL_LEAVE_ERR_MSG) == NULL)
 				{
-					PQclear(result);
+					if(rowByRow)
+						PQclear(result);
 					retval = TCL_ERROR;
 					goto done;
 				}
@@ -2787,7 +2800,8 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				if (Tcl_ObjSetVar2(interp, varNameObj, columnNameObjs[column],
 							   valueObj, TCL_LEAVE_ERR_MSG) == NULL)
 				{
-					PQclear(result);
+					if(rowByRow)
+						PQclear(result);
 					retval = TCL_ERROR;
 					goto done;
 				}
@@ -2799,7 +2813,8 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 			{
 				if (r == TCL_BREAK)
 				{
-					PQclear(result);
+					if(rowByRow)
+						PQclear(result);
 					goto done;			/* exit loop, but return TCL_OK */
 				}
 
@@ -2813,18 +2828,24 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				}
 
 				retval = r;
-				PQclear(result);
+				if(rowByRow)
+					PQclear(result);
 				goto done;
 			}
 		}
-		PQclear(result);
+		if(rowByRow) {
+			PQclear(result);
+			result = PQgetResult (conn);
+		}
 	}
 
 	done:
-	/* drain output */
-	while ((result = PQgetResult (conn)) != NULL)
-	{
-		PQclear(result);
+	if(rowByRow) {
+		/* drain output */
+		while ((result = PQgetResult (conn)) != NULL)
+		{
+			PQclear(result);
+		}
 	}
 	if (columnListObj != NULL)
 	{
