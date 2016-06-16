@@ -1,188 +1,57 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<HTML
-><HEAD
-><TITLE
->Connection/result handles as commands</TITLE
-><META
-NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
-REV="MADE"
-HREF="mailto:pgsql-docs@postgresql.org"><LINK
-REL="HOME"
-TITLE="PostgreSQL Tcl Interface Documentation"
-HREF="index.html"><LINK
-REL="UP"
-TITLE="pgtcl - Tcl Binding Library"
-HREF="libpgtcl.html"><LINK
-REL="PREVIOUS"
-TITLE="Tcl Namespace Support"
-HREF="pgtcl-tclnamespace.html"><LINK
-REL="NEXT"
-TITLE="Example Program"
-HREF="pgtcl-examplesect.html"><LINK
-REL="STYLESHEET"
-TYPE="text/css"
-HREF="stylesheet.css"><META
-NAME="creation"
-CONTENT="2016-06-16T17:50:48"></HEAD
-><BODY
-CLASS="SECT1"
-><DIV
-CLASS="NAVHEADER"
-><TABLE
-SUMMARY="Header navigation table"
-WIDTH="100%"
-BORDER="0"
-CELLPADDING="0"
-CELLSPACING="0"
-><TR
-><TH
-COLSPAN="5"
-ALIGN="center"
-VALIGN="bottom"
->PostgreSQL Tcl Interface Documentation</TH
-></TR
-><TR
-><TD
-WIDTH="10%"
-ALIGN="left"
-VALIGN="top"
-><A
-HREF="pgtcl-tclnamespace.html"
-ACCESSKEY="P"
->Prev</A
-></TD
-><TD
-WIDTH="10%"
-ALIGN="left"
-VALIGN="top"
-><A
-HREF="libpgtcl.html"
->Fast Backward</A
-></TD
-><TD
-WIDTH="60%"
-ALIGN="center"
-VALIGN="bottom"
->Chapter 1. <SPAN
-CLASS="APPLICATION"
->pgtcl</SPAN
-> - Tcl Binding Library</TD
-><TD
-WIDTH="10%"
-ALIGN="right"
-VALIGN="top"
-><A
-HREF="libpgtcl.html"
->Fast Forward</A
-></TD
-><TD
-WIDTH="10%"
-ALIGN="right"
-VALIGN="top"
-><A
-HREF="pgtcl-examplesect.html"
-ACCESSKEY="N"
->Next</A
-></TD
-></TR
-></TABLE
-><HR
-ALIGN="LEFT"
-WIDTH="100%"></DIV
-><DIV
-CLASS="SECT1"
-><H1
-CLASS="SECT1"
-><A
-NAME="PGTCL-COMMANDHANDLES"
->1.5. Connection/result handles as commands</A
-></H1
-><P
->Starting with version 1.5, you can use the connection/result handle as a Tcl command. What this means is that when a handle for a connection or result is generated, a corresponding Tcl command is also generate. For example, you can do the following:
-
-</P><PRE
-CLASS="PROGRAMLISTING"
->set conn [pg::connect template1 -host $host -port $port]
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="HTML Tidy for HTML5 for FreeBSD version 5.2.0">
+<title>Connection/result handles as commands</title>
+<meta name="GENERATOR" content="Modular DocBook HTML Stylesheet Version 1.79">
+<link rev="MADE" href="mailto:pgsql-docs@postgresql.org">
+<link rel="HOME" title="PostgreSQL Tcl Interface Documentation" href="index.html">
+<link rel="UP" title="pgtcl - Tcl Binding Library" href="libpgtcl.html">
+<link rel="PREVIOUS" title="Tcl Namespace Support" href="pgtcl-tclnamespace.html">
+<link rel="NEXT" title="Example Program" href="pgtcl-examplesect.html">
+<link rel="STYLESHEET" type="text/css" href="stylesheet.css">
+<meta name="creation" content="2016-06-16T22:26:55">
+</head>
+<body class="SECT1">
+<div class="NAVHEADER">
+<table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<th colspan="5" align="center" valign="bottom">PostgreSQL Tcl Interface Documentation</th>
+</tr>
+<tr>
+<td width="10%" align="left" valign="top"><a href="pgtcl-tclnamespace.html" accesskey="P">Prev</a></td>
+<td width="10%" align="left" valign="top"><a href="libpgtcl.html">Fast Backward</a></td>
+<td width="60%" align="center" valign="bottom">Chapter 1. <span class="APPLICATION">pgtcl</span> - Tcl Binding Library</td>
+<td width="10%" align="right" valign="top"><a href="libpgtcl.html">Fast Forward</a></td>
+<td width="10%" align="right" valign="top"><a href="pgtcl-examplesect.html" accesskey="N">Next</a></td>
+</tr>
+</table>
+<hr align="left" width="100%"></div>
+<div class="SECT1">
+<h1 class="SECT1"><a name="PGTCL-COMMANDHANDLES" id="PGTCL-COMMANDHANDLES">1.5. Connection/result handles as commands</a></h1>
+<p>Starting with version 1.5, you can use the connection/result handle as a Tcl command. What this means is that when a handle for a connection or result is generated, a corresponding Tcl command is also generate. For example, you can do the following:</p>
+<pre class="PROGRAMLISTING">set conn [pg::connect template1 -host $host -port $port]
 set res [$conn exec "SELECT datname FROM pg_database ORDER BY datname;"]
 set datnames [$res -list]
 $res -clear
-rename $conn {} ;# or $conn disconnect</PRE
-><P>
-
-Note that deleting the command (<TT
-CLASS="COMMAND"
->rename $conn {}</TT
->), has the same effect as <TT
-CLASS="COMMAND"
->pg::result $res -clear</TT
-> (if it is a result handle), and <TT
-CLASS="COMMAND"
->pg::disconnect</TT
-> (if it is a connection handle). Also, if that command gets overloaded with a proc definition, then that has the same effect as deleting the command. &#13;</P
-></DIV
-><DIV
-CLASS="NAVFOOTER"
-><HR
-ALIGN="LEFT"
-WIDTH="100%"><TABLE
-SUMMARY="Footer navigation table"
-WIDTH="100%"
-BORDER="0"
-CELLPADDING="0"
-CELLSPACING="0"
-><TR
-><TD
-WIDTH="33%"
-ALIGN="left"
-VALIGN="top"
-><A
-HREF="pgtcl-tclnamespace.html"
-ACCESSKEY="P"
->Prev</A
-></TD
-><TD
-WIDTH="34%"
-ALIGN="center"
-VALIGN="top"
-><A
-HREF="index.html"
-ACCESSKEY="H"
->Home</A
-></TD
-><TD
-WIDTH="33%"
-ALIGN="right"
-VALIGN="top"
-><A
-HREF="pgtcl-examplesect.html"
-ACCESSKEY="N"
->Next</A
-></TD
-></TR
-><TR
-><TD
-WIDTH="33%"
-ALIGN="left"
-VALIGN="top"
->Tcl Namespace Support</TD
-><TD
-WIDTH="34%"
-ALIGN="center"
-VALIGN="top"
-><A
-HREF="libpgtcl.html"
-ACCESSKEY="U"
->Up</A
-></TD
-><TD
-WIDTH="33%"
-ALIGN="right"
-VALIGN="top"
->Example Program</TD
-></TR
-></TABLE
-></DIV
-></BODY
-></HTML
->
+rename $conn {} ;# or $conn disconnect</pre>
+<p>Note that deleting the command (<tt class="COMMAND">rename $conn {}</tt>), has the same effect as <tt class="COMMAND">pg::result $res -clear</tt> (if it is a result handle), and <tt class="COMMAND">pg::disconnect</tt> (if it is a connection handle). Also, if that command gets overloaded with a proc definition, then that has the same effect as deleting the command.</p>
+</div>
+<div class="NAVFOOTER">
+<hr align="left" width="100%">
+<table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td width="33%" align="left" valign="top"><a href="pgtcl-tclnamespace.html" accesskey="P">Prev</a></td>
+<td width="34%" align="center" valign="top"><a href="index.html" accesskey="H">Home</a></td>
+<td width="33%" align="right" valign="top"><a href="pgtcl-examplesect.html" accesskey="N">Next</a></td>
+</tr>
+<tr>
+<td width="33%" align="left" valign="top">Tcl Namespace Support</td>
+<td width="34%" align="center" valign="top"><a href="libpgtcl.html" accesskey="U">Up</a></td>
+<td width="33%" align="right" valign="top">Example Program</td>
+</tr>
+</table>
+</div>
+</body>
+</html>

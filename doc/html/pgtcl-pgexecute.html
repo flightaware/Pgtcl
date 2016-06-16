@@ -1,496 +1,107 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<HTML
-><HEAD
-><TITLE
->pg_execute</TITLE
-><META
-NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
-REV="MADE"
-HREF="mailto:pgsql-docs@postgresql.org"><LINK
-REL="HOME"
-TITLE="PostgreSQL Tcl Interface Documentation"
-HREF="index.html"><LINK
-REL="UP"
-TITLE="pgtcl Command Reference"
-HREF="libpgtcl-ref.html"><LINK
-REL="PREVIOUS"
-TITLE="pg_select"
-HREF="pgtcl-pgselect.html"><LINK
-REL="NEXT"
-TITLE="pg_listen"
-HREF="pgtcl-pglisten.html"><LINK
-REL="STYLESHEET"
-TYPE="text/css"
-HREF="stylesheet.css"><META
-NAME="creation"
-CONTENT="2016-06-16T17:50:48"></HEAD
-><BODY
-CLASS="REFENTRY"
-><DIV
-CLASS="NAVHEADER"
-><TABLE
-SUMMARY="Header navigation table"
-WIDTH="100%"
-BORDER="0"
-CELLPADDING="0"
-CELLSPACING="0"
-><TR
-><TH
-COLSPAN="5"
-ALIGN="center"
-VALIGN="bottom"
->PostgreSQL Tcl Interface Documentation</TH
-></TR
-><TR
-><TD
-WIDTH="10%"
-ALIGN="left"
-VALIGN="top"
-><A
-HREF="pgtcl-pgselect.html"
-ACCESSKEY="P"
->Prev</A
-></TD
-><TD
-WIDTH="10%"
-ALIGN="left"
-VALIGN="top"
-><A
-HREF="pgtcl-pgselect.html"
->Fast Backward</A
-></TD
-><TD
-WIDTH="60%"
-ALIGN="center"
-VALIGN="bottom"
-></TD
-><TD
-WIDTH="10%"
-ALIGN="right"
-VALIGN="top"
-><A
-HREF="pgtcl-pglisten.html"
->Fast Forward</A
-></TD
-><TD
-WIDTH="10%"
-ALIGN="right"
-VALIGN="top"
-><A
-HREF="pgtcl-pglisten.html"
-ACCESSKEY="N"
->Next</A
-></TD
-></TR
-></TABLE
-><HR
-ALIGN="LEFT"
-WIDTH="100%"></DIV
-><H1
-><A
-NAME="PGTCL-PGEXECUTE"
-></A
->pg_execute</H1
-><DIV
-CLASS="REFNAMEDIV"
-><A
-NAME="AEN1100"
-></A
-><H2
->Name</H2
->pg_execute&nbsp;--&nbsp;send a query and optionally loop over the results<A
-NAME="IX-PGTCL-PGEXECUTE-2"
-></A
-></DIV
-><DIV
-CLASS="REFSYNOPSISDIV"
-><A
-NAME="AEN1105"
-></A
-><H2
->Synopsis</H2
-><PRE
-CLASS="SYNOPSIS"
->pg_execute ?<SPAN
-CLASS="OPTIONAL"
->-array <CODE
-CLASS="PARAMETER"
->arrayVar</CODE
-></SPAN
->? ?<SPAN
-CLASS="OPTIONAL"
->-oid <CODE
-CLASS="PARAMETER"
->oidVar</CODE
-></SPAN
->? <CODE
-CLASS="PARAMETER"
->conn</CODE
-> <CODE
-CLASS="PARAMETER"
->commandString</CODE
-> ?<SPAN
-CLASS="OPTIONAL"
-><CODE
-CLASS="PARAMETER"
->procedure</CODE
-></SPAN
->?</PRE
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN1115"
-></A
-><H2
->Description</H2
-><P
->   <CODE
-CLASS="FUNCTION"
->pg_execute</CODE
-> submits a command to the
-   <SPAN
-CLASS="PRODUCTNAME"
->PostgreSQL</SPAN
-> server.
-  </P
-><P
->   If the command is not a <TT
-CLASS="COMMAND"
->SELECT</TT
-> statement, the
-   number of rows affected by the command is returned.  If the command
-   is an <TT
-CLASS="COMMAND"
->INSERT</TT
-> statement and a single row is
-   inserted, the OID of the inserted row is stored in the variable
-   <CODE
-CLASS="PARAMETER"
->oidVar</CODE
-> if the optional <CODE
-CLASS="PARAMETER"
->-oid</CODE
->
-   argument is supplied.
-  </P
-><P
->   If the command is a <TT
-CLASS="COMMAND"
->SELECT</TT
-> statement, then, for
-   each row in the result, the row values are stored in the
-   <CODE
-CLASS="PARAMETER"
->arrayVar</CODE
-> variable, if supplied, using the
-   column names as the array indices, else in variables named by the
-   column names, and then the optional
-   <CODE
-CLASS="PARAMETER"
->procedure</CODE
-> is executed if supplied.
-   (Omitting the <CODE
-CLASS="PARAMETER"
->procedure</CODE
-> probably makes sense
-   only if the query will return a single row.)  The number of rows
-   selected is returned.
-  </P
-><P
->   The <CODE
-CLASS="PARAMETER"
->procedure</CODE
-> can use the Tcl commands
-   <TT
-CLASS="LITERAL"
->break</TT
->, <TT
-CLASS="LITERAL"
->continue</TT
->, and
-   <TT
-CLASS="LITERAL"
->return</TT
-> with the expected behavior.  Note that if
-   the <CODE
-CLASS="PARAMETER"
->procedure</CODE
-> executes
-   <TT
-CLASS="LITERAL"
->return</TT
->, then <CODE
-CLASS="FUNCTION"
->pg_execute</CODE
->
-   does not return the number of affected rows.
-  </P
-><P
->   <CODE
-CLASS="FUNCTION"
->pg_execute</CODE
-> is a newer function which provides
-   a superset of the features of <CODE
-CLASS="FUNCTION"
->pg_select</CODE
-> and
-   can replace <CODE
-CLASS="FUNCTION"
->pg_exec</CODE
-> in many cases where access
-   to the result handle is not needed.
-  </P
-><P
->   For server-handled errors, <CODE
-CLASS="FUNCTION"
->pg_execute</CODE
-> will
-   throw a Tcl error and return a two-element list.  The first element
-   is an error code, such as <TT
-CLASS="LITERAL"
->PGRES_FATAL_ERROR</TT
->, and
-   the second element is the server error text.  For more serious
-   errors, such as failure to communicate with the server,
-   <CODE
-CLASS="FUNCTION"
->pg_execute</CODE
-> will throw a Tcl error and return
-   just the error message text.
-  </P
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN1146"
-></A
-><H2
->Arguments</H2
-><P
-></P
-><DIV
-CLASS="VARIABLELIST"
-><DL
-><DT
-><CODE
-CLASS="OPTION"
->-array <CODE
-CLASS="PARAMETER"
->arrayVar</CODE
-></CODE
-></DT
-><DD
-><P
->      Specifies the name of an array variable where result rows are
-      stored, indexed by the column names.  This is ignored if
-      <CODE
-CLASS="PARAMETER"
->commandString</CODE
-> is not a <TT
-CLASS="COMMAND"
->SELECT</TT
->
-      statement.
-     </P
-></DD
-><DT
-><CODE
-CLASS="OPTION"
->-oid <CODE
-CLASS="PARAMETER"
->oidVar</CODE
-></CODE
-></DT
-><DD
-><P
->      Specifies the name of a variable into which the OID from an
-      <TT
-CLASS="COMMAND"
->INSERT</TT
-> statement will be stored.
-     </P
-></DD
-><DT
-><CODE
-CLASS="PARAMETER"
->conn</CODE
-></DT
-><DD
-><P
->      The handle of the connection on which to execute the command.
-     </P
-></DD
-><DT
-><CODE
-CLASS="PARAMETER"
->commandString</CODE
-></DT
-><DD
-><P
->      The SQL command to execute.
-     </P
-></DD
-><DT
-><CODE
-CLASS="PARAMETER"
->procedure</CODE
-></DT
-><DD
-><P
->      Optional procedure to execute for each result row of a
-      <TT
-CLASS="COMMAND"
->SELECT</TT
-> statement.
-     </P
-></DD
-></DL
-></DIV
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN1180"
-></A
-><H2
->Return Value</H2
-><P
->   The number of rows affected or returned by the command.
-  </P
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN1183"
-></A
-><H2
->Examples</H2
-><P
->   In the following examples, error checking with
-   <TT
-CLASS="LITERAL"
->catch</TT
-> has been omitted for clarity.
-  </P
-><P
->   Insert a row and save the OID in <CODE
-CLASS="VARNAME"
->result_oid</CODE
->:
-</P><PRE
-CLASS="PROGRAMLISTING"
->pg_execute -oid result_oid $pgconn "INSERT INTO mytable VALUES (1);"</PRE
-><P>
-  </P
-><P
->   Print the columns <TT
-CLASS="LITERAL"
->item</TT
-> and <TT
-CLASS="LITERAL"
->value</TT
-> from each
-   row:
-</P><PRE
-CLASS="PROGRAMLISTING"
->pg_execute -array d $pgconn "SELECT item, value FROM mytable;" {
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="HTML Tidy for HTML5 for FreeBSD version 5.2.0">
+<title>pg_execute</title>
+<meta name="GENERATOR" content="Modular DocBook HTML Stylesheet Version 1.79">
+<link rev="MADE" href="mailto:pgsql-docs@postgresql.org">
+<link rel="HOME" title="PostgreSQL Tcl Interface Documentation" href="index.html">
+<link rel="UP" title="pgtcl Command Reference" href="libpgtcl-ref.html">
+<link rel="PREVIOUS" title="pg_select" href="pgtcl-pgselect.html">
+<link rel="NEXT" title="pg_listen" href="pgtcl-pglisten.html">
+<link rel="STYLESHEET" type="text/css" href="stylesheet.css">
+<meta name="creation" content="2016-06-16T22:26:55">
+</head>
+<body class="REFENTRY">
+<div class="NAVHEADER">
+<table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<th colspan="5" align="center" valign="bottom">PostgreSQL Tcl Interface Documentation</th>
+</tr>
+<tr>
+<td width="10%" align="left" valign="top"><a href="pgtcl-pgselect.html" accesskey="P">Prev</a></td>
+<td width="10%" align="left" valign="top"><a href="pgtcl-pgselect.html">Fast Backward</a></td>
+<td width="60%" align="center" valign="bottom"></td>
+<td width="10%" align="right" valign="top"><a href="pgtcl-pglisten.html">Fast Forward</a></td>
+<td width="10%" align="right" valign="top"><a href="pgtcl-pglisten.html" accesskey="N">Next</a></td>
+</tr>
+</table>
+<hr align="left" width="100%"></div>
+<h1><a name="PGTCL-PGEXECUTE" id="PGTCL-PGEXECUTE"></a>pg_execute</h1>
+<div class="REFNAMEDIV"><a name="AEN1105" id="AEN1105"></a>
+<h2>Name</h2>
+pg_execute&nbsp;--&nbsp;send a query and optionally loop over the results<a name="IX-PGTCL-PGEXECUTE-2" id="IX-PGTCL-PGEXECUTE-2"></a></div>
+<div class="REFSYNOPSISDIV"><a name="AEN1110" id="AEN1110"></a>
+<h2>Synopsis</h2>
+<pre class="SYNOPSIS">pg_execute ?<span class="OPTIONAL">-array <code class="PARAMETER">arrayVar</code></span>? ?<span class="OPTIONAL">-oid <code class="PARAMETER">oidVar</code></span>? <code class="PARAMETER">conn</code> <code class="PARAMETER">commandString</code> ?<span class="OPTIONAL"><code class="PARAMETER">procedure</code></span>?</pre></div>
+<div class="REFSECT1"><a name="AEN1120" id="AEN1120"></a>
+<h2>Description</h2>
+<p><code class="FUNCTION">pg_execute</code> submits a command to the <span class="PRODUCTNAME">PostgreSQL</span> server.</p>
+<p>If the command is not a <tt class="COMMAND">SELECT</tt> statement, the number of rows affected by the command is returned. If the command is an <tt class="COMMAND">INSERT</tt> statement and a single row is inserted, the OID of the inserted row is stored in the variable <code class="PARAMETER">oidVar</code> if the optional <code class="PARAMETER">-oid</code> argument is supplied.</p>
+<p>If the command is a <tt class="COMMAND">SELECT</tt> statement, then, for each row in the result, the row values are stored in the <code class="PARAMETER">arrayVar</code> variable, if supplied, using the column names as the array indices, else in variables named by the column names, and then the optional <code class="PARAMETER">procedure</code> is executed if supplied. (Omitting the <code class="PARAMETER">procedure</code> probably makes sense only if the query will return a single row.) The number of rows selected is returned.</p>
+<p>The <code class="PARAMETER">procedure</code> can use the Tcl commands <tt class="LITERAL">break</tt>, <tt class="LITERAL">continue</tt>, and <tt class="LITERAL">return</tt> with the expected behavior. Note that if the <code class="PARAMETER">procedure</code> executes <tt class="LITERAL">return</tt>, then <code class="FUNCTION">pg_execute</code> does not return the number of affected rows.</p>
+<p><code class="FUNCTION">pg_execute</code> is a newer function which provides a superset of the features of <code class="FUNCTION">pg_select</code> and can replace <code class="FUNCTION">pg_exec</code> in many cases where access to the result handle is not needed.</p>
+<p>For server-handled errors, <code class="FUNCTION">pg_execute</code> will throw a Tcl error and return a two-element list. The first element is an error code, such as <tt class="LITERAL">PGRES_FATAL_ERROR</tt>, and the second element is the server error text. For more serious errors, such as failure to communicate with the server, <code class="FUNCTION">pg_execute</code> will throw a Tcl error and return just the error message text.</p>
+</div>
+<div class="REFSECT1"><a name="AEN1151" id="AEN1151"></a>
+<h2>Arguments</h2>
+<div class="VARIABLELIST">
+<dl>
+<dt><code class="OPTION">-array <code class="PARAMETER">arrayVar</code></code></dt>
+<dd>
+<p>Specifies the name of an array variable where result rows are stored, indexed by the column names. This is ignored if <code class="PARAMETER">commandString</code> is not a <tt class="COMMAND">SELECT</tt> statement.</p>
+</dd>
+<dt><code class="OPTION">-oid <code class="PARAMETER">oidVar</code></code></dt>
+<dd>
+<p>Specifies the name of a variable into which the OID from an <tt class="COMMAND">INSERT</tt> statement will be stored.</p>
+</dd>
+<dt><code class="PARAMETER">conn</code></dt>
+<dd>
+<p>The handle of the connection on which to execute the command.</p>
+</dd>
+<dt><code class="PARAMETER">commandString</code></dt>
+<dd>
+<p>The SQL command to execute.</p>
+</dd>
+<dt><code class="PARAMETER">procedure</code></dt>
+<dd>
+<p>Optional procedure to execute for each result row of a <tt class="COMMAND">SELECT</tt> statement.</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="REFSECT1"><a name="AEN1185" id="AEN1185"></a>
+<h2>Return Value</h2>
+<p>The number of rows affected or returned by the command.</p>
+</div>
+<div class="REFSECT1"><a name="AEN1188" id="AEN1188"></a>
+<h2>Examples</h2>
+<p>In the following examples, error checking with <tt class="LITERAL">catch</tt> has been omitted for clarity.</p>
+<p>Insert a row and save the OID in <code class="VARNAME">result_oid</code>:</p>
+<pre class="PROGRAMLISTING">pg_execute -oid result_oid $pgconn "INSERT INTO mytable VALUES (1);"</pre>
+<p>Print the columns <tt class="LITERAL">item</tt> and <tt class="LITERAL">value</tt> from each row:</p>
+<pre class="PROGRAMLISTING">pg_execute -array d $pgconn "SELECT item, value FROM mytable;" {
     puts "Item=$d(item) Value=$d(value)"
-}</PRE
-><P>
-  </P
-><P
->   Find the maximum and minimum values and store them in
-   <TT
-CLASS="LITERAL"
->$s(max)</TT
-> and <TT
-CLASS="LITERAL"
->$s(min)</TT
->:
-</P><PRE
-CLASS="PROGRAMLISTING"
->pg_execute -array s $pgconn "SELECT max(value) AS max, min(value) AS min FROM mytable;"</PRE
-><P>
-  </P
-><P
->   Find the maximum and minimum values and store them in
-   <TT
-CLASS="LITERAL"
->$max</TT
-> and <TT
-CLASS="LITERAL"
->$min</TT
->:
-</P><PRE
-CLASS="PROGRAMLISTING"
->pg_execute $pgconn "SELECT max(value) AS max, min(value) AS min FROM mytable;"</PRE
-><P>
-  </P
-></DIV
-><DIV
-CLASS="NAVFOOTER"
-><HR
-ALIGN="LEFT"
-WIDTH="100%"><TABLE
-SUMMARY="Footer navigation table"
-WIDTH="100%"
-BORDER="0"
-CELLPADDING="0"
-CELLSPACING="0"
-><TR
-><TD
-WIDTH="33%"
-ALIGN="left"
-VALIGN="top"
-><A
-HREF="pgtcl-pgselect.html"
-ACCESSKEY="P"
->Prev</A
-></TD
-><TD
-WIDTH="34%"
-ALIGN="center"
-VALIGN="top"
-><A
-HREF="index.html"
-ACCESSKEY="H"
->Home</A
-></TD
-><TD
-WIDTH="33%"
-ALIGN="right"
-VALIGN="top"
-><A
-HREF="pgtcl-pglisten.html"
-ACCESSKEY="N"
->Next</A
-></TD
-></TR
-><TR
-><TD
-WIDTH="33%"
-ALIGN="left"
-VALIGN="top"
->pg_select</TD
-><TD
-WIDTH="34%"
-ALIGN="center"
-VALIGN="top"
-><A
-HREF="libpgtcl-ref.html"
-ACCESSKEY="U"
->Up</A
-></TD
-><TD
-WIDTH="33%"
-ALIGN="right"
-VALIGN="top"
->pg_listen</TD
-></TR
-></TABLE
-></DIV
-></BODY
-></HTML
->
+}</pre>
+<p>Find the maximum and minimum values and store them in <tt class="LITERAL">$s(max)</tt> and <tt class="LITERAL">$s(min)</tt>:</p>
+<pre class="PROGRAMLISTING">pg_execute -array s $pgconn "SELECT max(value) AS max, min(value) AS min FROM mytable;"</pre>
+<p>Find the maximum and minimum values and store them in <tt class="LITERAL">$max</tt> and <tt class="LITERAL">$min</tt>:</p>
+<pre class="PROGRAMLISTING">pg_execute $pgconn "SELECT max(value) AS max, min(value) AS min FROM mytable;"</pre></div>
+<div class="NAVFOOTER">
+<hr align="left" width="100%">
+<table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td width="33%" align="left" valign="top"><a href="pgtcl-pgselect.html" accesskey="P">Prev</a></td>
+<td width="34%" align="center" valign="top"><a href="index.html" accesskey="H">Home</a></td>
+<td width="33%" align="right" valign="top"><a href="pgtcl-pglisten.html" accesskey="N">Next</a></td>
+</tr>
+<tr>
+<td width="33%" align="left" valign="top">pg_select</td>
+<td width="34%" align="center" valign="top"><a href="libpgtcl-ref.html" accesskey="U">Up</a></td>
+<td width="33%" align="right" valign="top">pg_listen</td>
+</tr>
+</table>
+</div>
+</body>
+</html>

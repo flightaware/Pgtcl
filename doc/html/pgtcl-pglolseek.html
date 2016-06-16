@@ -1,298 +1,85 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<HTML
-><HEAD
-><TITLE
->pg_lo_lseek</TITLE
-><META
-NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
-REV="MADE"
-HREF="mailto:pgsql-docs@postgresql.org"><LINK
-REL="HOME"
-TITLE="PostgreSQL Tcl Interface Documentation"
-HREF="index.html"><LINK
-REL="UP"
-TITLE="pgtcl Command Reference"
-HREF="libpgtcl-ref.html"><LINK
-REL="PREVIOUS"
-TITLE="pg_lo_write"
-HREF="pgtcl-pglowrite.html"><LINK
-REL="NEXT"
-TITLE="pg_lo_tell"
-HREF="pgtcl-pglotell.html"><LINK
-REL="STYLESHEET"
-TYPE="text/css"
-HREF="stylesheet.css"><META
-NAME="creation"
-CONTENT="2016-06-16T17:50:48"></HEAD
-><BODY
-CLASS="REFENTRY"
-><DIV
-CLASS="NAVHEADER"
-><TABLE
-SUMMARY="Header navigation table"
-WIDTH="100%"
-BORDER="0"
-CELLPADDING="0"
-CELLSPACING="0"
-><TR
-><TH
-COLSPAN="5"
-ALIGN="center"
-VALIGN="bottom"
->PostgreSQL Tcl Interface Documentation</TH
-></TR
-><TR
-><TD
-WIDTH="10%"
-ALIGN="left"
-VALIGN="top"
-><A
-HREF="pgtcl-pglowrite.html"
-ACCESSKEY="P"
->Prev</A
-></TD
-><TD
-WIDTH="10%"
-ALIGN="left"
-VALIGN="top"
-><A
-HREF="pgtcl-pglowrite.html"
->Fast Backward</A
-></TD
-><TD
-WIDTH="60%"
-ALIGN="center"
-VALIGN="bottom"
-></TD
-><TD
-WIDTH="10%"
-ALIGN="right"
-VALIGN="top"
-><A
-HREF="pgtcl-pglotell.html"
->Fast Forward</A
-></TD
-><TD
-WIDTH="10%"
-ALIGN="right"
-VALIGN="top"
-><A
-HREF="pgtcl-pglotell.html"
-ACCESSKEY="N"
->Next</A
-></TD
-></TR
-></TABLE
-><HR
-ALIGN="LEFT"
-WIDTH="100%"></DIV
-><H1
-><A
-NAME="PGTCL-PGLOLSEEK"
-></A
->pg_lo_lseek</H1
-><DIV
-CLASS="REFNAMEDIV"
-><A
-NAME="AEN1871"
-></A
-><H2
->Name</H2
->pg_lo_lseek&nbsp;--&nbsp;seek to a position of a large object<A
-NAME="IX-PGTCL-PGLOLSEEK-2"
-></A
-></DIV
-><DIV
-CLASS="REFSYNOPSISDIV"
-><A
-NAME="AEN1876"
-></A
-><H2
->Synopsis</H2
-><PRE
-CLASS="SYNOPSIS"
->pg_lo_lseek <CODE
-CLASS="PARAMETER"
->conn</CODE
-> <CODE
-CLASS="PARAMETER"
->descriptor</CODE
-> <CODE
-CLASS="PARAMETER"
->offset</CODE
-> <CODE
-CLASS="PARAMETER"
->whence</CODE
-></PRE
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN1882"
-></A
-><H2
->Description</H2
-><P
->   <CODE
-CLASS="FUNCTION"
->pg_lo_lseek</CODE
-> moves the current read/write
-   position to <CODE
-CLASS="PARAMETER"
->offset</CODE
-> bytes from the position
-   specified by <CODE
-CLASS="PARAMETER"
->whence</CODE
->.
-  </P
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN1888"
-></A
-><H2
->Arguments</H2
-><P
-></P
-><DIV
-CLASS="VARIABLELIST"
-><DL
-><DT
-><CODE
-CLASS="PARAMETER"
->conn</CODE
-></DT
-><DD
-><P
->      The handle of a connection to the database in which the large object
-      exists.
-     </P
-></DD
-><DT
-><CODE
-CLASS="PARAMETER"
->descriptor</CODE
-></DT
-><DD
-><P
->      A descriptor for the large object from
-      <CODE
-CLASS="FUNCTION"
->pg_lo_open</CODE
->.
-     </P
-></DD
-><DT
-><CODE
-CLASS="PARAMETER"
->offset</CODE
-></DT
-><DD
-><P
->      The new seek position in bytes.
-     </P
-></DD
-><DT
-><CODE
-CLASS="PARAMETER"
->whence</CODE
-></DT
-><DD
-><P
->      Specified from where to calculate the new seek position:
-      <TT
-CLASS="LITERAL"
->SEEK_CUR</TT
-> (from current position),
-      <TT
-CLASS="LITERAL"
->SEEK_END</TT
-> (from end), or <TT
-CLASS="LITERAL"
->SEEK_SET</TT
-> (from
-      start).
-     </P
-></DD
-></DL
-></DIV
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN1915"
-></A
-><H2
->Return Value</H2
-><P
->   None
-  </P
-></DIV
-><DIV
-CLASS="NAVFOOTER"
-><HR
-ALIGN="LEFT"
-WIDTH="100%"><TABLE
-SUMMARY="Footer navigation table"
-WIDTH="100%"
-BORDER="0"
-CELLPADDING="0"
-CELLSPACING="0"
-><TR
-><TD
-WIDTH="33%"
-ALIGN="left"
-VALIGN="top"
-><A
-HREF="pgtcl-pglowrite.html"
-ACCESSKEY="P"
->Prev</A
-></TD
-><TD
-WIDTH="34%"
-ALIGN="center"
-VALIGN="top"
-><A
-HREF="index.html"
-ACCESSKEY="H"
->Home</A
-></TD
-><TD
-WIDTH="33%"
-ALIGN="right"
-VALIGN="top"
-><A
-HREF="pgtcl-pglotell.html"
-ACCESSKEY="N"
->Next</A
-></TD
-></TR
-><TR
-><TD
-WIDTH="33%"
-ALIGN="left"
-VALIGN="top"
->pg_lo_write</TD
-><TD
-WIDTH="34%"
-ALIGN="center"
-VALIGN="top"
-><A
-HREF="libpgtcl-ref.html"
-ACCESSKEY="U"
->Up</A
-></TD
-><TD
-WIDTH="33%"
-ALIGN="right"
-VALIGN="top"
->pg_lo_tell</TD
-></TR
-></TABLE
-></DIV
-></BODY
-></HTML
->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="HTML Tidy for HTML5 for FreeBSD version 5.2.0">
+<title>pg_lo_lseek</title>
+<meta name="GENERATOR" content="Modular DocBook HTML Stylesheet Version 1.79">
+<link rev="MADE" href="mailto:pgsql-docs@postgresql.org">
+<link rel="HOME" title="PostgreSQL Tcl Interface Documentation" href="index.html">
+<link rel="UP" title="pgtcl Command Reference" href="libpgtcl-ref.html">
+<link rel="PREVIOUS" title="pg_lo_write" href="pgtcl-pglowrite.html">
+<link rel="NEXT" title="pg_lo_tell" href="pgtcl-pglotell.html">
+<link rel="STYLESHEET" type="text/css" href="stylesheet.css">
+<meta name="creation" content="2016-06-16T22:26:55">
+</head>
+<body class="REFENTRY">
+<div class="NAVHEADER">
+<table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<th colspan="5" align="center" valign="bottom">PostgreSQL Tcl Interface Documentation</th>
+</tr>
+<tr>
+<td width="10%" align="left" valign="top"><a href="pgtcl-pglowrite.html" accesskey="P">Prev</a></td>
+<td width="10%" align="left" valign="top"><a href="pgtcl-pglowrite.html">Fast Backward</a></td>
+<td width="60%" align="center" valign="bottom"></td>
+<td width="10%" align="right" valign="top"><a href="pgtcl-pglotell.html">Fast Forward</a></td>
+<td width="10%" align="right" valign="top"><a href="pgtcl-pglotell.html" accesskey="N">Next</a></td>
+</tr>
+</table>
+<hr align="left" width="100%"></div>
+<h1><a name="PGTCL-PGLOLSEEK" id="PGTCL-PGLOLSEEK"></a>pg_lo_lseek</h1>
+<div class="REFNAMEDIV"><a name="AEN1876" id="AEN1876"></a>
+<h2>Name</h2>
+pg_lo_lseek&nbsp;--&nbsp;seek to a position of a large object<a name="IX-PGTCL-PGLOLSEEK-2" id="IX-PGTCL-PGLOLSEEK-2"></a></div>
+<div class="REFSYNOPSISDIV"><a name="AEN1881" id="AEN1881"></a>
+<h2>Synopsis</h2>
+<pre class="SYNOPSIS">pg_lo_lseek <code class="PARAMETER">conn</code> <code class="PARAMETER">descriptor</code> <code class="PARAMETER">offset</code> <code class="PARAMETER">whence</code></pre></div>
+<div class="REFSECT1"><a name="AEN1887" id="AEN1887"></a>
+<h2>Description</h2>
+<p><code class="FUNCTION">pg_lo_lseek</code> moves the current read/write position to <code class="PARAMETER">offset</code> bytes from the position specified by <code class="PARAMETER">whence</code>.</p>
+</div>
+<div class="REFSECT1"><a name="AEN1893" id="AEN1893"></a>
+<h2>Arguments</h2>
+<div class="VARIABLELIST">
+<dl>
+<dt><code class="PARAMETER">conn</code></dt>
+<dd>
+<p>The handle of a connection to the database in which the large object exists.</p>
+</dd>
+<dt><code class="PARAMETER">descriptor</code></dt>
+<dd>
+<p>A descriptor for the large object from <code class="FUNCTION">pg_lo_open</code>.</p>
+</dd>
+<dt><code class="PARAMETER">offset</code></dt>
+<dd>
+<p>The new seek position in bytes.</p>
+</dd>
+<dt><code class="PARAMETER">whence</code></dt>
+<dd>
+<p>Specified from where to calculate the new seek position: <tt class="LITERAL">SEEK_CUR</tt> (from current position), <tt class="LITERAL">SEEK_END</tt> (from end), or <tt class="LITERAL">SEEK_SET</tt> (from start).</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="REFSECT1"><a name="AEN1920" id="AEN1920"></a>
+<h2>Return Value</h2>
+<p>None</p>
+</div>
+<div class="NAVFOOTER">
+<hr align="left" width="100%">
+<table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td width="33%" align="left" valign="top"><a href="pgtcl-pglowrite.html" accesskey="P">Prev</a></td>
+<td width="34%" align="center" valign="top"><a href="index.html" accesskey="H">Home</a></td>
+<td width="33%" align="right" valign="top"><a href="pgtcl-pglotell.html" accesskey="N">Next</a></td>
+</tr>
+<tr>
+<td width="33%" align="left" valign="top">pg_lo_write</td>
+<td width="34%" align="center" valign="top"><a href="libpgtcl-ref.html" accesskey="U">Up</a></td>
+<td width="33%" align="right" valign="top">pg_lo_tell</td>
+</tr>
+</table>
+</div>
+</body>
+</html>

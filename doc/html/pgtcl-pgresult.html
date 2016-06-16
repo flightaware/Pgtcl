@@ -1,810 +1,222 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<HTML
-><HEAD
-><TITLE
->pg_result</TITLE
-><META
-NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
-REV="MADE"
-HREF="mailto:pgsql-docs@postgresql.org"><LINK
-REL="HOME"
-TITLE="PostgreSQL Tcl Interface Documentation"
-HREF="index.html"><LINK
-REL="UP"
-TITLE="pgtcl Command Reference"
-HREF="libpgtcl-ref.html"><LINK
-REL="PREVIOUS"
-TITLE="pg_exec_prepared"
-HREF="pgtcl-pgexecprepared.html"><LINK
-REL="NEXT"
-TITLE="pg_select"
-HREF="pgtcl-pgselect.html"><LINK
-REL="STYLESHEET"
-TYPE="text/css"
-HREF="stylesheet.css"><META
-NAME="creation"
-CONTENT="2016-06-16T17:50:48"></HEAD
-><BODY
-CLASS="REFENTRY"
-><DIV
-CLASS="NAVHEADER"
-><TABLE
-SUMMARY="Header navigation table"
-WIDTH="100%"
-BORDER="0"
-CELLPADDING="0"
-CELLSPACING="0"
-><TR
-><TH
-COLSPAN="5"
-ALIGN="center"
-VALIGN="bottom"
->PostgreSQL Tcl Interface Documentation</TH
-></TR
-><TR
-><TD
-WIDTH="10%"
-ALIGN="left"
-VALIGN="top"
-><A
-HREF="pgtcl-pgexecprepared.html"
-ACCESSKEY="P"
->Prev</A
-></TD
-><TD
-WIDTH="10%"
-ALIGN="left"
-VALIGN="top"
-><A
-HREF="pgtcl-pgexecprepared.html"
->Fast Backward</A
-></TD
-><TD
-WIDTH="60%"
-ALIGN="center"
-VALIGN="bottom"
-></TD
-><TD
-WIDTH="10%"
-ALIGN="right"
-VALIGN="top"
-><A
-HREF="pgtcl-pgselect.html"
->Fast Forward</A
-></TD
-><TD
-WIDTH="10%"
-ALIGN="right"
-VALIGN="top"
-><A
-HREF="pgtcl-pgselect.html"
-ACCESSKEY="N"
->Next</A
-></TD
-></TR
-></TABLE
-><HR
-ALIGN="LEFT"
-WIDTH="100%"></DIV
-><H1
-><A
-NAME="PGTCL-PGRESULT"
-></A
->pg_result</H1
-><DIV
-CLASS="REFNAMEDIV"
-><A
-NAME="AEN748"
-></A
-><H2
->Name</H2
->pg_result&nbsp;--&nbsp;get information about a command result<A
-NAME="IX-PGTCL-PGRESULT-2"
-></A
-></DIV
-><DIV
-CLASS="REFSYNOPSISDIV"
-><A
-NAME="AEN753"
-></A
-><H2
->Synopsis</H2
-><PRE
-CLASS="SYNOPSIS"
->pg_result <CODE
-CLASS="PARAMETER"
->resultHandle</CODE
-> <CODE
-CLASS="PARAMETER"
->resultOption</CODE
-></PRE
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN757"
-></A
-><H2
->Description</H2
-><P
->   <CODE
-CLASS="FUNCTION"
->pg_result</CODE
-> returns information about a command
-   result created by a prior <CODE
-CLASS="FUNCTION"
->pg_exec</CODE
->.
-  </P
-><P
->   You can keep a command result around for as long as you need it,
-   but when you are done with it, be sure to free it by executing
-   <CODE
-CLASS="FUNCTION"
->pg_result -clear</CODE
->.  Otherwise, you have a
-   memory leak, and <SPAN
-CLASS="APPLICATION"
->pgtcl</SPAN
-> will eventually start
-   complaining that you have created too many command result objects.
-  </P
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN765"
-></A
-><H2
->Arguments</H2
-><P
-></P
-><DIV
-CLASS="VARIABLELIST"
-><DL
-><DT
-><CODE
-CLASS="PARAMETER"
->resultHandle</CODE
-></DT
-><DD
-><P
->      The handle of the command result.
-     </P
-></DD
-><DT
-><CODE
-CLASS="PARAMETER"
->resultOption</CODE
-></DT
-><DD
-><P
->      One of the following options, specifying which piece of result
-      information to return:
-
-      <P
-></P
-></P><DIV
-CLASS="VARIABLELIST"
-><DL
-><DT
-><CODE
-CLASS="OPTION"
->-status</CODE
-></DT
-><DD
-><P
->          The status of the result.
-         </P
-></DD
-><DT
-><CODE
-CLASS="OPTION"
->-error</CODE
-> ?<SPAN
-CLASS="OPTIONAL"
-><CODE
-CLASS="PARAMETER"
->diagCode</CODE
-></SPAN
->?</DT
-><DD
-><P
->          The error message, if the status indicates an error,
-          otherwise an empty string.
-         </P
-><P
->	 <CODE
-CLASS="PARAMETER"
->diagCode</CODE
->, if specified, requests data
-	 for a specific diagnostic code:
-	 </P
-><P
-></P
-><DIV
-CLASS="VARIABLELIST"
-><DL
-><DT
-><CODE
-CLASS="OPTION"
->severity</CODE
-></DT
-><DD
-><P
->	      The severity; the field contents are <TT
-CLASS="LITERAL"
->ERROR</TT
->,
-	      <TT
-CLASS="LITERAL"
->FATAL</TT
->, or <TT
-CLASS="LITERAL"
->PANIC</TT
->, in
-	      an error message, or <TT
-CLASS="LITERAL"
->WARNING</TT
->,
-	      <TT
-CLASS="LITERAL"
->NOTICE</TT
->, <TT
-CLASS="LITERAL"
->DEBUG</TT
->,
-	      <TT
-CLASS="LITERAL"
->INFO</TT
->, or <TT
-CLASS="LITERAL"
->LOG</TT
->,
-	      in a notice message, or a localized translation of one of
-	      these.
-	     </P
-></DD
-><DT
-><CODE
-CLASS="OPTION"
->sqlstate</CODE
-></DT
-><DD
-><P
->	      The <TT
-CLASS="LITERAL"
->SQLSTATE</TT
-> code for the error.
-	      (See <SPAN
-CLASS="PRODUCTNAME"
->PostgreSQL</SPAN
-> manual Appendix A).
-	     </P
-></DD
-><DT
-><CODE
-CLASS="OPTION"
->primary</CODE
-></DT
-><DD
-><P
->	      The primary human-readable error message (typically one line).
-	     </P
-></DD
-><DT
-><CODE
-CLASS="OPTION"
->detail</CODE
-></DT
-><DD
-><P
->	      An optional secondary error message carrying more detail
-	      abhout the problem, which may run to multiple lines.
-	     </P
-></DD
-><DT
-><CODE
-CLASS="OPTION"
->hint</CODE
-></DT
-><DD
-><P
->	      An optional suggestion about what to do about the problem.
-	      This is intended to differ from detail in that it offers
-	      advice (potentially inappropriate) rather than hard facts.
-	     </P
-><P
->	      The result may run to multiple lines.
-	     </P
-></DD
-><DT
-><CODE
-CLASS="OPTION"
->position</CODE
-></DT
-><DD
-><P
->	      A string containing a decimal integer indicating an error 
-	      cursor position as an index into the original statement string.
-	     </P
-><P
->	      The first character has index <TT
-CLASS="LITERAL"
->1</TT
->, and 
-	      positions are measured in characters not bytes. 
-	     </P
-></DD
-><DT
-><CODE
-CLASS="OPTION"
->internal_position</CODE
-></DT
-><DD
-><P
->	      This is the same as "position", but it is used when the cursor
-	      position refers to an internally generated command rather than
-	      the one submitted by the client.
-	     </P
-><P
->	      The first character has index <TT
-CLASS="LITERAL"
->1</TT
->, and 
-	      positions are measured in characters not bytes. 
-	     </P
-></DD
-><DT
-><CODE
-CLASS="OPTION"
->internal_query</CODE
-></DT
-><DD
-><P
->	      This is the text of a failed internally generated command.
-	      This could be, for example, a SQL query issued by a
-	      PL/pgSQL function.
-	     </P
-></DD
-><DT
-><CODE
-CLASS="OPTION"
->context</CODE
-></DT
-><DD
-><P
->	      An indication of the context in which the error occurred. 
-	      Presently this includes a call stack traceback of active PL 
-	      functions. The trace is one entry per line, most recent first. 
-	     </P
-></DD
-><DT
-><CODE
-CLASS="OPTION"
->file</CODE
-></DT
-><DD
-><P
->	      The filename of the source code location where the error
-	      was reported.
-	     </P
-></DD
-><DT
-><CODE
-CLASS="OPTION"
->line</CODE
-></DT
-><DD
-><P
->	      The line number of the source code location where the error
-	      was reported.
-	     </P
-></DD
-><DT
-><CODE
-CLASS="OPTION"
->function</CODE
-></DT
-><DD
-><P
->	       The name of the source code function reporting the error.
-	     </P
-></DD
-></DL
-></DIV
-></DD
-><DT
-><CODE
-CLASS="OPTION"
->-foreach <CODE
-CLASS="PARAMETER"
->arrayName</CODE
-> <CODE
-CLASS="PARAMETER"
->tclCode</CODE
-></CODE
-></DT
-><DD
-><P
->          Iterates through each row of the result, filling
-          <CODE
-CLASS="PARAMETER"
->arrayName</CODE
-> with the columns and their values and
-		  executing <CODE
-CLASS="PARAMETER"
->tclCode</CODE
-> for each row in turn.
-          Null columns will be not be present in the array.
-         </P
-></DD
-><DT
-><CODE
-CLASS="OPTION"
->-conn</CODE
-></DT
-><DD
-><P
->          The connection that produced the result.
-         </P
-></DD
-><DT
-><CODE
-CLASS="OPTION"
->-oid</CODE
-></DT
-><DD
-><P
->          If the command was an <TT
-CLASS="COMMAND"
->INSERT</TT
->, the OID of
-          the inserted row, otherwise 0.
-         </P
-></DD
-><DT
-><CODE
-CLASS="OPTION"
->-numTuples</CODE
-></DT
-><DD
-><P
->          The number of rows (tuples) returned by the query.
-         </P
-></DD
-><DT
-><CODE
-CLASS="OPTION"
->-cmdTuples</CODE
-></DT
-><DD
-><P
->          The number of rows (tuples) affected by the command.
-	  (This is similar to <CODE
-CLASS="OPTION"
->-numTuples</CODE
-> but
-	  relevant to <TT
-CLASS="COMMAND"
->INSERT</TT
-> and
-	  <TT
-CLASS="COMMAND"
->UPDATE</TT
-> commands.)
-         </P
-></DD
-><DT
-><CODE
-CLASS="OPTION"
->-numAttrs</CODE
-></DT
-><DD
-><P
->          The number of columns (attributes) in each row.
-         </P
-></DD
-><DT
-><CODE
-CLASS="OPTION"
->-assign <CODE
-CLASS="PARAMETER"
->arrayName</CODE
-></CODE
-></DT
-><DD
-><P
->          Assign the results to an array, using subscripts of the form
-          <TT
-CLASS="LITERAL"
->(rowNumber, columnName)</TT
->.
-         </P
-></DD
-><DT
-><CODE
-CLASS="OPTION"
->-foreach <CODE
-CLASS="PARAMETER"
->arrayName</CODE
-> <CODE
-CLASS="PARAMETER"
->code</CODE
-></CODE
-></DT
-><DD
-><P
->                For each resulting row assigns the results to the named array, using
-                subscripts matching the column names, then executes the code body.
-         </P
-></DD
-><DT
-><CODE
-CLASS="OPTION"
->-assignbyidx <CODE
-CLASS="PARAMETER"
->arrayName</CODE
-> ?<SPAN
-CLASS="OPTIONAL"
-><CODE
-CLASS="PARAMETER"
->appendstr</CODE
-></SPAN
->?</CODE
-></DT
-><DD
-><P
->          Assign the results to an array using the values of the
-          first column and the names of the remaining column as keys.
-          If <CODE
-CLASS="PARAMETER"
->appendstr</CODE
-> is given then it is appended to
-          each key.  In short, all but the first column of each row
-          are stored into the array, using subscripts of the form
-          <TT
-CLASS="LITERAL"
->(firstColumnValue, columnNameAppendStr)</TT
->.
-         </P
-></DD
-><DT
-><CODE
-CLASS="OPTION"
->-getTuple <CODE
-CLASS="PARAMETER"
->rowNumber</CODE
-></CODE
-></DT
-><DD
-><P
->          Returns the columns of the indicated row in a list.  Row
-          numbers start at zero.
-         </P
-></DD
-><DT
-><CODE
-CLASS="OPTION"
->-tupleArray <CODE
-CLASS="PARAMETER"
->rowNumber</CODE
-> <CODE
-CLASS="PARAMETER"
->arrayName</CODE
-></CODE
-></DT
-><DD
-><P
->          Stores the columns of the row in array
-          <CODE
-CLASS="PARAMETER"
->arrayName</CODE
->, indexed by column names.
-          Row numbers start at zero.  If a field's value is null,
-	  sets an empty string or the default string, if a default
-	  string has been defined.
-         </P
-></DD
-><DT
-><CODE
-CLASS="OPTION"
->-tupleArrayWithoutNulls <CODE
-CLASS="PARAMETER"
->rowNumber</CODE
-> <CODE
-CLASS="PARAMETER"
->arrayName</CODE
-></CODE
-></DT
-><DD
-><P
->          Stores the columns of the row in array
-          <CODE
-CLASS="PARAMETER"
->arrayName</CODE
->, indexed by column names.
-          Row numbers start at zero.  If a field's value is null,
-	  unsets the column from the array.
-         </P
-></DD
-><DT
-><CODE
-CLASS="OPTION"
->-attributes</CODE
-></DT
-><DD
-><P
->          Returns a list of the names of the columns in the result.
-         </P
-></DD
-><DT
-><CODE
-CLASS="OPTION"
->-lAttributes</CODE
-></DT
-><DD
-><P
->          Returns a list of sublists, <TT
-CLASS="LITERAL"
->{name typeOid
-          typeSize}</TT
-> for each column.
-         </P
-></DD
-><DT
-><CODE
-CLASS="OPTION"
->-list</CODE
-></DT
-><DD
-><P
->          Returns one list containing all the data
-	  returned by the query.
-         </P
-></DD
-><DT
-><CODE
-CLASS="OPTION"
->-llist</CODE
-></DT
-><DD
-><P
->          Returns a list of lists, where each embedded list represents
-	  a tuple in the result.
-         </P
-></DD
-><DT
-><CODE
-CLASS="OPTION"
->-dict</CODE
-></DT
-><DD
-><P
->          Returns a dict object with the results. This needs to have dictionary
-          support built into Tcl (Tcl 8.5), and is experimental right now, since 
-          Tcl 8.5 has not been release yet, and the API could change. In
-          order to enable this, you need to add <TT
-CLASS="LITERAL"
->-DHAVE_TCL_NEWDICTOBJ
-          </TT
-> to the Makefile in the <TT
-CLASS="LITERAL"
->DEFS</TT
-> variable.
-         </P
-></DD
-><DT
-><CODE
-CLASS="OPTION"
->-null_value_string ?<SPAN
-CLASS="OPTIONAL"
-><CODE
-CLASS="PARAMETER"
->string</CODE
-></SPAN
->?</CODE
-></DT
-><DD
-><P
->          Defines or retrieves the string that will be returned for null values in query results.  Defaults to whatever was set by <CODE
-CLASS="FUNCTION"
->pg_null_value_string</CODE
-> but can be set here and, in this case, affects only this query result.
-         </P
-></DD
-><DT
-><CODE
-CLASS="OPTION"
->-clear</CODE
-></DT
-><DD
-><P
->          Clear the command result object.
-         </P
-></DD
-></DL
-></DIV
-><P>
-     </P
-></DD
-></DL
-></DIV
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN994"
-></A
-><H2
->Return Value</H2
-><P
->   The result depends on the selected option, as described above.
-  </P
-></DIV
-><DIV
-CLASS="NAVFOOTER"
-><HR
-ALIGN="LEFT"
-WIDTH="100%"><TABLE
-SUMMARY="Footer navigation table"
-WIDTH="100%"
-BORDER="0"
-CELLPADDING="0"
-CELLSPACING="0"
-><TR
-><TD
-WIDTH="33%"
-ALIGN="left"
-VALIGN="top"
-><A
-HREF="pgtcl-pgexecprepared.html"
-ACCESSKEY="P"
->Prev</A
-></TD
-><TD
-WIDTH="34%"
-ALIGN="center"
-VALIGN="top"
-><A
-HREF="index.html"
-ACCESSKEY="H"
->Home</A
-></TD
-><TD
-WIDTH="33%"
-ALIGN="right"
-VALIGN="top"
-><A
-HREF="pgtcl-pgselect.html"
-ACCESSKEY="N"
->Next</A
-></TD
-></TR
-><TR
-><TD
-WIDTH="33%"
-ALIGN="left"
-VALIGN="top"
->pg_exec_prepared</TD
-><TD
-WIDTH="34%"
-ALIGN="center"
-VALIGN="top"
-><A
-HREF="libpgtcl-ref.html"
-ACCESSKEY="U"
->Up</A
-></TD
-><TD
-WIDTH="33%"
-ALIGN="right"
-VALIGN="top"
->pg_select</TD
-></TR
-></TABLE
-></DIV
-></BODY
-></HTML
->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="HTML Tidy for HTML5 for FreeBSD version 5.2.0">
+<title>pg_result</title>
+<meta name="GENERATOR" content="Modular DocBook HTML Stylesheet Version 1.79">
+<link rev="MADE" href="mailto:pgsql-docs@postgresql.org">
+<link rel="HOME" title="PostgreSQL Tcl Interface Documentation" href="index.html">
+<link rel="UP" title="pgtcl Command Reference" href="libpgtcl-ref.html">
+<link rel="PREVIOUS" title="pg_exec_prepared" href="pgtcl-pgexecprepared.html">
+<link rel="NEXT" title="pg_select" href="pgtcl-pgselect.html">
+<link rel="STYLESHEET" type="text/css" href="stylesheet.css">
+<meta name="creation" content="2016-06-16T22:26:55">
+</head>
+<body class="REFENTRY">
+<div class="NAVHEADER">
+<table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<th colspan="5" align="center" valign="bottom">PostgreSQL Tcl Interface Documentation</th>
+</tr>
+<tr>
+<td width="10%" align="left" valign="top"><a href="pgtcl-pgexecprepared.html" accesskey="P">Prev</a></td>
+<td width="10%" align="left" valign="top"><a href="pgtcl-pgexecprepared.html">Fast Backward</a></td>
+<td width="60%" align="center" valign="bottom"></td>
+<td width="10%" align="right" valign="top"><a href="pgtcl-pgselect.html">Fast Forward</a></td>
+<td width="10%" align="right" valign="top"><a href="pgtcl-pgselect.html" accesskey="N">Next</a></td>
+</tr>
+</table>
+<hr align="left" width="100%"></div>
+<h1><a name="PGTCL-PGRESULT" id="PGTCL-PGRESULT"></a>pg_result</h1>
+<div class="REFNAMEDIV"><a name="AEN748" id="AEN748"></a>
+<h2>Name</h2>
+pg_result&nbsp;--&nbsp;get information about a command result<a name="IX-PGTCL-PGRESULT-2" id="IX-PGTCL-PGRESULT-2"></a></div>
+<div class="REFSYNOPSISDIV"><a name="AEN753" id="AEN753"></a>
+<h2>Synopsis</h2>
+<pre class="SYNOPSIS">pg_result <code class="PARAMETER">resultHandle</code> <code class="PARAMETER">resultOption</code></pre></div>
+<div class="REFSECT1"><a name="AEN757" id="AEN757"></a>
+<h2>Description</h2>
+<p><code class="FUNCTION">pg_result</code> returns information about a command result created by a prior <code class="FUNCTION">pg_exec</code>.</p>
+<p>You can keep a command result around for as long as you need it, but when you are done with it, be sure to free it by executing <code class="FUNCTION">pg_result -clear</code>. Otherwise, you have a memory leak, and <span class="APPLICATION">pgtcl</span> will eventually start complaining that you have created too many command result objects.</p>
+</div>
+<div class="REFSECT1"><a name="AEN765" id="AEN765"></a>
+<h2>Arguments</h2>
+<div class="VARIABLELIST">
+<dl>
+<dt><code class="PARAMETER">resultHandle</code></dt>
+<dd>
+<p>The handle of the command result.</p>
+</dd>
+<dt><code class="PARAMETER">resultOption</code></dt>
+<dd>
+<p>One of the following options, specifying which piece of result information to return:</p>
+<div class="VARIABLELIST">
+<dl>
+<dt><code class="OPTION">-status</code></dt>
+<dd>
+<p>The status of the result.</p>
+</dd>
+<dt><code class="OPTION">-error</code> ?<span class="OPTIONAL"><code class="PARAMETER">diagCode</code></span>?</dt>
+<dd>
+<p>The error message, if the status indicates an error, otherwise an empty string.</p>
+<p><code class="PARAMETER">diagCode</code>, if specified, requests data for a specific diagnostic code:</p>
+<div class="VARIABLELIST">
+<dl>
+<dt><code class="OPTION">severity</code></dt>
+<dd>
+<p>The severity; the field contents are <tt class="LITERAL">ERROR</tt>, <tt class="LITERAL">FATAL</tt>, or <tt class="LITERAL">PANIC</tt>, in an error message, or <tt class="LITERAL">WARNING</tt>, <tt class="LITERAL">NOTICE</tt>, <tt class="LITERAL">DEBUG</tt>, <tt class="LITERAL">INFO</tt>, or <tt class="LITERAL">LOG</tt>, in a notice message, or a localized translation of one of these.</p>
+</dd>
+<dt><code class="OPTION">sqlstate</code></dt>
+<dd>
+<p>The <tt class="LITERAL">SQLSTATE</tt> code for the error. (See <span class="PRODUCTNAME">PostgreSQL</span> manual Appendix A).</p>
+</dd>
+<dt><code class="OPTION">primary</code></dt>
+<dd>
+<p>The primary human-readable error message (typically one line).</p>
+</dd>
+<dt><code class="OPTION">detail</code></dt>
+<dd>
+<p>An optional secondary error message carrying more detail abhout the problem, which may run to multiple lines.</p>
+</dd>
+<dt><code class="OPTION">hint</code></dt>
+<dd>
+<p>An optional suggestion about what to do about the problem. This is intended to differ from detail in that it offers advice (potentially inappropriate) rather than hard facts.</p>
+<p>The result may run to multiple lines.</p>
+</dd>
+<dt><code class="OPTION">position</code></dt>
+<dd>
+<p>A string containing a decimal integer indicating an error cursor position as an index into the original statement string.</p>
+<p>The first character has index <tt class="LITERAL">1</tt>, and positions are measured in characters not bytes.</p>
+</dd>
+<dt><code class="OPTION">internal_position</code></dt>
+<dd>
+<p>This is the same as "position", but it is used when the cursor position refers to an internally generated command rather than the one submitted by the client.</p>
+<p>The first character has index <tt class="LITERAL">1</tt>, and positions are measured in characters not bytes.</p>
+</dd>
+<dt><code class="OPTION">internal_query</code></dt>
+<dd>
+<p>This is the text of a failed internally generated command. This could be, for example, a SQL query issued by a PL/pgSQL function.</p>
+</dd>
+<dt><code class="OPTION">context</code></dt>
+<dd>
+<p>An indication of the context in which the error occurred. Presently this includes a call stack traceback of active PL functions. The trace is one entry per line, most recent first.</p>
+</dd>
+<dt><code class="OPTION">file</code></dt>
+<dd>
+<p>The filename of the source code location where the error was reported.</p>
+</dd>
+<dt><code class="OPTION">line</code></dt>
+<dd>
+<p>The line number of the source code location where the error was reported.</p>
+</dd>
+<dt><code class="OPTION">function</code></dt>
+<dd>
+<p>The name of the source code function reporting the error.</p>
+</dd>
+</dl>
+</div>
+</dd>
+<dt><code class="OPTION">-foreach <code class="PARAMETER">arrayName</code> <code class="PARAMETER">tclCode</code></code></dt>
+<dd>
+<p>Iterates through each row of the result, filling <code class="PARAMETER">arrayName</code> with the columns and their values and executing <code class="PARAMETER">tclCode</code> for each row in turn. Null columns will be not be present in the array.</p>
+</dd>
+<dt><code class="OPTION">-conn</code></dt>
+<dd>
+<p>The connection that produced the result.</p>
+</dd>
+<dt><code class="OPTION">-oid</code></dt>
+<dd>
+<p>If the command was an <tt class="COMMAND">INSERT</tt>, the OID of the inserted row, otherwise 0.</p>
+</dd>
+<dt><code class="OPTION">-numTuples</code></dt>
+<dd>
+<p>The number of rows (tuples) returned by the query.</p>
+</dd>
+<dt><code class="OPTION">-cmdTuples</code></dt>
+<dd>
+<p>The number of rows (tuples) affected by the command. (This is similar to <code class="OPTION">-numTuples</code> but relevant to <tt class="COMMAND">INSERT</tt> and <tt class="COMMAND">UPDATE</tt> commands.)</p>
+</dd>
+<dt><code class="OPTION">-numAttrs</code></dt>
+<dd>
+<p>The number of columns (attributes) in each row.</p>
+</dd>
+<dt><code class="OPTION">-assign <code class="PARAMETER">arrayName</code></code></dt>
+<dd>
+<p>Assign the results to an array, using subscripts of the form <tt class="LITERAL">(rowNumber, columnName)</tt>.</p>
+</dd>
+<dt><code class="OPTION">-foreach <code class="PARAMETER">arrayName</code> <code class="PARAMETER">code</code></code></dt>
+<dd>
+<p>For each resulting row assigns the results to the named array, using subscripts matching the column names, then executes the code body.</p>
+</dd>
+<dt><code class="OPTION">-assignbyidx <code class="PARAMETER">arrayName</code> ?<span class="OPTIONAL"><code class="PARAMETER">appendstr</code></span>?</code></dt>
+<dd>
+<p>Assign the results to an array using the values of the first column and the names of the remaining column as keys. If <code class="PARAMETER">appendstr</code> is given then it is appended to each key. In short, all but the first column of each row are stored into the array, using subscripts of the form <tt class="LITERAL">(firstColumnValue, columnNameAppendStr)</tt>.</p>
+</dd>
+<dt><code class="OPTION">-getTuple <code class="PARAMETER">rowNumber</code></code></dt>
+<dd>
+<p>Returns the columns of the indicated row in a list. Row numbers start at zero.</p>
+</dd>
+<dt><code class="OPTION">-tupleArray <code class="PARAMETER">rowNumber</code> <code class="PARAMETER">arrayName</code></code></dt>
+<dd>
+<p>Stores the columns of the row in array <code class="PARAMETER">arrayName</code>, indexed by column names. Row numbers start at zero. If a field's value is null, sets an empty string or the default string, if a default string has been defined.</p>
+</dd>
+<dt><code class="OPTION">-tupleArrayWithoutNulls <code class="PARAMETER">rowNumber</code> <code class="PARAMETER">arrayName</code></code></dt>
+<dd>
+<p>Stores the columns of the row in array <code class="PARAMETER">arrayName</code>, indexed by column names. Row numbers start at zero. If a field's value is null, unsets the column from the array.</p>
+</dd>
+<dt><code class="OPTION">-attributes</code></dt>
+<dd>
+<p>Returns a list of the names of the columns in the result.</p>
+</dd>
+<dt><code class="OPTION">-lAttributes</code></dt>
+<dd>
+<p>Returns a list of sublists, <tt class="LITERAL">{name typeOid typeSize}</tt> for each column.</p>
+</dd>
+<dt><code class="OPTION">-list</code></dt>
+<dd>
+<p>Returns one list containing all the data returned by the query.</p>
+</dd>
+<dt><code class="OPTION">-llist</code></dt>
+<dd>
+<p>Returns a list of lists, where each embedded list represents a tuple in the result.</p>
+</dd>
+<dt><code class="OPTION">-dict</code></dt>
+<dd>
+<p>Returns a dict object with the results. This needs to have dictionary support built into Tcl (Tcl 8.5), and is experimental right now, since Tcl 8.5 has not been release yet, and the API could change. In order to enable this, you need to add <tt class="LITERAL">-DHAVE_TCL_NEWDICTOBJ</tt> to the Makefile in the <tt class="LITERAL">DEFS</tt> variable.</p>
+</dd>
+<dt><code class="OPTION">-null_value_string ?<span class="OPTIONAL"><code class="PARAMETER">string</code></span>?</code></dt>
+<dd>
+<p>Defines or retrieves the string that will be returned for null values in query results. Defaults to whatever was set by <code class="FUNCTION">pg_null_value_string</code> but can be set here and, in this case, affects only this query result.</p>
+</dd>
+<dt><code class="OPTION">-clear</code></dt>
+<dd>
+<p>Clear the command result object.</p>
+</dd>
+</dl>
+</div>
+</dd>
+</dl>
+</div>
+</div>
+<div class="REFSECT1"><a name="AEN994" id="AEN994"></a>
+<h2>Return Value</h2>
+<p>The result depends on the selected option, as described above.</p>
+</div>
+<div class="NAVFOOTER">
+<hr align="left" width="100%">
+<table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td width="33%" align="left" valign="top"><a href="pgtcl-pgexecprepared.html" accesskey="P">Prev</a></td>
+<td width="34%" align="center" valign="top"><a href="index.html" accesskey="H">Home</a></td>
+<td width="33%" align="right" valign="top"><a href="pgtcl-pgselect.html" accesskey="N">Next</a></td>
+</tr>
+<tr>
+<td width="33%" align="left" valign="top">pg_exec_prepared</td>
+<td width="34%" align="center" valign="top"><a href="libpgtcl-ref.html" accesskey="U">Up</a></td>
+<td width="33%" align="right" valign="top">pg_select</td>
+</tr>
+</table>
+</div>
+</body>
+</html>

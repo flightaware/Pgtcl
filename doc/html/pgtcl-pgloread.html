@@ -1,289 +1,85 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<HTML
-><HEAD
-><TITLE
->pg_lo_read</TITLE
-><META
-NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
-REV="MADE"
-HREF="mailto:pgsql-docs@postgresql.org"><LINK
-REL="HOME"
-TITLE="PostgreSQL Tcl Interface Documentation"
-HREF="index.html"><LINK
-REL="UP"
-TITLE="pgtcl Command Reference"
-HREF="libpgtcl-ref.html"><LINK
-REL="PREVIOUS"
-TITLE="pg_lo_close"
-HREF="pgtcl-pgloclose.html"><LINK
-REL="NEXT"
-TITLE="pg_lo_write"
-HREF="pgtcl-pglowrite.html"><LINK
-REL="STYLESHEET"
-TYPE="text/css"
-HREF="stylesheet.css"><META
-NAME="creation"
-CONTENT="2016-06-16T17:50:48"></HEAD
-><BODY
-CLASS="REFENTRY"
-><DIV
-CLASS="NAVHEADER"
-><TABLE
-SUMMARY="Header navigation table"
-WIDTH="100%"
-BORDER="0"
-CELLPADDING="0"
-CELLSPACING="0"
-><TR
-><TH
-COLSPAN="5"
-ALIGN="center"
-VALIGN="bottom"
->PostgreSQL Tcl Interface Documentation</TH
-></TR
-><TR
-><TD
-WIDTH="10%"
-ALIGN="left"
-VALIGN="top"
-><A
-HREF="pgtcl-pgloclose.html"
-ACCESSKEY="P"
->Prev</A
-></TD
-><TD
-WIDTH="10%"
-ALIGN="left"
-VALIGN="top"
-><A
-HREF="pgtcl-pgloclose.html"
->Fast Backward</A
-></TD
-><TD
-WIDTH="60%"
-ALIGN="center"
-VALIGN="bottom"
-></TD
-><TD
-WIDTH="10%"
-ALIGN="right"
-VALIGN="top"
-><A
-HREF="pgtcl-pglowrite.html"
->Fast Forward</A
-></TD
-><TD
-WIDTH="10%"
-ALIGN="right"
-VALIGN="top"
-><A
-HREF="pgtcl-pglowrite.html"
-ACCESSKEY="N"
->Next</A
-></TD
-></TR
-></TABLE
-><HR
-ALIGN="LEFT"
-WIDTH="100%"></DIV
-><H1
-><A
-NAME="PGTCL-PGLOREAD"
-></A
->pg_lo_read</H1
-><DIV
-CLASS="REFNAMEDIV"
-><A
-NAME="AEN1777"
-></A
-><H2
->Name</H2
->pg_lo_read&nbsp;--&nbsp;read from a large object<A
-NAME="IX-PGTCL-PGLOREAD-2"
-></A
-></DIV
-><DIV
-CLASS="REFSYNOPSISDIV"
-><A
-NAME="AEN1782"
-></A
-><H2
->Synopsis</H2
-><PRE
-CLASS="SYNOPSIS"
->pg_lo_read <CODE
-CLASS="PARAMETER"
->conn</CODE
-> <CODE
-CLASS="PARAMETER"
->descriptor</CODE
-> <CODE
-CLASS="PARAMETER"
->bufVar</CODE
-> <CODE
-CLASS="PARAMETER"
->len</CODE
-></PRE
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN1788"
-></A
-><H2
->Description</H2
-><P
->   <CODE
-CLASS="FUNCTION"
->pg_lo_read</CODE
-> reads at most
-   <CODE
-CLASS="PARAMETER"
->len</CODE
-> bytes from a large object into a
-   variable named <CODE
-CLASS="PARAMETER"
->bufVar</CODE
->.
-  </P
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN1794"
-></A
-><H2
->Arguments</H2
-><P
-></P
-><DIV
-CLASS="VARIABLELIST"
-><DL
-><DT
-><CODE
-CLASS="PARAMETER"
->conn</CODE
-></DT
-><DD
-><P
->      The handle of a connection to the database in which the large object
-      exists.
-     </P
-></DD
-><DT
-><CODE
-CLASS="PARAMETER"
->descriptor</CODE
-></DT
-><DD
-><P
->      A descriptor for the large object from
-      <CODE
-CLASS="FUNCTION"
->pg_lo_open</CODE
->.
-     </P
-></DD
-><DT
-><CODE
-CLASS="PARAMETER"
->bufVar</CODE
-></DT
-><DD
-><P
->      The name of a buffer variable to contain the large object
-      segment.
-     </P
-></DD
-><DT
-><CODE
-CLASS="PARAMETER"
->len</CODE
-></DT
-><DD
-><P
->      The maximum number of bytes to read.
-     </P
-></DD
-></DL
-></DIV
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN1818"
-></A
-><H2
->Return Value</H2
-><P
->   The number of bytes actually read is returned; this could be less than
-   the number requested if the end of the large object is reached first.
-   In event of an error, the return value is negative.
-  </P
-></DIV
-><DIV
-CLASS="NAVFOOTER"
-><HR
-ALIGN="LEFT"
-WIDTH="100%"><TABLE
-SUMMARY="Footer navigation table"
-WIDTH="100%"
-BORDER="0"
-CELLPADDING="0"
-CELLSPACING="0"
-><TR
-><TD
-WIDTH="33%"
-ALIGN="left"
-VALIGN="top"
-><A
-HREF="pgtcl-pgloclose.html"
-ACCESSKEY="P"
->Prev</A
-></TD
-><TD
-WIDTH="34%"
-ALIGN="center"
-VALIGN="top"
-><A
-HREF="index.html"
-ACCESSKEY="H"
->Home</A
-></TD
-><TD
-WIDTH="33%"
-ALIGN="right"
-VALIGN="top"
-><A
-HREF="pgtcl-pglowrite.html"
-ACCESSKEY="N"
->Next</A
-></TD
-></TR
-><TR
-><TD
-WIDTH="33%"
-ALIGN="left"
-VALIGN="top"
->pg_lo_close</TD
-><TD
-WIDTH="34%"
-ALIGN="center"
-VALIGN="top"
-><A
-HREF="libpgtcl-ref.html"
-ACCESSKEY="U"
->Up</A
-></TD
-><TD
-WIDTH="33%"
-ALIGN="right"
-VALIGN="top"
->pg_lo_write</TD
-></TR
-></TABLE
-></DIV
-></BODY
-></HTML
->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="HTML Tidy for HTML5 for FreeBSD version 5.2.0">
+<title>pg_lo_read</title>
+<meta name="GENERATOR" content="Modular DocBook HTML Stylesheet Version 1.79">
+<link rev="MADE" href="mailto:pgsql-docs@postgresql.org">
+<link rel="HOME" title="PostgreSQL Tcl Interface Documentation" href="index.html">
+<link rel="UP" title="pgtcl Command Reference" href="libpgtcl-ref.html">
+<link rel="PREVIOUS" title="pg_lo_close" href="pgtcl-pgloclose.html">
+<link rel="NEXT" title="pg_lo_write" href="pgtcl-pglowrite.html">
+<link rel="STYLESHEET" type="text/css" href="stylesheet.css">
+<meta name="creation" content="2016-06-16T22:26:55">
+</head>
+<body class="REFENTRY">
+<div class="NAVHEADER">
+<table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<th colspan="5" align="center" valign="bottom">PostgreSQL Tcl Interface Documentation</th>
+</tr>
+<tr>
+<td width="10%" align="left" valign="top"><a href="pgtcl-pgloclose.html" accesskey="P">Prev</a></td>
+<td width="10%" align="left" valign="top"><a href="pgtcl-pgloclose.html">Fast Backward</a></td>
+<td width="60%" align="center" valign="bottom"></td>
+<td width="10%" align="right" valign="top"><a href="pgtcl-pglowrite.html">Fast Forward</a></td>
+<td width="10%" align="right" valign="top"><a href="pgtcl-pglowrite.html" accesskey="N">Next</a></td>
+</tr>
+</table>
+<hr align="left" width="100%"></div>
+<h1><a name="PGTCL-PGLOREAD" id="PGTCL-PGLOREAD"></a>pg_lo_read</h1>
+<div class="REFNAMEDIV"><a name="AEN1782" id="AEN1782"></a>
+<h2>Name</h2>
+pg_lo_read&nbsp;--&nbsp;read from a large object<a name="IX-PGTCL-PGLOREAD-2" id="IX-PGTCL-PGLOREAD-2"></a></div>
+<div class="REFSYNOPSISDIV"><a name="AEN1787" id="AEN1787"></a>
+<h2>Synopsis</h2>
+<pre class="SYNOPSIS">pg_lo_read <code class="PARAMETER">conn</code> <code class="PARAMETER">descriptor</code> <code class="PARAMETER">bufVar</code> <code class="PARAMETER">len</code></pre></div>
+<div class="REFSECT1"><a name="AEN1793" id="AEN1793"></a>
+<h2>Description</h2>
+<p><code class="FUNCTION">pg_lo_read</code> reads at most <code class="PARAMETER">len</code> bytes from a large object into a variable named <code class="PARAMETER">bufVar</code>.</p>
+</div>
+<div class="REFSECT1"><a name="AEN1799" id="AEN1799"></a>
+<h2>Arguments</h2>
+<div class="VARIABLELIST">
+<dl>
+<dt><code class="PARAMETER">conn</code></dt>
+<dd>
+<p>The handle of a connection to the database in which the large object exists.</p>
+</dd>
+<dt><code class="PARAMETER">descriptor</code></dt>
+<dd>
+<p>A descriptor for the large object from <code class="FUNCTION">pg_lo_open</code>.</p>
+</dd>
+<dt><code class="PARAMETER">bufVar</code></dt>
+<dd>
+<p>The name of a buffer variable to contain the large object segment.</p>
+</dd>
+<dt><code class="PARAMETER">len</code></dt>
+<dd>
+<p>The maximum number of bytes to read.</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="REFSECT1"><a name="AEN1823" id="AEN1823"></a>
+<h2>Return Value</h2>
+<p>The number of bytes actually read is returned; this could be less than the number requested if the end of the large object is reached first. In event of an error, the return value is negative.</p>
+</div>
+<div class="NAVFOOTER">
+<hr align="left" width="100%">
+<table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td width="33%" align="left" valign="top"><a href="pgtcl-pgloclose.html" accesskey="P">Prev</a></td>
+<td width="34%" align="center" valign="top"><a href="index.html" accesskey="H">Home</a></td>
+<td width="33%" align="right" valign="top"><a href="pgtcl-pglowrite.html" accesskey="N">Next</a></td>
+</tr>
+<tr>
+<td width="33%" align="left" valign="top">pg_lo_close</td>
+<td width="34%" align="center" valign="top"><a href="libpgtcl-ref.html" accesskey="U">Up</a></td>
+<td width="33%" align="right" valign="top">pg_lo_write</td>
+</tr>
+</table>
+</div>
+</body>
+</html>

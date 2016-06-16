@@ -1,270 +1,81 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<HTML
-><HEAD
-><TITLE
->pg_lo_import</TITLE
-><META
-NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
-REV="MADE"
-HREF="mailto:pgsql-docs@postgresql.org"><LINK
-REL="HOME"
-TITLE="PostgreSQL Tcl Interface Documentation"
-HREF="index.html"><LINK
-REL="UP"
-TITLE="pgtcl Command Reference"
-HREF="libpgtcl-ref.html"><LINK
-REL="PREVIOUS"
-TITLE="pg_lo_unlink"
-HREF="pgtcl-pglounlink.html"><LINK
-REL="NEXT"
-TITLE="pg_lo_export"
-HREF="pgtcl-pgloexport.html"><LINK
-REL="STYLESHEET"
-TYPE="text/css"
-HREF="stylesheet.css"><META
-NAME="creation"
-CONTENT="2016-06-16T17:50:48"></HEAD
-><BODY
-CLASS="REFENTRY"
-><DIV
-CLASS="NAVHEADER"
-><TABLE
-SUMMARY="Header navigation table"
-WIDTH="100%"
-BORDER="0"
-CELLPADDING="0"
-CELLSPACING="0"
-><TR
-><TH
-COLSPAN="5"
-ALIGN="center"
-VALIGN="bottom"
->PostgreSQL Tcl Interface Documentation</TH
-></TR
-><TR
-><TD
-WIDTH="10%"
-ALIGN="left"
-VALIGN="top"
-><A
-HREF="pgtcl-pglounlink.html"
-ACCESSKEY="P"
->Prev</A
-></TD
-><TD
-WIDTH="10%"
-ALIGN="left"
-VALIGN="top"
-><A
-HREF="pgtcl-pglounlink.html"
->Fast Backward</A
-></TD
-><TD
-WIDTH="60%"
-ALIGN="center"
-VALIGN="bottom"
-></TD
-><TD
-WIDTH="10%"
-ALIGN="right"
-VALIGN="top"
-><A
-HREF="pgtcl-pgloexport.html"
->Fast Forward</A
-></TD
-><TD
-WIDTH="10%"
-ALIGN="right"
-VALIGN="top"
-><A
-HREF="pgtcl-pgloexport.html"
-ACCESSKEY="N"
->Next</A
-></TD
-></TR
-></TABLE
-><HR
-ALIGN="LEFT"
-WIDTH="100%"></DIV
-><H1
-><A
-NAME="PGTCL-PGLOIMPORT"
-></A
->pg_lo_import</H1
-><DIV
-CLASS="REFNAMEDIV"
-><A
-NAME="AEN2027"
-></A
-><H2
->Name</H2
->pg_lo_import&nbsp;--&nbsp;import a large object from a file<A
-NAME="IX-PGTCL-PGLOIMPORT-2"
-></A
-></DIV
-><DIV
-CLASS="REFSYNOPSISDIV"
-><A
-NAME="AEN2032"
-></A
-><H2
->Synopsis</H2
-><PRE
-CLASS="SYNOPSIS"
->pg_lo_import <CODE
-CLASS="PARAMETER"
->conn</CODE
-> <CODE
-CLASS="PARAMETER"
->filename</CODE
-></PRE
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN2036"
-></A
-><H2
->Description</H2
-><P
->   <CODE
-CLASS="FUNCTION"
->pg_lo_import</CODE
-> reads the specified file and
-   places the contents into a new large object.
-  </P
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN2040"
-></A
-><H2
->Arguments</H2
-><P
-></P
-><DIV
-CLASS="VARIABLELIST"
-><DL
-><DT
-><CODE
-CLASS="PARAMETER"
->conn</CODE
-></DT
-><DD
-><P
->      The handle of a connection to the database in which to create the large
-      object.
-     </P
-></DD
-><DT
-><CODE
-CLASS="PARAMETER"
->filename</CODE
-></DT
-><DD
-><P
->      Specified the file from which to import the data.
-     </P
-></DD
-></DL
-></DIV
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN2053"
-></A
-><H2
->Return Value</H2
-><P
->   The OID of the large object created.
-  </P
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN2056"
-></A
-><H2
->Notes</H2
-><P
->   <CODE
-CLASS="FUNCTION"
->pg_lo_import</CODE
-> must be called within a
-   <TT
-CLASS="COMMAND"
->BEGIN</TT
->/<TT
-CLASS="COMMAND"
->COMMIT</TT
-> transaction block.
-  </P
-></DIV
-><DIV
-CLASS="NAVFOOTER"
-><HR
-ALIGN="LEFT"
-WIDTH="100%"><TABLE
-SUMMARY="Footer navigation table"
-WIDTH="100%"
-BORDER="0"
-CELLPADDING="0"
-CELLSPACING="0"
-><TR
-><TD
-WIDTH="33%"
-ALIGN="left"
-VALIGN="top"
-><A
-HREF="pgtcl-pglounlink.html"
-ACCESSKEY="P"
->Prev</A
-></TD
-><TD
-WIDTH="34%"
-ALIGN="center"
-VALIGN="top"
-><A
-HREF="index.html"
-ACCESSKEY="H"
->Home</A
-></TD
-><TD
-WIDTH="33%"
-ALIGN="right"
-VALIGN="top"
-><A
-HREF="pgtcl-pgloexport.html"
-ACCESSKEY="N"
->Next</A
-></TD
-></TR
-><TR
-><TD
-WIDTH="33%"
-ALIGN="left"
-VALIGN="top"
->pg_lo_unlink</TD
-><TD
-WIDTH="34%"
-ALIGN="center"
-VALIGN="top"
-><A
-HREF="libpgtcl-ref.html"
-ACCESSKEY="U"
->Up</A
-></TD
-><TD
-WIDTH="33%"
-ALIGN="right"
-VALIGN="top"
->pg_lo_export</TD
-></TR
-></TABLE
-></DIV
-></BODY
-></HTML
->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="HTML Tidy for HTML5 for FreeBSD version 5.2.0">
+<title>pg_lo_import</title>
+<meta name="GENERATOR" content="Modular DocBook HTML Stylesheet Version 1.79">
+<link rev="MADE" href="mailto:pgsql-docs@postgresql.org">
+<link rel="HOME" title="PostgreSQL Tcl Interface Documentation" href="index.html">
+<link rel="UP" title="pgtcl Command Reference" href="libpgtcl-ref.html">
+<link rel="PREVIOUS" title="pg_lo_unlink" href="pgtcl-pglounlink.html">
+<link rel="NEXT" title="pg_lo_export" href="pgtcl-pgloexport.html">
+<link rel="STYLESHEET" type="text/css" href="stylesheet.css">
+<meta name="creation" content="2016-06-16T22:26:55">
+</head>
+<body class="REFENTRY">
+<div class="NAVHEADER">
+<table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<th colspan="5" align="center" valign="bottom">PostgreSQL Tcl Interface Documentation</th>
+</tr>
+<tr>
+<td width="10%" align="left" valign="top"><a href="pgtcl-pglounlink.html" accesskey="P">Prev</a></td>
+<td width="10%" align="left" valign="top"><a href="pgtcl-pglounlink.html">Fast Backward</a></td>
+<td width="60%" align="center" valign="bottom"></td>
+<td width="10%" align="right" valign="top"><a href="pgtcl-pgloexport.html">Fast Forward</a></td>
+<td width="10%" align="right" valign="top"><a href="pgtcl-pgloexport.html" accesskey="N">Next</a></td>
+</tr>
+</table>
+<hr align="left" width="100%"></div>
+<h1><a name="PGTCL-PGLOIMPORT" id="PGTCL-PGLOIMPORT"></a>pg_lo_import</h1>
+<div class="REFNAMEDIV"><a name="AEN2032" id="AEN2032"></a>
+<h2>Name</h2>
+pg_lo_import&nbsp;--&nbsp;import a large object from a file<a name="IX-PGTCL-PGLOIMPORT-2" id="IX-PGTCL-PGLOIMPORT-2"></a></div>
+<div class="REFSYNOPSISDIV"><a name="AEN2037" id="AEN2037"></a>
+<h2>Synopsis</h2>
+<pre class="SYNOPSIS">pg_lo_import <code class="PARAMETER">conn</code> <code class="PARAMETER">filename</code></pre></div>
+<div class="REFSECT1"><a name="AEN2041" id="AEN2041"></a>
+<h2>Description</h2>
+<p><code class="FUNCTION">pg_lo_import</code> reads the specified file and places the contents into a new large object.</p>
+</div>
+<div class="REFSECT1"><a name="AEN2045" id="AEN2045"></a>
+<h2>Arguments</h2>
+<div class="VARIABLELIST">
+<dl>
+<dt><code class="PARAMETER">conn</code></dt>
+<dd>
+<p>The handle of a connection to the database in which to create the large object.</p>
+</dd>
+<dt><code class="PARAMETER">filename</code></dt>
+<dd>
+<p>Specified the file from which to import the data.</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="REFSECT1"><a name="AEN2058" id="AEN2058"></a>
+<h2>Return Value</h2>
+<p>The OID of the large object created.</p>
+</div>
+<div class="REFSECT1"><a name="AEN2061" id="AEN2061"></a>
+<h2>Notes</h2>
+<p><code class="FUNCTION">pg_lo_import</code> must be called within a <tt class="COMMAND">BEGIN</tt>/<tt class="COMMAND">COMMIT</tt> transaction block.</p>
+</div>
+<div class="NAVFOOTER">
+<hr align="left" width="100%">
+<table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td width="33%" align="left" valign="top"><a href="pgtcl-pglounlink.html" accesskey="P">Prev</a></td>
+<td width="34%" align="center" valign="top"><a href="index.html" accesskey="H">Home</a></td>
+<td width="33%" align="right" valign="top"><a href="pgtcl-pgloexport.html" accesskey="N">Next</a></td>
+</tr>
+<tr>
+<td width="33%" align="left" valign="top">pg_lo_unlink</td>
+<td width="34%" align="center" valign="top"><a href="libpgtcl-ref.html" accesskey="U">Up</a></td>
+<td width="33%" align="right" valign="top">pg_lo_export</td>
+</tr>
+</table>
+</div>
+</body>
+</html>

@@ -1,314 +1,90 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<HTML
-><HEAD
-><TITLE
->pg_exec_prepared</TITLE
-><META
-NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
-REV="MADE"
-HREF="mailto:pgsql-docs@postgresql.org"><LINK
-REL="HOME"
-TITLE="PostgreSQL Tcl Interface Documentation"
-HREF="index.html"><LINK
-REL="UP"
-TITLE="pgtcl Command Reference"
-HREF="libpgtcl-ref.html"><LINK
-REL="PREVIOUS"
-TITLE="pg_exec"
-HREF="pgtcl-pgexec.html"><LINK
-REL="NEXT"
-TITLE="pg_result"
-HREF="pgtcl-pgresult.html"><LINK
-REL="STYLESHEET"
-TYPE="text/css"
-HREF="stylesheet.css"><META
-NAME="creation"
-CONTENT="2016-06-16T17:50:48"></HEAD
-><BODY
-CLASS="REFENTRY"
-><DIV
-CLASS="NAVHEADER"
-><TABLE
-SUMMARY="Header navigation table"
-WIDTH="100%"
-BORDER="0"
-CELLPADDING="0"
-CELLSPACING="0"
-><TR
-><TH
-COLSPAN="5"
-ALIGN="center"
-VALIGN="bottom"
->PostgreSQL Tcl Interface Documentation</TH
-></TR
-><TR
-><TD
-WIDTH="10%"
-ALIGN="left"
-VALIGN="top"
-><A
-HREF="pgtcl-pgexec.html"
-ACCESSKEY="P"
->Prev</A
-></TD
-><TD
-WIDTH="10%"
-ALIGN="left"
-VALIGN="top"
-><A
-HREF="pgtcl-pgexec.html"
->Fast Backward</A
-></TD
-><TD
-WIDTH="60%"
-ALIGN="center"
-VALIGN="bottom"
-></TD
-><TD
-WIDTH="10%"
-ALIGN="right"
-VALIGN="top"
-><A
-HREF="pgtcl-pgresult.html"
->Fast Forward</A
-></TD
-><TD
-WIDTH="10%"
-ALIGN="right"
-VALIGN="top"
-><A
-HREF="pgtcl-pgresult.html"
-ACCESSKEY="N"
->Next</A
-></TD
-></TR
-></TABLE
-><HR
-ALIGN="LEFT"
-WIDTH="100%"></DIV
-><H1
-><A
-NAME="PGTCL-PGEXECPREPARED"
-></A
->pg_exec_prepared</H1
-><DIV
-CLASS="REFNAMEDIV"
-><A
-NAME="AEN696"
-></A
-><H2
->Name</H2
->pg_exec_prepared&nbsp;--&nbsp;send a request to execute a prepared SQL statement to the server<A
-NAME="IX-PGTCL-PGEXECPREPARED-2"
-></A
-></DIV
-><DIV
-CLASS="REFSYNOPSISDIV"
-><A
-NAME="AEN701"
-></A
-><H2
->Synopsis</H2
-><PRE
-CLASS="SYNOPSIS"
->pg_exec_prepared <CODE
-CLASS="PARAMETER"
->conn</CODE
-> <CODE
-CLASS="PARAMETER"
->statementName</CODE
-> ?<SPAN
-CLASS="OPTIONAL"
-><CODE
-CLASS="PARAMETER"
->args</CODE
-></SPAN
->?</PRE
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN707"
-></A
-><H2
->Description</H2
-><P
->   <CODE
-CLASS="FUNCTION"
->pg_exec_prepared</CODE
-> submits a command to the
-   <SPAN
-CLASS="PRODUCTNAME"
->PostgreSQL</SPAN
-> server and returns a result.
-  </P
-><P
->   <CODE
-CLASS="FUNCTION"
->pg_exec_prepared</CODE
-> functions identically to
-   <CODE
-CLASS="FUNCTION"
->pg_exec</CODE
->, except that it operates using
-   statements prepared by the <TT
-CLASS="COMMAND"
->PREPARE</TT
-> SQL command.
-  </P
-><P
->  Note that prepared statements are only support under <SPAN
-CLASS="PRODUCTNAME"
->PostgreSQL</SPAN
-> 7.4
-  and later.
-  </P
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN718"
-></A
-><H2
->Arguments</H2
-><P
-></P
-><DIV
-CLASS="VARIABLELIST"
-><DL
-><DT
-><CODE
-CLASS="PARAMETER"
->conn</CODE
-></DT
-><DD
-><P
->      The handle of the connection on which to execute the command.
-     </P
-></DD
-><DT
-><CODE
-CLASS="PARAMETER"
->statementName</CODE
-></DT
-><DD
-><P
->      The name of the prepared statement to execute.
-     </P
-></DD
-><DT
-><CODE
-CLASS="PARAMETER"
->args</CODE
-></DT
-><DD
-><P
->      <CODE
-CLASS="PARAMETER"
->args</CODE
->
-      consists of zero or more optional values that can be inserted,
-      unquoted, into the SQL statement using $-style substitution.
-     </P
-></DD
-></DL
-></DIV
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN737"
-></A
-><H2
->Return Value</H2
-><P
->   A result handle. See <CODE
-CLASS="FUNCTION"
->pg_exec</CODE
-> for details.
-  </P
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN741"
-></A
-><H2
->Example</H2
-><P
-></P><PRE
-CLASS="PROGRAMLISTING"
->pg_exec $conn {prepare insert_people 
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="HTML Tidy for HTML5 for FreeBSD version 5.2.0">
+<title>pg_exec_prepared</title>
+<meta name="GENERATOR" content="Modular DocBook HTML Stylesheet Version 1.79">
+<link rev="MADE" href="mailto:pgsql-docs@postgresql.org">
+<link rel="HOME" title="PostgreSQL Tcl Interface Documentation" href="index.html">
+<link rel="UP" title="pgtcl Command Reference" href="libpgtcl-ref.html">
+<link rel="PREVIOUS" title="pg_exec" href="pgtcl-pgexec.html">
+<link rel="NEXT" title="pg_result" href="pgtcl-pgresult.html">
+<link rel="STYLESHEET" type="text/css" href="stylesheet.css">
+<meta name="creation" content="2016-06-16T22:26:55">
+</head>
+<body class="REFENTRY">
+<div class="NAVHEADER">
+<table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<th colspan="5" align="center" valign="bottom">PostgreSQL Tcl Interface Documentation</th>
+</tr>
+<tr>
+<td width="10%" align="left" valign="top"><a href="pgtcl-pgexec.html" accesskey="P">Prev</a></td>
+<td width="10%" align="left" valign="top"><a href="pgtcl-pgexec.html">Fast Backward</a></td>
+<td width="60%" align="center" valign="bottom"></td>
+<td width="10%" align="right" valign="top"><a href="pgtcl-pgresult.html">Fast Forward</a></td>
+<td width="10%" align="right" valign="top"><a href="pgtcl-pgresult.html" accesskey="N">Next</a></td>
+</tr>
+</table>
+<hr align="left" width="100%"></div>
+<h1><a name="PGTCL-PGEXECPREPARED" id="PGTCL-PGEXECPREPARED"></a>pg_exec_prepared</h1>
+<div class="REFNAMEDIV"><a name="AEN696" id="AEN696"></a>
+<h2>Name</h2>
+pg_exec_prepared&nbsp;--&nbsp;send a request to execute a prepared SQL statement to the server<a name="IX-PGTCL-PGEXECPREPARED-2" id="IX-PGTCL-PGEXECPREPARED-2"></a></div>
+<div class="REFSYNOPSISDIV"><a name="AEN701" id="AEN701"></a>
+<h2>Synopsis</h2>
+<pre class="SYNOPSIS">pg_exec_prepared <code class="PARAMETER">conn</code> <code class="PARAMETER">statementName</code> ?<span class="OPTIONAL"><code class="PARAMETER">args</code></span>?</pre></div>
+<div class="REFSECT1"><a name="AEN707" id="AEN707"></a>
+<h2>Description</h2>
+<p><code class="FUNCTION">pg_exec_prepared</code> submits a command to the <span class="PRODUCTNAME">PostgreSQL</span> server and returns a result.</p>
+<p><code class="FUNCTION">pg_exec_prepared</code> functions identically to <code class="FUNCTION">pg_exec</code>, except that it operates using statements prepared by the <tt class="COMMAND">PREPARE</tt> SQL command.</p>
+<p>Note that prepared statements are only support under <span class="PRODUCTNAME">PostgreSQL</span> 7.4 and later.</p>
+</div>
+<div class="REFSECT1"><a name="AEN718" id="AEN718"></a>
+<h2>Arguments</h2>
+<div class="VARIABLELIST">
+<dl>
+<dt><code class="PARAMETER">conn</code></dt>
+<dd>
+<p>The handle of the connection on which to execute the command.</p>
+</dd>
+<dt><code class="PARAMETER">statementName</code></dt>
+<dd>
+<p>The name of the prepared statement to execute.</p>
+</dd>
+<dt><code class="PARAMETER">args</code></dt>
+<dd>
+<p><code class="PARAMETER">args</code> consists of zero or more optional values that can be inserted, unquoted, into the SQL statement using $-style substitution.</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="REFSECT1"><a name="AEN737" id="AEN737"></a>
+<h2>Return Value</h2>
+<p>A result handle. See <code class="FUNCTION">pg_exec</code> for details.</p>
+</div>
+<div class="REFSECT1"><a name="AEN741" id="AEN741"></a>
+<h2>Example</h2>
+<pre class="PROGRAMLISTING">pg_exec $conn {prepare insert_people 
     (varchar, varchar, varchar, varchar, varchar, varchar) 
     as insert into people values ($1, $2, $3, $4, $5, $6);}
 
-pg_exec_prepared $conn insert_people $email $name $address $city $state $zip</PRE
-><P>
-  </P
-></DIV
-><DIV
-CLASS="NAVFOOTER"
-><HR
-ALIGN="LEFT"
-WIDTH="100%"><TABLE
-SUMMARY="Footer navigation table"
-WIDTH="100%"
-BORDER="0"
-CELLPADDING="0"
-CELLSPACING="0"
-><TR
-><TD
-WIDTH="33%"
-ALIGN="left"
-VALIGN="top"
-><A
-HREF="pgtcl-pgexec.html"
-ACCESSKEY="P"
->Prev</A
-></TD
-><TD
-WIDTH="34%"
-ALIGN="center"
-VALIGN="top"
-><A
-HREF="index.html"
-ACCESSKEY="H"
->Home</A
-></TD
-><TD
-WIDTH="33%"
-ALIGN="right"
-VALIGN="top"
-><A
-HREF="pgtcl-pgresult.html"
-ACCESSKEY="N"
->Next</A
-></TD
-></TR
-><TR
-><TD
-WIDTH="33%"
-ALIGN="left"
-VALIGN="top"
->pg_exec</TD
-><TD
-WIDTH="34%"
-ALIGN="center"
-VALIGN="top"
-><A
-HREF="libpgtcl-ref.html"
-ACCESSKEY="U"
->Up</A
-></TD
-><TD
-WIDTH="33%"
-ALIGN="right"
-VALIGN="top"
->pg_result</TD
-></TR
-></TABLE
-></DIV
-></BODY
-></HTML
->
+pg_exec_prepared $conn insert_people $email $name $address $city $state $zip</pre></div>
+<div class="NAVFOOTER">
+<hr align="left" width="100%">
+<table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td width="33%" align="left" valign="top"><a href="pgtcl-pgexec.html" accesskey="P">Prev</a></td>
+<td width="34%" align="center" valign="top"><a href="index.html" accesskey="H">Home</a></td>
+<td width="33%" align="right" valign="top"><a href="pgtcl-pgresult.html" accesskey="N">Next</a></td>
+</tr>
+<tr>
+<td width="33%" align="left" valign="top">pg_exec</td>
+<td width="34%" align="center" valign="top"><a href="libpgtcl-ref.html" accesskey="U">Up</a></td>
+<td width="33%" align="right" valign="top">pg_result</td>
+</tr>
+</table>
+</div>
+</body>
+</html>

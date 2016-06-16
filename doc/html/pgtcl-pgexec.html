@@ -1,311 +1,85 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<HTML
-><HEAD
-><TITLE
->pg_exec</TITLE
-><META
-NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
-REV="MADE"
-HREF="mailto:pgsql-docs@postgresql.org"><LINK
-REL="HOME"
-TITLE="PostgreSQL Tcl Interface Documentation"
-HREF="index.html"><LINK
-REL="UP"
-TITLE="pgtcl Command Reference"
-HREF="libpgtcl-ref.html"><LINK
-REL="PREVIOUS"
-TITLE="pg_conndefaults"
-HREF="pgtcl-pgconndefaults.html"><LINK
-REL="NEXT"
-TITLE="pg_exec_prepared"
-HREF="pgtcl-pgexecprepared.html"><LINK
-REL="STYLESHEET"
-TYPE="text/css"
-HREF="stylesheet.css"><META
-NAME="creation"
-CONTENT="2016-06-16T17:50:48"></HEAD
-><BODY
-CLASS="REFENTRY"
-><DIV
-CLASS="NAVHEADER"
-><TABLE
-SUMMARY="Header navigation table"
-WIDTH="100%"
-BORDER="0"
-CELLPADDING="0"
-CELLSPACING="0"
-><TR
-><TH
-COLSPAN="5"
-ALIGN="center"
-VALIGN="bottom"
->PostgreSQL Tcl Interface Documentation</TH
-></TR
-><TR
-><TD
-WIDTH="10%"
-ALIGN="left"
-VALIGN="top"
-><A
-HREF="pgtcl-pgconndefaults.html"
-ACCESSKEY="P"
->Prev</A
-></TD
-><TD
-WIDTH="10%"
-ALIGN="left"
-VALIGN="top"
-><A
-HREF="pgtcl-pgconndefaults.html"
->Fast Backward</A
-></TD
-><TD
-WIDTH="60%"
-ALIGN="center"
-VALIGN="bottom"
-></TD
-><TD
-WIDTH="10%"
-ALIGN="right"
-VALIGN="top"
-><A
-HREF="pgtcl-pgexecprepared.html"
->Fast Forward</A
-></TD
-><TD
-WIDTH="10%"
-ALIGN="right"
-VALIGN="top"
-><A
-HREF="pgtcl-pgexecprepared.html"
-ACCESSKEY="N"
->Next</A
-></TD
-></TR
-></TABLE
-><HR
-ALIGN="LEFT"
-WIDTH="100%"></DIV
-><H1
-><A
-NAME="PGTCL-PGEXEC"
-></A
->pg_exec</H1
-><DIV
-CLASS="REFNAMEDIV"
-><A
-NAME="AEN646"
-></A
-><H2
->Name</H2
->pg_exec&nbsp;--&nbsp;send a command to the server<A
-NAME="IX-PGTCL-PGEXEC-2"
-></A
-></DIV
-><DIV
-CLASS="REFSYNOPSISDIV"
-><A
-NAME="AEN651"
-></A
-><H2
->Synopsis</H2
-><PRE
-CLASS="SYNOPSIS"
->pg_exec <CODE
-CLASS="PARAMETER"
->conn</CODE
-> <CODE
-CLASS="PARAMETER"
->commandString</CODE
-> ?<SPAN
-CLASS="OPTIONAL"
-><CODE
-CLASS="PARAMETER"
->args</CODE
-></SPAN
->?</PRE
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN657"
-></A
-><H2
->Description</H2
-><P
->   <CODE
-CLASS="FUNCTION"
->pg_exec</CODE
-> submits a command to the
-   <SPAN
-CLASS="PRODUCTNAME"
->PostgreSQL</SPAN
-> server and returns a result.
-   Command result handles start with the connection handle and add a
-   period and a result number.
-  </P
-><P
->   Note that lack of a Tcl error is not proof that the command
-   succeeded!  An error message returned by the server will be
-   processed as a command result with failure status, not by
-   generating a Tcl error in <CODE
-CLASS="FUNCTION"
->pg_exec</CODE
->.
-  </P
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN664"
-></A
-><H2
->Arguments</H2
-><P
-></P
-><DIV
-CLASS="VARIABLELIST"
-><DL
-><DT
-><CODE
-CLASS="PARAMETER"
->conn</CODE
-></DT
-><DD
-><P
->      The handle of the connection on which to execute the command.
-     </P
-></DD
-><DT
-><CODE
-CLASS="PARAMETER"
->commandString</CODE
-></DT
-><DD
-><P
->      The SQL command to execute.
-     </P
-></DD
-><DT
-><CODE
-CLASS="PARAMETER"
->args</CODE
-></DT
-><DD
-><P
->      For <SPAN
-CLASS="PRODUCTNAME"
->PostgreSQL</SPAN
-> versions greater than 7.4, <CODE
-CLASS="PARAMETER"
->args</CODE
->
-      consists of zero or more optional values that can be inserted,
-      unquoted, into the SQL statement using $-style substitution.
-     </P
-></DD
-></DL
-></DIV
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN684"
-></A
-><H2
->Return Value</H2
-><P
->   A result handle. A Tcl error will be returned if
-   <SPAN
-CLASS="APPLICATION"
->pgtcl</SPAN
-> was unable to obtain a server
-   response.  Otherwise, a command result object is created and a
-   handle for it is returned.  This handle can be passed to
-   <CODE
-CLASS="FUNCTION"
->pg_result</CODE
-> to obtain the results of the
-   command.
-  </P
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN689"
-></A
-><H2
->Example</H2
-><P
-></P><PRE
-CLASS="PROGRAMLISTING"
->pg_exec $conn {select * from table1 where id = $1 and user = $2} $id $user</PRE
-><P>
-  </P
-></DIV
-><DIV
-CLASS="NAVFOOTER"
-><HR
-ALIGN="LEFT"
-WIDTH="100%"><TABLE
-SUMMARY="Footer navigation table"
-WIDTH="100%"
-BORDER="0"
-CELLPADDING="0"
-CELLSPACING="0"
-><TR
-><TD
-WIDTH="33%"
-ALIGN="left"
-VALIGN="top"
-><A
-HREF="pgtcl-pgconndefaults.html"
-ACCESSKEY="P"
->Prev</A
-></TD
-><TD
-WIDTH="34%"
-ALIGN="center"
-VALIGN="top"
-><A
-HREF="index.html"
-ACCESSKEY="H"
->Home</A
-></TD
-><TD
-WIDTH="33%"
-ALIGN="right"
-VALIGN="top"
-><A
-HREF="pgtcl-pgexecprepared.html"
-ACCESSKEY="N"
->Next</A
-></TD
-></TR
-><TR
-><TD
-WIDTH="33%"
-ALIGN="left"
-VALIGN="top"
->pg_conndefaults</TD
-><TD
-WIDTH="34%"
-ALIGN="center"
-VALIGN="top"
-><A
-HREF="libpgtcl-ref.html"
-ACCESSKEY="U"
->Up</A
-></TD
-><TD
-WIDTH="33%"
-ALIGN="right"
-VALIGN="top"
->pg_exec_prepared</TD
-></TR
-></TABLE
-></DIV
-></BODY
-></HTML
->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="HTML Tidy for HTML5 for FreeBSD version 5.2.0">
+<title>pg_exec</title>
+<meta name="GENERATOR" content="Modular DocBook HTML Stylesheet Version 1.79">
+<link rev="MADE" href="mailto:pgsql-docs@postgresql.org">
+<link rel="HOME" title="PostgreSQL Tcl Interface Documentation" href="index.html">
+<link rel="UP" title="pgtcl Command Reference" href="libpgtcl-ref.html">
+<link rel="PREVIOUS" title="pg_conndefaults" href="pgtcl-pgconndefaults.html">
+<link rel="NEXT" title="pg_exec_prepared" href="pgtcl-pgexecprepared.html">
+<link rel="STYLESHEET" type="text/css" href="stylesheet.css">
+<meta name="creation" content="2016-06-16T22:26:55">
+</head>
+<body class="REFENTRY">
+<div class="NAVHEADER">
+<table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<th colspan="5" align="center" valign="bottom">PostgreSQL Tcl Interface Documentation</th>
+</tr>
+<tr>
+<td width="10%" align="left" valign="top"><a href="pgtcl-pgconndefaults.html" accesskey="P">Prev</a></td>
+<td width="10%" align="left" valign="top"><a href="pgtcl-pgconndefaults.html">Fast Backward</a></td>
+<td width="60%" align="center" valign="bottom"></td>
+<td width="10%" align="right" valign="top"><a href="pgtcl-pgexecprepared.html">Fast Forward</a></td>
+<td width="10%" align="right" valign="top"><a href="pgtcl-pgexecprepared.html" accesskey="N">Next</a></td>
+</tr>
+</table>
+<hr align="left" width="100%"></div>
+<h1><a name="PGTCL-PGEXEC" id="PGTCL-PGEXEC"></a>pg_exec</h1>
+<div class="REFNAMEDIV"><a name="AEN646" id="AEN646"></a>
+<h2>Name</h2>
+pg_exec&nbsp;--&nbsp;send a command to the server<a name="IX-PGTCL-PGEXEC-2" id="IX-PGTCL-PGEXEC-2"></a></div>
+<div class="REFSYNOPSISDIV"><a name="AEN651" id="AEN651"></a>
+<h2>Synopsis</h2>
+<pre class="SYNOPSIS">pg_exec <code class="PARAMETER">conn</code> <code class="PARAMETER">commandString</code> ?<span class="OPTIONAL"><code class="PARAMETER">args</code></span>?</pre></div>
+<div class="REFSECT1"><a name="AEN657" id="AEN657"></a>
+<h2>Description</h2>
+<p><code class="FUNCTION">pg_exec</code> submits a command to the <span class="PRODUCTNAME">PostgreSQL</span> server and returns a result. Command result handles start with the connection handle and add a period and a result number.</p>
+<p>Note that lack of a Tcl error is not proof that the command succeeded! An error message returned by the server will be processed as a command result with failure status, not by generating a Tcl error in <code class="FUNCTION">pg_exec</code>.</p>
+</div>
+<div class="REFSECT1"><a name="AEN664" id="AEN664"></a>
+<h2>Arguments</h2>
+<div class="VARIABLELIST">
+<dl>
+<dt><code class="PARAMETER">conn</code></dt>
+<dd>
+<p>The handle of the connection on which to execute the command.</p>
+</dd>
+<dt><code class="PARAMETER">commandString</code></dt>
+<dd>
+<p>The SQL command to execute.</p>
+</dd>
+<dt><code class="PARAMETER">args</code></dt>
+<dd>
+<p>For <span class="PRODUCTNAME">PostgreSQL</span> versions greater than 7.4, <code class="PARAMETER">args</code> consists of zero or more optional values that can be inserted, unquoted, into the SQL statement using $-style substitution.</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="REFSECT1"><a name="AEN684" id="AEN684"></a>
+<h2>Return Value</h2>
+<p>A result handle. A Tcl error will be returned if <span class="APPLICATION">pgtcl</span> was unable to obtain a server response. Otherwise, a command result object is created and a handle for it is returned. This handle can be passed to <code class="FUNCTION">pg_result</code> to obtain the results of the command.</p>
+</div>
+<div class="REFSECT1"><a name="AEN689" id="AEN689"></a>
+<h2>Example</h2>
+<pre class="PROGRAMLISTING">pg_exec $conn {select * from table1 where id = $1 and user = $2} $id $user</pre></div>
+<div class="NAVFOOTER">
+<hr align="left" width="100%">
+<table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td width="33%" align="left" valign="top"><a href="pgtcl-pgconndefaults.html" accesskey="P">Prev</a></td>
+<td width="34%" align="center" valign="top"><a href="index.html" accesskey="H">Home</a></td>
+<td width="33%" align="right" valign="top"><a href="pgtcl-pgexecprepared.html" accesskey="N">Next</a></td>
+</tr>
+<tr>
+<td width="33%" align="left" valign="top">pg_conndefaults</td>
+<td width="34%" align="center" valign="top"><a href="libpgtcl-ref.html" accesskey="U">Up</a></td>
+<td width="33%" align="right" valign="top">pg_exec_prepared</td>
+</tr>
+</table>
+</div>
+</body>
+</html>

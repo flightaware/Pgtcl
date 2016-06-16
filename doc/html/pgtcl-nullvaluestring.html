@@ -1,246 +1,73 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<HTML
-><HEAD
-><TITLE
->pg_null_value_string</TITLE
-><META
-NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
-REV="MADE"
-HREF="mailto:pgsql-docs@postgresql.org"><LINK
-REL="HOME"
-TITLE="PostgreSQL Tcl Interface Documentation"
-HREF="index.html"><LINK
-REL="UP"
-TITLE="pgtcl Command Reference"
-HREF="libpgtcl-ref.html"><LINK
-REL="PREVIOUS"
-TITLE="pg_cancelrequest"
-HREF="pgtcl-pgcancelrequest.html"><LINK
-REL="NEXT"
-TITLE="pg_quote"
-HREF="pgtcl-quote.html"><LINK
-REL="STYLESHEET"
-TYPE="text/css"
-HREF="stylesheet.css"><META
-NAME="creation"
-CONTENT="2016-06-16T17:50:48"></HEAD
-><BODY
-CLASS="REFENTRY"
-><DIV
-CLASS="NAVHEADER"
-><TABLE
-SUMMARY="Header navigation table"
-WIDTH="100%"
-BORDER="0"
-CELLPADDING="0"
-CELLSPACING="0"
-><TR
-><TH
-COLSPAN="5"
-ALIGN="center"
-VALIGN="bottom"
->PostgreSQL Tcl Interface Documentation</TH
-></TR
-><TR
-><TD
-WIDTH="10%"
-ALIGN="left"
-VALIGN="top"
-><A
-HREF="pgtcl-pgcancelrequest.html"
-ACCESSKEY="P"
->Prev</A
-></TD
-><TD
-WIDTH="10%"
-ALIGN="left"
-VALIGN="top"
-><A
-HREF="pgtcl-pgcancelrequest.html"
->Fast Backward</A
-></TD
-><TD
-WIDTH="60%"
-ALIGN="center"
-VALIGN="bottom"
-></TD
-><TD
-WIDTH="10%"
-ALIGN="right"
-VALIGN="top"
-><A
-HREF="pgtcl-quote.html"
->Fast Forward</A
-></TD
-><TD
-WIDTH="10%"
-ALIGN="right"
-VALIGN="top"
-><A
-HREF="pgtcl-quote.html"
-ACCESSKEY="N"
->Next</A
-></TD
-></TR
-></TABLE
-><HR
-ALIGN="LEFT"
-WIDTH="100%"></DIV
-><H1
-><A
-NAME="PGTCL-NULLVALUESTRING"
-></A
->pg_null_value_string</H1
-><DIV
-CLASS="REFNAMEDIV"
-><A
-NAME="AEN1516"
-></A
-><H2
->Name</H2
->pg_null_value_string&nbsp;--&nbsp;define a value to be returned for NULL fields distinct from the default value of an empty string.
- <A
-NAME="IX-PGTCL-NULLVALUESTRING-2"
-></A
-></DIV
-><DIV
-CLASS="REFSYNOPSISDIV"
-><A
-NAME="AEN1521"
-></A
-><H2
->Synopsis</H2
-><PRE
-CLASS="SYNOPSIS"
->pg_null_value_string ?<SPAN
-CLASS="OPTIONAL"
-><CODE
-CLASS="PARAMETER"
->string</CODE
-></SPAN
->?</PRE
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN1525"
-></A
-><H2
->Description</H2
-><P
->   <CODE
-CLASS="FUNCTION"
->pg_null_value_string</CODE
-> sets or retrieves a string to
-   be returned in query results for fields whose value is NULL, making it
-   possible to distinguish between NULL values an values that are not null
-   but are comprised of an empty string.  Without setting an alternative
-   null value with this or with pg_result's -null_value_string, it is
-   impossible to tell the difference between a NULL field value and one that
-   is not null but empty.
-  </P
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN1529"
-></A
-><H2
->Arguments</H2
-><P
-></P
-><DIV
-CLASS="VARIABLELIST"
-><DL
-><DT
-><CODE
-CLASS="PARAMETER"
->string</CODE
-></DT
-><DD
-><P
->      The string to be set that will be returned for null fields.
-     </P
-></DD
-></DL
-></DIV
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN1537"
-></A
-><H2
->Return Value</H2
-><P
->   Returns the string that is currently being returned for null fields.
-   It will be the passed string value if one was passed, or, otherwise,
-   the value currently being used.
-  </P
-></DIV
-><DIV
-CLASS="NAVFOOTER"
-><HR
-ALIGN="LEFT"
-WIDTH="100%"><TABLE
-SUMMARY="Footer navigation table"
-WIDTH="100%"
-BORDER="0"
-CELLPADDING="0"
-CELLSPACING="0"
-><TR
-><TD
-WIDTH="33%"
-ALIGN="left"
-VALIGN="top"
-><A
-HREF="pgtcl-pgcancelrequest.html"
-ACCESSKEY="P"
->Prev</A
-></TD
-><TD
-WIDTH="34%"
-ALIGN="center"
-VALIGN="top"
-><A
-HREF="index.html"
-ACCESSKEY="H"
->Home</A
-></TD
-><TD
-WIDTH="33%"
-ALIGN="right"
-VALIGN="top"
-><A
-HREF="pgtcl-quote.html"
-ACCESSKEY="N"
->Next</A
-></TD
-></TR
-><TR
-><TD
-WIDTH="33%"
-ALIGN="left"
-VALIGN="top"
->pg_cancelrequest</TD
-><TD
-WIDTH="34%"
-ALIGN="center"
-VALIGN="top"
-><A
-HREF="libpgtcl-ref.html"
-ACCESSKEY="U"
->Up</A
-></TD
-><TD
-WIDTH="33%"
-ALIGN="right"
-VALIGN="top"
->pg_quote</TD
-></TR
-></TABLE
-></DIV
-></BODY
-></HTML
->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="HTML Tidy for HTML5 for FreeBSD version 5.2.0">
+<title>pg_null_value_string</title>
+<meta name="GENERATOR" content="Modular DocBook HTML Stylesheet Version 1.79">
+<link rev="MADE" href="mailto:pgsql-docs@postgresql.org">
+<link rel="HOME" title="PostgreSQL Tcl Interface Documentation" href="index.html">
+<link rel="UP" title="pgtcl Command Reference" href="libpgtcl-ref.html">
+<link rel="PREVIOUS" title="pg_cancelrequest" href="pgtcl-pgcancelrequest.html">
+<link rel="NEXT" title="pg_quote" href="pgtcl-quote.html">
+<link rel="STYLESHEET" type="text/css" href="stylesheet.css">
+<meta name="creation" content="2016-06-16T22:26:55">
+</head>
+<body class="REFENTRY">
+<div class="NAVHEADER">
+<table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<th colspan="5" align="center" valign="bottom">PostgreSQL Tcl Interface Documentation</th>
+</tr>
+<tr>
+<td width="10%" align="left" valign="top"><a href="pgtcl-pgcancelrequest.html" accesskey="P">Prev</a></td>
+<td width="10%" align="left" valign="top"><a href="pgtcl-pgcancelrequest.html">Fast Backward</a></td>
+<td width="60%" align="center" valign="bottom"></td>
+<td width="10%" align="right" valign="top"><a href="pgtcl-quote.html">Fast Forward</a></td>
+<td width="10%" align="right" valign="top"><a href="pgtcl-quote.html" accesskey="N">Next</a></td>
+</tr>
+</table>
+<hr align="left" width="100%"></div>
+<h1><a name="PGTCL-NULLVALUESTRING" id="PGTCL-NULLVALUESTRING"></a>pg_null_value_string</h1>
+<div class="REFNAMEDIV"><a name="AEN1521" id="AEN1521"></a>
+<h2>Name</h2>
+pg_null_value_string&nbsp;--&nbsp;define a value to be returned for NULL fields distinct from the default value of an empty string. <a name="IX-PGTCL-NULLVALUESTRING-2" id="IX-PGTCL-NULLVALUESTRING-2"></a></div>
+<div class="REFSYNOPSISDIV"><a name="AEN1526" id="AEN1526"></a>
+<h2>Synopsis</h2>
+<pre class="SYNOPSIS">pg_null_value_string ?<span class="OPTIONAL"><code class="PARAMETER">string</code></span>?</pre></div>
+<div class="REFSECT1"><a name="AEN1530" id="AEN1530"></a>
+<h2>Description</h2>
+<p><code class="FUNCTION">pg_null_value_string</code> sets or retrieves a string to be returned in query results for fields whose value is NULL, making it possible to distinguish between NULL values an values that are not null but are comprised of an empty string. Without setting an alternative null value with this or with pg_result's -null_value_string, it is impossible to tell the difference between a NULL field value and one that is not null but empty.</p>
+</div>
+<div class="REFSECT1"><a name="AEN1534" id="AEN1534"></a>
+<h2>Arguments</h2>
+<div class="VARIABLELIST">
+<dl>
+<dt><code class="PARAMETER">string</code></dt>
+<dd>
+<p>The string to be set that will be returned for null fields.</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="REFSECT1"><a name="AEN1542" id="AEN1542"></a>
+<h2>Return Value</h2>
+<p>Returns the string that is currently being returned for null fields. It will be the passed string value if one was passed, or, otherwise, the value currently being used.</p>
+</div>
+<div class="NAVFOOTER">
+<hr align="left" width="100%">
+<table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td width="33%" align="left" valign="top"><a href="pgtcl-pgcancelrequest.html" accesskey="P">Prev</a></td>
+<td width="34%" align="center" valign="top"><a href="index.html" accesskey="H">Home</a></td>
+<td width="33%" align="right" valign="top"><a href="pgtcl-quote.html" accesskey="N">Next</a></td>
+</tr>
+<tr>
+<td width="33%" align="left" valign="top">pg_cancelrequest</td>
+<td width="34%" align="center" valign="top"><a href="libpgtcl-ref.html" accesskey="U">Up</a></td>
+<td width="33%" align="right" valign="top">pg_quote</td>
+</tr>
+</table>
+</div>
+</body>
+</html>

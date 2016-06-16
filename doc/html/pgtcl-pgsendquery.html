@@ -1,275 +1,78 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<HTML
-><HEAD
-><TITLE
->pg_sendquery</TITLE
-><META
-NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
-REV="MADE"
-HREF="mailto:pgsql-docs@postgresql.org"><LINK
-REL="HOME"
-TITLE="PostgreSQL Tcl Interface Documentation"
-HREF="index.html"><LINK
-REL="UP"
-TITLE="pgtcl Command Reference"
-HREF="libpgtcl-ref.html"><LINK
-REL="PREVIOUS"
-TITLE="pg_on_connection_loss"
-HREF="pgtcl-pgon-connection-loss.html"><LINK
-REL="NEXT"
-TITLE="pg_sendquery_prepared"
-HREF="pgtcl-pgsendqueryprepared.html"><LINK
-REL="STYLESHEET"
-TYPE="text/css"
-HREF="stylesheet.css"><META
-NAME="creation"
-CONTENT="2016-06-16T17:50:48"></HEAD
-><BODY
-CLASS="REFENTRY"
-><DIV
-CLASS="NAVHEADER"
-><TABLE
-SUMMARY="Header navigation table"
-WIDTH="100%"
-BORDER="0"
-CELLPADDING="0"
-CELLSPACING="0"
-><TR
-><TH
-COLSPAN="5"
-ALIGN="center"
-VALIGN="bottom"
->PostgreSQL Tcl Interface Documentation</TH
-></TR
-><TR
-><TD
-WIDTH="10%"
-ALIGN="left"
-VALIGN="top"
-><A
-HREF="pgtcl-pgon-connection-loss.html"
-ACCESSKEY="P"
->Prev</A
-></TD
-><TD
-WIDTH="10%"
-ALIGN="left"
-VALIGN="top"
-><A
-HREF="pgtcl-pgon-connection-loss.html"
->Fast Backward</A
-></TD
-><TD
-WIDTH="60%"
-ALIGN="center"
-VALIGN="bottom"
-></TD
-><TD
-WIDTH="10%"
-ALIGN="right"
-VALIGN="top"
-><A
-HREF="pgtcl-pgsendqueryprepared.html"
->Fast Forward</A
-></TD
-><TD
-WIDTH="10%"
-ALIGN="right"
-VALIGN="top"
-><A
-HREF="pgtcl-pgsendqueryprepared.html"
-ACCESSKEY="N"
->Next</A
-></TD
-></TR
-></TABLE
-><HR
-ALIGN="LEFT"
-WIDTH="100%"></DIV
-><H1
-><A
-NAME="PGTCL-PGSENDQUERY"
-></A
->pg_sendquery</H1
-><DIV
-CLASS="REFNAMEDIV"
-><A
-NAME="AEN1301"
-></A
-><H2
->Name</H2
->pg_sendquery&nbsp;--&nbsp;send a query string to the backend connection without waiting for a result<A
-NAME="IX-PGTCL-PGSENDQUERY-2"
-></A
-></DIV
-><DIV
-CLASS="REFSYNOPSISDIV"
-><A
-NAME="AEN1306"
-></A
-><H2
->Synopsis</H2
-><PRE
-CLASS="SYNOPSIS"
->pg_sendquery <CODE
-CLASS="PARAMETER"
->conn</CODE
-> <CODE
-CLASS="PARAMETER"
->commandString</CODE
-></PRE
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN1310"
-></A
-><H2
->Description</H2
-><P
->   <CODE
-CLASS="FUNCTION"
->pg_sendquery</CODE
-> submits a command to the
-   <SPAN
-CLASS="PRODUCTNAME"
->PostgreSQL</SPAN
-> server.
-   This function works like <CODE
-CLASS="FUNCTION"
->pg_exec</CODE
->, except that
-   it does not return a result.  Rather, the command is issued
-   to the backend asynchronously.
-  </P
-><P
->   The result is either an error message or nothing.  An empty
-   return indicates that the command was dispatched to the
-   backend.
-  </P
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN1317"
-></A
-><H2
->Arguments</H2
-><P
-></P
-><DIV
-CLASS="VARIABLELIST"
-><DL
-><DT
-><CODE
-CLASS="PARAMETER"
->conn</CODE
-></DT
-><DD
-><P
->      The handle of the connection on which to execute the command.
-     </P
-></DD
-><DT
-><CODE
-CLASS="PARAMETER"
->commandString</CODE
-></DT
-><DD
-><P
->      The SQL command to execute.
-     </P
-></DD
-></DL
-></DIV
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN1330"
-></A
-><H2
->Return Value</H2
-><P
->   A Tcl error will be returned if
-   <SPAN
-CLASS="APPLICATION"
->pgtcl</SPAN
-> was unable to issue the command.
-   Otherwise, an empty string will be return.  It is up to the
-   developer to use <CODE
-CLASS="FUNCTION"
->pg_getresult</CODE
-> to obtain
-   results from commands issued with <CODE
-CLASS="FUNCTION"
->pg_sendquery</CODE
->.
-  </P
-></DIV
-><DIV
-CLASS="NAVFOOTER"
-><HR
-ALIGN="LEFT"
-WIDTH="100%"><TABLE
-SUMMARY="Footer navigation table"
-WIDTH="100%"
-BORDER="0"
-CELLPADDING="0"
-CELLSPACING="0"
-><TR
-><TD
-WIDTH="33%"
-ALIGN="left"
-VALIGN="top"
-><A
-HREF="pgtcl-pgon-connection-loss.html"
-ACCESSKEY="P"
->Prev</A
-></TD
-><TD
-WIDTH="34%"
-ALIGN="center"
-VALIGN="top"
-><A
-HREF="index.html"
-ACCESSKEY="H"
->Home</A
-></TD
-><TD
-WIDTH="33%"
-ALIGN="right"
-VALIGN="top"
-><A
-HREF="pgtcl-pgsendqueryprepared.html"
-ACCESSKEY="N"
->Next</A
-></TD
-></TR
-><TR
-><TD
-WIDTH="33%"
-ALIGN="left"
-VALIGN="top"
->pg_on_connection_loss</TD
-><TD
-WIDTH="34%"
-ALIGN="center"
-VALIGN="top"
-><A
-HREF="libpgtcl-ref.html"
-ACCESSKEY="U"
->Up</A
-></TD
-><TD
-WIDTH="33%"
-ALIGN="right"
-VALIGN="top"
->pg_sendquery_prepared</TD
-></TR
-></TABLE
-></DIV
-></BODY
-></HTML
->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="HTML Tidy for HTML5 for FreeBSD version 5.2.0">
+<title>pg_sendquery</title>
+<meta name="GENERATOR" content="Modular DocBook HTML Stylesheet Version 1.79">
+<link rev="MADE" href="mailto:pgsql-docs@postgresql.org">
+<link rel="HOME" title="PostgreSQL Tcl Interface Documentation" href="index.html">
+<link rel="UP" title="pgtcl Command Reference" href="libpgtcl-ref.html">
+<link rel="PREVIOUS" title="pg_on_connection_loss" href="pgtcl-pgon-connection-loss.html">
+<link rel="NEXT" title="pg_sendquery_prepared" href="pgtcl-pgsendqueryprepared.html">
+<link rel="STYLESHEET" type="text/css" href="stylesheet.css">
+<meta name="creation" content="2016-06-16T22:26:55">
+</head>
+<body class="REFENTRY">
+<div class="NAVHEADER">
+<table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<th colspan="5" align="center" valign="bottom">PostgreSQL Tcl Interface Documentation</th>
+</tr>
+<tr>
+<td width="10%" align="left" valign="top"><a href="pgtcl-pgon-connection-loss.html" accesskey="P">Prev</a></td>
+<td width="10%" align="left" valign="top"><a href="pgtcl-pgon-connection-loss.html">Fast Backward</a></td>
+<td width="60%" align="center" valign="bottom"></td>
+<td width="10%" align="right" valign="top"><a href="pgtcl-pgsendqueryprepared.html">Fast Forward</a></td>
+<td width="10%" align="right" valign="top"><a href="pgtcl-pgsendqueryprepared.html" accesskey="N">Next</a></td>
+</tr>
+</table>
+<hr align="left" width="100%"></div>
+<h1><a name="PGTCL-PGSENDQUERY" id="PGTCL-PGSENDQUERY"></a>pg_sendquery</h1>
+<div class="REFNAMEDIV"><a name="AEN1306" id="AEN1306"></a>
+<h2>Name</h2>
+pg_sendquery&nbsp;--&nbsp;send a query string to the backend connection without waiting for a result<a name="IX-PGTCL-PGSENDQUERY-2" id="IX-PGTCL-PGSENDQUERY-2"></a></div>
+<div class="REFSYNOPSISDIV"><a name="AEN1311" id="AEN1311"></a>
+<h2>Synopsis</h2>
+<pre class="SYNOPSIS">pg_sendquery <code class="PARAMETER">conn</code> <code class="PARAMETER">commandString</code></pre></div>
+<div class="REFSECT1"><a name="AEN1315" id="AEN1315"></a>
+<h2>Description</h2>
+<p><code class="FUNCTION">pg_sendquery</code> submits a command to the <span class="PRODUCTNAME">PostgreSQL</span> server. This function works like <code class="FUNCTION">pg_exec</code>, except that it does not return a result. Rather, the command is issued to the backend asynchronously.</p>
+<p>The result is either an error message or nothing. An empty return indicates that the command was dispatched to the backend.</p>
+</div>
+<div class="REFSECT1"><a name="AEN1322" id="AEN1322"></a>
+<h2>Arguments</h2>
+<div class="VARIABLELIST">
+<dl>
+<dt><code class="PARAMETER">conn</code></dt>
+<dd>
+<p>The handle of the connection on which to execute the command.</p>
+</dd>
+<dt><code class="PARAMETER">commandString</code></dt>
+<dd>
+<p>The SQL command to execute.</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="REFSECT1"><a name="AEN1335" id="AEN1335"></a>
+<h2>Return Value</h2>
+<p>A Tcl error will be returned if <span class="APPLICATION">pgtcl</span> was unable to issue the command. Otherwise, an empty string will be return. It is up to the developer to use <code class="FUNCTION">pg_getresult</code> to obtain results from commands issued with <code class="FUNCTION">pg_sendquery</code>.</p>
+</div>
+<div class="NAVFOOTER">
+<hr align="left" width="100%">
+<table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td width="33%" align="left" valign="top"><a href="pgtcl-pgon-connection-loss.html" accesskey="P">Prev</a></td>
+<td width="34%" align="center" valign="top"><a href="index.html" accesskey="H">Home</a></td>
+<td width="33%" align="right" valign="top"><a href="pgtcl-pgsendqueryprepared.html" accesskey="N">Next</a></td>
+</tr>
+<tr>
+<td width="33%" align="left" valign="top">pg_on_connection_loss</td>
+<td width="34%" align="center" valign="top"><a href="libpgtcl-ref.html" accesskey="U">Up</a></td>
+<td width="33%" align="right" valign="top">pg_sendquery_prepared</td>
+</tr>
+</table>
+</div>
+</body>
+</html>

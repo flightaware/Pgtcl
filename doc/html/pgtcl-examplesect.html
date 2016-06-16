@@ -1,121 +1,38 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<HTML
-><HEAD
-><TITLE
->Example Program</TITLE
-><META
-NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
-REV="MADE"
-HREF="mailto:pgsql-docs@postgresql.org"><LINK
-REL="HOME"
-TITLE="PostgreSQL Tcl Interface Documentation"
-HREF="index.html"><LINK
-REL="UP"
-TITLE="pgtcl - Tcl Binding Library"
-HREF="libpgtcl.html"><LINK
-REL="PREVIOUS"
-TITLE="Connection/result handles as commands"
-HREF="pgtcl-commandhandles.html"><LINK
-REL="STYLESHEET"
-TYPE="text/css"
-HREF="stylesheet.css"><META
-NAME="creation"
-CONTENT="2016-06-16T17:50:48"></HEAD
-><BODY
-CLASS="SECT1"
-><DIV
-CLASS="NAVHEADER"
-><TABLE
-SUMMARY="Header navigation table"
-WIDTH="100%"
-BORDER="0"
-CELLPADDING="0"
-CELLSPACING="0"
-><TR
-><TH
-COLSPAN="5"
-ALIGN="center"
-VALIGN="bottom"
->PostgreSQL Tcl Interface Documentation</TH
-></TR
-><TR
-><TD
-WIDTH="10%"
-ALIGN="left"
-VALIGN="top"
-><A
-HREF="pgtcl-commandhandles.html"
-ACCESSKEY="P"
->Prev</A
-></TD
-><TD
-WIDTH="10%"
-ALIGN="left"
-VALIGN="top"
-><A
-HREF="libpgtcl.html"
->Fast Backward</A
-></TD
-><TD
-WIDTH="60%"
-ALIGN="center"
-VALIGN="bottom"
->Chapter 1. <SPAN
-CLASS="APPLICATION"
->pgtcl</SPAN
-> - Tcl Binding Library</TD
-><TD
-WIDTH="10%"
-ALIGN="right"
-VALIGN="top"
-><A
-HREF="libpgtcl.html"
->Fast Forward</A
-></TD
-><TD
-WIDTH="10%"
-ALIGN="right"
-VALIGN="top"
->&nbsp;</TD
-></TR
-></TABLE
-><HR
-ALIGN="LEFT"
-WIDTH="100%"></DIV
-><DIV
-CLASS="SECT1"
-><H1
-CLASS="SECT1"
-><A
-NAME="PGTCL-EXAMPLESECT"
->1.6. Example Program</A
-></H1
-><P
->  <A
-HREF="pgtcl-examplesect.html#PGTCL-EXAMPLE"
->Example 1-1</A
-> shows a small example of how to use
-  the <SPAN
-CLASS="APPLICATION"
->pgtcl</SPAN
-> commands.
- </P
-><DIV
-CLASS="EXAMPLE"
-><A
-NAME="PGTCL-EXAMPLE"
-></A
-><P
-><B
->Example 1-1. <SPAN
-CLASS="APPLICATION"
->pgtcl</SPAN
-> Example Program</B
-></P
-><PRE
-CLASS="PROGRAMLISTING"
-># getDBs :
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="HTML Tidy for HTML5 for FreeBSD version 5.2.0">
+<title>Example Program</title>
+<meta name="GENERATOR" content="Modular DocBook HTML Stylesheet Version 1.79">
+<link rev="MADE" href="mailto:pgsql-docs@postgresql.org">
+<link rel="HOME" title="PostgreSQL Tcl Interface Documentation" href="index.html">
+<link rel="UP" title="pgtcl - Tcl Binding Library" href="libpgtcl.html">
+<link rel="PREVIOUS" title="Connection/result handles as commands" href="pgtcl-commandhandles.html">
+<link rel="STYLESHEET" type="text/css" href="stylesheet.css">
+<meta name="creation" content="2016-06-16T22:26:55">
+</head>
+<body class="SECT1">
+<div class="NAVHEADER">
+<table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<th colspan="5" align="center" valign="bottom">PostgreSQL Tcl Interface Documentation</th>
+</tr>
+<tr>
+<td width="10%" align="left" valign="top"><a href="pgtcl-commandhandles.html" accesskey="P">Prev</a></td>
+<td width="10%" align="left" valign="top"><a href="libpgtcl.html">Fast Backward</a></td>
+<td width="60%" align="center" valign="bottom">Chapter 1. <span class="APPLICATION">pgtcl</span> - Tcl Binding Library</td>
+<td width="10%" align="right" valign="top"><a href="libpgtcl.html">Fast Forward</a></td>
+<td width="10%" align="right" valign="top">&nbsp;</td>
+</tr>
+</table>
+<hr align="left" width="100%"></div>
+<div class="SECT1">
+<h1 class="SECT1"><a name="PGTCL-EXAMPLESECT" id="PGTCL-EXAMPLESECT">1.6. Example Program</a></h1>
+<p><a href="pgtcl-examplesect.html#PGTCL-EXAMPLE">Example 1-1</a> shows a small example of how to use the <span class="APPLICATION">pgtcl</span> commands.</p>
+<div class="EXAMPLE"><a name="PGTCL-EXAMPLE" id="PGTCL-EXAMPLE"></a>
+<p><b>Example 1-1. <span class="APPLICATION">pgtcl</span> Example Program</b></p>
+<pre class="PROGRAMLISTING"># getDBs :
 #   get the names of all the databases at a given host and port number
 #   with the defaults being the localhost and port 5432
 #   return them in alphabetical order
@@ -124,8 +41,8 @@ proc getDBs { {host "localhost"} {port "5432"} } {
     set conn [pg_connect template1 -host $host -port $port]
     set res [pg_exec $conn "SELECT datname FROM pg_database ORDER BY datname;"]
     set ntups [pg_result $res -numTuples]
-    for {set i 0} {$i &#60; $ntups} {incr i} {
-	lappend datnames [pg_result $res -getTuple $i]
+    for {set i 0} {$i &lt; $ntups} {incr i} {
+        lappend datnames [pg_result $res -getTuple $i]
     }
     pg_result $res -clear
     pg_disconnect $conn
@@ -156,67 +73,22 @@ proc getDBs { {host "localhost"} {port "5432"} } {
     $res -clear
     rename $conn {}
     return [dict get $datnames]
-}&#13;</PRE
-></DIV
-></DIV
-><DIV
-CLASS="NAVFOOTER"
-><HR
-ALIGN="LEFT"
-WIDTH="100%"><TABLE
-SUMMARY="Footer navigation table"
-WIDTH="100%"
-BORDER="0"
-CELLPADDING="0"
-CELLSPACING="0"
-><TR
-><TD
-WIDTH="33%"
-ALIGN="left"
-VALIGN="top"
-><A
-HREF="pgtcl-commandhandles.html"
-ACCESSKEY="P"
->Prev</A
-></TD
-><TD
-WIDTH="34%"
-ALIGN="center"
-VALIGN="top"
-><A
-HREF="index.html"
-ACCESSKEY="H"
->Home</A
-></TD
-><TD
-WIDTH="33%"
-ALIGN="right"
-VALIGN="top"
->&nbsp;</TD
-></TR
-><TR
-><TD
-WIDTH="33%"
-ALIGN="left"
-VALIGN="top"
->Connection/result handles as commands</TD
-><TD
-WIDTH="34%"
-ALIGN="center"
-VALIGN="top"
-><A
-HREF="libpgtcl.html"
-ACCESSKEY="U"
->Up</A
-></TD
-><TD
-WIDTH="33%"
-ALIGN="right"
-VALIGN="top"
->&nbsp;</TD
-></TR
-></TABLE
-></DIV
-></BODY
-></HTML
->
+}</pre></div>
+</div>
+<div class="NAVFOOTER">
+<hr align="left" width="100%">
+<table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td width="33%" align="left" valign="top"><a href="pgtcl-commandhandles.html" accesskey="P">Prev</a></td>
+<td width="34%" align="center" valign="top"><a href="index.html" accesskey="H">Home</a></td>
+<td width="33%" align="right" valign="top">&nbsp;</td>
+</tr>
+<tr>
+<td width="33%" align="left" valign="top">Connection/result handles as commands</td>
+<td width="34%" align="center" valign="top"><a href="libpgtcl.html" accesskey="U">Up</a></td>
+<td width="33%" align="right" valign="top">&nbsp;</td>
+</tr>
+</table>
+</div>
+</body>
+</html>

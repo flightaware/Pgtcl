@@ -1,296 +1,82 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<HTML
-><HEAD
-><TITLE
->pg_sendquery_prepared</TITLE
-><META
-NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
-REV="MADE"
-HREF="mailto:pgsql-docs@postgresql.org"><LINK
-REL="HOME"
-TITLE="PostgreSQL Tcl Interface Documentation"
-HREF="index.html"><LINK
-REL="UP"
-TITLE="pgtcl Command Reference"
-HREF="libpgtcl-ref.html"><LINK
-REL="PREVIOUS"
-TITLE="pg_sendquery"
-HREF="pgtcl-pgsendquery.html"><LINK
-REL="NEXT"
-TITLE="pg_getresult"
-HREF="pgtcl-pggetresult.html"><LINK
-REL="STYLESHEET"
-TYPE="text/css"
-HREF="stylesheet.css"><META
-NAME="creation"
-CONTENT="2016-06-16T17:50:48"></HEAD
-><BODY
-CLASS="REFENTRY"
-><DIV
-CLASS="NAVHEADER"
-><TABLE
-SUMMARY="Header navigation table"
-WIDTH="100%"
-BORDER="0"
-CELLPADDING="0"
-CELLSPACING="0"
-><TR
-><TH
-COLSPAN="5"
-ALIGN="center"
-VALIGN="bottom"
->PostgreSQL Tcl Interface Documentation</TH
-></TR
-><TR
-><TD
-WIDTH="10%"
-ALIGN="left"
-VALIGN="top"
-><A
-HREF="pgtcl-pgsendquery.html"
-ACCESSKEY="P"
->Prev</A
-></TD
-><TD
-WIDTH="10%"
-ALIGN="left"
-VALIGN="top"
-><A
-HREF="pgtcl-pgsendquery.html"
->Fast Backward</A
-></TD
-><TD
-WIDTH="60%"
-ALIGN="center"
-VALIGN="bottom"
-></TD
-><TD
-WIDTH="10%"
-ALIGN="right"
-VALIGN="top"
-><A
-HREF="pgtcl-pggetresult.html"
->Fast Forward</A
-></TD
-><TD
-WIDTH="10%"
-ALIGN="right"
-VALIGN="top"
-><A
-HREF="pgtcl-pggetresult.html"
-ACCESSKEY="N"
->Next</A
-></TD
-></TR
-></TABLE
-><HR
-ALIGN="LEFT"
-WIDTH="100%"></DIV
-><H1
-><A
-NAME="PGTCL-PGSENDQUERYPREPARED"
-></A
->pg_sendquery_prepared</H1
-><DIV
-CLASS="REFNAMEDIV"
-><A
-NAME="AEN1339"
-></A
-><H2
->Name</H2
->pg_sendquery_prepared&nbsp;--&nbsp;send a request to execute a prepared statement to the backend connection, without waiting for a result<A
-NAME="IX-PGTCL-PGSENDQUERYPREPARED-2"
-></A
-></DIV
-><DIV
-CLASS="REFSYNOPSISDIV"
-><A
-NAME="AEN1344"
-></A
-><H2
->Synopsis</H2
-><PRE
-CLASS="SYNOPSIS"
->pg_sendquery_prepared <CODE
-CLASS="PARAMETER"
->conn</CODE
-> <CODE
-CLASS="PARAMETER"
->statementName</CODE
-> ?<SPAN
-CLASS="OPTIONAL"
-><CODE
-CLASS="PARAMETER"
->args</CODE
-></SPAN
->?</PRE
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN1350"
-></A
-><H2
->Description</H2
-><P
->   <CODE
-CLASS="FUNCTION"
->pg_sendquery_prepared</CODE
-> submits a command to the
-   <SPAN
-CLASS="PRODUCTNAME"
->PostgreSQL</SPAN
-> server.
-   This function works like <CODE
-CLASS="FUNCTION"
->pg_exec</CODE
->, except that
-   it does not return a result.  Rather, the command is issued
-   to the backend asynchronously.
-  </P
-><P
->   The result is either an error message or nothing.  An empty
-   return indicates that the command was dispatched to the
-   backend.
-  </P
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN1357"
-></A
-><H2
->Arguments</H2
-><P
-></P
-><DIV
-CLASS="VARIABLELIST"
-><DL
-><DT
-><CODE
-CLASS="PARAMETER"
->conn</CODE
-></DT
-><DD
-><P
->      The handle of the connection on which to execute the command.
-     </P
-></DD
-><DT
-><CODE
-CLASS="PARAMETER"
->statementName</CODE
-></DT
-><DD
-><P
->      The name of the prepared SQL statement to execute asynchronously.
-     </P
-></DD
-><DT
-><CODE
-CLASS="PARAMETER"
->args</CODE
-></DT
-><DD
-><P
->      <CODE
-CLASS="PARAMETER"
->args</CODE
->
-      consists of zero or more optional values that can be inserted,
-      unquoted, into the SQL statement using $-style substitution.
-     </P
-></DD
-></DL
-></DIV
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN1376"
-></A
-><H2
->Return Value</H2
-><P
->   A Tcl error will be returned if
-   <SPAN
-CLASS="APPLICATION"
->pgtcl</SPAN
-> was unable to issue the command.
-   Otherwise, an empty string will be return.  It is up to the
-   developer to use <CODE
-CLASS="FUNCTION"
->pg_getresult</CODE
-> to obtain
-   results from commands issued with <CODE
-CLASS="FUNCTION"
->pg_sendquery</CODE
->.
-  </P
-></DIV
-><DIV
-CLASS="NAVFOOTER"
-><HR
-ALIGN="LEFT"
-WIDTH="100%"><TABLE
-SUMMARY="Footer navigation table"
-WIDTH="100%"
-BORDER="0"
-CELLPADDING="0"
-CELLSPACING="0"
-><TR
-><TD
-WIDTH="33%"
-ALIGN="left"
-VALIGN="top"
-><A
-HREF="pgtcl-pgsendquery.html"
-ACCESSKEY="P"
->Prev</A
-></TD
-><TD
-WIDTH="34%"
-ALIGN="center"
-VALIGN="top"
-><A
-HREF="index.html"
-ACCESSKEY="H"
->Home</A
-></TD
-><TD
-WIDTH="33%"
-ALIGN="right"
-VALIGN="top"
-><A
-HREF="pgtcl-pggetresult.html"
-ACCESSKEY="N"
->Next</A
-></TD
-></TR
-><TR
-><TD
-WIDTH="33%"
-ALIGN="left"
-VALIGN="top"
->pg_sendquery</TD
-><TD
-WIDTH="34%"
-ALIGN="center"
-VALIGN="top"
-><A
-HREF="libpgtcl-ref.html"
-ACCESSKEY="U"
->Up</A
-></TD
-><TD
-WIDTH="33%"
-ALIGN="right"
-VALIGN="top"
->pg_getresult</TD
-></TR
-></TABLE
-></DIV
-></BODY
-></HTML
->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="HTML Tidy for HTML5 for FreeBSD version 5.2.0">
+<title>pg_sendquery_prepared</title>
+<meta name="GENERATOR" content="Modular DocBook HTML Stylesheet Version 1.79">
+<link rev="MADE" href="mailto:pgsql-docs@postgresql.org">
+<link rel="HOME" title="PostgreSQL Tcl Interface Documentation" href="index.html">
+<link rel="UP" title="pgtcl Command Reference" href="libpgtcl-ref.html">
+<link rel="PREVIOUS" title="pg_sendquery" href="pgtcl-pgsendquery.html">
+<link rel="NEXT" title="pg_getresult" href="pgtcl-pggetresult.html">
+<link rel="STYLESHEET" type="text/css" href="stylesheet.css">
+<meta name="creation" content="2016-06-16T22:26:55">
+</head>
+<body class="REFENTRY">
+<div class="NAVHEADER">
+<table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<th colspan="5" align="center" valign="bottom">PostgreSQL Tcl Interface Documentation</th>
+</tr>
+<tr>
+<td width="10%" align="left" valign="top"><a href="pgtcl-pgsendquery.html" accesskey="P">Prev</a></td>
+<td width="10%" align="left" valign="top"><a href="pgtcl-pgsendquery.html">Fast Backward</a></td>
+<td width="60%" align="center" valign="bottom"></td>
+<td width="10%" align="right" valign="top"><a href="pgtcl-pggetresult.html">Fast Forward</a></td>
+<td width="10%" align="right" valign="top"><a href="pgtcl-pggetresult.html" accesskey="N">Next</a></td>
+</tr>
+</table>
+<hr align="left" width="100%"></div>
+<h1><a name="PGTCL-PGSENDQUERYPREPARED" id="PGTCL-PGSENDQUERYPREPARED"></a>pg_sendquery_prepared</h1>
+<div class="REFNAMEDIV"><a name="AEN1344" id="AEN1344"></a>
+<h2>Name</h2>
+pg_sendquery_prepared&nbsp;--&nbsp;send a request to execute a prepared statement to the backend connection, without waiting for a result<a name="IX-PGTCL-PGSENDQUERYPREPARED-2" id="IX-PGTCL-PGSENDQUERYPREPARED-2"></a></div>
+<div class="REFSYNOPSISDIV"><a name="AEN1349" id="AEN1349"></a>
+<h2>Synopsis</h2>
+<pre class="SYNOPSIS">pg_sendquery_prepared <code class="PARAMETER">conn</code> <code class="PARAMETER">statementName</code> ?<span class="OPTIONAL"><code class="PARAMETER">args</code></span>?</pre></div>
+<div class="REFSECT1"><a name="AEN1355" id="AEN1355"></a>
+<h2>Description</h2>
+<p><code class="FUNCTION">pg_sendquery_prepared</code> submits a command to the <span class="PRODUCTNAME">PostgreSQL</span> server. This function works like <code class="FUNCTION">pg_exec</code>, except that it does not return a result. Rather, the command is issued to the backend asynchronously.</p>
+<p>The result is either an error message or nothing. An empty return indicates that the command was dispatched to the backend.</p>
+</div>
+<div class="REFSECT1"><a name="AEN1362" id="AEN1362"></a>
+<h2>Arguments</h2>
+<div class="VARIABLELIST">
+<dl>
+<dt><code class="PARAMETER">conn</code></dt>
+<dd>
+<p>The handle of the connection on which to execute the command.</p>
+</dd>
+<dt><code class="PARAMETER">statementName</code></dt>
+<dd>
+<p>The name of the prepared SQL statement to execute asynchronously.</p>
+</dd>
+<dt><code class="PARAMETER">args</code></dt>
+<dd>
+<p><code class="PARAMETER">args</code> consists of zero or more optional values that can be inserted, unquoted, into the SQL statement using $-style substitution.</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="REFSECT1"><a name="AEN1381" id="AEN1381"></a>
+<h2>Return Value</h2>
+<p>A Tcl error will be returned if <span class="APPLICATION">pgtcl</span> was unable to issue the command. Otherwise, an empty string will be return. It is up to the developer to use <code class="FUNCTION">pg_getresult</code> to obtain results from commands issued with <code class="FUNCTION">pg_sendquery</code>.</p>
+</div>
+<div class="NAVFOOTER">
+<hr align="left" width="100%">
+<table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td width="33%" align="left" valign="top"><a href="pgtcl-pgsendquery.html" accesskey="P">Prev</a></td>
+<td width="34%" align="center" valign="top"><a href="index.html" accesskey="H">Home</a></td>
+<td width="33%" align="right" valign="top"><a href="pgtcl-pggetresult.html" accesskey="N">Next</a></td>
+</tr>
+<tr>
+<td width="33%" align="left" valign="top">pg_sendquery</td>
+<td width="34%" align="center" valign="top"><a href="libpgtcl-ref.html" accesskey="U">Up</a></td>
+<td width="33%" align="right" valign="top">pg_getresult</td>
+</tr>
+</table>
+</div>
+</body>
+</html>

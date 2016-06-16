@@ -1,190 +1,65 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<HTML
-><HEAD
-><TITLE
->PostgreSQL Tcl Interface Documentation</TITLE
-><META
-NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
-REV="MADE"
-HREF="mailto:pgsql-docs@postgresql.org"><LINK
-REL="NEXT"
-TITLE="pgtcl - Tcl Binding Library"
-HREF="libpgtcl.html"><LINK
-REL="STYLESHEET"
-TYPE="text/css"
-HREF="stylesheet.css"><META
-NAME="creation"
-CONTENT="2016-06-16T17:50:48"></HEAD
-><BODY
-CLASS="BOOK"
-><DIV
-CLASS="BOOK"
-><A
-NAME="PGTCL"
-></A
-><DIV
-CLASS="TITLEPAGE"
-><H1
-CLASS="TITLE"
-><A
-NAME="PGTCL"
->PostgreSQL Tcl Interface Documentation</A
-></H1
-><H3
-CLASS="CORPAUTHOR"
->The PostgreSQL Global Development Group</H3
-><H3
-CLASS="CORPAUTHOR"
->The Tcl Interface Group</H3
-><HR></DIV
-><DIV
-CLASS="TOC"
-><DL
-><DT
-><B
->Table of Contents</B
-></DT
-><DT
->1. <A
-HREF="libpgtcl.html"
-><SPAN
-CLASS="APPLICATION"
->pgtcl</SPAN
-> - Tcl Binding Library</A
-></DT
-><DD
-><DL
-><DT
->1.1. <A
-HREF="libpgtcl.html#PGTCL-OVERVIEW"
->Overview</A
-></DT
-><DT
->1.2. <A
-HREF="libpgtcl-loading.html"
->Loading <SPAN
-CLASS="APPLICATION"
->pgtcl</SPAN
-> into an Application</A
-></DT
-><DT
->1.3. <A
-HREF="libpgtcl-ref.html"
-><SPAN
-CLASS="APPLICATION"
->pgtcl</SPAN
-> Command Reference</A
-></DT
-><DT
->1.4. <A
-HREF="pgtcl-tclnamespace.html"
->Tcl Namespace Support</A
-></DT
-><DT
->1.5. <A
-HREF="pgtcl-commandhandles.html"
->Connection/result handles as commands</A
-></DT
-><DT
->1.6. <A
-HREF="pgtcl-examplesect.html"
->Example Program</A
-></DT
-></DL
-></DD
-></DL
-></DIV
-><DIV
-CLASS="LOT"
-><DL
-CLASS="LOT"
-><DT
-><B
->List of Tables</B
-></DT
-><DT
->1-1. <A
-HREF="libpgtcl.html#PGTCL-COMMANDS-TABLE"
-><SPAN
-CLASS="APPLICATION"
->pgtcl</SPAN
-> Commands</A
-></DT
-></DL
-></DIV
-><DIV
-CLASS="LOT"
-><DL
-CLASS="LOT"
-><DT
-><B
->List of Examples</B
-></DT
-><DT
->1-1. <A
-HREF="pgtcl-examplesect.html#PGTCL-EXAMPLE"
-><SPAN
-CLASS="APPLICATION"
->pgtcl</SPAN
-> Example Program</A
-></DT
-></DL
-></DIV
-></DIV
-><DIV
-CLASS="NAVFOOTER"
-><HR
-ALIGN="LEFT"
-WIDTH="100%"><TABLE
-SUMMARY="Footer navigation table"
-WIDTH="100%"
-BORDER="0"
-CELLPADDING="0"
-CELLSPACING="0"
-><TR
-><TD
-WIDTH="33%"
-ALIGN="left"
-VALIGN="top"
->&nbsp;</TD
-><TD
-WIDTH="34%"
-ALIGN="center"
-VALIGN="top"
->&nbsp;</TD
-><TD
-WIDTH="33%"
-ALIGN="right"
-VALIGN="top"
-><A
-HREF="libpgtcl.html"
-ACCESSKEY="N"
->Next</A
-></TD
-></TR
-><TR
-><TD
-WIDTH="33%"
-ALIGN="left"
-VALIGN="top"
->&nbsp;</TD
-><TD
-WIDTH="34%"
-ALIGN="center"
-VALIGN="top"
->&nbsp;</TD
-><TD
-WIDTH="33%"
-ALIGN="right"
-VALIGN="top"
-><SPAN
-CLASS="APPLICATION"
->pgtcl</SPAN
-> - Tcl Binding Library</TD
-></TR
-></TABLE
-></DIV
-></BODY
-></HTML
->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="HTML Tidy for HTML5 for FreeBSD version 5.2.0">
+<title>PostgreSQL Tcl Interface Documentation</title>
+<meta name="GENERATOR" content="Modular DocBook HTML Stylesheet Version 1.79">
+<link rev="MADE" href="mailto:pgsql-docs@postgresql.org">
+<link rel="NEXT" title="pgtcl - Tcl Binding Library" href="libpgtcl.html">
+<link rel="STYLESHEET" type="text/css" href="stylesheet.css">
+<meta name="creation" content="2016-06-16T22:26:55">
+</head>
+<body class="BOOK">
+<div class="BOOK"><a name="PGTCL" id="PGTCL"></a>
+<div class="TITLEPAGE">
+<h1 class="TITLE"><a name="PGTCL" id="PGTCL">PostgreSQL Tcl Interface Documentation</a></h1>
+<h3 class="CORPAUTHOR">The PostgreSQL Global Development Group</h3>
+<h3 class="CORPAUTHOR">The Tcl Interface Group</h3>
+<hr></div>
+<div class="TOC">
+<dl>
+<dt><b>Table of Contents</b></dt>
+<dt>1. <a href="libpgtcl.html"><span class="APPLICATION">pgtcl</span> - Tcl Binding Library</a></dt>
+<dd>
+<dl>
+<dt>1.1. <a href="libpgtcl.html#PGTCL-OVERVIEW">Overview</a></dt>
+<dt>1.2. <a href="libpgtcl-loading.html">Loading <span class="APPLICATION">pgtcl</span> into an Application</a></dt>
+<dt>1.3. <a href="libpgtcl-ref.html"><span class="APPLICATION">pgtcl</span> Command Reference</a></dt>
+<dt>1.4. <a href="pgtcl-tclnamespace.html">Tcl Namespace Support</a></dt>
+<dt>1.5. <a href="pgtcl-commandhandles.html">Connection/result handles as commands</a></dt>
+<dt>1.6. <a href="pgtcl-examplesect.html">Example Program</a></dt>
+</dl>
+</dd>
+</dl>
+</div>
+<div class="LOT">
+<dl class="LOT">
+<dt><b>List of Tables</b></dt>
+<dt>1-1. <a href="libpgtcl.html#PGTCL-COMMANDS-TABLE"><span class="APPLICATION">pgtcl</span> Commands</a></dt>
+</dl>
+</div>
+<div class="LOT">
+<dl class="LOT">
+<dt><b>List of Examples</b></dt>
+<dt>1-1. <a href="pgtcl-examplesect.html#PGTCL-EXAMPLE"><span class="APPLICATION">pgtcl</span> Example Program</a></dt>
+</dl>
+</div>
+</div>
+<div class="NAVFOOTER">
+<hr align="left" width="100%">
+<table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td width="33%" align="left" valign="top">&nbsp;</td>
+<td width="34%" align="center" valign="top">&nbsp;</td>
+<td width="33%" align="right" valign="top"><a href="libpgtcl.html" accesskey="N">Next</a></td>
+</tr>
+<tr>
+<td width="33%" align="left" valign="top">&nbsp;</td>
+<td width="34%" align="center" valign="top">&nbsp;</td>
+<td width="33%" align="right" valign="top"><span class="APPLICATION">pgtcl</span> - Tcl Binding Library</td>
+</tr>
+</table>
+</div>
+</body>
+</html>

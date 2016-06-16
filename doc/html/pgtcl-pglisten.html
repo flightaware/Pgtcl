@@ -1,337 +1,83 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<HTML
-><HEAD
-><TITLE
->pg_listen</TITLE
-><META
-NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
-REV="MADE"
-HREF="mailto:pgsql-docs@postgresql.org"><LINK
-REL="HOME"
-TITLE="PostgreSQL Tcl Interface Documentation"
-HREF="index.html"><LINK
-REL="UP"
-TITLE="pgtcl Command Reference"
-HREF="libpgtcl-ref.html"><LINK
-REL="PREVIOUS"
-TITLE="pg_execute"
-HREF="pgtcl-pgexecute.html"><LINK
-REL="NEXT"
-TITLE="pg_on_connection_loss"
-HREF="pgtcl-pgon-connection-loss.html"><LINK
-REL="STYLESHEET"
-TYPE="text/css"
-HREF="stylesheet.css"><META
-NAME="creation"
-CONTENT="2016-06-16T17:50:48"></HEAD
-><BODY
-CLASS="REFENTRY"
-><DIV
-CLASS="NAVHEADER"
-><TABLE
-SUMMARY="Header navigation table"
-WIDTH="100%"
-BORDER="0"
-CELLPADDING="0"
-CELLSPACING="0"
-><TR
-><TH
-COLSPAN="5"
-ALIGN="center"
-VALIGN="bottom"
->PostgreSQL Tcl Interface Documentation</TH
-></TR
-><TR
-><TD
-WIDTH="10%"
-ALIGN="left"
-VALIGN="top"
-><A
-HREF="pgtcl-pgexecute.html"
-ACCESSKEY="P"
->Prev</A
-></TD
-><TD
-WIDTH="10%"
-ALIGN="left"
-VALIGN="top"
-><A
-HREF="pgtcl-pgexecute.html"
->Fast Backward</A
-></TD
-><TD
-WIDTH="60%"
-ALIGN="center"
-VALIGN="bottom"
-></TD
-><TD
-WIDTH="10%"
-ALIGN="right"
-VALIGN="top"
-><A
-HREF="pgtcl-pgon-connection-loss.html"
->Fast Forward</A
-></TD
-><TD
-WIDTH="10%"
-ALIGN="right"
-VALIGN="top"
-><A
-HREF="pgtcl-pgon-connection-loss.html"
-ACCESSKEY="N"
->Next</A
-></TD
-></TR
-></TABLE
-><HR
-ALIGN="LEFT"
-WIDTH="100%"></DIV
-><H1
-><A
-NAME="PGTCL-PGLISTEN"
-></A
->pg_listen</H1
-><DIV
-CLASS="REFNAMEDIV"
-><A
-NAME="AEN1205"
-></A
-><H2
->Name</H2
->pg_listen&nbsp;--&nbsp;set or change a callback for asynchronous notification messages<A
-NAME="IX-PGTCL-PGLISTEN-2"
-></A
-></DIV
-><DIV
-CLASS="REFSYNOPSISDIV"
-><A
-NAME="AEN1210"
-></A
-><H2
->Synopsis</H2
-><PRE
-CLASS="SYNOPSIS"
->pg_listen <CODE
-CLASS="PARAMETER"
->conn</CODE
-> <CODE
-CLASS="PARAMETER"
->notifyName</CODE
-> ?<SPAN
-CLASS="OPTIONAL"
-><CODE
-CLASS="PARAMETER"
->callbackCommand</CODE
-></SPAN
->?</PRE
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN1216"
-></A
-><H2
->Description</H2
-><P
->   <CODE
-CLASS="FUNCTION"
->pg_listen</CODE
-> creates, changes, or cancels a
-   request to listen for asynchronous notification messages from the
-   <SPAN
-CLASS="PRODUCTNAME"
->PostgreSQL</SPAN
-> server.  With a
-   <CODE
-CLASS="PARAMETER"
->callbackCommand</CODE
-> parameter, the request is
-   established, or the command string of an already existing request
-   is replaced.  With no <CODE
-CLASS="PARAMETER"
->callbackCommand</CODE
-> parameter, a
-   prior request is canceled.
-  </P
-><P
->   After a <CODE
-CLASS="FUNCTION"
->pg_listen</CODE
-> request is established, the
-   specified command string is executed whenever a notification
-   message bearing the given name arrives from the server.  This
-   occurs when any <SPAN
-CLASS="PRODUCTNAME"
->PostgreSQL</SPAN
-> client
-   application issues a
-   <TT
-CLASS="COMMAND"
->NOTIFY</TT
-><A
-NAME="AEN1227"
-></A
-> command referencing that name.  The
-   command string is executed from the Tcl idle loop.  That is the
-   normal idle state of an application written with Tk.  In non-Tk Tcl
-   shells, you can execute <CODE
-CLASS="FUNCTION"
->update</CODE
-> or
-   <CODE
-CLASS="FUNCTION"
->vwait</CODE
-> to cause the idle loop to be entered.
-  </P
-><P
->   You should not invoke the SQL statements <TT
-CLASS="COMMAND"
->LISTEN</TT
->
-   or <TT
-CLASS="COMMAND"
->UNLISTEN</TT
-> directly when using
-   <CODE
-CLASS="FUNCTION"
->pg_listen</CODE
->.  <SPAN
-CLASS="APPLICATION"
->pgtcl</SPAN
->
-   takes care of issuing those statements for you.  But if you want to
-   send a notification message yourself, invoke the SQL
-   <TT
-CLASS="COMMAND"
->NOTIFY</TT
-> statement using
-   <CODE
-CLASS="FUNCTION"
->pg_exec</CODE
->.
-  </P
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN1239"
-></A
-><H2
->Arguments</H2
-><P
-></P
-><DIV
-CLASS="VARIABLELIST"
-><DL
-><DT
-><CODE
-CLASS="PARAMETER"
->conn</CODE
-></DT
-><DD
-><P
->      The handle of the connection on which to listen for notifications.
-     </P
-></DD
-><DT
-><CODE
-CLASS="PARAMETER"
->notifyName</CODE
-></DT
-><DD
-><P
->      The name of the notification condition to start or stop
-      listening to.
-     </P
-></DD
-><DT
-><CODE
-CLASS="PARAMETER"
->callbackCommand</CODE
-></DT
-><DD
-><P
->      If present, provides the command string to execute when a
-      matching notification arrives.
-     </P
-></DD
-></DL
-></DIV
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN1257"
-></A
-><H2
->Return Value</H2
-><P
->   None
-  </P
-></DIV
-><DIV
-CLASS="NAVFOOTER"
-><HR
-ALIGN="LEFT"
-WIDTH="100%"><TABLE
-SUMMARY="Footer navigation table"
-WIDTH="100%"
-BORDER="0"
-CELLPADDING="0"
-CELLSPACING="0"
-><TR
-><TD
-WIDTH="33%"
-ALIGN="left"
-VALIGN="top"
-><A
-HREF="pgtcl-pgexecute.html"
-ACCESSKEY="P"
->Prev</A
-></TD
-><TD
-WIDTH="34%"
-ALIGN="center"
-VALIGN="top"
-><A
-HREF="index.html"
-ACCESSKEY="H"
->Home</A
-></TD
-><TD
-WIDTH="33%"
-ALIGN="right"
-VALIGN="top"
-><A
-HREF="pgtcl-pgon-connection-loss.html"
-ACCESSKEY="N"
->Next</A
-></TD
-></TR
-><TR
-><TD
-WIDTH="33%"
-ALIGN="left"
-VALIGN="top"
->pg_execute</TD
-><TD
-WIDTH="34%"
-ALIGN="center"
-VALIGN="top"
-><A
-HREF="libpgtcl-ref.html"
-ACCESSKEY="U"
->Up</A
-></TD
-><TD
-WIDTH="33%"
-ALIGN="right"
-VALIGN="top"
->pg_on_connection_loss</TD
-></TR
-></TABLE
-></DIV
-></BODY
-></HTML
->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="HTML Tidy for HTML5 for FreeBSD version 5.2.0">
+<title>pg_listen</title>
+<meta name="GENERATOR" content="Modular DocBook HTML Stylesheet Version 1.79">
+<link rev="MADE" href="mailto:pgsql-docs@postgresql.org">
+<link rel="HOME" title="PostgreSQL Tcl Interface Documentation" href="index.html">
+<link rel="UP" title="pgtcl Command Reference" href="libpgtcl-ref.html">
+<link rel="PREVIOUS" title="pg_execute" href="pgtcl-pgexecute.html">
+<link rel="NEXT" title="pg_on_connection_loss" href="pgtcl-pgon-connection-loss.html">
+<link rel="STYLESHEET" type="text/css" href="stylesheet.css">
+<meta name="creation" content="2016-06-16T22:26:55">
+</head>
+<body class="REFENTRY">
+<div class="NAVHEADER">
+<table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<th colspan="5" align="center" valign="bottom">PostgreSQL Tcl Interface Documentation</th>
+</tr>
+<tr>
+<td width="10%" align="left" valign="top"><a href="pgtcl-pgexecute.html" accesskey="P">Prev</a></td>
+<td width="10%" align="left" valign="top"><a href="pgtcl-pgexecute.html">Fast Backward</a></td>
+<td width="60%" align="center" valign="bottom"></td>
+<td width="10%" align="right" valign="top"><a href="pgtcl-pgon-connection-loss.html">Fast Forward</a></td>
+<td width="10%" align="right" valign="top"><a href="pgtcl-pgon-connection-loss.html" accesskey="N">Next</a></td>
+</tr>
+</table>
+<hr align="left" width="100%"></div>
+<h1><a name="PGTCL-PGLISTEN" id="PGTCL-PGLISTEN"></a>pg_listen</h1>
+<div class="REFNAMEDIV"><a name="AEN1210" id="AEN1210"></a>
+<h2>Name</h2>
+pg_listen&nbsp;--&nbsp;set or change a callback for asynchronous notification messages<a name="IX-PGTCL-PGLISTEN-2" id="IX-PGTCL-PGLISTEN-2"></a></div>
+<div class="REFSYNOPSISDIV"><a name="AEN1215" id="AEN1215"></a>
+<h2>Synopsis</h2>
+<pre class="SYNOPSIS">pg_listen <code class="PARAMETER">conn</code> <code class="PARAMETER">notifyName</code> ?<span class="OPTIONAL"><code class="PARAMETER">callbackCommand</code></span>?</pre></div>
+<div class="REFSECT1"><a name="AEN1221" id="AEN1221"></a>
+<h2>Description</h2>
+<p><code class="FUNCTION">pg_listen</code> creates, changes, or cancels a request to listen for asynchronous notification messages from the <span class="PRODUCTNAME">PostgreSQL</span> server. With a <code class="PARAMETER">callbackCommand</code> parameter, the request is established, or the command string of an already existing request is replaced. With no <code class="PARAMETER">callbackCommand</code> parameter, a prior request is canceled.</p>
+<p>After a <code class="FUNCTION">pg_listen</code> request is established, the specified command string is executed whenever a notification message bearing the given name arrives from the server. This occurs when any <span class="PRODUCTNAME">PostgreSQL</span> client application issues a <tt class="COMMAND">NOTIFY</tt><a name="AEN1232" id="AEN1232"></a> command referencing that name. The command string is executed from the Tcl idle loop. That is the normal idle state of an application written with Tk. In non-Tk Tcl shells, you can execute <code class="FUNCTION">update</code> or <code class="FUNCTION">vwait</code> to cause the idle loop to be entered.</p>
+<p>You should not invoke the SQL statements <tt class="COMMAND">LISTEN</tt> or <tt class="COMMAND">UNLISTEN</tt> directly when using <code class="FUNCTION">pg_listen</code>. <span class="APPLICATION">pgtcl</span> takes care of issuing those statements for you. But if you want to send a notification message yourself, invoke the SQL <tt class="COMMAND">NOTIFY</tt> statement using <code class="FUNCTION">pg_exec</code>.</p>
+</div>
+<div class="REFSECT1"><a name="AEN1244" id="AEN1244"></a>
+<h2>Arguments</h2>
+<div class="VARIABLELIST">
+<dl>
+<dt><code class="PARAMETER">conn</code></dt>
+<dd>
+<p>The handle of the connection on which to listen for notifications.</p>
+</dd>
+<dt><code class="PARAMETER">notifyName</code></dt>
+<dd>
+<p>The name of the notification condition to start or stop listening to.</p>
+</dd>
+<dt><code class="PARAMETER">callbackCommand</code></dt>
+<dd>
+<p>If present, provides the command string to execute when a matching notification arrives.</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="REFSECT1"><a name="AEN1262" id="AEN1262"></a>
+<h2>Return Value</h2>
+<p>None</p>
+</div>
+<div class="NAVFOOTER">
+<hr align="left" width="100%">
+<table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td width="33%" align="left" valign="top"><a href="pgtcl-pgexecute.html" accesskey="P">Prev</a></td>
+<td width="34%" align="center" valign="top"><a href="index.html" accesskey="H">Home</a></td>
+<td width="33%" align="right" valign="top"><a href="pgtcl-pgon-connection-loss.html" accesskey="N">Next</a></td>
+</tr>
+<tr>
+<td width="33%" align="left" valign="top">pg_execute</td>
+<td width="34%" align="center" valign="top"><a href="libpgtcl-ref.html" accesskey="U">Up</a></td>
+<td width="33%" align="right" valign="top">pg_on_connection_loss</td>
+</tr>
+</table>
+</div>
+</body>
+</html>

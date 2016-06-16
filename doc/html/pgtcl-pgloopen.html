@@ -1,271 +1,81 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<HTML
-><HEAD
-><TITLE
->pg_lo_open</TITLE
-><META
-NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
-REV="MADE"
-HREF="mailto:pgsql-docs@postgresql.org"><LINK
-REL="HOME"
-TITLE="PostgreSQL Tcl Interface Documentation"
-HREF="index.html"><LINK
-REL="UP"
-TITLE="pgtcl Command Reference"
-HREF="libpgtcl-ref.html"><LINK
-REL="PREVIOUS"
-TITLE="pg_lo_creat"
-HREF="pgtcl-pglocreat.html"><LINK
-REL="NEXT"
-TITLE="pg_lo_close"
-HREF="pgtcl-pgloclose.html"><LINK
-REL="STYLESHEET"
-TYPE="text/css"
-HREF="stylesheet.css"><META
-NAME="creation"
-CONTENT="2016-06-16T17:50:48"></HEAD
-><BODY
-CLASS="REFENTRY"
-><DIV
-CLASS="NAVHEADER"
-><TABLE
-SUMMARY="Header navigation table"
-WIDTH="100%"
-BORDER="0"
-CELLPADDING="0"
-CELLSPACING="0"
-><TR
-><TH
-COLSPAN="5"
-ALIGN="center"
-VALIGN="bottom"
->PostgreSQL Tcl Interface Documentation</TH
-></TR
-><TR
-><TD
-WIDTH="10%"
-ALIGN="left"
-VALIGN="top"
-><A
-HREF="pgtcl-pglocreat.html"
-ACCESSKEY="P"
->Prev</A
-></TD
-><TD
-WIDTH="10%"
-ALIGN="left"
-VALIGN="top"
-><A
-HREF="pgtcl-pglocreat.html"
->Fast Backward</A
-></TD
-><TD
-WIDTH="60%"
-ALIGN="center"
-VALIGN="bottom"
-></TD
-><TD
-WIDTH="10%"
-ALIGN="right"
-VALIGN="top"
-><A
-HREF="pgtcl-pgloclose.html"
->Fast Forward</A
-></TD
-><TD
-WIDTH="10%"
-ALIGN="right"
-VALIGN="top"
-><A
-HREF="pgtcl-pgloclose.html"
-ACCESSKEY="N"
->Next</A
-></TD
-></TR
-></TABLE
-><HR
-ALIGN="LEFT"
-WIDTH="100%"></DIV
-><H1
-><A
-NAME="PGTCL-PGLOOPEN"
-></A
->pg_lo_open</H1
-><DIV
-CLASS="REFNAMEDIV"
-><A
-NAME="AEN1703"
-></A
-><H2
->Name</H2
->pg_lo_open&nbsp;--&nbsp;open a large object<A
-NAME="IX-PGTCL-PGLOOPEN-2"
-></A
-></DIV
-><DIV
-CLASS="REFSYNOPSISDIV"
-><A
-NAME="AEN1708"
-></A
-><H2
->Synopsis</H2
-><PRE
-CLASS="SYNOPSIS"
->pg_lo_open <CODE
-CLASS="PARAMETER"
->conn</CODE
-> <CODE
-CLASS="PARAMETER"
->loid</CODE
-> <CODE
-CLASS="PARAMETER"
->mode</CODE
-></PRE
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN1713"
-></A
-><H2
->Description</H2
-><P
->   <CODE
-CLASS="FUNCTION"
->pg_lo_open</CODE
-> opens a large object.
-  </P
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN1717"
-></A
-><H2
->Arguments</H2
-><P
-></P
-><DIV
-CLASS="VARIABLELIST"
-><DL
-><DT
-><CODE
-CLASS="PARAMETER"
->conn</CODE
-></DT
-><DD
-><P
->      The handle of a connection to the database in which the large object
-      exists.
-     </P
-></DD
-><DT
-><CODE
-CLASS="PARAMETER"
->loid</CODE
-></DT
-><DD
-><P
->      The OID of the large object.
-     </P
-></DD
-><DT
-><CODE
-CLASS="PARAMETER"
->mode</CODE
-></DT
-><DD
-><P
->      Specifies the access mode for the large object.  Mode can be
-      either <TT
-CLASS="LITERAL"
->r</TT
->, <TT
-CLASS="LITERAL"
->w</TT
->, or <TT
-CLASS="LITERAL"
->rw</TT
->.
-     </P
-></DD
-></DL
-></DIV
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN1738"
-></A
-><H2
->Return Value</H2
-><P
->   A descriptor for use in later large-object commands.
-  </P
-></DIV
-><DIV
-CLASS="NAVFOOTER"
-><HR
-ALIGN="LEFT"
-WIDTH="100%"><TABLE
-SUMMARY="Footer navigation table"
-WIDTH="100%"
-BORDER="0"
-CELLPADDING="0"
-CELLSPACING="0"
-><TR
-><TD
-WIDTH="33%"
-ALIGN="left"
-VALIGN="top"
-><A
-HREF="pgtcl-pglocreat.html"
-ACCESSKEY="P"
->Prev</A
-></TD
-><TD
-WIDTH="34%"
-ALIGN="center"
-VALIGN="top"
-><A
-HREF="index.html"
-ACCESSKEY="H"
->Home</A
-></TD
-><TD
-WIDTH="33%"
-ALIGN="right"
-VALIGN="top"
-><A
-HREF="pgtcl-pgloclose.html"
-ACCESSKEY="N"
->Next</A
-></TD
-></TR
-><TR
-><TD
-WIDTH="33%"
-ALIGN="left"
-VALIGN="top"
->pg_lo_creat</TD
-><TD
-WIDTH="34%"
-ALIGN="center"
-VALIGN="top"
-><A
-HREF="libpgtcl-ref.html"
-ACCESSKEY="U"
->Up</A
-></TD
-><TD
-WIDTH="33%"
-ALIGN="right"
-VALIGN="top"
->pg_lo_close</TD
-></TR
-></TABLE
-></DIV
-></BODY
-></HTML
->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="HTML Tidy for HTML5 for FreeBSD version 5.2.0">
+<title>pg_lo_open</title>
+<meta name="GENERATOR" content="Modular DocBook HTML Stylesheet Version 1.79">
+<link rev="MADE" href="mailto:pgsql-docs@postgresql.org">
+<link rel="HOME" title="PostgreSQL Tcl Interface Documentation" href="index.html">
+<link rel="UP" title="pgtcl Command Reference" href="libpgtcl-ref.html">
+<link rel="PREVIOUS" title="pg_lo_creat" href="pgtcl-pglocreat.html">
+<link rel="NEXT" title="pg_lo_close" href="pgtcl-pgloclose.html">
+<link rel="STYLESHEET" type="text/css" href="stylesheet.css">
+<meta name="creation" content="2016-06-16T22:26:55">
+</head>
+<body class="REFENTRY">
+<div class="NAVHEADER">
+<table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<th colspan="5" align="center" valign="bottom">PostgreSQL Tcl Interface Documentation</th>
+</tr>
+<tr>
+<td width="10%" align="left" valign="top"><a href="pgtcl-pglocreat.html" accesskey="P">Prev</a></td>
+<td width="10%" align="left" valign="top"><a href="pgtcl-pglocreat.html">Fast Backward</a></td>
+<td width="60%" align="center" valign="bottom"></td>
+<td width="10%" align="right" valign="top"><a href="pgtcl-pgloclose.html">Fast Forward</a></td>
+<td width="10%" align="right" valign="top"><a href="pgtcl-pgloclose.html" accesskey="N">Next</a></td>
+</tr>
+</table>
+<hr align="left" width="100%"></div>
+<h1><a name="PGTCL-PGLOOPEN" id="PGTCL-PGLOOPEN"></a>pg_lo_open</h1>
+<div class="REFNAMEDIV"><a name="AEN1708" id="AEN1708"></a>
+<h2>Name</h2>
+pg_lo_open&nbsp;--&nbsp;open a large object<a name="IX-PGTCL-PGLOOPEN-2" id="IX-PGTCL-PGLOOPEN-2"></a></div>
+<div class="REFSYNOPSISDIV"><a name="AEN1713" id="AEN1713"></a>
+<h2>Synopsis</h2>
+<pre class="SYNOPSIS">pg_lo_open <code class="PARAMETER">conn</code> <code class="PARAMETER">loid</code> <code class="PARAMETER">mode</code></pre></div>
+<div class="REFSECT1"><a name="AEN1718" id="AEN1718"></a>
+<h2>Description</h2>
+<p><code class="FUNCTION">pg_lo_open</code> opens a large object.</p>
+</div>
+<div class="REFSECT1"><a name="AEN1722" id="AEN1722"></a>
+<h2>Arguments</h2>
+<div class="VARIABLELIST">
+<dl>
+<dt><code class="PARAMETER">conn</code></dt>
+<dd>
+<p>The handle of a connection to the database in which the large object exists.</p>
+</dd>
+<dt><code class="PARAMETER">loid</code></dt>
+<dd>
+<p>The OID of the large object.</p>
+</dd>
+<dt><code class="PARAMETER">mode</code></dt>
+<dd>
+<p>Specifies the access mode for the large object. Mode can be either <tt class="LITERAL">r</tt>, <tt class="LITERAL">w</tt>, or <tt class="LITERAL">rw</tt>.</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="REFSECT1"><a name="AEN1743" id="AEN1743"></a>
+<h2>Return Value</h2>
+<p>A descriptor for use in later large-object commands.</p>
+</div>
+<div class="NAVFOOTER">
+<hr align="left" width="100%">
+<table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td width="33%" align="left" valign="top"><a href="pgtcl-pglocreat.html" accesskey="P">Prev</a></td>
+<td width="34%" align="center" valign="top"><a href="index.html" accesskey="H">Home</a></td>
+<td width="33%" align="right" valign="top"><a href="pgtcl-pgloclose.html" accesskey="N">Next</a></td>
+</tr>
+<tr>
+<td width="33%" align="left" valign="top">pg_lo_creat</td>
+<td width="34%" align="center" valign="top"><a href="libpgtcl-ref.html" accesskey="U">Up</a></td>
+<td width="33%" align="right" valign="top">pg_lo_close</td>
+</tr>
+</table>
+</div>
+</body>
+</html>

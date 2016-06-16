@@ -25,11 +25,13 @@ all:	html
 #
 # all:	html libpgtcl.pdf
 
-html:	$(SGMLSOURCE)
-	-rm html/*.html
+html:	html/HTML.index
+html/HTML.index:	$(SGMLSOURCE)
+	-rm html/*.html html/HTML.index
 	-rmdir html
 	-mkdir html
 	cd html && openjade -V draft-mode -wall -wno-unused-param -wno-empty -D .. -c $(DOCBOOKDIR) -d $(STYLESHEET) -i output-html -t sgml $(SGMLSOURCE)
+	find html/ -type f -name "*.html" -exec tidy5 -quiet -wrap 2000 -modify \{\} \;
 
 libpgtcl.pdf:	$(SGMLSOURCE)
 	openjade -V draft-mode -D . -c $(DOCBOOKDIR) -d $(STYLESHEET) -t tex -V tex-backend -i output-print -V texpdf-output -o libpgtcl.tex-pdf $(SGMLSOURCE)
@@ -37,4 +39,4 @@ libpgtcl.pdf:	$(SGMLSOURCE)
 	rm -f libpgtcl.tex-pdf
 
 clean:
-	rm -f libpgtcl.aux libpgtcl.log libpgtcl.out HTML.index libpgtcl.tex-pdf libpgtcl.fot
+	rm -f libpgtcl.aux libpgtcl.log libpgtcl.out libpgtcl.tex-pdf libpgtcl.fot
