@@ -2712,8 +2712,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 			}
 
 			Tcl_SetResult(interp, errString, TCL_VOLATILE);
-			if(rowByRow)
-				PQclear(result);
+			PQclear(result);
 			retval = TCL_ERROR;
 			goto done;
 		}
@@ -2733,8 +2732,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 					sprintf(msg, "PQfname() returned NULL for column %d, ncols %d",
 								column, ncols);
 					Tcl_SetResult(interp, msg, TCL_VOLATILE);
-					if(rowByRow)
-						PQclear(result);
+					PQclear(result);
 					retval = TCL_ERROR;
 					goto done;
 				} else {
@@ -2750,6 +2748,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 		retval = TCL_OK;
 
+		// Loop over the result, even if it's a single row.
 		for (tupno = 0; tupno < PQntuples(result); tupno++)
 		{
 			// Clear array before filling it in. Ignore failure because it's
@@ -2766,8 +2765,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				    Tcl_SetVar2Ex(interp, varNameString, ".tupno",
 						  Tcl_NewIntObj(tupno), TCL_LEAVE_ERR_MSG) == NULL)
 				{
-					if(rowByRow)
-						PQclear(result);
+					PQclear(result);
 					retval = TCL_ERROR;
 					goto done;
 				}
@@ -2800,8 +2798,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				if (Tcl_ObjSetVar2(interp, varNameObj, columnNameObjs[column],
 							   valueObj, TCL_LEAVE_ERR_MSG) == NULL)
 				{
-					if(rowByRow)
-						PQclear(result);
+					PQclear(result);
 					retval = TCL_ERROR;
 					goto done;
 				}
@@ -2813,8 +2810,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 			{
 				if (r == TCL_BREAK)
 				{
-					if(rowByRow)
-						PQclear(result);
+					PQclear(result);
 					goto done;			/* exit loop, but return TCL_OK */
 				}
 
@@ -2828,8 +2824,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				}
 
 				retval = r;
-				if(rowByRow)
-					PQclear(result);
+				PQclear(result);
 				goto done;
 			}
 		}
