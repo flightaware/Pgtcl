@@ -24,7 +24,7 @@ REL="STYLESHEET"
 TYPE="text/css"
 HREF="stylesheet.css"><META
 NAME="creation"
-CONTENT="2016-06-16T04:20:40"></HEAD
+CONTENT="2016-06-16T13:27:46"></HEAD
 ><BODY
 CLASS="REFENTRY"
 ><DIV
@@ -95,7 +95,7 @@ NAME="PGTCL-PGSELECT"
 ><DIV
 CLASS="REFNAMEDIV"
 ><A
-NAME="AEN951"
+NAME="AEN991"
 ></A
 ><H2
 >Name</H2
@@ -106,13 +106,19 @@ NAME="IX-PGTCL-PGSELECT-2"
 ><DIV
 CLASS="REFSYNOPSISDIV"
 ><A
-NAME="AEN956"
+NAME="AEN996"
 ></A
 ><H2
 >Synopsis</H2
 ><PRE
 CLASS="SYNOPSIS"
->pg_select <CODE
+>pg_select [<SPAN
+CLASS="OPTIONAL"
+>-nodotfields</SPAN
+>] [<SPAN
+CLASS="OPTIONAL"
+>-withoutnulls</SPAN
+>] <CODE
 CLASS="PARAMETER"
 >conn</CODE
 > <CODE
@@ -129,7 +135,7 @@ CLASS="PARAMETER"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN962"
+NAME="AEN1004"
 ></A
 ><H2
 >Description</H2
@@ -172,7 +178,10 @@ CLASS="PARAMETER"
   </P
 ><P
 >   In addition to the column values, the following special entries are
-   made in the array:
+   made in the array (unless the [<SPAN
+CLASS="OPTIONAL"
+>-nodotfields</SPAN
+>] flag is provided):
 
    <P
 ></P
@@ -218,7 +227,7 @@ CLASS="LITERAL"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN990"
+NAME="AEN1033"
 ></A
 ><H2
 >Arguments</H2
@@ -227,6 +236,27 @@ NAME="AEN990"
 ><DIV
 CLASS="VARIABLELIST"
 ><DL
+><DT
+>[<SPAN
+CLASS="OPTIONAL"
+>-nodotfields</SPAN
+>]</DT
+><DD
+><P
+>      Suppress generation of the pseudo-fields .headers, .numcols, and .tupno.
+     </P
+></DD
+><DT
+>[<SPAN
+CLASS="OPTIONAL"
+>-withoutnulls</SPAN
+>]</DT
+><DD
+><P
+>      Normally, the row array has empty strings for columns containing NULL values. This option
+      suppresses those fields in the array completely.
+     </P
+></DD
 ><DT
 ><CODE
 CLASS="PARAMETER"
@@ -273,7 +303,7 @@ CLASS="PARAMETER"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN1013"
+NAME="AEN1066"
 ></A
 ><H2
 >Return Value</H2
@@ -284,7 +314,7 @@ NAME="AEN1013"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN1016"
+NAME="AEN1069"
 ></A
 ><H2
 >Examples</H2
