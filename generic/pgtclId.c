@@ -158,7 +158,13 @@ Tcl_ChannelType Pg_ConnType = {
     NULL,                /* GetOptionProc, Not used */
     PgWatchProc,         /* WatchProc, must be defined */
     PgGetHandleProc,     /* GetHandleProc, must be defined */
-    NULL                 /* Close2Proc, Not used */
+    NULL,                /* Close2Proc, Not used */
+    NULL,                /* blockModeProc, Not used */
+    NULL,                /* flushProc */
+    NULL,                /* handlerProc */
+    NULL,                /* wideSeekProc */
+    NULL,                /* threadActionProc */
+    NULL                 /* truncateProc */
 };
 
 /*
