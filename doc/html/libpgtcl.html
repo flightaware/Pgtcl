@@ -1,0 +1,975 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<HTML
+><HEAD
+><TITLE
+>pgtcl - Tcl Binding Library</TITLE
+><META
+NAME="GENERATOR"
+CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
+REV="MADE"
+HREF="mailto:pgsql-docs@postgresql.org"><LINK
+REL="HOME"
+TITLE="PostgreSQL Tcl Interface Documentation"
+HREF="index.html"><LINK
+REL="PREVIOUS"
+TITLE="PostgreSQL Tcl Interface Documentation"
+HREF="index.html"><LINK
+REL="NEXT"
+TITLE="Loading pgtcl into an Application"
+HREF="libpgtcl-loading.html"><LINK
+REL="STYLESHEET"
+TYPE="text/css"
+HREF="stylesheet.css"><META
+NAME="creation"
+CONTENT="2016-06-16T12:10:18"></HEAD
+><BODY
+CLASS="CHAPTER"
+><DIV
+CLASS="NAVHEADER"
+><TABLE
+SUMMARY="Header navigation table"
+WIDTH="100%"
+BORDER="0"
+CELLPADDING="0"
+CELLSPACING="0"
+><TR
+><TH
+COLSPAN="5"
+ALIGN="center"
+VALIGN="bottom"
+>PostgreSQL Tcl Interface Documentation</TH
+></TR
+><TR
+><TD
+WIDTH="10%"
+ALIGN="left"
+VALIGN="top"
+><A
+HREF="index.html"
+ACCESSKEY="P"
+>Prev</A
+></TD
+><TD
+WIDTH="10%"
+ALIGN="left"
+VALIGN="top"
+><A
+HREF="index.html#AEN3"
+>Fast Backward</A
+></TD
+><TD
+WIDTH="60%"
+ALIGN="center"
+VALIGN="bottom"
+></TD
+><TD
+WIDTH="10%"
+ALIGN="right"
+VALIGN="top"
+>&nbsp;</TD
+><TD
+WIDTH="10%"
+ALIGN="right"
+VALIGN="top"
+><A
+HREF="libpgtcl-loading.html"
+ACCESSKEY="N"
+>Next</A
+></TD
+></TR
+></TABLE
+><HR
+ALIGN="LEFT"
+WIDTH="100%"></DIV
+><DIV
+CLASS="CHAPTER"
+><H1
+><A
+NAME="LIBPGTCL"
+></A
+>Chapter 1. <SPAN
+CLASS="APPLICATION"
+>pgtcl</SPAN
+> - Tcl Binding Library</H1
+><DIV
+CLASS="TOC"
+><DL
+><DT
+><B
+>Table of Contents</B
+></DT
+><DT
+>1.1. <A
+HREF="libpgtcl.html#PGTCL-OVERVIEW"
+>Overview</A
+></DT
+><DT
+>1.2. <A
+HREF="libpgtcl-loading.html"
+>Loading <SPAN
+CLASS="APPLICATION"
+>pgtcl</SPAN
+> into an Application</A
+></DT
+><DT
+>1.3. <A
+HREF="libpgtcl-ref.html"
+><SPAN
+CLASS="APPLICATION"
+>pgtcl</SPAN
+> Command Reference</A
+></DT
+><DD
+><DL
+><DT
+><A
+HREF="pgtcl-pgconnect.html"
+>pg_connect</A
+>&nbsp;--&nbsp;open a connection to the server</DT
+><DT
+><A
+HREF="pgtcl-pgconninfo.html"
+>pg_dbinfo</A
+>&nbsp;--&nbsp;returns a list of current open connection/result handles</DT
+><DT
+><A
+HREF="pgtcl-pgdisconnect.html"
+>pg_disconnect</A
+>&nbsp;--&nbsp;close a connection to the server</DT
+><DT
+><A
+HREF="pgtcl-pgconndefaults.html"
+>pg_conndefaults</A
+>&nbsp;--&nbsp;get connection options and their defaults</DT
+><DT
+><A
+HREF="pgtcl-pgexec.html"
+>pg_exec</A
+>&nbsp;--&nbsp;send a command to the server</DT
+><DT
+><A
+HREF="pgtcl-pgexecprepared.html"
+>pg_exec_prepared</A
+>&nbsp;--&nbsp;send a request to execute a prepared SQL statement to the server</DT
+><DT
+><A
+HREF="pgtcl-pgresult.html"
+>pg_result</A
+>&nbsp;--&nbsp;get information about a command result</DT
+><DT
+><A
+HREF="pgtcl-pgselect.html"
+>pg_select</A
+>&nbsp;--&nbsp;loop over the result of a query</DT
+><DT
+><A
+HREF="pgtcl-pgexecute.html"
+>pg_execute</A
+>&nbsp;--&nbsp;send a query and optionally loop over the results</DT
+><DT
+><A
+HREF="pgtcl-pglisten.html"
+>pg_listen</A
+>&nbsp;--&nbsp;set or change a callback for asynchronous notification messages</DT
+><DT
+><A
+HREF="pgtcl-pgon-connection-loss.html"
+>pg_on_connection_loss</A
+>&nbsp;--&nbsp;set or change a callback for unexpected connection loss</DT
+><DT
+><A
+HREF="pgtcl-pgsendquery.html"
+>pg_sendquery</A
+>&nbsp;--&nbsp;send a query string to the backend connection without waiting for a result</DT
+><DT
+><A
+HREF="pgtcl-pgsendqueryprepared.html"
+>pg_sendquery_prepared</A
+>&nbsp;--&nbsp;send a request to execute a prepared statement to the backend connection, without waiting for a result</DT
+><DT
+><A
+HREF="pgtcl-pggetresult.html"
+>pg_getresult</A
+>&nbsp;--&nbsp;process asychronous results</DT
+><DT
+><A
+HREF="pgtcl-pgisbusy.html"
+>pg_isbusy</A
+>&nbsp;--&nbsp;see if a query is busy</DT
+><DT
+><A
+HREF="pgtcl-pgblocking.html"
+>pg_blocking</A
+>&nbsp;--&nbsp;see or set whether or not a connection is set to blocking
+ or nonblocking</DT
+><DT
+><A
+HREF="pgtcl-pgcancelrequest.html"
+>pg_cancelrequest</A
+>&nbsp;--&nbsp;request that <SPAN
+CLASS="PRODUCTNAME"
+>PostgreSQL</SPAN
+> 
+  abandon processing of the current command
+ </DT
+><DT
+><A
+HREF="pgtcl-nullvaluestring.html"
+>pg_null_value_string</A
+>&nbsp;--&nbsp;define a value to be returned for NULL fields distinct from the default value of an empty string.
+ </DT
+><DT
+><A
+HREF="pgtcl-quote.html"
+>pg_quote</A
+>&nbsp;--&nbsp;escapes a string for inclusion into SQL statements
+ </DT
+><DT
+><A
+HREF="pgtcl-pgescape-string.html"
+>pg_escape_string</A
+>&nbsp;--&nbsp;escapes a string for inclusion into SQL statements. This is the same as pg_quote. It was added for consistency.
+ </DT
+><DT
+><A
+HREF="pgtcl-pgescape-bytea.html"
+>pg_escape_bytea</A
+>&nbsp;--&nbsp;escapes a binary string for inclusion into SQL statements. 
+ </DT
+><DT
+><A
+HREF="pgtcl-pgunescape-bytea.html"
+>pg_unescape_bytea</A
+>&nbsp;--&nbsp;unescapes a binary string.
+ </DT
+><DT
+><A
+HREF="pgtcl-pglocreat.html"
+>pg_lo_creat</A
+>&nbsp;--&nbsp;create a large object</DT
+><DT
+><A
+HREF="pgtcl-pgloopen.html"
+>pg_lo_open</A
+>&nbsp;--&nbsp;open a large object</DT
+><DT
+><A
+HREF="pgtcl-pgloclose.html"
+>pg_lo_close</A
+>&nbsp;--&nbsp;close a large object</DT
+><DT
+><A
+HREF="pgtcl-pgloread.html"
+>pg_lo_read</A
+>&nbsp;--&nbsp;read from a large object</DT
+><DT
+><A
+HREF="pgtcl-pglowrite.html"
+>pg_lo_write</A
+>&nbsp;--&nbsp;write to a large object</DT
+><DT
+><A
+HREF="pgtcl-pglolseek.html"
+>pg_lo_lseek</A
+>&nbsp;--&nbsp;seek to a position of a large object</DT
+><DT
+><A
+HREF="pgtcl-pglotell.html"
+>pg_lo_tell</A
+>&nbsp;--&nbsp;return the current seek position of a large object</DT
+><DT
+><A
+HREF="pgtcl-pgtruncate.html"
+>pg_lo_truncate</A
+>&nbsp;--&nbsp;Truncate a large object to a given length</DT
+><DT
+><A
+HREF="pgtcl-pglounlink.html"
+>pg_lo_unlink</A
+>&nbsp;--&nbsp;delete a large object</DT
+><DT
+><A
+HREF="pgtcl-pgloimport.html"
+>pg_lo_import</A
+>&nbsp;--&nbsp;import a large object from a file</DT
+><DT
+><A
+HREF="pgtcl-pgloexport.html"
+>pg_lo_export</A
+>&nbsp;--&nbsp;export a large object to a file</DT
+></DL
+></DD
+><DT
+>1.4. <A
+HREF="pgtcl-tclnamespace.html"
+>Tcl Namespace Support</A
+></DT
+><DT
+>1.5. <A
+HREF="pgtcl-commandhandles.html"
+>Connection/result handles as commands</A
+></DT
+><DT
+>1.6. <A
+HREF="pgtcl-examplesect.html"
+>Example Program</A
+></DT
+></DL
+></DIV
+><A
+NAME="AEN9"
+></A
+><A
+NAME="AEN11"
+></A
+><A
+NAME="AEN13"
+></A
+><P
+>   <SPAN
+CLASS="APPLICATION"
+>pgtcl</SPAN
+> is a Tcl package for client
+   programs to interface with <SPAN
+CLASS="PRODUCTNAME"
+>PostgreSQL</SPAN
+>
+   servers.  It makes most of the functionality of
+   <SPAN
+CLASS="APPLICATION"
+>libpq</SPAN
+> available to Tcl scripts.
+  </P
+><DIV
+CLASS="SECT1"
+><H1
+CLASS="SECT1"
+><A
+NAME="PGTCL-OVERVIEW"
+>1.1. Overview</A
+></H1
+><P
+>   <A
+HREF="libpgtcl.html#PGTCL-COMMANDS-TABLE"
+>Table 1-1</A
+> gives an overview over the
+   commands available in <SPAN
+CLASS="APPLICATION"
+>pgtcl</SPAN
+>. These
+   commands are described further on subsequent pages.
+  </P
+><DIV
+CLASS="TABLE"
+><A
+NAME="PGTCL-COMMANDS-TABLE"
+></A
+><P
+><B
+>Table 1-1. <SPAN
+CLASS="APPLICATION"
+>pgtcl</SPAN
+> Commands</B
+></P
+><TABLE
+BORDER="1"
+CLASS="CALSTABLE"
+><COL><COL><COL><THEAD
+><TR
+><TH
+>Command</TH
+><TH
+>Namespace Command</TH
+><TH
+>Description</TH
+></TR
+></THEAD
+><TBODY
+><TR
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg_connect</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::connect</CODE
+></TD
+><TD
+>open a connection to the server</TD
+></TR
+><TR
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg_dbinfo</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::dbinfo</CODE
+></TD
+><TD
+>returns the current connection/result handles</TD
+></TR
+><TR
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg_disconnect</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::disconnect</CODE
+></TD
+><TD
+>close a connection to the server</TD
+></TR
+><TR
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg_conndefaults</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::conndefaults</CODE
+></TD
+><TD
+>get connection options and their defaults</TD
+></TR
+><TR
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg_exec</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::sqlexec</CODE
+></TD
+><TD
+>send a command to the server</TD
+></TR
+><TR
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg_exec_prepared</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::exec_prepared</CODE
+></TD
+><TD
+>send a request to execute a prepared statement, with parameters</TD
+></TR
+><TR
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg_result</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::result</CODE
+></TD
+><TD
+>get information about a command result</TD
+></TR
+><TR
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg_select</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::select</CODE
+></TD
+><TD
+>loop over the result of a query</TD
+></TR
+><TR
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg_execute</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::execute</CODE
+></TD
+><TD
+>send a query and optionally loop over the results</TD
+></TR
+><TR
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg_null_value_string</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::null_value_string</CODE
+></TD
+><TD
+>set string to be returned for null values in query results</TD
+></TR
+><TR
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg_quote</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::quote</CODE
+></TD
+><TD
+>escape a string for inclusion into SQL statements</TD
+></TR
+><TR
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg_escape_string</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::escape_string</CODE
+></TD
+><TD
+>escape a binary string for inclusion into SQL statements</TD
+></TR
+><TR
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg_escape_bytea</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::escape_bytea</CODE
+></TD
+><TD
+>escape a binary string for inclusion into SQL statements</TD
+></TR
+><TR
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg_unescape_bytea</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::unescape_bytea</CODE
+></TD
+><TD
+>unescape a binary string from the backend</TD
+></TR
+><TR
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg_listen</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::listen</CODE
+></TD
+><TD
+>set or change a callback for asynchronous notification messages</TD
+></TR
+><TR
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg_on_connection_loss</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::on_connection_loss</CODE
+></TD
+><TD
+>set or change a callback for unexpected connection loss</TD
+></TR
+><TR
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg_sendquery</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::sendquery</CODE
+></TD
+><TD
+>issue pg_exec-style command asynchronously</TD
+></TR
+><TR
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg_sendquery_prepared</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::sendquery_prepared</CODE
+></TD
+><TD
+>send an asynchronous request to execute a prepared statement, with parameters</TD
+></TR
+><TR
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg_getresult</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::getresult</CODE
+></TD
+><TD
+>check on results from asynchronously issued commands</TD
+></TR
+><TR
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg_isbusy</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::isbusy</CODE
+></TD
+><TD
+>check to see if the connection is busy processing a query</TD
+></TR
+><TR
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg_blocking</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::blocking</CODE
+></TD
+><TD
+>set a database connection to be either blocking or nonblocking</TD
+></TR
+><TR
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg_cancelrequest</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::cancelrequest</CODE
+></TD
+><TD
+>request <SPAN
+CLASS="PRODUCTNAME"
+>PostgreSQL</SPAN
+>
+   abandon processing of the current command</TD
+></TR
+><TR
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg_lo_creat</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::lo_creat</CODE
+></TD
+><TD
+>create a large object</TD
+></TR
+><TR
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg_lo_open</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::lo_open</CODE
+></TD
+><TD
+>open a large object</TD
+></TR
+><TR
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg_lo_close</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::lo_close</CODE
+></TD
+><TD
+>close a large object</TD
+></TR
+><TR
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg_lo_read</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::lo_read</CODE
+></TD
+><TD
+>read from a large object</TD
+></TR
+><TR
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg_lo_write</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::lo_write</CODE
+></TD
+><TD
+>write to a large object</TD
+></TR
+><TR
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg_lo_lseek</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::lo_lseek</CODE
+></TD
+><TD
+>seek to a position in a large object</TD
+></TR
+><TR
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg_lo_tell</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::lo_tell</CODE
+></TD
+><TD
+>return the current seek position of a large object</TD
+></TR
+><TR
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg_lo_truncate</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::lo_truncate</CODE
+></TD
+><TD
+>Truncate (or pad) a large object to a specified length</TD
+></TR
+><TR
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg_lo_unlink</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::lo_unlink</CODE
+></TD
+><TD
+>delete a large object</TD
+></TR
+><TR
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg_lo_import</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::lo_import</CODE
+></TD
+><TD
+>import a large object from a file</TD
+></TR
+><TR
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg_lo_export</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::lo_export</CODE
+></TD
+><TD
+>export a large object to a file</TD
+></TR
+></TBODY
+></TABLE
+></DIV
+><P
+>   The <CODE
+CLASS="FUNCTION"
+>pg_lo_*</CODE
+> commands are interfaces to the
+   large object features of
+   <SPAN
+CLASS="PRODUCTNAME"
+>PostgreSQL</SPAN
+>.<A
+NAME="AEN236"
+></A
+> The functions are designed to mimic the analogous file
+   system functions in the standard Unix file system interface.  The
+   <CODE
+CLASS="FUNCTION"
+>pg_lo_*</CODE
+> commands should be used within a
+   <TT
+CLASS="COMMAND"
+>BEGIN</TT
+>/<TT
+CLASS="COMMAND"
+>COMMIT</TT
+> transaction
+   block because the descriptor returned by
+   <CODE
+CLASS="FUNCTION"
+>pg_lo_open</CODE
+> is only valid for the current
+   transaction.  <CODE
+CLASS="FUNCTION"
+>pg_lo_import</CODE
+> and
+   <CODE
+CLASS="FUNCTION"
+>pg_lo_export</CODE
+> <SPAN
+CLASS="emphasis"
+><I
+CLASS="EMPHASIS"
+>must</I
+></SPAN
+> be used
+   in a <TT
+CLASS="COMMAND"
+>BEGIN</TT
+>/<TT
+CLASS="COMMAND"
+>COMMIT</TT
+> transaction
+   block.
+  </P
+></DIV
+></DIV
+><DIV
+CLASS="NAVFOOTER"
+><HR
+ALIGN="LEFT"
+WIDTH="100%"><TABLE
+SUMMARY="Footer navigation table"
+WIDTH="100%"
+BORDER="0"
+CELLPADDING="0"
+CELLSPACING="0"
+><TR
+><TD
+WIDTH="33%"
+ALIGN="left"
+VALIGN="top"
+><A
+HREF="index.html"
+ACCESSKEY="P"
+>Prev</A
+></TD
+><TD
+WIDTH="34%"
+ALIGN="center"
+VALIGN="top"
+><A
+HREF="index.html"
+ACCESSKEY="H"
+>Home</A
+></TD
+><TD
+WIDTH="33%"
+ALIGN="right"
+VALIGN="top"
+><A
+HREF="libpgtcl-loading.html"
+ACCESSKEY="N"
+>Next</A
+></TD
+></TR
+><TR
+><TD
+WIDTH="33%"
+ALIGN="left"
+VALIGN="top"
+>PostgreSQL Tcl Interface Documentation</TD
+><TD
+WIDTH="34%"
+ALIGN="center"
+VALIGN="top"
+>&nbsp;</TD
+><TD
+WIDTH="33%"
+ALIGN="right"
+VALIGN="top"
+>Loading <SPAN
+CLASS="APPLICATION"
+>pgtcl</SPAN
+> into an Application</TD
+></TR
+></TABLE
+></DIV
+></BODY
+></HTML
+>

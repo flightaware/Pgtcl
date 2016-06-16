@@ -1,0 +1,242 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<HTML
+><HEAD
+><TITLE
+>pg_cancelrequest</TITLE
+><META
+NAME="GENERATOR"
+CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
+REV="MADE"
+HREF="mailto:pgsql-docs@postgresql.org"><LINK
+REL="HOME"
+TITLE="PostgreSQL Tcl Interface Documentation"
+HREF="index.html"><LINK
+REL="UP"
+TITLE="pgtcl Command Reference"
+HREF="libpgtcl-ref.html"><LINK
+REL="PREVIOUS"
+TITLE="pg_blocking"
+HREF="pgtcl-pgblocking.html"><LINK
+REL="NEXT"
+TITLE="pg_null_value_string"
+HREF="pgtcl-nullvaluestring.html"><LINK
+REL="STYLESHEET"
+TYPE="text/css"
+HREF="stylesheet.css"><META
+NAME="creation"
+CONTENT="2016-06-16T12:10:18"></HEAD
+><BODY
+CLASS="REFENTRY"
+><DIV
+CLASS="NAVHEADER"
+><TABLE
+SUMMARY="Header navigation table"
+WIDTH="100%"
+BORDER="0"
+CELLPADDING="0"
+CELLSPACING="0"
+><TR
+><TH
+COLSPAN="5"
+ALIGN="center"
+VALIGN="bottom"
+>PostgreSQL Tcl Interface Documentation</TH
+></TR
+><TR
+><TD
+WIDTH="10%"
+ALIGN="left"
+VALIGN="top"
+><A
+HREF="pgtcl-pgblocking.html"
+ACCESSKEY="P"
+>Prev</A
+></TD
+><TD
+WIDTH="10%"
+ALIGN="left"
+VALIGN="top"
+><A
+HREF="pgtcl-pgblocking.html"
+>Fast Backward</A
+></TD
+><TD
+WIDTH="60%"
+ALIGN="center"
+VALIGN="bottom"
+></TD
+><TD
+WIDTH="10%"
+ALIGN="right"
+VALIGN="top"
+><A
+HREF="pgtcl-nullvaluestring.html"
+>Fast Forward</A
+></TD
+><TD
+WIDTH="10%"
+ALIGN="right"
+VALIGN="top"
+><A
+HREF="pgtcl-nullvaluestring.html"
+ACCESSKEY="N"
+>Next</A
+></TD
+></TR
+></TABLE
+><HR
+ALIGN="LEFT"
+WIDTH="100%"></DIV
+><H1
+><A
+NAME="PGTCL-PGCANCELREQUEST"
+></A
+>pg_cancelrequest</H1
+><DIV
+CLASS="REFNAMEDIV"
+><A
+NAME="AEN1428"
+></A
+><H2
+>Name</H2
+>pg_cancelrequest&nbsp;--&nbsp;request that <SPAN
+CLASS="PRODUCTNAME"
+>PostgreSQL</SPAN
+> 
+  abandon processing of the current command
+ <A
+NAME="IX-PGTCL-PGCANCELREQUEST-2"
+></A
+></DIV
+><DIV
+CLASS="REFSYNOPSISDIV"
+><A
+NAME="AEN1434"
+></A
+><H2
+>Synopsis</H2
+><PRE
+CLASS="SYNOPSIS"
+>pg_cancelrequest <CODE
+CLASS="PARAMETER"
+>conn</CODE
+></PRE
+></DIV
+><DIV
+CLASS="REFSECT1"
+><A
+NAME="AEN1437"
+></A
+><H2
+>Description</H2
+><P
+>   <CODE
+CLASS="FUNCTION"
+>pg_cancelrequest</CODE
+> requests that the processing
+   of the current command be abandoned.
+  </P
+></DIV
+><DIV
+CLASS="REFSECT1"
+><A
+NAME="AEN1441"
+></A
+><H2
+>Arguments</H2
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><CODE
+CLASS="PARAMETER"
+>conn</CODE
+></DT
+><DD
+><P
+>      The handle of a connection to the database in which the large object
+      exists.
+     </P
+></DD
+></DL
+></DIV
+></DIV
+><DIV
+CLASS="REFSECT1"
+><A
+NAME="AEN1449"
+></A
+><H2
+>Return Value</H2
+><P
+>   Returns nothing if the command was successfully dispatched or if no
+   query was being processed.  Otherwise, returns an error.
+  </P
+></DIV
+><DIV
+CLASS="NAVFOOTER"
+><HR
+ALIGN="LEFT"
+WIDTH="100%"><TABLE
+SUMMARY="Footer navigation table"
+WIDTH="100%"
+BORDER="0"
+CELLPADDING="0"
+CELLSPACING="0"
+><TR
+><TD
+WIDTH="33%"
+ALIGN="left"
+VALIGN="top"
+><A
+HREF="pgtcl-pgblocking.html"
+ACCESSKEY="P"
+>Prev</A
+></TD
+><TD
+WIDTH="34%"
+ALIGN="center"
+VALIGN="top"
+><A
+HREF="index.html"
+ACCESSKEY="H"
+>Home</A
+></TD
+><TD
+WIDTH="33%"
+ALIGN="right"
+VALIGN="top"
+><A
+HREF="pgtcl-nullvaluestring.html"
+ACCESSKEY="N"
+>Next</A
+></TD
+></TR
+><TR
+><TD
+WIDTH="33%"
+ALIGN="left"
+VALIGN="top"
+>pg_blocking</TD
+><TD
+WIDTH="34%"
+ALIGN="center"
+VALIGN="top"
+><A
+HREF="libpgtcl-ref.html"
+ACCESSKEY="U"
+>Up</A
+></TD
+><TD
+WIDTH="33%"
+ALIGN="right"
+VALIGN="top"
+>pg_null_value_string</TD
+></TR
+></TABLE
+></DIV
+></BODY
+></HTML
+>

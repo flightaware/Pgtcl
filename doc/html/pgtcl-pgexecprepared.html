@@ -1,0 +1,314 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<HTML
+><HEAD
+><TITLE
+>pg_exec_prepared</TITLE
+><META
+NAME="GENERATOR"
+CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
+REV="MADE"
+HREF="mailto:pgsql-docs@postgresql.org"><LINK
+REL="HOME"
+TITLE="PostgreSQL Tcl Interface Documentation"
+HREF="index.html"><LINK
+REL="UP"
+TITLE="pgtcl Command Reference"
+HREF="libpgtcl-ref.html"><LINK
+REL="PREVIOUS"
+TITLE="pg_exec"
+HREF="pgtcl-pgexec.html"><LINK
+REL="NEXT"
+TITLE="pg_result"
+HREF="pgtcl-pgresult.html"><LINK
+REL="STYLESHEET"
+TYPE="text/css"
+HREF="stylesheet.css"><META
+NAME="creation"
+CONTENT="2016-06-16T12:10:18"></HEAD
+><BODY
+CLASS="REFENTRY"
+><DIV
+CLASS="NAVHEADER"
+><TABLE
+SUMMARY="Header navigation table"
+WIDTH="100%"
+BORDER="0"
+CELLPADDING="0"
+CELLSPACING="0"
+><TR
+><TH
+COLSPAN="5"
+ALIGN="center"
+VALIGN="bottom"
+>PostgreSQL Tcl Interface Documentation</TH
+></TR
+><TR
+><TD
+WIDTH="10%"
+ALIGN="left"
+VALIGN="top"
+><A
+HREF="pgtcl-pgexec.html"
+ACCESSKEY="P"
+>Prev</A
+></TD
+><TD
+WIDTH="10%"
+ALIGN="left"
+VALIGN="top"
+><A
+HREF="pgtcl-pgexec.html"
+>Fast Backward</A
+></TD
+><TD
+WIDTH="60%"
+ALIGN="center"
+VALIGN="bottom"
+></TD
+><TD
+WIDTH="10%"
+ALIGN="right"
+VALIGN="top"
+><A
+HREF="pgtcl-pgresult.html"
+>Fast Forward</A
+></TD
+><TD
+WIDTH="10%"
+ALIGN="right"
+VALIGN="top"
+><A
+HREF="pgtcl-pgresult.html"
+ACCESSKEY="N"
+>Next</A
+></TD
+></TR
+></TABLE
+><HR
+ALIGN="LEFT"
+WIDTH="100%"></DIV
+><H1
+><A
+NAME="PGTCL-PGEXECPREPARED"
+></A
+>pg_exec_prepared</H1
+><DIV
+CLASS="REFNAMEDIV"
+><A
+NAME="AEN663"
+></A
+><H2
+>Name</H2
+>pg_exec_prepared&nbsp;--&nbsp;send a request to execute a prepared SQL statement to the server<A
+NAME="IX-PGTCL-PGEXECPREPARED-2"
+></A
+></DIV
+><DIV
+CLASS="REFSYNOPSISDIV"
+><A
+NAME="AEN668"
+></A
+><H2
+>Synopsis</H2
+><PRE
+CLASS="SYNOPSIS"
+>pg_exec_prepared <CODE
+CLASS="PARAMETER"
+>conn</CODE
+> <CODE
+CLASS="PARAMETER"
+>statementName</CODE
+> ?<SPAN
+CLASS="OPTIONAL"
+><CODE
+CLASS="PARAMETER"
+>args</CODE
+></SPAN
+>?</PRE
+></DIV
+><DIV
+CLASS="REFSECT1"
+><A
+NAME="AEN674"
+></A
+><H2
+>Description</H2
+><P
+>   <CODE
+CLASS="FUNCTION"
+>pg_exec_prepared</CODE
+> submits a command to the
+   <SPAN
+CLASS="PRODUCTNAME"
+>PostgreSQL</SPAN
+> server and returns a result.
+  </P
+><P
+>   <CODE
+CLASS="FUNCTION"
+>pg_exec_prepared</CODE
+> functions identically to
+   <CODE
+CLASS="FUNCTION"
+>pg_exec</CODE
+>, except that it operates using
+   statements prepared by the <TT
+CLASS="COMMAND"
+>PREPARE</TT
+> SQL command.
+  </P
+><P
+>  Note that prepared statements are only support under <SPAN
+CLASS="PRODUCTNAME"
+>PostgreSQL</SPAN
+> 7.4
+  and later.
+  </P
+></DIV
+><DIV
+CLASS="REFSECT1"
+><A
+NAME="AEN685"
+></A
+><H2
+>Arguments</H2
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><CODE
+CLASS="PARAMETER"
+>conn</CODE
+></DT
+><DD
+><P
+>      The handle of the connection on which to execute the command.
+     </P
+></DD
+><DT
+><CODE
+CLASS="PARAMETER"
+>statementName</CODE
+></DT
+><DD
+><P
+>      The name of the prepared statement to execute.
+     </P
+></DD
+><DT
+><CODE
+CLASS="PARAMETER"
+>args</CODE
+></DT
+><DD
+><P
+>      <CODE
+CLASS="PARAMETER"
+>args</CODE
+>
+      consists of zero or more optional values that can be inserted,
+      unquoted, into the SQL statement using $-style substitution.
+     </P
+></DD
+></DL
+></DIV
+></DIV
+><DIV
+CLASS="REFSECT1"
+><A
+NAME="AEN704"
+></A
+><H2
+>Return Value</H2
+><P
+>   A result handle. See <CODE
+CLASS="FUNCTION"
+>pg_exec</CODE
+> for details.
+  </P
+></DIV
+><DIV
+CLASS="REFSECT1"
+><A
+NAME="AEN708"
+></A
+><H2
+>Example</H2
+><P
+></P><PRE
+CLASS="PROGRAMLISTING"
+>pg_exec $conn {prepare insert_people 
+    (varchar, varchar, varchar, varchar, varchar, varchar) 
+    as insert into people values ($1, $2, $3, $4, $5, $6);}
+
+pg_exec_prepared $conn insert_people $email $name $address $city $state $zip</PRE
+><P>
+  </P
+></DIV
+><DIV
+CLASS="NAVFOOTER"
+><HR
+ALIGN="LEFT"
+WIDTH="100%"><TABLE
+SUMMARY="Footer navigation table"
+WIDTH="100%"
+BORDER="0"
+CELLPADDING="0"
+CELLSPACING="0"
+><TR
+><TD
+WIDTH="33%"
+ALIGN="left"
+VALIGN="top"
+><A
+HREF="pgtcl-pgexec.html"
+ACCESSKEY="P"
+>Prev</A
+></TD
+><TD
+WIDTH="34%"
+ALIGN="center"
+VALIGN="top"
+><A
+HREF="index.html"
+ACCESSKEY="H"
+>Home</A
+></TD
+><TD
+WIDTH="33%"
+ALIGN="right"
+VALIGN="top"
+><A
+HREF="pgtcl-pgresult.html"
+ACCESSKEY="N"
+>Next</A
+></TD
+></TR
+><TR
+><TD
+WIDTH="33%"
+ALIGN="left"
+VALIGN="top"
+>pg_exec</TD
+><TD
+WIDTH="34%"
+ALIGN="center"
+VALIGN="top"
+><A
+HREF="libpgtcl-ref.html"
+ACCESSKEY="U"
+>Up</A
+></TD
+><TD
+WIDTH="33%"
+ALIGN="right"
+VALIGN="top"
+>pg_result</TD
+></TR
+></TABLE
+></DIV
+></BODY
+></HTML
+>

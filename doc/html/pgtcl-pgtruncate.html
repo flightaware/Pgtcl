@@ -1,0 +1,271 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<HTML
+><HEAD
+><TITLE
+>pg_lo_truncate</TITLE
+><META
+NAME="GENERATOR"
+CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
+REV="MADE"
+HREF="mailto:pgsql-docs@postgresql.org"><LINK
+REL="HOME"
+TITLE="PostgreSQL Tcl Interface Documentation"
+HREF="index.html"><LINK
+REL="UP"
+TITLE="pgtcl Command Reference"
+HREF="libpgtcl-ref.html"><LINK
+REL="PREVIOUS"
+TITLE="pg_lo_tell"
+HREF="pgtcl-pglotell.html"><LINK
+REL="NEXT"
+TITLE="pg_lo_unlink"
+HREF="pgtcl-pglounlink.html"><LINK
+REL="STYLESHEET"
+TYPE="text/css"
+HREF="stylesheet.css"><META
+NAME="creation"
+CONTENT="2016-06-16T12:10:18"></HEAD
+><BODY
+CLASS="REFENTRY"
+><DIV
+CLASS="NAVHEADER"
+><TABLE
+SUMMARY="Header navigation table"
+WIDTH="100%"
+BORDER="0"
+CELLPADDING="0"
+CELLSPACING="0"
+><TR
+><TH
+COLSPAN="5"
+ALIGN="center"
+VALIGN="bottom"
+>PostgreSQL Tcl Interface Documentation</TH
+></TR
+><TR
+><TD
+WIDTH="10%"
+ALIGN="left"
+VALIGN="top"
+><A
+HREF="pgtcl-pglotell.html"
+ACCESSKEY="P"
+>Prev</A
+></TD
+><TD
+WIDTH="10%"
+ALIGN="left"
+VALIGN="top"
+><A
+HREF="pgtcl-pglotell.html"
+>Fast Backward</A
+></TD
+><TD
+WIDTH="60%"
+ALIGN="center"
+VALIGN="bottom"
+></TD
+><TD
+WIDTH="10%"
+ALIGN="right"
+VALIGN="top"
+><A
+HREF="pgtcl-pglounlink.html"
+>Fast Forward</A
+></TD
+><TD
+WIDTH="10%"
+ALIGN="right"
+VALIGN="top"
+><A
+HREF="pgtcl-pglounlink.html"
+ACCESSKEY="N"
+>Next</A
+></TD
+></TR
+></TABLE
+><HR
+ALIGN="LEFT"
+WIDTH="100%"></DIV
+><H1
+><A
+NAME="PGTCL-PGTRUNCATE"
+></A
+>pg_lo_truncate</H1
+><DIV
+CLASS="REFNAMEDIV"
+><A
+NAME="AEN1894"
+></A
+><H2
+>Name</H2
+>pg_lo_truncate&nbsp;--&nbsp;Truncate a large object to a given length<A
+NAME="IX-PGTCL-PGLOTRUNCATE-2"
+></A
+></DIV
+><DIV
+CLASS="REFSYNOPSISDIV"
+><A
+NAME="AEN1899"
+></A
+><H2
+>Synopsis</H2
+><PRE
+CLASS="SYNOPSIS"
+>pg_lo_truncate <CODE
+CLASS="PARAMETER"
+>conn</CODE
+> <CODE
+CLASS="PARAMETER"
+>descriptor</CODE
+> <CODE
+CLASS="PARAMETER"
+>length</CODE
+></PRE
+></DIV
+><DIV
+CLASS="REFSECT1"
+><A
+NAME="AEN1904"
+></A
+><H2
+>Description</H2
+><P
+>   <CODE
+CLASS="FUNCTION"
+>pg_lo_truncate</CODE
+> truncates the specified large
+   object to the given length.  If the length is greater than the current
+   large object length, the large object is extended with null bytes.
+  </P
+></DIV
+><DIV
+CLASS="REFSECT1"
+><A
+NAME="AEN1908"
+></A
+><H2
+>Arguments</H2
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><CODE
+CLASS="PARAMETER"
+>conn</CODE
+></DT
+><DD
+><P
+>      The handle of a connection to the database in which the large object
+      exists.
+     </P
+></DD
+><DT
+><CODE
+CLASS="PARAMETER"
+>descriptor</CODE
+></DT
+><DD
+><P
+>      A descriptor for the large object from
+      <CODE
+CLASS="FUNCTION"
+>pg_lo_open</CODE
+>.
+     </P
+></DD
+><DT
+><CODE
+CLASS="PARAMETER"
+>length</CODE
+></DT
+><DD
+><P
+>      The length to which the large object is to be truncated or padded.
+     </P
+></DD
+></DL
+></DIV
+></DIV
+><DIV
+CLASS="REFSECT1"
+><A
+NAME="AEN1927"
+></A
+><H2
+>Return Value</H2
+><P
+>   A zero-based offset in bytes suitable for input to
+   <CODE
+CLASS="FUNCTION"
+>pg_lo_lseek</CODE
+>.
+  </P
+></DIV
+><DIV
+CLASS="NAVFOOTER"
+><HR
+ALIGN="LEFT"
+WIDTH="100%"><TABLE
+SUMMARY="Footer navigation table"
+WIDTH="100%"
+BORDER="0"
+CELLPADDING="0"
+CELLSPACING="0"
+><TR
+><TD
+WIDTH="33%"
+ALIGN="left"
+VALIGN="top"
+><A
+HREF="pgtcl-pglotell.html"
+ACCESSKEY="P"
+>Prev</A
+></TD
+><TD
+WIDTH="34%"
+ALIGN="center"
+VALIGN="top"
+><A
+HREF="index.html"
+ACCESSKEY="H"
+>Home</A
+></TD
+><TD
+WIDTH="33%"
+ALIGN="right"
+VALIGN="top"
+><A
+HREF="pgtcl-pglounlink.html"
+ACCESSKEY="N"
+>Next</A
+></TD
+></TR
+><TR
+><TD
+WIDTH="33%"
+ALIGN="left"
+VALIGN="top"
+>pg_lo_tell</TD
+><TD
+WIDTH="34%"
+ALIGN="center"
+VALIGN="top"
+><A
+HREF="libpgtcl-ref.html"
+ACCESSKEY="U"
+>Up</A
+></TD
+><TD
+WIDTH="33%"
+ALIGN="right"
+VALIGN="top"
+>pg_lo_unlink</TD
+></TR
+></TABLE
+></DIV
+></BODY
+></HTML
+>

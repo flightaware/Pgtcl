@@ -1,0 +1,182 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<HTML
+><HEAD
+><TITLE
+>Tcl Namespace Support</TITLE
+><META
+NAME="GENERATOR"
+CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
+REV="MADE"
+HREF="mailto:pgsql-docs@postgresql.org"><LINK
+REL="HOME"
+TITLE="PostgreSQL Tcl Interface Documentation"
+HREF="index.html"><LINK
+REL="UP"
+TITLE="pgtcl - Tcl Binding Library"
+HREF="libpgtcl.html"><LINK
+REL="PREVIOUS"
+TITLE="pg_lo_export"
+HREF="pgtcl-pgloexport.html"><LINK
+REL="NEXT"
+TITLE="Connection/result handles as commands"
+HREF="pgtcl-commandhandles.html"><LINK
+REL="STYLESHEET"
+TYPE="text/css"
+HREF="stylesheet.css"><META
+NAME="creation"
+CONTENT="2016-06-16T12:10:18"></HEAD
+><BODY
+CLASS="SECT1"
+><DIV
+CLASS="NAVHEADER"
+><TABLE
+SUMMARY="Header navigation table"
+WIDTH="100%"
+BORDER="0"
+CELLPADDING="0"
+CELLSPACING="0"
+><TR
+><TH
+COLSPAN="5"
+ALIGN="center"
+VALIGN="bottom"
+>PostgreSQL Tcl Interface Documentation</TH
+></TR
+><TR
+><TD
+WIDTH="10%"
+ALIGN="left"
+VALIGN="top"
+><A
+HREF="pgtcl-pgloexport.html"
+ACCESSKEY="P"
+>Prev</A
+></TD
+><TD
+WIDTH="10%"
+ALIGN="left"
+VALIGN="top"
+><A
+HREF="libpgtcl.html"
+>Fast Backward</A
+></TD
+><TD
+WIDTH="60%"
+ALIGN="center"
+VALIGN="bottom"
+>Chapter 1. <SPAN
+CLASS="APPLICATION"
+>pgtcl</SPAN
+> - Tcl Binding Library</TD
+><TD
+WIDTH="10%"
+ALIGN="right"
+VALIGN="top"
+><A
+HREF="libpgtcl.html"
+>Fast Forward</A
+></TD
+><TD
+WIDTH="10%"
+ALIGN="right"
+VALIGN="top"
+><A
+HREF="pgtcl-commandhandles.html"
+ACCESSKEY="N"
+>Next</A
+></TD
+></TR
+></TABLE
+><HR
+ALIGN="LEFT"
+WIDTH="100%"></DIV
+><DIV
+CLASS="SECT1"
+><H1
+CLASS="SECT1"
+><A
+NAME="PGTCL-TCLNAMESPACE"
+>1.4. Tcl Namespace Support</A
+></H1
+><P
+>With version 1.5, there is proper Tcl namespace support built into <SPAN
+CLASS="APPLICATION"
+>pgtcl</SPAN
+>. There are commands now that mirror the pg_ commands, but use the Tcl namespace convention. For example, there are commands now called: pg::connect, pg::result, etc. However, due to this, there are some incapabilities. For example, pg_exec has a counterpart called pg::sqlexec, since doing a namespace import ::pg::* would clobber the builtin Tcl commmand exec. The old command names, pg_*, are still there for backwards compatibility, but might be phased out eventually.
+ </P
+><P
+>So, one can use Tcl's namespace mechanisms now with <SPAN
+CLASS="APPLICATION"
+>pgtcl</SPAN
+>. For eaxmple, you can import that namespace:</P
+><PRE
+CLASS="PROGRAMLISTING"
+>namespace import ::pg::*
+
+set conn [connect template1 -host $host -port $port]</PRE
+></DIV
+><DIV
+CLASS="NAVFOOTER"
+><HR
+ALIGN="LEFT"
+WIDTH="100%"><TABLE
+SUMMARY="Footer navigation table"
+WIDTH="100%"
+BORDER="0"
+CELLPADDING="0"
+CELLSPACING="0"
+><TR
+><TD
+WIDTH="33%"
+ALIGN="left"
+VALIGN="top"
+><A
+HREF="pgtcl-pgloexport.html"
+ACCESSKEY="P"
+>Prev</A
+></TD
+><TD
+WIDTH="34%"
+ALIGN="center"
+VALIGN="top"
+><A
+HREF="index.html"
+ACCESSKEY="H"
+>Home</A
+></TD
+><TD
+WIDTH="33%"
+ALIGN="right"
+VALIGN="top"
+><A
+HREF="pgtcl-commandhandles.html"
+ACCESSKEY="N"
+>Next</A
+></TD
+></TR
+><TR
+><TD
+WIDTH="33%"
+ALIGN="left"
+VALIGN="top"
+>pg_lo_export</TD
+><TD
+WIDTH="34%"
+ALIGN="center"
+VALIGN="top"
+><A
+HREF="libpgtcl.html"
+ACCESSKEY="U"
+>Up</A
+></TD
+><TD
+WIDTH="33%"
+ALIGN="right"
+VALIGN="top"
+>Connection/result handles as commands</TD
+></TR
+></TABLE
+></DIV
+></BODY
+></HTML
+>

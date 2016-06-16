@@ -1,0 +1,266 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<HTML
+><HEAD
+><TITLE
+>pg_getresult</TITLE
+><META
+NAME="GENERATOR"
+CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
+REV="MADE"
+HREF="mailto:pgsql-docs@postgresql.org"><LINK
+REL="HOME"
+TITLE="PostgreSQL Tcl Interface Documentation"
+HREF="index.html"><LINK
+REL="UP"
+TITLE="pgtcl Command Reference"
+HREF="libpgtcl-ref.html"><LINK
+REL="PREVIOUS"
+TITLE="pg_sendquery_prepared"
+HREF="pgtcl-pgsendqueryprepared.html"><LINK
+REL="NEXT"
+TITLE="pg_isbusy"
+HREF="pgtcl-pgisbusy.html"><LINK
+REL="STYLESHEET"
+TYPE="text/css"
+HREF="stylesheet.css"><META
+NAME="creation"
+CONTENT="2016-06-16T12:10:18"></HEAD
+><BODY
+CLASS="REFENTRY"
+><DIV
+CLASS="NAVHEADER"
+><TABLE
+SUMMARY="Header navigation table"
+WIDTH="100%"
+BORDER="0"
+CELLPADDING="0"
+CELLSPACING="0"
+><TR
+><TH
+COLSPAN="5"
+ALIGN="center"
+VALIGN="bottom"
+>PostgreSQL Tcl Interface Documentation</TH
+></TR
+><TR
+><TD
+WIDTH="10%"
+ALIGN="left"
+VALIGN="top"
+><A
+HREF="pgtcl-pgsendqueryprepared.html"
+ACCESSKEY="P"
+>Prev</A
+></TD
+><TD
+WIDTH="10%"
+ALIGN="left"
+VALIGN="top"
+><A
+HREF="pgtcl-pgsendqueryprepared.html"
+>Fast Backward</A
+></TD
+><TD
+WIDTH="60%"
+ALIGN="center"
+VALIGN="bottom"
+></TD
+><TD
+WIDTH="10%"
+ALIGN="right"
+VALIGN="top"
+><A
+HREF="pgtcl-pgisbusy.html"
+>Fast Forward</A
+></TD
+><TD
+WIDTH="10%"
+ALIGN="right"
+VALIGN="top"
+><A
+HREF="pgtcl-pgisbusy.html"
+ACCESSKEY="N"
+>Next</A
+></TD
+></TR
+></TABLE
+><HR
+ALIGN="LEFT"
+WIDTH="100%"></DIV
+><H1
+><A
+NAME="PGTCL-PGGETRESULT"
+></A
+>pg_getresult</H1
+><DIV
+CLASS="REFNAMEDIV"
+><A
+NAME="AEN1324"
+></A
+><H2
+>Name</H2
+>pg_getresult&nbsp;--&nbsp;process asychronous results<A
+NAME="IX-PGTCL-PGGETRESULT-2"
+></A
+></DIV
+><DIV
+CLASS="REFSYNOPSISDIV"
+><A
+NAME="AEN1329"
+></A
+><H2
+>Synopsis</H2
+><PRE
+CLASS="SYNOPSIS"
+>pg_getresult <CODE
+CLASS="PARAMETER"
+>conn</CODE
+></PRE
+></DIV
+><DIV
+CLASS="REFSECT1"
+><A
+NAME="AEN1332"
+></A
+><H2
+>Description</H2
+><P
+>   <CODE
+CLASS="FUNCTION"
+>pg_getresult</CODE
+> checks to see if any commands
+   issued by <CODE
+CLASS="FUNCTION"
+>pg_sendquery</CODE
+> have completed.
+  </P
+><P
+>   This will return the same sort of result handle that 
+   <CODE
+CLASS="FUNCTION"
+>pg_exec</CODE
+> returns.
+  </P
+><P
+>   If there is no query currently being processed or all of the results
+   have been obtained, <CODE
+CLASS="FUNCTION"
+>pg_getresult</CODE
+> returns
+   nothing.
+  </P
+></DIV
+><DIV
+CLASS="REFSECT1"
+><A
+NAME="AEN1341"
+></A
+><H2
+>Arguments</H2
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><CODE
+CLASS="PARAMETER"
+>conn</CODE
+></DT
+><DD
+><P
+>      The handle of a connection to the database to which asynchronous
+      requests are being issued.
+     </P
+></DD
+></DL
+></DIV
+></DIV
+><DIV
+CLASS="REFSECT1"
+><A
+NAME="AEN1349"
+></A
+><H2
+>Return Value</H2
+><P
+>   If a query result is available, a command result object is returned.
+   This handle can be passed to <CODE
+CLASS="FUNCTION"
+>pg_result</CODE
+> to
+   obtain the results of the command.
+  </P
+><P
+>   If there is no query currently being processed or all of the results
+   have been obtained, <CODE
+CLASS="FUNCTION"
+>pg_getresult</CODE
+> returns nothing.
+  </P
+></DIV
+><DIV
+CLASS="NAVFOOTER"
+><HR
+ALIGN="LEFT"
+WIDTH="100%"><TABLE
+SUMMARY="Footer navigation table"
+WIDTH="100%"
+BORDER="0"
+CELLPADDING="0"
+CELLSPACING="0"
+><TR
+><TD
+WIDTH="33%"
+ALIGN="left"
+VALIGN="top"
+><A
+HREF="pgtcl-pgsendqueryprepared.html"
+ACCESSKEY="P"
+>Prev</A
+></TD
+><TD
+WIDTH="34%"
+ALIGN="center"
+VALIGN="top"
+><A
+HREF="index.html"
+ACCESSKEY="H"
+>Home</A
+></TD
+><TD
+WIDTH="33%"
+ALIGN="right"
+VALIGN="top"
+><A
+HREF="pgtcl-pgisbusy.html"
+ACCESSKEY="N"
+>Next</A
+></TD
+></TR
+><TR
+><TD
+WIDTH="33%"
+ALIGN="left"
+VALIGN="top"
+>pg_sendquery_prepared</TD
+><TD
+WIDTH="34%"
+ALIGN="center"
+VALIGN="top"
+><A
+HREF="libpgtcl-ref.html"
+ACCESSKEY="U"
+>Up</A
+></TD
+><TD
+WIDTH="33%"
+ALIGN="right"
+VALIGN="top"
+>pg_isbusy</TD
+></TR
+></TABLE
+></DIV
+></BODY
+></HTML
+>
