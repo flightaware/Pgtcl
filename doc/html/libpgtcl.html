@@ -1,11 +1,11 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <HTML
 ><HEAD
 ><TITLE
 >pgtcl - Tcl Binding Library</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.7"><LINK
+CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
 REV="MADE"
 HREF="mailto:pgsql-docs@postgresql.org"><LINK
 REL="HOME"
@@ -21,7 +21,7 @@ REL="STYLESHEET"
 TYPE="text/css"
 HREF="stylesheet.css"><META
 NAME="creation"
-CONTENT="2005-11-27T13:24:31"></HEAD
+CONTENT="2016-06-16T04:20:40"></HEAD
 ><BODY
 CLASS="CHAPTER"
 ><DIV
@@ -277,6 +277,11 @@ HREF="pgtcl-pglolseek.html"
 HREF="pgtcl-pglotell.html"
 >pg_lo_tell</A
 >&nbsp;--&nbsp;return the current seek position of a large object</DT
+><DT
+><A
+HREF="pgtcl-pgtruncate.html"
+>pg_lo_truncate</A
+>&nbsp;--&nbsp;Truncate a large object to a given length</DT
 ><DT
 ><A
 HREF="pgtcl-pglounlink.html"
@@ -794,6 +799,20 @@ CLASS="FUNCTION"
 ><TD
 ><CODE
 CLASS="FUNCTION"
+>pg_lo_truncate</CODE
+></TD
+><TD
+><CODE
+CLASS="FUNCTION"
+>pg::lo_truncate</CODE
+></TD
+><TD
+>Truncate (or pad) a large object to a specified length</TD
+></TR
+><TR
+><TD
+><CODE
+CLASS="FUNCTION"
 >pg_lo_unlink</CODE
 ></TD
 ><TD
@@ -845,7 +864,7 @@ CLASS="FUNCTION"
 CLASS="PRODUCTNAME"
 >PostgreSQL</SPAN
 >.<A
-NAME="AEN230"
+NAME="AEN236"
 ></A
 > The functions are designed to mimic the analogous file
    system functions in the standard Unix file system interface.  The

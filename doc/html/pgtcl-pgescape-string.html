@@ -1,11 +1,11 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <HTML
 ><HEAD
 ><TITLE
 >pg_escape_string</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.7"><LINK
+CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
 REV="MADE"
 HREF="mailto:pgsql-docs@postgresql.org"><LINK
 REL="HOME"
@@ -24,7 +24,7 @@ REL="STYLESHEET"
 TYPE="text/css"
 HREF="stylesheet.css"><META
 NAME="creation"
-CONTENT="2005-11-27T13:24:31"></HEAD
+CONTENT="2016-06-16T04:20:40"></HEAD
 ><BODY
 CLASS="REFENTRY"
 ><DIV
@@ -95,7 +95,7 @@ NAME="PGTCL-PGESCAPE-STRING"
 ><DIV
 CLASS="REFNAMEDIV"
 ><A
-NAME="AEN1476"
+NAME="AEN1501"
 ></A
 ><H2
 >Name</H2
@@ -107,21 +107,21 @@ NAME="IX-PGTCL-PGESCAPE-STRING-2"
 ><DIV
 CLASS="REFSYNOPSISDIV"
 ><A
-NAME="AEN1481"
+NAME="AEN1506"
 ></A
 ><H2
 >Synopsis</H2
 ><PRE
 CLASS="SYNOPSIS"
->pg_escape_string <VAR
+>pg_escape_string <CODE
 CLASS="PARAMETER"
->string</VAR
+>string</CODE
 ></PRE
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN1484"
+NAME="AEN1509"
 ></A
 ><H2
 >Description</H2
@@ -139,9 +139,9 @@ into SQL statements.
 CLASS="PROGRAMLISTING"
 >    pg_exec $conn "insert into foo values ('$name');" </PRE
 ><P>
-and <VAR
+and <CODE
 CLASS="VARNAME"
->name</VAR
+>name</CODE
 > contains text includeing an unescaped single
 quote, such as <TT
 CLASS="LITERAL"
@@ -164,7 +164,7 @@ single quote or backslash, will be properly quoted.
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN1494"
+NAME="AEN1519"
 ></A
 ><H2
 >Arguments</H2
@@ -174,9 +174,9 @@ NAME="AEN1494"
 CLASS="VARIABLELIST"
 ><DL
 ><DT
-><VAR
+><CODE
 CLASS="PARAMETER"
->string</VAR
+>string</CODE
 ></DT
 ><DD
 ><P
@@ -189,7 +189,7 @@ CLASS="PARAMETER"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN1502"
+NAME="AEN1527"
 ></A
 ><H2
 >Return Value</H2

@@ -920,7 +920,7 @@ Pg_result_foreach(Tcl_Interp *interp, PGresult *result, Tcl_Obj *arrayNameObj, T
 		    {
 			    char		msg[60];
 
-			    sprintf(msg, "\n    (\"pg_select\" body line %d)",
+			    sprintf(msg, "\n    (\"pg_result_foreach\" body line %d)",
 					    Tcl_GetErrorLine(interp));
 			    Tcl_AddErrorInfo(interp, msg);
 		    }
@@ -2674,7 +2674,11 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 	if (rowByRow)
 	{
-		PQsetSingleRowMode (conn);
+		if (PQsetSingleRowMode (conn) == 0)
+		{
+			// error enabling single-row mode, so just use normal mode.
+			rowByRow = 0;
+		}
 	}
 
 	/* Transfer any notify events from libpq to Tcl event queue. */
@@ -2750,6 +2754,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				    Tcl_SetVar2Ex(interp, varNameString, ".tupno",
 						  Tcl_NewIntObj(tupno), TCL_LEAVE_ERR_MSG) == NULL)
 				{
+					PQclear(result);
 					retval = TCL_ERROR;
 					goto done;
 				}
@@ -2764,14 +2769,14 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				string = PQgetvalue (result, tupno, column);
 				if (*string == '\0') {
 					if (PQgetisnull (result, tupno, column)) {
-					if (withoutNulls) {
-						Tcl_UnsetVar2 (interp, varNameString, PQfname(result, column), 0);
-						continue;
-					}
+						if (withoutNulls) {
+							Tcl_UnsetVar2 (interp, varNameString, PQfname(result, column), 0);
+							continue;
+						}
 
-					if ((connid->nullValueString != NULL) && (*connid->nullValueString != '\0')) {
-						valueObj = Tcl_NewStringObj(connid->nullValueString, -1);
-					}
+						if ((connid->nullValueString != NULL) && (*connid->nullValueString != '\0')) {
+							valueObj = Tcl_NewStringObj(connid->nullValueString, -1);
+						}
 					}
 				}
 
@@ -2782,6 +2787,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				if (Tcl_ObjSetVar2(interp, varNameObj, columnNameObjs[column],
 							   valueObj, TCL_LEAVE_ERR_MSG) == NULL)
 				{
+					PQclear(result);
 					retval = TCL_ERROR;
 					goto done;
 				}
@@ -2792,7 +2798,10 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 			if ((r != TCL_OK) && (r != TCL_CONTINUE))
 			{
 				if (r == TCL_BREAK)
-					break;			/* exit loop, but return TCL_OK */
+				{
+					PQclear(result);
+					goto done;			/* exit loop, but return TCL_OK */
+				}
 
 				if (r == TCL_ERROR)
 				{
@@ -2804,7 +2813,8 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				}
 
 				retval = r;
-				break;
+				PQclear(result);
+				goto done;
 			}
 		}
 		PQclear(result);

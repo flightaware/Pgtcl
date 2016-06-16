@@ -2,7 +2,7 @@
 <HTML
 ><HEAD
 ><TITLE
->pg_quote</TITLE
+>pg_lo_truncate</TITLE
 ><META
 NAME="GENERATOR"
 CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
@@ -15,11 +15,11 @@ REL="UP"
 TITLE="pgtcl Command Reference"
 HREF="libpgtcl-ref.html"><LINK
 REL="PREVIOUS"
-TITLE="pg_null_value_string"
-HREF="pgtcl-nullvaluestring.html"><LINK
+TITLE="pg_lo_tell"
+HREF="pgtcl-pglotell.html"><LINK
 REL="NEXT"
-TITLE="pg_escape_string"
-HREF="pgtcl-pgescape-string.html"><LINK
+TITLE="pg_lo_unlink"
+HREF="pgtcl-pglounlink.html"><LINK
 REL="STYLESHEET"
 TYPE="text/css"
 HREF="stylesheet.css"><META
@@ -48,7 +48,7 @@ WIDTH="10%"
 ALIGN="left"
 VALIGN="top"
 ><A
-HREF="pgtcl-nullvaluestring.html"
+HREF="pgtcl-pglotell.html"
 ACCESSKEY="P"
 >Prev</A
 ></TD
@@ -57,7 +57,7 @@ WIDTH="10%"
 ALIGN="left"
 VALIGN="top"
 ><A
-HREF="pgtcl-nullvaluestring.html"
+HREF="pgtcl-pglotell.html"
 >Fast Backward</A
 ></TD
 ><TD
@@ -70,7 +70,7 @@ WIDTH="10%"
 ALIGN="right"
 VALIGN="top"
 ><A
-HREF="pgtcl-pgescape-string.html"
+HREF="pgtcl-pglounlink.html"
 >Fast Forward</A
 ></TD
 ><TD
@@ -78,7 +78,7 @@ WIDTH="10%"
 ALIGN="right"
 VALIGN="top"
 ><A
-HREF="pgtcl-pgescape-string.html"
+HREF="pgtcl-pglounlink.html"
 ACCESSKEY="N"
 >Next</A
 ></TD
@@ -89,82 +89,60 @@ ALIGN="LEFT"
 WIDTH="100%"></DIV
 ><H1
 ><A
-NAME="PGTCL-QUOTE"
+NAME="PGTCL-PGTRUNCATE"
 ></A
->pg_quote</H1
+>pg_lo_truncate</H1
 ><DIV
 CLASS="REFNAMEDIV"
 ><A
-NAME="AEN1469"
+NAME="AEN1876"
 ></A
 ><H2
 >Name</H2
->pg_quote&nbsp;--&nbsp;escapes a string for inclusion into SQL statements
- <A
-NAME="IX-PGTCL-QUOTE-2"
+>pg_lo_truncate&nbsp;--&nbsp;Truncate a large object to a given length<A
+NAME="IX-PGTCL-PGLOTRUNCATE-2"
 ></A
 ></DIV
 ><DIV
 CLASS="REFSYNOPSISDIV"
 ><A
-NAME="AEN1474"
+NAME="AEN1881"
 ></A
 ><H2
 >Synopsis</H2
 ><PRE
 CLASS="SYNOPSIS"
->pg_quote <CODE
+>pg_lo_truncate <CODE
 CLASS="PARAMETER"
->string</CODE
+>conn</CODE
+> <CODE
+CLASS="PARAMETER"
+>descriptor</CODE
+> <CODE
+CLASS="PARAMETER"
+>length</CODE
 ></PRE
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN1477"
+NAME="AEN1886"
 ></A
 ><H2
 >Description</H2
 ><P
 >   <CODE
 CLASS="FUNCTION"
->pg_quote</CODE
-> quotes a string and escapes single
-quotes and backslashes within the string, making it safe for inclusion 
-into SQL statements.
-  </P
-><P
->If you're doing something like
-</P><PRE
-CLASS="PROGRAMLISTING"
->    pg_exec $conn "insert into foo values ('$name');" </PRE
-><P>
-and <CODE
-CLASS="VARNAME"
->name</CODE
-> contains text includeing an unescaped single
-quote, such as <TT
-CLASS="LITERAL"
->Bob's House</TT
->, the insert will fail.  
-Passing value strings through <CODE
-CLASS="FUNCTION"
->pg_quote</CODE
->
-make sure they can be used as values and stuff in PostgreSQL.
-
-</P><PRE
-CLASS="PROGRAMLISTING"
->    pg_exec $conn "insert into foo values ([pg_quote $name]);" </PRE
-><P>
-...will make sure that any special characters that occur in name, such as
-single quote or backslash, will be properly quoted.
+>pg_lo_truncate</CODE
+> truncates the specified large
+   object to the given length.  If the length is greater than the current
+   large object length, the large object is extended with null bytes.
   </P
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN1487"
+NAME="AEN1890"
 ></A
 ><H2
 >Arguments</H2
@@ -176,11 +154,36 @@ CLASS="VARIABLELIST"
 ><DT
 ><CODE
 CLASS="PARAMETER"
->string</CODE
+>conn</CODE
 ></DT
 ><DD
 ><P
->      The string to be escaped.
+>      The handle of a connection to the database in which the large object
+      exists.
+     </P
+></DD
+><DT
+><CODE
+CLASS="PARAMETER"
+>descriptor</CODE
+></DT
+><DD
+><P
+>      A descriptor for the large object from
+      <CODE
+CLASS="FUNCTION"
+>pg_lo_open</CODE
+>.
+     </P
+></DD
+><DT
+><CODE
+CLASS="PARAMETER"
+>length</CODE
+></DT
+><DD
+><P
+>      The length to which the large object is to be truncated or padded.
      </P
 ></DD
 ></DL
@@ -189,13 +192,16 @@ CLASS="PARAMETER"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN1495"
+NAME="AEN1909"
 ></A
 ><H2
 >Return Value</H2
 ><P
->   Returns the string, escaped for inclusion into SQL queries.  Note that
-   it adds a set of single quotes around the outside of the string as well.
+>   A zero-based offset in bytes suitable for input to
+   <CODE
+CLASS="FUNCTION"
+>pg_lo_lseek</CODE
+>.
   </P
 ></DIV
 ><DIV
@@ -214,7 +220,7 @@ WIDTH="33%"
 ALIGN="left"
 VALIGN="top"
 ><A
-HREF="pgtcl-nullvaluestring.html"
+HREF="pgtcl-pglotell.html"
 ACCESSKEY="P"
 >Prev</A
 ></TD
@@ -232,7 +238,7 @@ WIDTH="33%"
 ALIGN="right"
 VALIGN="top"
 ><A
-HREF="pgtcl-pgescape-string.html"
+HREF="pgtcl-pglounlink.html"
 ACCESSKEY="N"
 >Next</A
 ></TD
@@ -242,7 +248,7 @@ ACCESSKEY="N"
 WIDTH="33%"
 ALIGN="left"
 VALIGN="top"
->pg_null_value_string</TD
+>pg_lo_tell</TD
 ><TD
 WIDTH="34%"
 ALIGN="center"
@@ -256,7 +262,7 @@ ACCESSKEY="U"
 WIDTH="33%"
 ALIGN="right"
 VALIGN="top"
->pg_escape_string</TD
+>pg_lo_unlink</TD
 ></TR
 ></TABLE
 ></DIV

@@ -1,11 +1,11 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <HTML
 ><HEAD
 ><TITLE
 >pg_result</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.7"><LINK
+CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
 REV="MADE"
 HREF="mailto:pgsql-docs@postgresql.org"><LINK
 REL="HOME"
@@ -24,7 +24,7 @@ REL="STYLESHEET"
 TYPE="text/css"
 HREF="stylesheet.css"><META
 NAME="creation"
-CONTENT="2005-11-27T13:24:31"></HEAD
+CONTENT="2016-06-16T04:20:40"></HEAD
 ><BODY
 CLASS="REFENTRY"
 ><DIV
@@ -95,7 +95,7 @@ NAME="PGTCL-PGRESULT"
 ><DIV
 CLASS="REFNAMEDIV"
 ><A
-NAME="AEN710"
+NAME="AEN715"
 ></A
 ><H2
 >Name</H2
@@ -106,24 +106,24 @@ NAME="IX-PGTCL-PGRESULT-2"
 ><DIV
 CLASS="REFSYNOPSISDIV"
 ><A
-NAME="AEN715"
+NAME="AEN720"
 ></A
 ><H2
 >Synopsis</H2
 ><PRE
 CLASS="SYNOPSIS"
->pg_result <VAR
+>pg_result <CODE
 CLASS="PARAMETER"
->resultHandle</VAR
-> <VAR
+>resultHandle</CODE
+> <CODE
 CLASS="PARAMETER"
->resultOption</VAR
+>resultOption</CODE
 ></PRE
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN719"
+NAME="AEN724"
 ></A
 ><H2
 >Description</H2
@@ -154,7 +154,7 @@ CLASS="APPLICATION"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN727"
+NAME="AEN732"
 ></A
 ><H2
 >Arguments</H2
@@ -164,9 +164,9 @@ NAME="AEN727"
 CLASS="VARIABLELIST"
 ><DL
 ><DT
-><VAR
+><CODE
 CLASS="PARAMETER"
->resultHandle</VAR
+>resultHandle</CODE
 ></DT
 ><DD
 ><P
@@ -174,9 +174,9 @@ CLASS="PARAMETER"
      </P
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="PARAMETER"
->resultOption</VAR
+>resultOption</CODE
 ></DT
 ><DD
 ><P
@@ -189,9 +189,9 @@ CLASS="PARAMETER"
 CLASS="VARIABLELIST"
 ><DL
 ><DT
-><VAR
+><CODE
 CLASS="OPTION"
->-status</VAR
+>-status</CODE
 ></DT
 ><DD
 ><P
@@ -199,14 +199,14 @@ CLASS="OPTION"
          </P
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="OPTION"
->-error</VAR
+>-error</CODE
 > ?<SPAN
 CLASS="OPTIONAL"
-><VAR
+><CODE
 CLASS="PARAMETER"
->diagCode</VAR
+>diagCode</CODE
 ></SPAN
 >?</DT
 ><DD
@@ -215,9 +215,9 @@ CLASS="PARAMETER"
           otherwise an empty string.
          </P
 ><P
->	 <VAR
+>	 <CODE
 CLASS="PARAMETER"
->diagCode</VAR
+>diagCode</CODE
 >, if specified, requests data
 	 for a specific diagnostic code:
 	 </P
@@ -227,9 +227,9 @@ CLASS="PARAMETER"
 CLASS="VARIABLELIST"
 ><DL
 ><DT
-><VAR
+><CODE
 CLASS="OPTION"
->severity</VAR
+>severity</CODE
 ></DT
 ><DD
 ><P
@@ -267,9 +267,9 @@ CLASS="LITERAL"
 	     </P
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="OPTION"
->sqlstate</VAR
+>sqlstate</CODE
 ></DT
 ><DD
 ><P
@@ -284,9 +284,9 @@ CLASS="PRODUCTNAME"
 	     </P
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="OPTION"
->primary</VAR
+>primary</CODE
 ></DT
 ><DD
 ><P
@@ -294,9 +294,9 @@ CLASS="OPTION"
 	     </P
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="OPTION"
->detail</VAR
+>detail</CODE
 ></DT
 ><DD
 ><P
@@ -305,9 +305,9 @@ CLASS="OPTION"
 	     </P
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="OPTION"
->hint</VAR
+>hint</CODE
 ></DT
 ><DD
 ><P
@@ -320,9 +320,9 @@ CLASS="OPTION"
 	     </P
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="OPTION"
->position</VAR
+>position</CODE
 ></DT
 ><DD
 ><P
@@ -338,9 +338,40 @@ CLASS="LITERAL"
 	     </P
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="OPTION"
->context</VAR
+>internal_position</CODE
+></DT
+><DD
+><P
+>	      This is the same as "position", but it is used when the cursor
+	      position refers to an internally generated command rather than
+	      the one submitted by the client.
+	     </P
+><P
+>	      The first character has index <TT
+CLASS="LITERAL"
+>1</TT
+>, and 
+	      positions are measured in characters not bytes. 
+	     </P
+></DD
+><DT
+><CODE
+CLASS="OPTION"
+>internal_query</CODE
+></DT
+><DD
+><P
+>	      This is the text of a failed internally generated command.
+	      This could be, for example, a SQL query issued by a
+	      PL/pgSQL function.
+	     </P
+></DD
+><DT
+><CODE
+CLASS="OPTION"
+>context</CODE
 ></DT
 ><DD
 ><P
@@ -350,9 +381,9 @@ CLASS="OPTION"
 	     </P
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="OPTION"
->file</VAR
+>file</CODE
 ></DT
 ><DD
 ><P
@@ -361,9 +392,9 @@ CLASS="OPTION"
 	     </P
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="OPTION"
->line</VAR
+>line</CODE
 ></DT
 ><DD
 ><P
@@ -372,9 +403,9 @@ CLASS="OPTION"
 	     </P
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="OPTION"
->function</VAR
+>function</CODE
 ></DT
 ><DD
 ><P
@@ -385,9 +416,9 @@ CLASS="OPTION"
 ></DIV
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="OPTION"
->-conn</VAR
+>-conn</CODE
 ></DT
 ><DD
 ><P
@@ -395,9 +426,9 @@ CLASS="OPTION"
          </P
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="OPTION"
->-oid</VAR
+>-oid</CODE
 ></DT
 ><DD
 ><P
@@ -409,9 +440,9 @@ CLASS="COMMAND"
          </P
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="OPTION"
->-numTuples</VAR
+>-numTuples</CODE
 ></DT
 ><DD
 ><P
@@ -419,16 +450,16 @@ CLASS="OPTION"
          </P
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="OPTION"
->-cmdTuples</VAR
+>-cmdTuples</CODE
 ></DT
 ><DD
 ><P
 >          The number of rows (tuples) affected by the command.
-	  (This is similar to <VAR
+	  (This is similar to <CODE
 CLASS="OPTION"
->-numTuples</VAR
+>-numTuples</CODE
 > but
 	  relevant to <TT
 CLASS="COMMAND"
@@ -441,9 +472,9 @@ CLASS="COMMAND"
          </P
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="OPTION"
->-numAttrs</VAR
+>-numAttrs</CODE
 ></DT
 ><DD
 ><P
@@ -451,12 +482,12 @@ CLASS="OPTION"
          </P
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="OPTION"
->-assign <VAR
+>-assign <CODE
 CLASS="PARAMETER"
->arrayName</VAR
-></VAR
+>arrayName</CODE
+></CODE
 ></DT
 ><DD
 ><P
@@ -468,26 +499,26 @@ CLASS="LITERAL"
          </P
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="OPTION"
->-assignbyidx <VAR
+>-assignbyidx <CODE
 CLASS="PARAMETER"
->arrayName</VAR
+>arrayName</CODE
 > ?<SPAN
 CLASS="OPTIONAL"
-><VAR
+><CODE
 CLASS="PARAMETER"
->appendstr</VAR
+>appendstr</CODE
 ></SPAN
->?</VAR
+>?</CODE
 ></DT
 ><DD
 ><P
 >          Assign the results to an array using the values of the
           first column and the names of the remaining column as keys.
-          If <VAR
+          If <CODE
 CLASS="PARAMETER"
->appendstr</VAR
+>appendstr</CODE
 > is given then it is appended to
           each key.  In short, all but the first column of each row
           are stored into the array, using subscripts of the form
@@ -498,12 +529,12 @@ CLASS="LITERAL"
          </P
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="OPTION"
->-getTuple <VAR
+>-getTuple <CODE
 CLASS="PARAMETER"
->rowNumber</VAR
-></VAR
+>rowNumber</CODE
+></CODE
 ></DT
 ><DD
 ><P
@@ -512,30 +543,54 @@ CLASS="PARAMETER"
          </P
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="OPTION"
->-tupleArray <VAR
+>-tupleArray <CODE
 CLASS="PARAMETER"
->rowNumber</VAR
-> <VAR
+>rowNumber</CODE
+> <CODE
 CLASS="PARAMETER"
->arrayName</VAR
-></VAR
+>arrayName</CODE
+></CODE
 ></DT
 ><DD
 ><P
 >          Stores the columns of the row in array
-          <VAR
+          <CODE
 CLASS="PARAMETER"
->arrayName</VAR
+>arrayName</CODE
 >, indexed by column names.
-          Row numbers start at zero.
+          Row numbers start at zero.  If a field's value is null,
+	  sets an empty string or the default string, if a default
+	  string has been defined.
          </P
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="OPTION"
->-attributes</VAR
+>-tupleArrayWithoutNulls <CODE
+CLASS="PARAMETER"
+>rowNumber</CODE
+> <CODE
+CLASS="PARAMETER"
+>arrayName</CODE
+></CODE
+></DT
+><DD
+><P
+>          Stores the columns of the row in array
+          <CODE
+CLASS="PARAMETER"
+>arrayName</CODE
+>, indexed by column names.
+          Row numbers start at zero.  If a field's value is null,
+	  unsets the column from the array.
+         </P
+></DD
+><DT
+><CODE
+CLASS="OPTION"
+>-attributes</CODE
 ></DT
 ><DD
 ><P
@@ -543,9 +598,9 @@ CLASS="OPTION"
          </P
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="OPTION"
->-lAttributes</VAR
+>-lAttributes</CODE
 ></DT
 ><DD
 ><P
@@ -557,9 +612,9 @@ CLASS="LITERAL"
          </P
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="OPTION"
->-list</VAR
+>-list</CODE
 ></DT
 ><DD
 ><P
@@ -568,9 +623,9 @@ CLASS="OPTION"
          </P
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="OPTION"
->-llist</VAR
+>-llist</CODE
 ></DT
 ><DD
 ><P
@@ -579,9 +634,9 @@ CLASS="OPTION"
          </P
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="OPTION"
->-dict</VAR
+>-dict</CODE
 ></DT
 ><DD
 ><P
@@ -599,15 +654,15 @@ CLASS="LITERAL"
          </P
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="OPTION"
 >-null_value_string ?<SPAN
 CLASS="OPTIONAL"
-><VAR
+><CODE
 CLASS="PARAMETER"
->string</VAR
+>string</CODE
 ></SPAN
->?</VAR
+>?</CODE
 ></DT
 ><DD
 ><P
@@ -618,9 +673,9 @@ CLASS="FUNCTION"
          </P
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="OPTION"
->-clear</VAR
+>-clear</CODE
 ></DT
 ><DD
 ><P
@@ -638,7 +693,7 @@ CLASS="OPTION"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN920"
+NAME="AEN945"
 ></A
 ><H2
 >Return Value</H2

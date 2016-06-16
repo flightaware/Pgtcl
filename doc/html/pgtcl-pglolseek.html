@@ -1,11 +1,11 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <HTML
 ><HEAD
 ><TITLE
 >pg_lo_lseek</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.7"><LINK
+CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
 REV="MADE"
 HREF="mailto:pgsql-docs@postgresql.org"><LINK
 REL="HOME"
@@ -24,7 +24,7 @@ REL="STYLESHEET"
 TYPE="text/css"
 HREF="stylesheet.css"><META
 NAME="creation"
-CONTENT="2005-11-27T13:24:31"></HEAD
+CONTENT="2016-06-16T04:20:40"></HEAD
 ><BODY
 CLASS="REFENTRY"
 ><DIV
@@ -95,7 +95,7 @@ NAME="PGTCL-PGLOLSEEK"
 ><DIV
 CLASS="REFNAMEDIV"
 ><A
-NAME="AEN1767"
+NAME="AEN1792"
 ></A
 ><H2
 >Name</H2
@@ -106,30 +106,30 @@ NAME="IX-PGTCL-PGLOLSEEK-2"
 ><DIV
 CLASS="REFSYNOPSISDIV"
 ><A
-NAME="AEN1772"
+NAME="AEN1797"
 ></A
 ><H2
 >Synopsis</H2
 ><PRE
 CLASS="SYNOPSIS"
->pg_lo_lseek <VAR
+>pg_lo_lseek <CODE
 CLASS="PARAMETER"
->conn</VAR
-> <VAR
+>conn</CODE
+> <CODE
 CLASS="PARAMETER"
->descriptor</VAR
-> <VAR
+>descriptor</CODE
+> <CODE
 CLASS="PARAMETER"
->offset</VAR
-> <VAR
+>offset</CODE
+> <CODE
 CLASS="PARAMETER"
->whence</VAR
+>whence</CODE
 ></PRE
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN1778"
+NAME="AEN1803"
 ></A
 ><H2
 >Description</H2
@@ -138,20 +138,20 @@ NAME="AEN1778"
 CLASS="FUNCTION"
 >pg_lo_lseek</CODE
 > moves the current read/write
-   position to <VAR
+   position to <CODE
 CLASS="PARAMETER"
->offset</VAR
+>offset</CODE
 > bytes from the position
-   specified by <VAR
+   specified by <CODE
 CLASS="PARAMETER"
->whence</VAR
+>whence</CODE
 >.
   </P
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN1784"
+NAME="AEN1809"
 ></A
 ><H2
 >Arguments</H2
@@ -161,9 +161,9 @@ NAME="AEN1784"
 CLASS="VARIABLELIST"
 ><DL
 ><DT
-><VAR
+><CODE
 CLASS="PARAMETER"
->conn</VAR
+>conn</CODE
 ></DT
 ><DD
 ><P
@@ -172,9 +172,9 @@ CLASS="PARAMETER"
      </P
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="PARAMETER"
->descriptor</VAR
+>descriptor</CODE
 ></DT
 ><DD
 ><P
@@ -186,9 +186,9 @@ CLASS="FUNCTION"
      </P
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="PARAMETER"
->offset</VAR
+>offset</CODE
 ></DT
 ><DD
 ><P
@@ -196,9 +196,9 @@ CLASS="PARAMETER"
      </P
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="PARAMETER"
->whence</VAR
+>whence</CODE
 ></DT
 ><DD
 ><P
@@ -223,7 +223,7 @@ CLASS="LITERAL"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN1811"
+NAME="AEN1836"
 ></A
 ><H2
 >Return Value</H2
