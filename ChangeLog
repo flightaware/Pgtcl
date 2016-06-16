@@ -1,3 +1,9 @@
+2016-06-16 Jeff Lawson
+    * Change functionality of pg_quote regarding NULL values.
+      pg_quote will now only return "NULL" if the new "-null" flag is
+      explicitly specified by the callerd, regardless of whether a database
+      handle is also specified (#6).
+
 2016-06-15 Jeff Lawson
     * unset array in pg_select at start of each loop to avoid elements
       lingering over (#4).
