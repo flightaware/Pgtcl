@@ -1,35 +1,148 @@
+
+2016-06-16 Karl Lehenbauer, Jeff Lawson and Peter da Silva
+    * Add a -rowbyrow option to pg_select that will return results through libpq
+      a row at a time  via PQsetSingleRowMode rather letting libpq wait for all the rows to be returned first.
+
+      (Caveats at https://www.postgresql.org/docs/current/static/libpq-single-row-mode.html should be observed.)
+
+2016-06-16 Jeff Lawson
+    * Explicitly initialize extra Tcl_ChannelType fields.
+
+    * Make pg_select handle exit conditions more carefully.
+
+    * Fix mislabelled error message text.
+
+    * Regenerate HTML documentation.
+
+2016-06-16 Peter da Silva
+    * Add ?connection? option for pg_quote and flags for pg_select.
+
+    * Modify Makefile for docs to only generate HTML by default.
+
+    * Update documentation to reflect changes and updates.
+
+2016-06-15 Peter da Silva
+    * Fixed docbook errors in libpgtcl.sgml
+
+    * Deleted html directory to make "make" work.
+
+2016-06-15 Karl Lehenbauer
+    * Make -async processing for pg_connect use C-level Tcl boolean handling.
+
 2016-06-15 Jeff Lawson
-    * unset array in pg_select at start of each loop to avoid elements
+    * Unset array in pg_select at start of each loop to avoid elements
       lingering over (#4).
+
+    * Remove unused variable.
 
 2016-06-14 Jeff Lawson
     * Fix possible segfault in pg_select if you unset the array variable
       inside of the code body.
 
+    * Document the pg_select refcount fix.
+
+    * Whitespace cleanup.
+
+    * Remove changelog from 1.4 era; update some text.
+
+    * Update Tcl version in the README.
+
+    * Avoid error during docs part of "make install".
+
+    * Add SGML dependency to dohtml target.
+
+2015-08-26 Karl Lehenbauer
+    * Install helper package sc_postgres by default.
+
+    * Minor package README improvements.
+
+    * Helper integration.
+
+    * Regenerate "configure" script.
+
+2015-08-23 Karl Lehenbauer
+    * Doc and usage message additions.
+
+2015-08-22 Karl Lehenbauer
+    * Simplify most Tcl_GetStringFromObj calls.
+
+    * Remove legacy version handling, requiring Tcl 8.4 or above.
+      (Tcl 8.4 has been out for ten years or so, so it's OK.)
+
+    * Remove ifdef compatibility for long-present stuff such as lo_truncate
+      that has been in PostgreSQL libpq since version 8.3 (released in 2008).
+
+2015-08-18 Karl Lehenbauer
+    * pg_result $res -foreach array code - iterate over tuples in a result handle.
+
+    * Fix compiler warnings.
+
 2015-08-08 Karl Lehenbauer
-    * Update autoconf build to Tcl Extension Architecture (TEA) 3.9
+    * Update build to Tcl Extension Architecture (TEA) 3.9
+
+    * shared library now builds without a reference to libtcl*.so since it
+      uses stubs to access that library.
+
+    * "make distclean" will now remove autom4te.cache
+
+    * Add .gitignore to suppress untracked files warning
+
+2015-04-21 Karl Lehenbauer
+    * genericize tclsh invocation.
+
+2015-03-04 Karl Lehenbauer
+    * clean up compiler warnings.
+
+2014-09-15 Karl Lehenbauer
+    * Force UTC in helpers' clock_to_sql_time.
+
+2014-07-07 Karl Lehenbauer
+    * Force UTC on timestamp without timezone conversions.
+
+2013-06-14 Karl Lehenbauer
+    * Fix gen_update_from_array to work correctly with multiple key fields.
+
+2013-05-08 Karl Lehenbauer
+    * Update .gitignore to ignore *.o, *.so, Makefile, pkgIndex.tcl, etc.
+
+2012-10-10 David McNett
+    * Migrate README file to a github-friendly markdown format.
+
+    * Migrate from Tcl 8.4 to Tcl 8.5.
+
+2012-09-21 Karl Lehenbauer
+    * Update the postgresql database schema comparator.
 
 2012-09-11 Karl Lehenbauer
-    * Add -nodotfields option to pg_select.  if set it will inhibit
-      the creation of the .tupno, .numcols and .headers fields
-      in pg_select results.
-
-    * Added new command, pg_set_single_row_mode aka ::pg::set_single_row_mode
-      to enable retrieving query results row-by-row.
-
     * Add subcommands for direct execution of connection handles for
       conndefaults, set_single_row_mode, is_busy, blocking and
       cancel_request.
 
     * Make "make distclean" get rid of more autoconf work product.
 
-    * Update README.freebsd.
+    * Add -nodotfields option to pg_select.  If set it will inhibit the creation of 
+      the .tupno, .numcols and .headers fields in pg_select results.
+
+    * Added new command, pg_set_single_row_mode aka ::pg::set_single_row_mode
+      to enable retrieving query results row-by-row.
+
+    * Make "make distclean" get rid of more autoconf work product.
 
     * Clean up compiler warnings.
 
-2012-06-02 Karl Lehenbauer
+    * Update README.freebsd.
+
+2012-06-18 Karl Lehenbauer
     * Add new -withoutnulls option to pg_select, if set will remove null
       fields from the row result array.
+
+    * Reference variable name as a string, not an object, when invoking Tcl_UnsetVar2.
+
+2012-06-04 Karl Lehenbauer
+
+    * Change dbinfo option "pass" to "password".
+
+    Fix crash in pg_listen.
 
 2012-06-02 Karl Lehenbauer
     * Add new pg_dbinfo options "dbname", "user", "pass", "host", "port",
