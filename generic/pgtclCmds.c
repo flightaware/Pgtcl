@@ -2828,9 +2828,11 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				goto done;
 			}
 		}
+		PQclear(result);
 		if(rowByRow) {
-			PQclear(result);
 			result = PQgetResult (conn);
+		} else {
+			result = NULL;
 		}
 	}
 
