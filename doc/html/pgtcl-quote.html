@@ -24,7 +24,7 @@ REL="STYLESHEET"
 TYPE="text/css"
 HREF="stylesheet.css"><META
 NAME="creation"
-CONTENT="2016-06-16T13:27:46"></HEAD
+CONTENT="2016-06-16T13:50:19"></HEAD
 ><BODY
 CLASS="REFENTRY"
 ><DIV
@@ -145,10 +145,11 @@ CLASS="PARAMETER"
 >connection</CODE
 > is provided, the connection is used to
    customize the quoting for the database referenced by the connection. Currently this
-   only controls the null string used when the <CODE
+   only controls the behavior when the <CODE
 CLASS="PARAMETER"
 >string</CODE
-> is empty.
+> matches the
+   connection's NULL string, in which case the value NULL (unquoted) is returned.
   </P
 ><P
 >If you're doing something like
