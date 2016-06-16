@@ -2684,8 +2684,8 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	{
 		int resultStatus = PQresultStatus(result);
 
-		if (resultStatus != PGRES_TUPLES_OK 
-			&& (rowByRow && resultStatus != PGRES_SINGLE_TUPLE))
+		if ((!rowByRow && resultStatus != PGRES_TUPLES_OK)
+			|| (rowByRow && !(resultStatus == PGRES_SINGLE_TUPLE || resultStatus == PGRES_TUPLES_OK)))
 		{
 			/* query failed, or it wasn't SELECT */
 			/* NB FIX there isn't necessarily an error here,
@@ -2699,7 +2699,8 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 			Tcl_SetResult(interp, errString, TCL_VOLATILE);
 			PQclear(result);
-			return TCL_ERROR;
+			retval = TCL_ERROR;
+			goto done;
 		}
 
 		// Save the list of column names.
@@ -2718,7 +2719,8 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 								column, ncols);
 					Tcl_SetResult(interp, msg, TCL_VOLATILE);
 					PQclear(result);
-					return TCL_ERROR;
+					retval = TCL_ERROR;
+					goto done;
 				} else {
 					columnNameObjs[column] = Tcl_NewStringObj(colName, -1);
 				}
