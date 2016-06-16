@@ -335,9 +335,9 @@ load libpgtcl[info sharedlibextension]
 
  <refsynopsisdiv>
 <synopsis>
-pg_connect -conninfo <parameter>connectOptions</parameter> <optional role="tcl">-connhandle <parameter>connectionHandleName</parameter></optional>
-pg_connect <parameter>dbName</parameter> <optional role="tcl">-host <parameter>hostName</parameter></optional> <optional role="tcl">-port <parameter>portNumber</parameter></optional> <optional role="tcl">-tty <parameter>tty</parameter></optional> <optional role="tcl">-options <parameter>serverOptions</parameter></optional> <optional role="tcl">-connhandle <parameter>connectionHandleName</parameter></optional>
-pg_connect -connlist <parameter>connectNameValueList</parameter> <optional role="tcl">-connhandle <parameter>connectionHandleName</parameter></optional>
+pg_connect -conninfo <parameter>connectOptions</parameter> <optional role="tcl">-connhandle <parameter>connectionHandleName</parameter></optional> <optional role="tcl">-async <parameter>bool</parameter></optional>
+pg_connect <parameter>dbName</parameter> <optional role="tcl">-host <parameter>hostName</parameter></optional> <optional role="tcl">-port <parameter>portNumber</parameter></optional> <optional role="tcl">-tty <parameter>tty</parameter></optional> <optional role="tcl">-options <parameter>serverOptions</parameter></optional> <optional role="tcl">-connhandle <parameter>connectionHandleName</parameter></optional> <optional role="tcl">-async <parameter>bool</parameter></optional>
+pg_connect -connlist <parameter>connectNameValueList</parameter> <optional role="tcl">-connhandle <parameter>connectionHandleName</parameter></optional> <optional role="tcl">-async <parameter>bool</parameter></optional>
 </synopsis>
  </refsynopsisdiv>
 
@@ -593,6 +593,16 @@ name automatically. Without the option, the name is auto-generated, prefixed wit
 	 </para>
 	 </listitem>
 	</varlistentry>
+
+	<varlistentry>
+<term><option>-async <parameter>bool</parameter></option></term>
+	 <listitem>
+	 <para>
+	 Connect asyncronously if <optional>bool</optional> is true.
+	 </para>
+	 </listitem>
+	</varlistentry>
+
        </variablelist>
 
        If  any  parameter is unspecified, then the corresponding
@@ -663,6 +673,15 @@ name automatically. Without the option, the name is auto-generated, prefixed wit
 	 </para>
 	 </listitem>
 	</varlistentry>
+
+	<varlistentry>
+<term><option>-async <parameter>bool</parameter></option></term>
+	 <listitem>
+	 <para>
+	 Connect asyncronously if <optional>bool</optional> is true.
+	 </para>
+	 </listitem>
+	</varlistentry>
   </variablelist>
 
 
@@ -690,6 +709,25 @@ set conn [pg::connect -connlist [array get ::conninfo]]
 </programlisting>
 
 
+	 </para>
+	 </listitem>
+	</varlistentry>
+
+	<varlistentry>
+<term><option>-async <parameter>bool</parameter></option></term>
+	 <listitem>
+	 <para>
+	 Connect asyncronously if <optional>bool</optional> is true.
+	 </para>
+	 </listitem>
+	</varlistentry>
+
+	<varlistentry>
+<term><option>-connhandle <parameter>connectionHandleName</parameter></option></term>
+	 <listitem>
+	 <para>
+         Name to use for the connection handle, instead of pgtcl generating the
+name automatically. Without the option, the name is auto-generated, prefixed with pgsql, and with a numeric id at the end. This gives the programmer control over the name of the connection handle.
 	 </para>
 	 </listitem>
 	</varlistentry>
@@ -1354,6 +1392,16 @@ pg_result <parameter>resultHandle</parameter> <parameter>resultOption</parameter
        </varlistentry>
 
        <varlistentry>
+        <term><option>-foreach <parameter>arrayName</parameter> <parameter>code</parameter></option></term>
+        <listitem>
+         <para>
+                For each resulting row assigns the results to the named array, using
+                subscripts matching the column names, then executes the code body.
+         </para>
+        </listitem>
+       </varlistentry>
+
+       <varlistentry>
         <term><option>-assignbyidx <parameter>arrayName</> <optional role="tcl"><parameter>appendstr</></optional></option></term>
         <listitem>
          <para>
@@ -1524,7 +1572,7 @@ pg_select <optional role="tcl"><parameter>-nodotfields</parameter></optional> <o
 
   <para>
    In addition to the column values, the following special entries are
-   made in the array:
+   made in the array (unless the <optional>-nodotfields</optional> flag is provided):
 
    <variablelist>
     <varlistentry>
@@ -1562,6 +1610,26 @@ pg_select <optional role="tcl"><parameter>-nodotfields</parameter></optional> <o
   <title>Arguments</title>
 
   <variablelist>
+
+   <varlistentry>
+    <term><optional>-nodotfields</optional></term>
+    <listitem>
+     <para>
+      Suppress generation of the pseudo-fields .headers, .numcols, and .tupno.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><optional>-withoutnulls</optional></term>
+    <listitem>
+     <para>
+      Normally, the row array has empty strings for columns containing NULL values. This option
+      suppresses those fields in the array completely.
+     </para>
+    </listitem>
+   </varlistentry>
+
    <varlistentry>
     <term><option>-nodotfields</option></term>
     <listitem>
@@ -1571,7 +1639,6 @@ pg_select <optional role="tcl"><parameter>-nodotfields</parameter></optional> <o
     </listitem>
    </varlistentry>
 
-  <variablelist>
    <varlistentry>
     <term><option>-withoutnulls</option></term>
     <listitem>
@@ -1581,7 +1648,6 @@ pg_select <optional role="tcl"><parameter>-nodotfields</parameter></optional> <o
     </listitem>
    </varlistentry>
 
-  <variablelist>
    <varlistentry>
     <term><parameter>conn</parameter></term>
     <listitem>
@@ -2465,7 +2531,7 @@ pg_null_value_string <optional role="tcl"><parameter>string</parameter></optiona
 
  <refsynopsisdiv>
 <synopsis>
-pg_quote <parameter>string</parameter>
+pg_quote <optional><parameter>connection</parameter></optional> <parameter>string</parameter>
 </synopsis>
  </refsynopsisdiv>
 
@@ -2476,6 +2542,12 @@ pg_quote <parameter>string</parameter>
    <function>pg_quote</function> quotes a string and escapes single
 quotes and backslashes within the string, making it safe for inclusion 
 into SQL statements.
+  </para>
+  <para>
+   If a <parameter>connection</parameter> is provided, the connection is used to
+   customize the quoting for the database referenced by the connection. Currently this
+   only controls the behavior when the <parameter>string</parameter> matches the
+   connection's NULL string, in which case the value NULL (unquoted) is returned.
   </para>
 
   <para>

@@ -36,26 +36,26 @@ significance NORMAL
 id IX-PGTCL-PGCONNECT-2
 PRIMARY pg_connect
 /INDEXTERM
-INDEXTERM pgtcl-pgconnect.html#AEN321
-INDEXPOINT pgtcl-pgconnect.html#AEN349
+INDEXTERM pgtcl-pgconnect.html#AEN327
+INDEXPOINT pgtcl-pgconnect.html#AEN355
 TITLE Arguments
 significance NORMAL
 PRIMARY host name
 /INDEXTERM
-INDEXTERM pgtcl-pgconnect.html#AEN321
-INDEXPOINT pgtcl-pgconnect.html#AEN352
+INDEXTERM pgtcl-pgconnect.html#AEN327
+INDEXPOINT pgtcl-pgconnect.html#AEN358
 TITLE Arguments
 significance NORMAL
 PRIMARY Unix domain 	  socket
 /INDEXTERM
-INDEXTERM pgtcl-pgconnect.html#AEN321
-INDEXPOINT pgtcl-pgconnect.html#AEN385
+INDEXTERM pgtcl-pgconnect.html#AEN327
+INDEXPOINT pgtcl-pgconnect.html#AEN391
 TITLE Arguments
 significance NORMAL
 PRIMARY port
 /INDEXTERM
-INDEXTERM pgtcl-pgconnect.html#AEN321
-INDEXPOINT pgtcl-pgconnect.html#AEN441
+INDEXTERM pgtcl-pgconnect.html#AEN327
+INDEXPOINT pgtcl-pgconnect.html#AEN447
 TITLE Arguments
 significance NORMAL
 PRIMARY SSL
@@ -124,8 +124,8 @@ significance NORMAL
 id IX-PGTCL-PGLISTEN-2
 PRIMARY pg_listen
 /INDEXTERM
-INDEXTERM pgtcl-pglisten.html#AEN1142
-INDEXPOINT pgtcl-pglisten.html#AEN1153
+INDEXTERM pgtcl-pglisten.html#AEN1216
+INDEXPOINT pgtcl-pglisten.html#AEN1227
 TITLE Description
 significance NORMAL
 PRIMARY NOTIFY

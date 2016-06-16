@@ -24,7 +24,7 @@ REL="STYLESHEET"
 TYPE="text/css"
 HREF="stylesheet.css"><META
 NAME="creation"
-CONTENT="2016-06-16T04:20:40"></HEAD
+CONTENT="2016-06-16T17:50:48"></HEAD
 ><BODY
 CLASS="REFENTRY"
 ><DIV
@@ -121,6 +121,12 @@ CLASS="OPTIONAL"
 CLASS="PARAMETER"
 >connectionHandleName</CODE
 ></SPAN
+>? ?<SPAN
+CLASS="OPTIONAL"
+>-async <CODE
+CLASS="PARAMETER"
+>bool</CODE
+></SPAN
 >?
 pg_connect <CODE
 CLASS="PARAMETER"
@@ -155,6 +161,12 @@ CLASS="OPTIONAL"
 CLASS="PARAMETER"
 >connectionHandleName</CODE
 ></SPAN
+>? ?<SPAN
+CLASS="OPTIONAL"
+>-async <CODE
+CLASS="PARAMETER"
+>bool</CODE
+></SPAN
 >?
 pg_connect -connlist <CODE
 CLASS="PARAMETER"
@@ -165,12 +177,18 @@ CLASS="OPTIONAL"
 CLASS="PARAMETER"
 >connectionHandleName</CODE
 ></SPAN
+>? ?<SPAN
+CLASS="OPTIONAL"
+>-async <CODE
+CLASS="PARAMETER"
+>bool</CODE
+></SPAN
 >?</PRE
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN313"
+NAME="AEN319"
 ></A
 ><H2
 >Description</H2
@@ -203,7 +221,7 @@ CLASS="FUNCTION"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN321"
+NAME="AEN327"
 ></A
 ><H2
 >Arguments</H2
@@ -295,7 +313,7 @@ CLASS="LITERAL"
 ><DD
 ><P
 >	  Name of host to connect to.<A
-NAME="AEN349"
+NAME="AEN355"
 ></A
 >
 	  If this begins with a slash, it specifies Unix-domain
@@ -306,7 +324,7 @@ NAME="AEN349"
 CLASS="FILENAME"
 >/tmp</TT
 >.<A
-NAME="AEN352"
+NAME="AEN358"
 ></A
 >
 	 </P
@@ -417,7 +435,7 @@ CLASS="LITERAL"
 >	  Port number to connect to at the server host, or socket file
 	  name extension for Unix-domain
 	  connections.<A
-NAME="AEN385"
+NAME="AEN391"
 ></A
 >
 	 </P
@@ -564,7 +582,7 @@ CLASS="ACRONYM"
 >SSL</ACRONYM
 >
 	   connection.<A
-NAME="AEN441"
+NAME="AEN447"
 ></A
 >
 	  </P
@@ -659,6 +677,22 @@ CLASS="PARAMETER"
 ><P
 >         Name to use for the connection handle, instead of pgtcl generating the
 name automatically. Without the option, the name is auto-generated, prefixed with pgsql, and with a numeric id at the end. This gives the programmer control over the name of the connection handle.
+	 </P
+></DD
+><DT
+><CODE
+CLASS="OPTION"
+>-async <CODE
+CLASS="PARAMETER"
+>bool</CODE
+></CODE
+></DT
+><DD
+><P
+>	 Connect asyncronously if [<SPAN
+CLASS="OPTIONAL"
+>bool</SPAN
+>] is true.
 	 </P
 ></DD
 ></DL
@@ -768,6 +802,22 @@ CLASS="PARAMETER"
 name automatically. Without the option, the name is auto-generated, prefixed with pgsql, and with a numeric id at the end. This gives the programmer control over the name of the connection handle.
 	 </P
 ></DD
+><DT
+><CODE
+CLASS="OPTION"
+>-async <CODE
+CLASS="PARAMETER"
+>bool</CODE
+></CODE
+></DT
+><DD
+><P
+>	 Connect asyncronously if [<SPAN
+CLASS="OPTIONAL"
+>bool</SPAN
+>] is true.
+	 </P
+></DD
 ></DL
 ></DIV
 ><P
@@ -812,13 +862,43 @@ set conn [pg::connect -connlist [array get ::conninfo]]</PRE
 
 	 </P
 ></DD
+><DT
+><CODE
+CLASS="OPTION"
+>-async <CODE
+CLASS="PARAMETER"
+>bool</CODE
+></CODE
+></DT
+><DD
+><P
+>	 Connect asyncronously if [<SPAN
+CLASS="OPTIONAL"
+>bool</SPAN
+>] is true.
+	 </P
+></DD
+><DT
+><CODE
+CLASS="OPTION"
+>-connhandle <CODE
+CLASS="PARAMETER"
+>connectionHandleName</CODE
+></CODE
+></DT
+><DD
+><P
+>         Name to use for the connection handle, instead of pgtcl generating the
+name automatically. Without the option, the name is auto-generated, prefixed with pgsql, and with a numeric id at the end. This gives the programmer control over the name of the connection handle.
+	 </P
+></DD
 ></DL
 ></DIV
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN525"
+NAME="AEN558"
 ></A
 ><H2
 >Return Value</H2
