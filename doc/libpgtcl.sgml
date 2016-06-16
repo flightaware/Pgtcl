@@ -1489,7 +1489,7 @@ pg_result <parameter>resultHandle</parameter> <parameter>resultOption</parameter
 
  <refsynopsisdiv>
 <synopsis>
-pg_select <parameter>conn</parameter> <parameter>commandString</parameter> <parameter>arrayVar</parameter> <parameter>procedure</parameter>
+pg_select <optional>-nodotfields</optional> <optional>-withoutnulls</optional> <parameter>conn</parameter> <parameter>commandString</parameter> <parameter>arrayVar</parameter> <parameter>procedure</parameter>
 </synopsis>
  </refsynopsisdiv>
 
@@ -1512,7 +1512,7 @@ pg_select <parameter>conn</parameter> <parameter>commandString</parameter> <para
 
   <para>
    In addition to the column values, the following special entries are
-   made in the array:
+   made in the array (unless the <optional>-nodotfields</optional> flag is provided):
 
    <variablelist>
     <varlistentry>
@@ -1550,8 +1550,28 @@ pg_select <parameter>conn</parameter> <parameter>commandString</parameter> <para
   <title>Arguments</title>
 
   <variablelist>
+
    <varlistentry>
-    <term><parameter>conn</parameter></term>
+    <term><optional>-nodotfields</optional></term>
+    <listitem>
+     <para>
+      Suppress generation of the pseudo-fields .headers, .numcols, and .tupno.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><optional>-withoutnulls</optional></term>
+    <listitem>
+     <para>
+      Normally, the row array has empty strings for columns containing NULL values. This option
+      suppresses those fields in the array completely.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><optional>conn</optional></term>
     <listitem>
      <para>
       The handle of the connection on which to execute the query.
@@ -2433,7 +2453,7 @@ pg_null_value_string <optional role="tcl"><parameter>string</parameter></optiona
 
  <refsynopsisdiv>
 <synopsis>
-pg_quote <parameter>string</parameter>
+pg_quote <optional><parameter>connection</parameter></optional> <parameter>string</parameter>
 </synopsis>
  </refsynopsisdiv>
 
@@ -2444,6 +2464,11 @@ pg_quote <parameter>string</parameter>
    <function>pg_quote</function> quotes a string and escapes single
 quotes and backslashes within the string, making it safe for inclusion 
 into SQL statements.
+  </para>
+  <para>
+   If a <parameter>connection</parameter> is provided, the connection is used to
+   customize the quoting for the database referenced by the connection. Currently this
+   only controls the null string used when the <parameter>string</parameter> is empty.
   </para>
 
   <para>
