@@ -2516,7 +2516,8 @@ into SQL statements.
   <para>
    If a <parameter>connection</parameter> is provided, the connection is used to
    customize the quoting for the database referenced by the connection. Currently this
-   only controls the null string used when the <parameter>string</parameter> is empty.
+   only controls the behavior when the <parameter>string</parameter> matches the
+   connection's NULL string, in which case the value NULL (unquoted) is returned.
   </para>
 
   <para>
