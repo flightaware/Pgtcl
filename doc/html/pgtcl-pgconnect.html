@@ -1,11 +1,11 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <HTML
 ><HEAD
 ><TITLE
 >pg_connect</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.7"><LINK
+CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
 REV="MADE"
 HREF="mailto:pgsql-docs@postgresql.org"><LINK
 REL="HOME"
@@ -24,7 +24,7 @@ REL="STYLESHEET"
 TYPE="text/css"
 HREF="stylesheet.css"><META
 NAME="creation"
-CONTENT="2005-11-27T13:24:31"></HEAD
+CONTENT="2016-06-16T04:20:40"></HEAD
 ><BODY
 CLASS="REFENTRY"
 ><DIV
@@ -95,7 +95,7 @@ NAME="PGTCL-PGCONNECT"
 ><DIV
 CLASS="REFNAMEDIV"
 ><A
-NAME="AEN283"
+NAME="AEN289"
 ></A
 ><H2
 >Name</H2
@@ -106,71 +106,71 @@ NAME="IX-PGTCL-PGCONNECT-2"
 ><DIV
 CLASS="REFSYNOPSISDIV"
 ><A
-NAME="AEN288"
+NAME="AEN294"
 ></A
 ><H2
 >Synopsis</H2
 ><PRE
 CLASS="SYNOPSIS"
->pg_connect -conninfo <VAR
+>pg_connect -conninfo <CODE
 CLASS="PARAMETER"
->connectOptions</VAR
+>connectOptions</CODE
 > ?<SPAN
 CLASS="OPTIONAL"
->-connhandle <VAR
+>-connhandle <CODE
 CLASS="PARAMETER"
->connectionHandleName</VAR
+>connectionHandleName</CODE
 ></SPAN
 >?
-pg_connect <VAR
+pg_connect <CODE
 CLASS="PARAMETER"
->dbName</VAR
+>dbName</CODE
 > ?<SPAN
 CLASS="OPTIONAL"
->-host <VAR
+>-host <CODE
 CLASS="PARAMETER"
->hostName</VAR
+>hostName</CODE
 ></SPAN
 >? ?<SPAN
 CLASS="OPTIONAL"
->-port <VAR
+>-port <CODE
 CLASS="PARAMETER"
->portNumber</VAR
+>portNumber</CODE
 ></SPAN
 >? ?<SPAN
 CLASS="OPTIONAL"
->-tty <VAR
+>-tty <CODE
 CLASS="PARAMETER"
->tty</VAR
+>tty</CODE
 ></SPAN
 >? ?<SPAN
 CLASS="OPTIONAL"
->-options <VAR
+>-options <CODE
 CLASS="PARAMETER"
->serverOptions</VAR
+>serverOptions</CODE
 ></SPAN
 >? ?<SPAN
 CLASS="OPTIONAL"
->-connhandle <VAR
+>-connhandle <CODE
 CLASS="PARAMETER"
->connectionHandleName</VAR
+>connectionHandleName</CODE
 ></SPAN
 >?
-pg_connect -connlist <VAR
+pg_connect -connlist <CODE
 CLASS="PARAMETER"
->connectNameValueList</VAR
+>connectNameValueList</CODE
 > ?<SPAN
 CLASS="OPTIONAL"
->-connhandle <VAR
+>-connhandle <CODE
 CLASS="PARAMETER"
->connectionHandleName</VAR
+>connectionHandleName</CODE
 ></SPAN
 >?</PRE
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN307"
+NAME="AEN313"
 ></A
 ><H2
 >Description</H2
@@ -203,7 +203,7 @@ CLASS="FUNCTION"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN315"
+NAME="AEN321"
 ></A
 ><H2
 >Arguments</H2
@@ -217,9 +217,9 @@ CLASS="VARIABLELIST"
 ></P
 ><DL
 ><DT
-><VAR
+><CODE
 CLASS="PARAMETER"
->connectOptions</VAR
+>connectOptions</CODE
 ></DT
 ><DD
 ><P
@@ -295,7 +295,7 @@ CLASS="LITERAL"
 ><DD
 ><P
 >	  Name of host to connect to.<A
-NAME="AEN343"
+NAME="AEN349"
 ></A
 >
 	  If this begins with a slash, it specifies Unix-domain
@@ -306,7 +306,7 @@ NAME="AEN343"
 CLASS="FILENAME"
 >/tmp</TT
 >.<A
-NAME="AEN346"
+NAME="AEN352"
 ></A
 >
 	 </P
@@ -417,7 +417,7 @@ CLASS="LITERAL"
 >	  Port number to connect to at the server host, or socket file
 	  name extension for Unix-domain
 	  connections.<A
-NAME="AEN379"
+NAME="AEN385"
 ></A
 >
 	 </P
@@ -564,7 +564,7 @@ CLASS="ACRONYM"
 >SSL</ACRONYM
 >
 	   connection.<A
-NAME="AEN435"
+NAME="AEN441"
 ></A
 >
 	  </P
@@ -637,21 +637,23 @@ CLASS="FILENAME"
 	  can be centrally maintained.  See 
 	  <TT
 CLASS="FILENAME"
-><VAR
+><TT
 CLASS="REPLACEABLE"
->PREFIX</VAR
+><I
+>PREFIX</I
+></TT
 >/share/pg_service.conf.sample</TT
 > for
 	  information on how to set up the file.
 	 </P
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="OPTION"
->-connhandle <VAR
+>-connhandle <CODE
 CLASS="PARAMETER"
->connectionHandleName</VAR
-></VAR
+>connectionHandleName</CODE
+></CODE
 ></DT
 ><DD
 ><P
@@ -687,9 +689,9 @@ CLASS="VARIABLELIST"
 ></P
 ><DL
 ><DT
-><VAR
+><CODE
 CLASS="PARAMETER"
->dbName</VAR
+>dbName</CODE
 ></DT
 ><DD
 ><P
@@ -697,12 +699,12 @@ CLASS="PARAMETER"
      </P
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="OPTION"
->-host <VAR
+>-host <CODE
 CLASS="PARAMETER"
->hostName</VAR
-></VAR
+>hostName</CODE
+></CODE
 ></DT
 ><DD
 ><P
@@ -710,12 +712,12 @@ CLASS="PARAMETER"
      </P
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="OPTION"
->-port <VAR
+>-port <CODE
 CLASS="PARAMETER"
->portNumber</VAR
-></VAR
+>portNumber</CODE
+></CODE
 ></DT
 ><DD
 ><P
@@ -723,12 +725,12 @@ CLASS="PARAMETER"
      </P
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="OPTION"
->-tty <VAR
+>-tty <CODE
 CLASS="PARAMETER"
->tty</VAR
-></VAR
+>tty</CODE
+></CODE
 ></DT
 ><DD
 ><P
@@ -740,12 +742,12 @@ CLASS="ACRONYM"
      </P
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="OPTION"
->-options <VAR
+>-options <CODE
 CLASS="PARAMETER"
->serverOptions</VAR
-></VAR
+>serverOptions</CODE
+></CODE
 ></DT
 ><DD
 ><P
@@ -753,12 +755,12 @@ CLASS="PARAMETER"
      </P
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="OPTION"
->-connhandle <VAR
+>-connhandle <CODE
 CLASS="PARAMETER"
->connectionHandleName</VAR
-></VAR
+>connectionHandleName</CODE
+></CODE
 ></DT
 ><DD
 ><P
@@ -778,9 +780,9 @@ CLASS="VARIABLELIST"
 ></P
 ><DL
 ><DT
-><VAR
+><CODE
 CLASS="PARAMETER"
->-connlist connectNameValuelist</VAR
+>-connlist connectNameValuelist</CODE
 ></DT
 ><DD
 ><P
@@ -805,11 +807,10 @@ CLASS="PROGRAMLISTING"
     user    postgres
 }
 set conn [pg::connect -connlist [array get ::conninfo]]</PRE
-><P></P><PRE
-CLASS="PROGRAMLISTING"
->&#13;
-	 </PRE
-><P></P
+><P>
+
+
+	 </P
 ></DD
 ></DL
 ></DIV
@@ -817,7 +818,7 @@ CLASS="PROGRAMLISTING"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN520"
+NAME="AEN525"
 ></A
 ><H2
 >Return Value</H2

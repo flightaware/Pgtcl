@@ -1,11 +1,11 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <HTML
 ><HEAD
 ><TITLE
 >pg_execute</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.7"><LINK
+CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
 REV="MADE"
 HREF="mailto:pgsql-docs@postgresql.org"><LINK
 REL="HOME"
@@ -24,7 +24,7 @@ REL="STYLESHEET"
 TYPE="text/css"
 HREF="stylesheet.css"><META
 NAME="creation"
-CONTENT="2005-11-27T13:24:31"></HEAD
+CONTENT="2016-06-16T04:20:40"></HEAD
 ><BODY
 CLASS="REFENTRY"
 ><DIV
@@ -95,7 +95,7 @@ NAME="PGTCL-PGEXECUTE"
 ><DIV
 CLASS="REFNAMEDIV"
 ><A
-NAME="AEN1001"
+NAME="AEN1026"
 ></A
 ><H2
 >Name</H2
@@ -106,7 +106,7 @@ NAME="IX-PGTCL-PGEXECUTE-2"
 ><DIV
 CLASS="REFSYNOPSISDIV"
 ><A
-NAME="AEN1006"
+NAME="AEN1031"
 ></A
 ><H2
 >Synopsis</H2
@@ -114,34 +114,34 @@ NAME="AEN1006"
 CLASS="SYNOPSIS"
 >pg_execute ?<SPAN
 CLASS="OPTIONAL"
->-array <VAR
+>-array <CODE
 CLASS="PARAMETER"
->arrayVar</VAR
+>arrayVar</CODE
 ></SPAN
 >? ?<SPAN
 CLASS="OPTIONAL"
->-oid <VAR
+>-oid <CODE
 CLASS="PARAMETER"
->oidVar</VAR
+>oidVar</CODE
 ></SPAN
->? <VAR
+>? <CODE
 CLASS="PARAMETER"
->conn</VAR
-> <VAR
+>conn</CODE
+> <CODE
 CLASS="PARAMETER"
->commandString</VAR
+>commandString</CODE
 > ?<SPAN
 CLASS="OPTIONAL"
-><VAR
+><CODE
 CLASS="PARAMETER"
->procedure</VAR
+>procedure</CODE
 ></SPAN
 >?</PRE
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN1016"
+NAME="AEN1041"
 ></A
 ><H2
 >Description</H2
@@ -166,12 +166,12 @@ CLASS="COMMAND"
 >INSERT</TT
 > statement and a single row is
    inserted, the OID of the inserted row is stored in the variable
-   <VAR
+   <CODE
 CLASS="PARAMETER"
->oidVar</VAR
-> if the optional <VAR
+>oidVar</CODE
+> if the optional <CODE
 CLASS="PARAMETER"
->-oid</VAR
+>-oid</CODE
 >
    argument is supplied.
   </P
@@ -181,27 +181,27 @@ CLASS="COMMAND"
 >SELECT</TT
 > statement, then, for
    each row in the result, the row values are stored in the
-   <VAR
+   <CODE
 CLASS="PARAMETER"
->arrayVar</VAR
+>arrayVar</CODE
 > variable, if supplied, using the
    column names as the array indices, else in variables named by the
    column names, and then the optional
-   <VAR
+   <CODE
 CLASS="PARAMETER"
->procedure</VAR
+>procedure</CODE
 > is executed if supplied.
-   (Omitting the <VAR
+   (Omitting the <CODE
 CLASS="PARAMETER"
->procedure</VAR
+>procedure</CODE
 > probably makes sense
    only if the query will return a single row.)  The number of rows
    selected is returned.
   </P
 ><P
->   The <VAR
+>   The <CODE
 CLASS="PARAMETER"
->procedure</VAR
+>procedure</CODE
 > can use the Tcl commands
    <TT
 CLASS="LITERAL"
@@ -214,9 +214,9 @@ CLASS="LITERAL"
 CLASS="LITERAL"
 >return</TT
 > with the expected behavior.  Note that if
-   the <VAR
+   the <CODE
 CLASS="PARAMETER"
->procedure</VAR
+>procedure</CODE
 > executes
    <TT
 CLASS="LITERAL"
@@ -264,7 +264,7 @@ CLASS="FUNCTION"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN1047"
+NAME="AEN1072"
 ></A
 ><H2
 >Arguments</H2
@@ -274,20 +274,20 @@ NAME="AEN1047"
 CLASS="VARIABLELIST"
 ><DL
 ><DT
-><VAR
+><CODE
 CLASS="OPTION"
->-array <VAR
+>-array <CODE
 CLASS="PARAMETER"
->arrayVar</VAR
-></VAR
+>arrayVar</CODE
+></CODE
 ></DT
 ><DD
 ><P
 >      Specifies the name of an array variable where result rows are
       stored, indexed by the column names.  This is ignored if
-      <VAR
+      <CODE
 CLASS="PARAMETER"
->commandString</VAR
+>commandString</CODE
 > is not a <TT
 CLASS="COMMAND"
 >SELECT</TT
@@ -296,12 +296,12 @@ CLASS="COMMAND"
      </P
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="OPTION"
->-oid <VAR
+>-oid <CODE
 CLASS="PARAMETER"
->oidVar</VAR
-></VAR
+>oidVar</CODE
+></CODE
 ></DT
 ><DD
 ><P
@@ -313,9 +313,9 @@ CLASS="COMMAND"
      </P
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="PARAMETER"
->conn</VAR
+>conn</CODE
 ></DT
 ><DD
 ><P
@@ -323,9 +323,9 @@ CLASS="PARAMETER"
      </P
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="PARAMETER"
->commandString</VAR
+>commandString</CODE
 ></DT
 ><DD
 ><P
@@ -333,9 +333,9 @@ CLASS="PARAMETER"
      </P
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="PARAMETER"
->procedure</VAR
+>procedure</CODE
 ></DT
 ><DD
 ><P
@@ -352,7 +352,7 @@ CLASS="COMMAND"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN1081"
+NAME="AEN1106"
 ></A
 ><H2
 >Return Value</H2
@@ -363,7 +363,7 @@ NAME="AEN1081"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN1084"
+NAME="AEN1109"
 ></A
 ><H2
 >Examples</H2
@@ -375,9 +375,9 @@ CLASS="LITERAL"
 > has been omitted for clarity.
   </P
 ><P
->   Insert a row and save the OID in <VAR
+>   Insert a row and save the OID in <CODE
 CLASS="VARNAME"
->result_oid</VAR
+>result_oid</CODE
 >:
 </P><PRE
 CLASS="PROGRAMLISTING"
