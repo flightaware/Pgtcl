@@ -2674,7 +2674,11 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 	if (rowByRow)
 	{
-		PQsetSingleRowMode (conn);
+		if (PQsetSingleRowMode (conn) == 0)
+		{
+			// error enabling single-row mode, so just use normal mode.
+			rowByRow = 0;
+		}
 	}
 
 	/* Transfer any notify events from libpq to Tcl event queue. */
@@ -2699,7 +2703,8 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 			Tcl_SetResult(interp, errString, TCL_VOLATILE);
 			PQclear(result);
-			return TCL_ERROR;
+			retval = TCL_ERROR;
+			goto done;
 		}
 
 		// Save the list of column names.
@@ -2718,7 +2723,8 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 								column, ncols);
 					Tcl_SetResult(interp, msg, TCL_VOLATILE);
 					PQclear(result);
-					return TCL_ERROR;
+					retval = TCL_ERROR;
+					goto done;
 				} else {
 					columnNameObjs[column] = Tcl_NewStringObj(colName, -1);
 				}
@@ -2748,6 +2754,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				    Tcl_SetVar2Ex(interp, varNameString, ".tupno",
 						  Tcl_NewIntObj(tupno), TCL_LEAVE_ERR_MSG) == NULL)
 				{
+					PQclear(result);
 					retval = TCL_ERROR;
 					goto done;
 				}
@@ -2762,14 +2769,14 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				string = PQgetvalue (result, tupno, column);
 				if (*string == '\0') {
 					if (PQgetisnull (result, tupno, column)) {
-					if (withoutNulls) {
-						Tcl_UnsetVar2 (interp, varNameString, PQfname(result, column), 0);
-						continue;
-					}
+						if (withoutNulls) {
+							Tcl_UnsetVar2 (interp, varNameString, PQfname(result, column), 0);
+							continue;
+						}
 
-					if ((connid->nullValueString != NULL) && (*connid->nullValueString != '\0')) {
-						valueObj = Tcl_NewStringObj(connid->nullValueString, -1);
-					}
+						if ((connid->nullValueString != NULL) && (*connid->nullValueString != '\0')) {
+							valueObj = Tcl_NewStringObj(connid->nullValueString, -1);
+						}
 					}
 				}
 
@@ -2780,6 +2787,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				if (Tcl_ObjSetVar2(interp, varNameObj, columnNameObjs[column],
 							   valueObj, TCL_LEAVE_ERR_MSG) == NULL)
 				{
+					PQclear(result);
 					retval = TCL_ERROR;
 					goto done;
 				}
@@ -2790,7 +2798,10 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 			if ((r != TCL_OK) && (r != TCL_CONTINUE))
 			{
 				if (r == TCL_BREAK)
-					break;			/* exit loop, but return TCL_OK */
+				{
+					PQclear(result);
+					goto done;			/* exit loop, but return TCL_OK */
+				}
 
 				if (r == TCL_ERROR)
 				{
@@ -2802,7 +2813,8 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				}
 
 				retval = r;
-				break;
+				PQclear(result);
+				goto done;
 			}
 		}
 		PQclear(result);
