@@ -3790,20 +3790,22 @@ Pg_on_connection_loss(ClientData cData, Tcl_Interp *interp, int objc,
  *    returns the quoted version of the passed in string
  *
  * Syntax:
- *    pg_quote ?connection? string
+ *    pg_quote ?-null? ?connection? string
  *
  * Results:
  *
- *    If the connection handle is specified, we examine the string to
- *    see if it matches the null value string defined in the connection
- *    ID.  If it is, we return the string "NULL", unquoted.
+ *    If the connection handle and the -null flag are both specified,
+ *    we examine the string to see if it matches the null value string
+ *    defined in the connection ID.  If it is, we return the string
+ *    "NULL", unquoted.
+ *
+ *    If no connection handle but the -null flag is specified,
+ *    we examine the string to see if it is the empty string.
+ *    If it is, we return the string "NULL", unquoted.
  *
  *    If the passed in string doesn't match the null value string or if
- *    pg_quote was invoked with only one argument, the string is escaped
- *    using P
- *
- *    the return result is either an error message or the passed
- *    in string after going through PQescapeString
+ *    pg_quote was invoked without the -null flag, the string is escaped
+ *    using PQescapeString or PQescapeStringConn, and that is returned.
  *
  *----------------------------------------------------------------------
  */
@@ -3815,9 +3817,10 @@ Pg_quote (ClientData cData, Tcl_Interp *interp, int objc,
 	char	   *toString;
 	int         fromStringLen;
 	int         stringSize;
-	Pg_ConnectionId *connid;
+	Pg_ConnectionId *connid = NULL;
 	PGconn	   *conn = NULL;
 	char	   *connString;
+	int         do_null_handling = 0;
 	int         error = 0;
 	static Tcl_Obj *nullStringObj = NULL;
 
@@ -3825,69 +3828,120 @@ Pg_quote (ClientData cData, Tcl_Interp *interp, int objc,
 	 * its reference count so it'll never be freed.  We can use it over
 	 * and over and it'll keep using the same string object
 	 */
-	if (nullStringObj == NULL) 
+	if (nullStringObj == NULL)
 	{
 		nullStringObj = Tcl_NewStringObj ("NULL", -1);
 		Tcl_IncrRefCount (nullStringObj);
 	}
 
-	if ((objc < 2) || (objc > 3)) 
+	if ((objc < 2) || (objc > 4))
 	{
-		Tcl_WrongNumArgs(interp, 1, objv, "?connection? string");
+	wrongargs:
+		Tcl_WrongNumArgs(interp, 1, objv, "?-null? ?connection? string");
 		return TCL_ERROR;
 	}
 
 	if (objc == 2)
 	{
-	    /*
-	     * Get the "from" string.
-	     */
-	    fromString = Tcl_GetStringFromObj(objv[1], &fromStringLen);
-	} else
+		/*
+		 * Get the "from" string.
+		 */
+		fromString = Tcl_GetStringFromObj(objv[1], &fromStringLen);
+	}
+	else if (objc == 3)
 	{
-	    connString = Tcl_GetString(objv[1]);
-	    conn = PgGetConnectionId(interp, connString, &connid);
-	    if (conn == NULL)
-		    return TCL_ERROR;
-
-	    /*
-	     * Get the "from" string.
-	     */
-	    fromString = Tcl_GetStringFromObj(objv[2], &fromStringLen);
-
-	    /*
-	     * If the from string is empty, see if the null value string is also
-	     * empty and if so, return the string NULL rather than something
-	     * quoted
-	     */
-	    if (fromStringLen == 0) 
+		/*
+		 * Get the connection object (or possibly the -null flag).
+		 */
+		connString = Tcl_GetString(objv[1]);
+		if (connString[0] == '-' && strcmp(connString, "-null") == 0)
 		{
-		    if (connid->nullValueString == NULL 
-			  || *connid->nullValueString == '\0') 
-			{
-			    Tcl_SetObjResult (interp, nullStringObj);
-			    return TCL_OK;
-		    }
-	    } else {
-		    /*
-		     * The from string wasn't null, see if the connection's null value
-		     * string also isn't null and if so, if they match and if so,
-		     * return the string NULL
-		     */
-		    if (connid->nullValueString != NULL)
-			{
-			    if (strcmp (fromString, connid->nullValueString) == 0)
-				{
-				    Tcl_SetObjResult (interp, nullStringObj);
-				    return TCL_OK;
-			    }
-		    }
-	    }
+			do_null_handling = 1;
+		}
+		else
+		{
+			// wasn't the -null flag, so it must be a connection.
+			conn = PgGetConnectionId(interp, connString, &connid);
+			if (conn == NULL)
+				return TCL_ERROR;
+		}
+
+		/*
+		 * Get the "from" string.
+		 */
+		fromString = Tcl_GetStringFromObj(objv[2], &fromStringLen);
+	}
+	else if (objc == 4)
+	{
+		/*
+		 * Since there are 3 arguments, ensure the first one is the -null flag.
+		 */
+		connString = Tcl_GetString(objv[1]);
+		if (connString[0] == '-' && strcmp(connString, "-null") == 0)
+		{
+			do_null_handling = 1;
+		}
+		else
+		{
+			// wasn't the -null flag, so there is a syntax issue.
+			goto wrongargs;
+		}
+
+		/*
+		 * Get the connection object.
+		 */
+		connString = Tcl_GetString(objv[2]);
+		conn = PgGetConnectionId(interp, connString, &connid);
+		if (conn == NULL)
+			return TCL_ERROR;
+
+
+		/*
+		 * Get the "from" string.
+		 */
+		fromString = Tcl_GetStringFromObj(objv[3], &fromStringLen);
+
+	}
+	else
+	{
+	    goto wrongargs;
 	}
 
-	/* 
-	 * It wasn't the null string or we were called with two args,
-	 * allocate the "to" string, the max size is documented in the
+	if (do_null_handling)
+	{
+		/*
+		 * If the from string is empty, see if the null value string is also
+		 * empty and if so, return the string NULL rather than something
+		 * quoted
+		 */
+		if (fromStringLen == 0)
+		{
+			if (connid == NULL ||
+			    connid->nullValueString == NULL ||
+			    *connid->nullValueString == '\0')
+			{
+				Tcl_SetObjResult (interp, nullStringObj);
+				return TCL_OK;
+			}
+		} else {
+			/*
+			 * The from string wasn't null, see if the connection's null value
+			 * string also isn't null and if so, if they match and if so,
+			 * return the string NULL
+			 */
+			if (connid != NULL && connid->nullValueString != NULL)
+			{
+				if (strcmp (fromString, connid->nullValueString) == 0)
+				{
+					Tcl_SetObjResult (interp, nullStringObj);
+					return TCL_OK;
+				}
+			}
+		}
+	}
+
+	/*
+	 * Allocate the "to" string, the max size is documented in the
 	 * postgres docs as 2 * fromStringLen + 1 and we add two more
 	 * for the leading and trailing single quotes
 	 */
@@ -3897,15 +3951,15 @@ Pg_quote (ClientData cData, Tcl_Interp *interp, int objc,
 	 * call the library routine to escape the string, use
 	 * Tcl_SetResult to set the command result to be that string,
 	 * with TCL_DYNAMIC, we tell Tcl to free the memory when it's
-	 * done with it 
+	 * done with it
 	 */
-	 *toString = '\'';
+	*toString = '\'';
 
-	 if (objc == 3) 
-	 {
-		stringSize = PQescapeStringConn (conn, toString+1, fromString, 
+	if (conn != NULL)
+	{
+		stringSize = PQescapeStringConn (conn, toString+1, fromString,
 										 fromStringLen, &error);
-		if (error) 
+		if (error)
 		{
 			/* error returned from PQescapeStringConn, send it on up */
 			ckfree (toString);

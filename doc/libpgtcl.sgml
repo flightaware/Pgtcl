@@ -1549,7 +1549,11 @@ pg_result <parameter>resultHandle</parameter> <parameter>resultOption</parameter
 
  <refsynopsisdiv>
 <synopsis>
+<<<<<<< HEAD
 pg_select <optional role="tcl"><parameter>-rowbyrow</parameter></optional> <optional role="tcl"><parameter>-nodotfields</parameter></optional> <optional role="tcl"><parameter>-withoutnulls</parameter></optional> <parameter>conn</parameter> <parameter>commandString</parameter> <parameter>arrayVar</parameter> <parameter>procedure</parameter>
+=======
+pg_select <optional role="tcl"><parameter>-nodotfields</parameter></optional> <optional role="tcl"><parameter>-withoutnulls</parameter></optional> <parameter>conn</parameter> <parameter>commandString</parameter> <parameter>arrayVar</parameter> <parameter>procedure</parameter>
+>>>>>>> master
 </synopsis>
  </refsynopsisdiv>
 

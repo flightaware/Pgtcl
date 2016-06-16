@@ -24,7 +24,7 @@ REL="STYLESHEET"
 TYPE="text/css"
 HREF="stylesheet.css"><META
 NAME="creation"
-CONTENT="2016-06-16T13:27:46"></HEAD
+CONTENT="2016-06-16T17:50:48"></HEAD
 ><BODY
 CLASS="REFENTRY"
 ><DIV
@@ -418,6 +418,31 @@ CLASS="OPTION"
 ><DT
 ><CODE
 CLASS="OPTION"
+>-foreach <CODE
+CLASS="PARAMETER"
+>arrayName</CODE
+> <CODE
+CLASS="PARAMETER"
+>tclCode</CODE
+></CODE
+></DT
+><DD
+><P
+>          Iterates through each row of the result, filling
+          <CODE
+CLASS="PARAMETER"
+>arrayName</CODE
+> with the columns and their values and
+		  executing <CODE
+CLASS="PARAMETER"
+>tclCode</CODE
+> for each row in turn.
+          Null columns will be not be present in the array.
+         </P
+></DD
+><DT
+><CODE
+CLASS="OPTION"
 >-conn</CODE
 ></DT
 ><DD
@@ -710,7 +735,7 @@ CLASS="OPTION"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN985"
+NAME="AEN994"
 ></A
 ><H2
 >Return Value</H2
