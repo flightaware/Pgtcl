@@ -24,7 +24,7 @@ REL="STYLESHEET"
 TYPE="text/css"
 HREF="stylesheet.css"><META
 NAME="creation"
-CONTENT="2016-06-16T13:27:46"></HEAD
+CONTENT="2016-06-16T17:48:02"></HEAD
 ><BODY
 CLASS="REFENTRY"
 ><DIV
@@ -95,7 +95,7 @@ NAME="PGTCL-PGSELECT"
 ><DIV
 CLASS="REFNAMEDIV"
 ><A
-NAME="AEN991"
+NAME="AEN1000"
 ></A
 ><H2
 >Name</H2
@@ -106,19 +106,31 @@ NAME="IX-PGTCL-PGSELECT-2"
 ><DIV
 CLASS="REFSYNOPSISDIV"
 ><A
-NAME="AEN996"
+NAME="AEN1005"
 ></A
 ><H2
 >Synopsis</H2
 ><PRE
 CLASS="SYNOPSIS"
->pg_select [<SPAN
+>pg_select ?<SPAN
 CLASS="OPTIONAL"
->-nodotfields</SPAN
->] [<SPAN
+><CODE
+CLASS="PARAMETER"
+>-rowbyrow</CODE
+></SPAN
+>? ?<SPAN
 CLASS="OPTIONAL"
->-withoutnulls</SPAN
->] <CODE
+><CODE
+CLASS="PARAMETER"
+>-nodotfields</CODE
+></SPAN
+>? ?<SPAN
+CLASS="OPTIONAL"
+><CODE
+CLASS="PARAMETER"
+>-withoutnulls</CODE
+></SPAN
+>? <CODE
 CLASS="PARAMETER"
 >conn</CODE
 > <CODE
@@ -135,7 +147,7 @@ CLASS="PARAMETER"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN1004"
+NAME="AEN1017"
 ></A
 ><H2
 >Description</H2
@@ -227,7 +239,7 @@ CLASS="LITERAL"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN1033"
+NAME="AEN1046"
 ></A
 ><H2
 >Arguments</H2
@@ -236,6 +248,17 @@ NAME="AEN1033"
 ><DIV
 CLASS="VARIABLELIST"
 ><DL
+><DT
+>[<SPAN
+CLASS="OPTIONAL"
+>-rowbyrow</SPAN
+>]</DT
+><DD
+><P
+>      Perform the select in row-by-row mode. This means that the code block is called immediately results
+      become available, rather than waiting for the query to complete. 
+     </P
+></DD
 ><DT
 >[<SPAN
 CLASS="OPTIONAL"
@@ -253,8 +276,7 @@ CLASS="OPTIONAL"
 >]</DT
 ><DD
 ><P
->      Normally, the row array has empty strings for columns containing NULL values. This option
-      suppresses those fields in the array completely.
+>	  If specified null columns will be unset from the array rather than being defined and containing the null string, typically an empty string.
      </P
 ></DD
 ><DT
@@ -303,7 +325,7 @@ CLASS="PARAMETER"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN1066"
+NAME="AEN1084"
 ></A
 ><H2
 >Return Value</H2
@@ -314,7 +336,7 @@ NAME="AEN1066"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN1069"
+NAME="AEN1087"
 ></A
 ><H2
 >Examples</H2

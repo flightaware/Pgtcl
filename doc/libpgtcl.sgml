@@ -1549,7 +1549,7 @@ pg_result <parameter>resultHandle</parameter> <parameter>resultOption</parameter
 
  <refsynopsisdiv>
 <synopsis>
-pg_select <optional role="tcl"><parameter>-nodotfields</parameter></optional> <optional role="tcl"><parameter>-withoutnulls</parameter></optional> <parameter>conn</parameter> <parameter>commandString</parameter> <parameter>arrayVar</parameter> <parameter>procedure</parameter>
+pg_select <optional role="tcl"><parameter>-rowbyrow</parameter></optional> <optional role="tcl"><parameter>-nodotfields</parameter></optional> <optional role="tcl"><parameter>-withoutnulls</parameter></optional> <parameter>conn</parameter> <parameter>commandString</parameter> <parameter>arrayVar</parameter> <parameter>procedure</parameter>
 </synopsis>
  </refsynopsisdiv>
 
@@ -1612,6 +1612,16 @@ pg_select <optional role="tcl"><parameter>-nodotfields</parameter></optional> <o
   <variablelist>
 
    <varlistentry>
+    <term><optional>-rowbyrow</optional></term>
+    <listitem>
+     <para>
+      Perform the select in row-by-row mode. This means that the code block is called immediately results
+      become available, rather than waiting for the query to complete. 
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
     <term><optional>-nodotfields</optional></term>
     <listitem>
      <para>
@@ -1624,32 +1634,11 @@ pg_select <optional role="tcl"><parameter>-nodotfields</parameter></optional> <o
     <term><optional>-withoutnulls</optional></term>
     <listitem>
      <para>
-      Normally, the row array has empty strings for columns containing NULL values. This option
-      suppresses those fields in the array completely.
-     </para>
-    </listitem>
-   </varlistentry>
-
-   <varlistentry>
-    <term><option>-nodotfields</option></term>
-    <listitem>
-     <para>
-	  If specified inhibits the creation of the special entries described above.
-     </para>
-    </listitem>
-   </varlistentry>
-
-  <variablelist>
-   <varlistentry>
-    <term><option>-withoutnulls</option></term>
-    <listitem>
-     <para>
 	  If specified null columns will be unset from the array rather than being defined and containing the null string, typically an empty string.
      </para>
     </listitem>
    </varlistentry>
 
-  <variablelist>
    <varlistentry>
     <term><parameter>conn</parameter></term>
     <listitem>
