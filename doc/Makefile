@@ -19,9 +19,13 @@ DOCBOOKDIR=/usr/local/share/sgml/docbook/dsssl/modular/catalog
 STYLESHEET=stylesheet.dsl
 SGMLSOURCE=libpgtcl.sgml
 
-all:	libpgtcl.pdf
+all:	html
+#
+# Need to get pdfjadetex working
+#
+# all:	html libpgtcl.pdf
 
-dohtml:	$(SGMLSOURCE)
+html:	$(SGMLSOURCE)
 	-rm html/*.html
 	-rmdir html
 	-openjade -V draft-mode -wall -wno-unused-param -wno-empty -D . -c $(DOCBOOKDIR) -d $(STYLESHEET) -i output-html -t sgml $(SGMLSOURCE)
