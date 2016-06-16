@@ -920,7 +920,7 @@ Pg_result_foreach(Tcl_Interp *interp, PGresult *result, Tcl_Obj *arrayNameObj, T
 		    {
 			    char		msg[60];
 
-			    sprintf(msg, "\n    (\"pg_select\" body line %d)",
+			    sprintf(msg, "\n    (\"pg_result_foreach\" body line %d)",
 					    Tcl_GetErrorLine(interp));
 			    Tcl_AddErrorInfo(interp, msg);
 		    }
