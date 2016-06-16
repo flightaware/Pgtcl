@@ -1,11 +1,11 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <HTML
 ><HEAD
 ><TITLE
 >pg_select</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.7"><LINK
+CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
 REV="MADE"
 HREF="mailto:pgsql-docs@postgresql.org"><LINK
 REL="HOME"
@@ -24,7 +24,7 @@ REL="STYLESHEET"
 TYPE="text/css"
 HREF="stylesheet.css"><META
 NAME="creation"
-CONTENT="2005-11-27T13:24:31"></HEAD
+CONTENT="2016-06-16T04:20:40"></HEAD
 ><BODY
 CLASS="REFENTRY"
 ><DIV
@@ -95,7 +95,7 @@ NAME="PGTCL-PGSELECT"
 ><DIV
 CLASS="REFNAMEDIV"
 ><A
-NAME="AEN926"
+NAME="AEN951"
 ></A
 ><H2
 >Name</H2
@@ -106,30 +106,30 @@ NAME="IX-PGTCL-PGSELECT-2"
 ><DIV
 CLASS="REFSYNOPSISDIV"
 ><A
-NAME="AEN931"
+NAME="AEN956"
 ></A
 ><H2
 >Synopsis</H2
 ><PRE
 CLASS="SYNOPSIS"
->pg_select <VAR
+>pg_select <CODE
 CLASS="PARAMETER"
->conn</VAR
-> <VAR
+>conn</CODE
+> <CODE
 CLASS="PARAMETER"
->commandString</VAR
-> <VAR
+>commandString</CODE
+> <CODE
 CLASS="PARAMETER"
->arrayVar</VAR
-> <VAR
+>arrayVar</CODE
+> <CODE
 CLASS="PARAMETER"
->procedure</VAR
+>procedure</CODE
 ></PRE
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN937"
+NAME="AEN962"
 ></A
 ><H2
 >Description</H2
@@ -147,27 +147,27 @@ CLASS="PRODUCTNAME"
 >PostgreSQL</SPAN
 > server and executes a given
    chunk of code for each row in the result.  The
-   <VAR
+   <CODE
 CLASS="PARAMETER"
->commandString</VAR
+>commandString</CODE
 > must be a
    <TT
 CLASS="COMMAND"
 >SELECT</TT
 > statement; anything else returns an
-   error.  The <VAR
+   error.  The <CODE
 CLASS="PARAMETER"
->arrayVar</VAR
+>arrayVar</CODE
 > variable is an array
    name used in the loop.  For each row,
-   <VAR
+   <CODE
 CLASS="PARAMETER"
->arrayVar</VAR
+>arrayVar</CODE
 > is filled in with the row values,
    using the column names as the array indices.  Then the
-   <VAR
+   <CODE
 CLASS="PARAMETER"
->procedure</VAR
+>procedure</CODE
 > is executed.
   </P
 ><P
@@ -218,7 +218,7 @@ CLASS="LITERAL"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN965"
+NAME="AEN990"
 ></A
 ><H2
 >Arguments</H2
@@ -228,9 +228,9 @@ NAME="AEN965"
 CLASS="VARIABLELIST"
 ><DL
 ><DT
-><VAR
+><CODE
 CLASS="PARAMETER"
->conn</VAR
+>conn</CODE
 ></DT
 ><DD
 ><P
@@ -238,9 +238,9 @@ CLASS="PARAMETER"
      </P
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="PARAMETER"
->commandString</VAR
+>commandString</CODE
 ></DT
 ><DD
 ><P
@@ -248,9 +248,9 @@ CLASS="PARAMETER"
      </P
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="PARAMETER"
->arrayVar</VAR
+>arrayVar</CODE
 ></DT
 ><DD
 ><P
@@ -258,9 +258,9 @@ CLASS="PARAMETER"
      </P
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="PARAMETER"
->procedure</VAR
+>procedure</CODE
 ></DT
 ><DD
 ><P
@@ -273,7 +273,7 @@ CLASS="PARAMETER"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN988"
+NAME="AEN1013"
 ></A
 ><H2
 >Return Value</H2
@@ -284,7 +284,7 @@ NAME="AEN988"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN991"
+NAME="AEN1016"
 ></A
 ><H2
 >Examples</H2

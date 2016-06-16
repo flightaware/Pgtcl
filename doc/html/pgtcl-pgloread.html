@@ -1,11 +1,11 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <HTML
 ><HEAD
 ><TITLE
 >pg_lo_read</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.7"><LINK
+CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
 REV="MADE"
 HREF="mailto:pgsql-docs@postgresql.org"><LINK
 REL="HOME"
@@ -24,7 +24,7 @@ REL="STYLESHEET"
 TYPE="text/css"
 HREF="stylesheet.css"><META
 NAME="creation"
-CONTENT="2005-11-27T13:24:31"></HEAD
+CONTENT="2016-06-16T04:20:40"></HEAD
 ><BODY
 CLASS="REFENTRY"
 ><DIV
@@ -95,7 +95,7 @@ NAME="PGTCL-PGLOREAD"
 ><DIV
 CLASS="REFNAMEDIV"
 ><A
-NAME="AEN1673"
+NAME="AEN1698"
 ></A
 ><H2
 >Name</H2
@@ -106,30 +106,30 @@ NAME="IX-PGTCL-PGLOREAD-2"
 ><DIV
 CLASS="REFSYNOPSISDIV"
 ><A
-NAME="AEN1678"
+NAME="AEN1703"
 ></A
 ><H2
 >Synopsis</H2
 ><PRE
 CLASS="SYNOPSIS"
->pg_lo_read <VAR
+>pg_lo_read <CODE
 CLASS="PARAMETER"
->conn</VAR
-> <VAR
+>conn</CODE
+> <CODE
 CLASS="PARAMETER"
->descriptor</VAR
-> <VAR
+>descriptor</CODE
+> <CODE
 CLASS="PARAMETER"
->bufVar</VAR
-> <VAR
+>bufVar</CODE
+> <CODE
 CLASS="PARAMETER"
->len</VAR
+>len</CODE
 ></PRE
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN1684"
+NAME="AEN1709"
 ></A
 ><H2
 >Description</H2
@@ -138,20 +138,20 @@ NAME="AEN1684"
 CLASS="FUNCTION"
 >pg_lo_read</CODE
 > reads at most
-   <VAR
+   <CODE
 CLASS="PARAMETER"
->len</VAR
+>len</CODE
 > bytes from a large object into a
-   variable named <VAR
+   variable named <CODE
 CLASS="PARAMETER"
->bufVar</VAR
+>bufVar</CODE
 >.
   </P
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN1690"
+NAME="AEN1715"
 ></A
 ><H2
 >Arguments</H2
@@ -161,9 +161,9 @@ NAME="AEN1690"
 CLASS="VARIABLELIST"
 ><DL
 ><DT
-><VAR
+><CODE
 CLASS="PARAMETER"
->conn</VAR
+>conn</CODE
 ></DT
 ><DD
 ><P
@@ -172,9 +172,9 @@ CLASS="PARAMETER"
      </P
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="PARAMETER"
->descriptor</VAR
+>descriptor</CODE
 ></DT
 ><DD
 ><P
@@ -186,9 +186,9 @@ CLASS="FUNCTION"
      </P
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="PARAMETER"
->bufVar</VAR
+>bufVar</CODE
 ></DT
 ><DD
 ><P
@@ -197,9 +197,9 @@ CLASS="PARAMETER"
      </P
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="PARAMETER"
->len</VAR
+>len</CODE
 ></DT
 ><DD
 ><P
@@ -212,7 +212,7 @@ CLASS="PARAMETER"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN1714"
+NAME="AEN1739"
 ></A
 ><H2
 >Return Value</H2

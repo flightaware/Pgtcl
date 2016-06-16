@@ -1,11 +1,11 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <HTML
 ><HEAD
 ><TITLE
 >pg_listen</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.7"><LINK
+CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
 REV="MADE"
 HREF="mailto:pgsql-docs@postgresql.org"><LINK
 REL="HOME"
@@ -24,7 +24,7 @@ REL="STYLESHEET"
 TYPE="text/css"
 HREF="stylesheet.css"><META
 NAME="creation"
-CONTENT="2005-11-27T13:24:31"></HEAD
+CONTENT="2016-06-16T04:20:40"></HEAD
 ><BODY
 CLASS="REFENTRY"
 ><DIV
@@ -95,7 +95,7 @@ NAME="PGTCL-PGLISTEN"
 ><DIV
 CLASS="REFNAMEDIV"
 ><A
-NAME="AEN1106"
+NAME="AEN1131"
 ></A
 ><H2
 >Name</H2
@@ -106,30 +106,30 @@ NAME="IX-PGTCL-PGLISTEN-2"
 ><DIV
 CLASS="REFSYNOPSISDIV"
 ><A
-NAME="AEN1111"
+NAME="AEN1136"
 ></A
 ><H2
 >Synopsis</H2
 ><PRE
 CLASS="SYNOPSIS"
->pg_listen <VAR
+>pg_listen <CODE
 CLASS="PARAMETER"
->conn</VAR
-> <VAR
+>conn</CODE
+> <CODE
 CLASS="PARAMETER"
->notifyName</VAR
+>notifyName</CODE
 > ?<SPAN
 CLASS="OPTIONAL"
-><VAR
+><CODE
 CLASS="PARAMETER"
->callbackCommand</VAR
+>callbackCommand</CODE
 ></SPAN
 >?</PRE
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN1117"
+NAME="AEN1142"
 ></A
 ><H2
 >Description</H2
@@ -143,14 +143,14 @@ CLASS="FUNCTION"
 CLASS="PRODUCTNAME"
 >PostgreSQL</SPAN
 > server.  With a
-   <VAR
+   <CODE
 CLASS="PARAMETER"
->callbackCommand</VAR
+>callbackCommand</CODE
 > parameter, the request is
    established, or the command string of an already existing request
-   is replaced.  With no <VAR
+   is replaced.  With no <CODE
 CLASS="PARAMETER"
->callbackCommand</VAR
+>callbackCommand</CODE
 > parameter, a
    prior request is canceled.
   </P
@@ -170,7 +170,7 @@ CLASS="PRODUCTNAME"
 CLASS="COMMAND"
 >NOTIFY</TT
 ><A
-NAME="AEN1128"
+NAME="AEN1153"
 ></A
 > command referencing that name.  The
    command string is executed from the Tcl idle loop.  That is the
@@ -215,7 +215,7 @@ CLASS="FUNCTION"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN1140"
+NAME="AEN1165"
 ></A
 ><H2
 >Arguments</H2
@@ -225,9 +225,9 @@ NAME="AEN1140"
 CLASS="VARIABLELIST"
 ><DL
 ><DT
-><VAR
+><CODE
 CLASS="PARAMETER"
->conn</VAR
+>conn</CODE
 ></DT
 ><DD
 ><P
@@ -235,9 +235,9 @@ CLASS="PARAMETER"
      </P
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="PARAMETER"
->notifyName</VAR
+>notifyName</CODE
 ></DT
 ><DD
 ><P
@@ -246,9 +246,9 @@ CLASS="PARAMETER"
      </P
 ></DD
 ><DT
-><VAR
+><CODE
 CLASS="PARAMETER"
->callbackCommand</VAR
+>callbackCommand</CODE
 ></DT
 ><DD
 ><P
@@ -262,7 +262,7 @@ CLASS="PARAMETER"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN1158"
+NAME="AEN1183"
 ></A
 ><H2
 >Return Value</H2
