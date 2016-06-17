@@ -11,7 +11,7 @@
 <link rel="PREVIOUS" title="pg_quote" href="pgtcl-quote.html">
 <link rel="NEXT" title="pg_escape_bytea" href="pgtcl-pgescape-bytea.html">
 <link rel="STYLESHEET" type="text/css" href="stylesheet.css">
-<meta name="creation" content="2016-06-17T12:30:03">
+<meta name="creation" content="2016-06-17T12:32:18">
 </head>
 <body class="REFENTRY">
 <div class="NAVHEADER">
@@ -29,13 +29,13 @@
 </table>
 <hr align="left" width="100%"></div>
 <h1><a name="PGTCL-PGESCAPE-STRING" id="PGTCL-PGESCAPE-STRING"></a>pg_escape_string</h1>
-<div class="REFNAMEDIV"><a name="AEN1577" id="AEN1577"></a>
+<div class="REFNAMEDIV"><a name="AEN1580" id="AEN1580"></a>
 <h2>Name</h2>
 pg_escape_string&nbsp;--&nbsp;escapes a string for inclusion into SQL statements. This is the same as pg_quote. It was added for consistency. <a name="IX-PGTCL-PGESCAPE-STRING-2" id="IX-PGTCL-PGESCAPE-STRING-2"></a></div>
-<div class="REFSYNOPSISDIV"><a name="AEN1582" id="AEN1582"></a>
+<div class="REFSYNOPSISDIV"><a name="AEN1585" id="AEN1585"></a>
 <h2>Synopsis</h2>
 <pre class="SYNOPSIS">pg_escape_string <code class="PARAMETER">string</code></pre></div>
-<div class="REFSECT1"><a name="AEN1585" id="AEN1585"></a>
+<div class="REFSECT1"><a name="AEN1588" id="AEN1588"></a>
 <h2>Description</h2>
 <p><code class="FUNCTION">pg_escape_string</code> quotes a string and escapes single quotes and backslashes within the string, making it safe for inclusion into SQL statements.</p>
 <p>If you're doing something like</p>
@@ -44,7 +44,7 @@ pg_escape_string&nbsp;--&nbsp;escapes a string for inclusion into SQL statements
 <pre class="PROGRAMLISTING">    pg_exec $conn "insert into foo values ([pg_escape_string $name]);" </pre>
 <p>...will make sure that any special characters that occur in name, such as single quote or backslash, will be properly quoted.</p>
 </div>
-<div class="REFSECT1"><a name="AEN1595" id="AEN1595"></a>
+<div class="REFSECT1"><a name="AEN1598" id="AEN1598"></a>
 <h2>Arguments</h2>
 <div class="VARIABLELIST">
 <dl>
@@ -55,7 +55,7 @@ pg_escape_string&nbsp;--&nbsp;escapes a string for inclusion into SQL statements
 </dl>
 </div>
 </div>
-<div class="REFSECT1"><a name="AEN1603" id="AEN1603"></a>
+<div class="REFSECT1"><a name="AEN1606" id="AEN1606"></a>
 <h2>Return Value</h2>
 <p>Returns the string, escaped for inclusion into SQL queries. Note that it adds a set of single quotes around the outside of the string as well.</p>
 </div>

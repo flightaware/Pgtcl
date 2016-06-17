@@ -11,7 +11,7 @@
 <link rel="PREVIOUS" title="pg_lo_close" href="pgtcl-pgloclose.html">
 <link rel="NEXT" title="pg_lo_write" href="pgtcl-pglowrite.html">
 <link rel="STYLESHEET" type="text/css" href="stylesheet.css">
-<meta name="creation" content="2016-06-17T12:30:03">
+<meta name="creation" content="2016-06-17T12:32:18">
 </head>
 <body class="REFENTRY">
 <div class="NAVHEADER">
@@ -29,17 +29,17 @@
 </table>
 <hr align="left" width="100%"></div>
 <h1><a name="PGTCL-PGLOREAD" id="PGTCL-PGLOREAD"></a>pg_lo_read</h1>
-<div class="REFNAMEDIV"><a name="AEN1774" id="AEN1774"></a>
+<div class="REFNAMEDIV"><a name="AEN1777" id="AEN1777"></a>
 <h2>Name</h2>
 pg_lo_read&nbsp;--&nbsp;read from a large object<a name="IX-PGTCL-PGLOREAD-2" id="IX-PGTCL-PGLOREAD-2"></a></div>
-<div class="REFSYNOPSISDIV"><a name="AEN1779" id="AEN1779"></a>
+<div class="REFSYNOPSISDIV"><a name="AEN1782" id="AEN1782"></a>
 <h2>Synopsis</h2>
 <pre class="SYNOPSIS">pg_lo_read <code class="PARAMETER">conn</code> <code class="PARAMETER">descriptor</code> <code class="PARAMETER">bufVar</code> <code class="PARAMETER">len</code></pre></div>
-<div class="REFSECT1"><a name="AEN1785" id="AEN1785"></a>
+<div class="REFSECT1"><a name="AEN1788" id="AEN1788"></a>
 <h2>Description</h2>
 <p><code class="FUNCTION">pg_lo_read</code> reads at most <code class="PARAMETER">len</code> bytes from a large object into a variable named <code class="PARAMETER">bufVar</code>.</p>
 </div>
-<div class="REFSECT1"><a name="AEN1791" id="AEN1791"></a>
+<div class="REFSECT1"><a name="AEN1794" id="AEN1794"></a>
 <h2>Arguments</h2>
 <div class="VARIABLELIST">
 <dl>
@@ -62,7 +62,7 @@ pg_lo_read&nbsp;--&nbsp;read from a large object<a name="IX-PGTCL-PGLOREAD-2" id
 </dl>
 </div>
 </div>
-<div class="REFSECT1"><a name="AEN1815" id="AEN1815"></a>
+<div class="REFSECT1"><a name="AEN1818" id="AEN1818"></a>
 <h2>Return Value</h2>
 <p>The number of bytes actually read is returned; this could be less than the number requested if the end of the large object is reached first. In event of an error, the return value is negative.</p>
 </div>
