@@ -2522,7 +2522,7 @@ pg_null_value_string <optional role="tcl"><parameter>string</parameter></optiona
 
  <refsynopsisdiv>
 <synopsis>
-pg_quote <optional><parameter>connection</parameter></optional> <parameter>string</parameter>
+pg_quote <optional>-null</optional> <optional><parameter>connection</parameter></optional> <parameter>string</parameter>
 </synopsis>
  </refsynopsisdiv>
 
@@ -2531,15 +2531,20 @@ pg_quote <optional><parameter>connection</parameter></optional> <parameter>strin
 
   <para>
    <function>pg_quote</function> quotes a string and escapes single
-quotes and backslashes within the string, making it safe for inclusion 
+quotes and backslashes within the string, making it safe for inclusion
 into SQL statements.
   </para>
   <para>
    If a <parameter>connection</parameter> is provided, the connection is used to
-   customize the quoting for the database referenced by the connection. Currently this
-   only controls the behavior when the <parameter>string</parameter> matches the
-   connection's NULL string, in which case the value NULL (unquoted) is returned.
+   customize the quoting process for the database referenced by the connection.
   </para>
+  <para>
+   If the <optional>-null</optional> option is provided, then if the text matches
+   the null string (either the empty string, or the null string specified in the
+   <parameter>connection</parameter>) then the SQL keyword NULL is returned, rather than
+   a quoted string.
+  </para>
+
 
   <para>
 If you're doing something like
