@@ -11,7 +11,7 @@
 <link rel="PREVIOUS" title="pg_on_connection_loss" href="pgtcl-pgon-connection-loss.html">
 <link rel="NEXT" title="pg_sendquery_prepared" href="pgtcl-pgsendqueryprepared.html">
 <link rel="STYLESHEET" type="text/css" href="stylesheet.css">
-<meta name="creation" content="2016-06-16T22:26:55">
+<meta name="creation" content="2016-06-17T12:30:03">
 </head>
 <body class="REFENTRY">
 <div class="NAVHEADER">
@@ -29,18 +29,18 @@
 </table>
 <hr align="left" width="100%"></div>
 <h1><a name="PGTCL-PGSENDQUERY" id="PGTCL-PGSENDQUERY"></a>pg_sendquery</h1>
-<div class="REFNAMEDIV"><a name="AEN1306" id="AEN1306"></a>
+<div class="REFNAMEDIV"><a name="AEN1298" id="AEN1298"></a>
 <h2>Name</h2>
 pg_sendquery&nbsp;--&nbsp;send a query string to the backend connection without waiting for a result<a name="IX-PGTCL-PGSENDQUERY-2" id="IX-PGTCL-PGSENDQUERY-2"></a></div>
-<div class="REFSYNOPSISDIV"><a name="AEN1311" id="AEN1311"></a>
+<div class="REFSYNOPSISDIV"><a name="AEN1303" id="AEN1303"></a>
 <h2>Synopsis</h2>
 <pre class="SYNOPSIS">pg_sendquery <code class="PARAMETER">conn</code> <code class="PARAMETER">commandString</code></pre></div>
-<div class="REFSECT1"><a name="AEN1315" id="AEN1315"></a>
+<div class="REFSECT1"><a name="AEN1307" id="AEN1307"></a>
 <h2>Description</h2>
 <p><code class="FUNCTION">pg_sendquery</code> submits a command to the <span class="PRODUCTNAME">PostgreSQL</span> server. This function works like <code class="FUNCTION">pg_exec</code>, except that it does not return a result. Rather, the command is issued to the backend asynchronously.</p>
 <p>The result is either an error message or nothing. An empty return indicates that the command was dispatched to the backend.</p>
 </div>
-<div class="REFSECT1"><a name="AEN1322" id="AEN1322"></a>
+<div class="REFSECT1"><a name="AEN1314" id="AEN1314"></a>
 <h2>Arguments</h2>
 <div class="VARIABLELIST">
 <dl>
@@ -55,7 +55,7 @@ pg_sendquery&nbsp;--&nbsp;send a query string to the backend connection without 
 </dl>
 </div>
 </div>
-<div class="REFSECT1"><a name="AEN1335" id="AEN1335"></a>
+<div class="REFSECT1"><a name="AEN1327" id="AEN1327"></a>
 <h2>Return Value</h2>
 <p>A Tcl error will be returned if <span class="APPLICATION">pgtcl</span> was unable to issue the command. Otherwise, an empty string will be return. It is up to the developer to use <code class="FUNCTION">pg_getresult</code> to obtain results from commands issued with <code class="FUNCTION">pg_sendquery</code>.</p>
 </div>

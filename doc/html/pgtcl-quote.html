@@ -11,7 +11,7 @@
 <link rel="PREVIOUS" title="pg_null_value_string" href="pgtcl-nullvaluestring.html">
 <link rel="NEXT" title="pg_escape_string" href="pgtcl-pgescape-string.html">
 <link rel="STYLESHEET" type="text/css" href="stylesheet.css">
-<meta name="creation" content="2016-06-16T22:26:55">
+<meta name="creation" content="2016-06-17T12:30:03">
 </head>
 <body class="REFENTRY">
 <div class="NAVHEADER">
@@ -29,13 +29,13 @@
 </table>
 <hr align="left" width="100%"></div>
 <h1><a name="PGTCL-QUOTE" id="PGTCL-QUOTE"></a>pg_quote</h1>
-<div class="REFNAMEDIV"><a name="AEN1548" id="AEN1548"></a>
+<div class="REFNAMEDIV"><a name="AEN1540" id="AEN1540"></a>
 <h2>Name</h2>
 pg_quote&nbsp;--&nbsp;escapes a string for inclusion into SQL statements <a name="IX-PGTCL-QUOTE-2" id="IX-PGTCL-QUOTE-2"></a></div>
-<div class="REFSYNOPSISDIV"><a name="AEN1553" id="AEN1553"></a>
+<div class="REFSYNOPSISDIV"><a name="AEN1545" id="AEN1545"></a>
 <h2>Synopsis</h2>
 <pre class="SYNOPSIS">pg_quote [<span class="OPTIONAL"><code class="PARAMETER">connection</code></span>] <code class="PARAMETER">string</code></pre></div>
-<div class="REFSECT1"><a name="AEN1558" id="AEN1558"></a>
+<div class="REFSECT1"><a name="AEN1550" id="AEN1550"></a>
 <h2>Description</h2>
 <p><code class="FUNCTION">pg_quote</code> quotes a string and escapes single quotes and backslashes within the string, making it safe for inclusion into SQL statements.</p>
 <p>If a <code class="PARAMETER">connection</code> is provided, the connection is used to customize the quoting for the database referenced by the connection. Currently this only controls the behavior when the <code class="PARAMETER">string</code> matches the connection's NULL string, in which case the value NULL (unquoted) is returned.</p>
@@ -45,7 +45,7 @@ pg_quote&nbsp;--&nbsp;escapes a string for inclusion into SQL statements <a name
 <pre class="PROGRAMLISTING">    pg_exec $conn "insert into foo values ([pg_quote $name]);" </pre>
 <p>...will make sure that any special characters that occur in name, such as single quote or backslash, will be properly quoted.</p>
 </div>
-<div class="REFSECT1"><a name="AEN1571" id="AEN1571"></a>
+<div class="REFSECT1"><a name="AEN1563" id="AEN1563"></a>
 <h2>Arguments</h2>
 <div class="VARIABLELIST">
 <dl>
@@ -56,7 +56,7 @@ pg_quote&nbsp;--&nbsp;escapes a string for inclusion into SQL statements <a name
 </dl>
 </div>
 </div>
-<div class="REFSECT1"><a name="AEN1579" id="AEN1579"></a>
+<div class="REFSECT1"><a name="AEN1571" id="AEN1571"></a>
 <h2>Return Value</h2>
 <p>Returns the string, escaped for inclusion into SQL queries. Note that it adds a set of single quotes around the outside of the string as well.</p>
 </div>

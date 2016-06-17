@@ -11,7 +11,7 @@
 <link rel="PREVIOUS" title="pg_result" href="pgtcl-pgresult.html">
 <link rel="NEXT" title="pg_execute" href="pgtcl-pgexecute.html">
 <link rel="STYLESHEET" type="text/css" href="stylesheet.css">
-<meta name="creation" content="2016-06-16T22:26:55">
+<meta name="creation" content="2016-06-17T12:30:03">
 </head>
 <body class="REFENTRY">
 <div class="NAVHEADER">
@@ -34,12 +34,8 @@
 pg_select&nbsp;--&nbsp;loop over the result of a query<a name="IX-PGTCL-PGSELECT-2" id="IX-PGTCL-PGSELECT-2"></a></div>
 <div class="REFSYNOPSISDIV"><a name="AEN1005" id="AEN1005"></a>
 <h2>Synopsis</h2>
-<pre class="SYNOPSIS">&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
-pg_select ?<span class="OPTIONAL"><code class="PARAMETER">-rowbyrow</code></span>? ?<span class="OPTIONAL"><code class="PARAMETER">-nodotfields</code></span>? ?<span class="OPTIONAL"><code class="PARAMETER">-withoutnulls</code></span>? <code class="PARAMETER">conn</code> <code class="PARAMETER">commandString</code> <code class="PARAMETER">arrayVar</code> <code class="PARAMETER">procedure</code>
-=======
-pg_select ?<span class="OPTIONAL"><code class="PARAMETER">-nodotfields</code></span>? ?<span class="OPTIONAL"><code class="PARAMETER">-withoutnulls</code></span>? <code class="PARAMETER">conn</code> <code class="PARAMETER">commandString</code> <code class="PARAMETER">arrayVar</code> <code class="PARAMETER">procedure</code>
-&gt;&gt;&gt;&gt;&gt;&gt;&gt; master</pre></div>
-<div class="REFSECT1"><a name="AEN1025" id="AEN1025"></a>
+<pre class="SYNOPSIS">pg_select ?<span class="OPTIONAL"><code class="PARAMETER">-rowbyrow</code></span>? ?<span class="OPTIONAL"><code class="PARAMETER">-nodotfields</code></span>? ?<span class="OPTIONAL"><code class="PARAMETER">-withoutnulls</code></span>? <code class="PARAMETER">conn</code> <code class="PARAMETER">commandString</code> <code class="PARAMETER">arrayVar</code> <code class="PARAMETER">procedure</code></pre></div>
+<div class="REFSECT1"><a name="AEN1017" id="AEN1017"></a>
 <h2>Description</h2>
 <p><code class="FUNCTION">pg_select</code> submits a query (<tt class="COMMAND">SELECT</tt> statement) to the <span class="PRODUCTNAME">PostgreSQL</span> server and executes a given chunk of code for each row in the result. The <code class="PARAMETER">commandString</code> must be a <tt class="COMMAND">SELECT</tt> statement; anything else returns an error. The <code class="PARAMETER">arrayVar</code> variable is an array name used in the loop. For each row, <code class="PARAMETER">arrayVar</code> is filled in with the row values, using the column names as the array indices. Then the <code class="PARAMETER">procedure</code> is executed.</p>
 <p>In addition to the column values, the following special entries are made in the array (unless the [<span class="OPTIONAL">-nodotfields</span>] flag is provided):</p>
@@ -60,7 +56,7 @@ pg_select ?<span class="OPTIONAL"><code class="PARAMETER">-nodotfields</code></s
 </dl>
 </div>
 </div>
-<div class="REFSECT1"><a name="AEN1054" id="AEN1054"></a>
+<div class="REFSECT1"><a name="AEN1046" id="AEN1046"></a>
 <h2>Arguments</h2>
 <div class="VARIABLELIST">
 <dl>
@@ -95,11 +91,11 @@ pg_select ?<span class="OPTIONAL"><code class="PARAMETER">-nodotfields</code></s
 </dl>
 </div>
 </div>
-<div class="REFSECT1"><a name="AEN1092" id="AEN1092"></a>
+<div class="REFSECT1"><a name="AEN1084" id="AEN1084"></a>
 <h2>Return Value</h2>
 <p>None</p>
 </div>
-<div class="REFSECT1"><a name="AEN1095" id="AEN1095"></a>
+<div class="REFSECT1"><a name="AEN1087" id="AEN1087"></a>
 <h2>Examples</h2>
 <p>This examples assumes that the table <code class="CLASSNAME">table1</code> has columns <tt class="STRUCTFIELD">control</tt> and <tt class="STRUCTFIELD">name</tt> (and perhaps others):</p>
 <pre class="PROGRAMLISTING">pg_select $pgconn "SELECT * FROM table1;" array {
