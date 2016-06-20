@@ -1,0 +1,15 @@
+5,16c5
+< <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook V4.2//EN" [
+< <!--
+< <!entity % version SYSTEM "version.sgml">
+< %version;
+< <!entity % filelist SYSTEM "filelist.sgml">
+< %filelist;
+< 
+< -->
+< <!entity reference  SYSTEM "reference.sgml">
+<    
+< ]>
+< 
+---
+> <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook V5.0//EN" "http://www.oasis-open.org/docbook/xml/5.0/docbook.dtd">
