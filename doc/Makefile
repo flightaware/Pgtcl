@@ -10,6 +10,9 @@
 #
 #     http://www.postgresql.org/docs/7.3/static/doc-toolsets.html
 #
+# The man page generation requires docbook2X
+#
+#	http://docbook2x.sourceforge.net/
 #
 # $Id$
 #
@@ -19,7 +22,7 @@ DOCBOOKDIR=/usr/local/share/sgml/docbook/dsssl/modular/catalog
 STYLESHEET=stylesheet.dsl
 SGMLSOURCE=libpgtcl.sgml
 
-all:	html
+all:	html man
 #
 # Need to get pdfjadetex working
 #
@@ -32,6 +35,16 @@ html/HTML.index:	$(SGMLSOURCE)
 	-mkdir html
 	cd html && openjade -V draft-mode -wall -wno-unused-param -wno-empty -D .. -c $(DOCBOOKDIR) -d $(STYLESHEET) -i output-html -t sgml $(SGMLSOURCE)
 	-find html/ -type f -name "*.html" -exec tidy5 -quiet -wrap 2000 -modify \{\} \;
+
+# docbook2X is written for version 5.0 of the DTD, so patch the SGML to claim it's 5.0
+man:	$(SGMLSOURCE)
+	-rm -rf man
+	-mkdir man
+	cp $(SGMLSOURCE) man/$(SGMLSOURCE)
+	cd man && patch <../dtd-patch.txt $(SGMLSOURCE)
+	cd man && docbook2man --string-param default-manpage-section=n $(SGMLSOURCE)
+	rm man/$(SGMLSOURCE)*
+
 
 libpgtcl.pdf:	$(SGMLSOURCE)
 	openjade -V draft-mode -D . -c $(DOCBOOKDIR) -d $(STYLESHEET) -t tex -V tex-backend -i output-print -V texpdf-output -o libpgtcl.tex-pdf $(SGMLSOURCE)

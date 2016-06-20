@@ -14,6 +14,7 @@ $Header$
    
 ]>
 
+
 <book id="pgtcl">
  <title>PostgreSQL Tcl Interface Documentation</title>
 
@@ -48,7 +49,7 @@ $Header$
   <title>Overview</title>
 
   <para>
-   <xref linkend="pgtcl-commands-table"> gives an overview over the
+   <xref linkend="pgtcl-commands-table"/> gives an overview over the
    commands available in <application>pgtcl</application>. These
    commands are described further on subsequent pages.
   </para>
@@ -241,7 +242,7 @@ $Header$
    The <function>pg_lo_*</function> commands are interfaces to the
    large object features of
    <ProductName>PostgreSQL</ProductName>.<indexterm><primary>large
-   object</><secondary>in pgctl</></> The functions are designed to mimic the analogous file
+   object</primary><secondary>in pgctl</secondary></indexterm> The functions are designed to mimic the analogous file
    system functions in the standard Unix file system interface.  The
    <function>pg_lo_*</function> commands should be used within a
    <command>BEGIN</command>/<command>COMMIT</command> transaction
@@ -260,8 +261,8 @@ $Header$
 
    <para>
     Before using <application>pgtcl</application> commands, you must load
-    the <filename>libpgtcl</> library into your Tcl application.  This is normally
-    done with the <literal>package require</> command.  Here is an example:
+    the <filename>libpgtcl</filename> library into your Tcl application.  This is normally
+    done with the <literal>package require</literal> command.  Here is an example:
 
 <programlisting>
 package require Pgtcl 1.5
@@ -274,7 +275,7 @@ shared library, and loads any additional Tcl code that is part of the
 
     <para>
     The old way to load the shared library is by using the
-    Tcl <literal>load</> command.  Here is an example:
+    Tcl <literal>load</literal> command.  Here is an example:
 
 <programlisting>
 load libpgtcl[info sharedlibextension]
@@ -285,26 +286,26 @@ load libpgtcl[info sharedlibextension]
     in debugging if, for some reason, <literal>package require</literal>
     is failing.
 
-    The use of <literal>info sharedlibextension</> is recommended in
-    preference to hard-wiring <literal>.so</> or <literal>.sl</> or
-    <literal>.dll</> into
+    The use of <literal>info sharedlibextension</literal> is recommended in
+    preference to hard-wiring <literal>.so</literal> or <literal>.sl</literal> or
+    <literal>.dll</literal> into
     the program.
    </para>
 
    <para>
-    The <literal>load</> command will fail unless the system's dynamic
-    loader knows where to look for the <filename>libpgtcl</> shared
-    library file.  You may need to work with <command>ldconfig</>, or
-    set the environment variable <envar>LD_LIBRARY_PATH</>, or use
+    The <literal>load</literal> command will fail unless the system's dynamic
+    loader knows where to look for the <filename>libpgtcl</filename> shared
+    library file.  You may need to work with <command>ldconfig</command>, or
+    set the environment variable <envar>LD_LIBRARY_PATH</envar>, or use
     some equivalent facility for your platform to make it work.  Refer
-    to the <productname>PostgreSQL</> installation instructions for
+    to the <productname>PostgreSQL</productname> installation instructions for
     more information.
    </para>
 
    <para>
-    <filename>libpgtcl</> in turn depends on the interface library 
-    <filename>libpq</>, so the
-    dynamic loader must also be able to find the <filename>libpq</> shared
+    <filename>libpgtcl</filename> in turn depends on the interface library 
+    <filename>libpq</filename>, so the
+    dynamic loader must also be able to find the <filename>libpq</filename> shared
     library.  In practice this is seldom an issue, since both of these
     shared libraries are normally stored in the same directory, but it
     can be a stumbling block in some configurations.
@@ -312,9 +313,9 @@ load libpgtcl[info sharedlibextension]
 
    <para>
     If you use a custom executable for your application, you might choose
-    to statically bind <filename>libpgtcl</> into the executable and thereby
-    avoid the <literal>load</> command and the potential problems of dynamic
-    linking.  See the source code for <application>pgtclsh</> for an example.
+    to statically bind <filename>libpgtcl</filename> into the executable and thereby
+    avoid the <literal>load</literal> command and the potential problems of dynamic
+    linking.  See the source code for <application>pgtclsh</application> for an example.
    </para>
 
 </sect1>
@@ -372,12 +373,12 @@ pg_connect -connlist <parameter>connectNameValueList</parameter> <optional role=
     <para>
        <function>pg_connect</function> opens a new database connection using the 
        parameters taken from the <literal>connectOptions</literal> string.  Unlike 
-       the old-style usage of <function>pg_connect</>,
+       the old-style usage of <function>pg_connect</function>,
        with the new-style usage the parameter set can be extended without 
-       requiring changes to either <filename>libpgtcl</> or the underlying
+       requiring changes to either <filename>libpgtcl</filename> or the underlying
       <application>libpq</application> library,
        so use of the new style (or its nonexistent
-       nonblocking analogues <function>pg_connect_start</>
+       nonblocking analogues <function>pg_connect_start</function>
        and <function>pg_connect_poll</function>) is preferred for new 
        application programming.
        </para>
@@ -403,13 +404,13 @@ pg_connect -connlist <parameter>connectNameValueList</parameter> <optional role=
 	 <term><literal>host</literal></term>
 	 <listitem>
 	 <para>
-	  Name of host to connect to.<indexterm><primary>host name</></>
+	  Name of host to connect to.<indexterm><primary>host name</primary></indexterm>
 	  If this begins with a slash, it specifies Unix-domain
 	  communication rather than TCP/IP communication; the value is the
 	  name of the directory in which the socket file is stored.  The
 	  default is to connect to a Unix-domain socket in
 	  <filename>/tmp</filename>.<indexterm><primary>Unix domain
-	  socket</></>
+	  socket</primary></indexterm>
 	 </para>
 	 </listitem>
 	</varlistentry>
@@ -419,30 +420,30 @@ pg_connect -connlist <parameter>connectNameValueList</parameter> <optional role=
 	 <listitem>
 	 <para>
 	  Numeric IP address of host to connect to.  This should be in the
-	  standard IPv4 address format, e.g., <literal>172.28.40.9</>.  If
+	  standard IPv4 address format, e.g., <literal>172.28.40.9</literal>.  If
 	  your machine supports IPv6, you can also use IPv6 address
-	  format, e.g., <literal>fe80::203:93ff:fedb:49bc</>.
+	  format, e.g., <literal>fe80::203:93ff:fedb:49bc</literal>.
 	  TCP/IP communication is
 	  always used when a nonempty string is specified for this parameter.
 	 </para>
 	 <para>
-	  Using <literal>hostaddr</> instead of <literal>host</> allows the
+	  Using <literal>hostaddr</literal> instead of <literal>host</literal> allows the
 	  application to avoid a host name lookup, which may be important in
 	  applications with time constraints. However, Kerberos authentication
 	  requires the host name. The following therefore applies: If
-	  <literal>host</> is specified without <literal>hostaddr</>, a host name
-	  lookup occurs. If <literal>hostaddr</> is specified without
-	  <literal>host</>, the value for <literal>hostaddr</> gives the remote
+	  <literal>host</literal> is specified without <literal>hostaddr</literal>, a host name
+	  lookup occurs. If <literal>hostaddr</literal> is specified without
+	  <literal>host</literal>, the value for <literal>hostaddr</literal> gives the remote
 	  address. When Kerberos is used, a reverse name query occurs to obtain
 	  the host name for Kerberos. If both
-	  <literal>host</> and <literal>hostaddr</> are specified, the value for
-	  <literal>hostaddr</> gives the remote address; the value for
-	  <literal>host</> is ignored, unless Kerberos is used, in which case that
+	  <literal>host</literal> and <literal>hostaddr</literal> are specified, the value for
+	  <literal>hostaddr</literal> gives the remote address; the value for
+	  <literal>host</literal> is ignored, unless Kerberos is used, in which case that
 	  value is used for Kerberos authentication. (Note that authentication is
 	  likely to fail if <application>libpq</application> is passed a host name
-	  that is not the name of the machine at <literal>hostaddr</>.)  Also,
-	  <literal>host</> rather than <literal>hostaddr</> is used to identify
-	  the connection in <filename>$HOME/.pgpass</>.
+	  that is not the name of the machine at <literal>hostaddr</literal>.)  Also,
+	  <literal>host</literal> rather than <literal>hostaddr</literal> is used to identify
+	  the connection in <filename>$HOME/.pgpass</filename>.
 	 </para>
 	 <para>
 	  Without either a host name or host address,
@@ -458,7 +459,7 @@ pg_connect -connlist <parameter>connectNameValueList</parameter> <optional role=
 	 <para>
 	  Port number to connect to at the server host, or socket file
 	  name extension for Unix-domain
-	  connections.<indexterm><primary>port</></>
+	  connections.<indexterm><primary>port</primary></indexterm>
 	 </para>
 	 </listitem>
 	</varlistentry>
@@ -524,26 +525,26 @@ pg_connect -connlist <parameter>connectNameValueList</parameter> <optional role=
 	 <listitem>
 	  <para>
 	   This option determines whether or with what priority an
-	   <acronym>SSL</> connection will be negotiated with the
-	   server. There are four modes: <literal>disable</> will attempt
-	   only an unencrypted <acronym>SSL</> connection;
-	   <literal>allow</> will negotiate, trying first a
-	   non-<acronym>SSL</> connection, then if that fails, trying an
-	   <acronym>SSL</> connection; <literal>prefer</> (the default)
-	   will negotiate, trying first an <acronym>SSL</> connection,
-	   then if that fails, trying a regular non-<acronym>SSL</>
-	   connection; <literal>require</> will try only an
-	   <acronym>SSL</> connection.
+	   <acronym>SSL</acronym> connection will be negotiated with the
+	   server. There are four modes: <literal>disable</literal> will attempt
+	   only an unencrypted <acronym>SSL</acronym> connection;
+	   <literal>allow</literal> will negotiate, trying first a
+	   non-<acronym>SSL</acronym> connection, then if that fails, trying an
+	   <acronym>SSL</acronym> connection; <literal>prefer</literal> (the default)
+	   will negotiate, trying first an <acronym>SSL</acronym> connection,
+	   then if that fails, trying a regular non-<acronym>SSL</acronym>
+	   connection; <literal>require</literal> will try only an
+	   <acronym>SSL</acronym> connection.
 	  </para>
 
 	  <para>
-	   If <productname>PostgreSQL</> is compiled without SSL support,
-	   using option <literal>require</> will cause an error, and
-	   options <literal>allow</> and <literal>prefer</> will be
-	   tolerated but <application>libpq</> will be unable to negotiate
-	   an <acronym>SSL</>
-	   connection.<indexterm><primary>SSL</><secondary
-	   sortas="libpq">with libpq</></indexterm>
+	   If <productname>PostgreSQL</productname> is compiled without SSL support,
+	   using option <literal>require</literal> will cause an error, and
+	   options <literal>allow</literal> and <literal>prefer</literal> will be
+	   tolerated but <application>libpq</application> will be unable to negotiate
+	   an <acronym>SSL</acronym>
+	   connection.<indexterm><primary>SSL</primary><secondary
+	   sortas="libpq">with libpq</secondary></indexterm>
 	  </para>
 	 </listitem>
 	</varlistentry>
@@ -552,20 +553,20 @@ pg_connect -connlist <parameter>connectNameValueList</parameter> <optional role=
 	 <term><literal>requiressl</literal></term>
 	 <listitem>
 	  <para>
-	   This option is deprecated in favor of the <literal>sslmode</>
+	   This option is deprecated in favor of the <literal>sslmode</literal>
 	   setting.
 	  </para>
 
 	  <para>
 	   If set to 1, an <acronym>SSL</acronym> connection to the server
-	   is required (this is equivalent to <literal>sslmode</>
-	   <literal>require</>).  <application>libpq</> will then refuse
+	   is required (this is equivalent to <literal>sslmode</literal>
+	   <literal>require</literal>).  <application>libpq</application> will then refuse
 	   to connect if the server does not accept an
 	   <acronym>SSL</acronym> connection.  If set to 0 (default),
-	   <application>libpq</> will negotiate the connection type with
-	   the server (equivalent to <literal>sslmode</>
-	   <literal>prefer</>).  This option is only available if
-	   <productname>PostgreSQL</> is compiled with SSL support.
+	   <application>libpq</application> will negotiate the connection type with
+	   the server (equivalent to <literal>sslmode</literal>
+	   <literal>prefer</literal>).  This option is only available if
+	   <productname>PostgreSQL</productname> is compiled with SSL support.
 	  </para>
 	 </listitem>
 	</varlistentry>
@@ -578,7 +579,7 @@ pg_connect -connlist <parameter>connectNameValueList</parameter> <optional role=
 	  name in <filename>pg_service.conf</filename> that holds additional connection parameters.
 	  This allows applications to specify only a service name so connection parameters 
 	  can be centrally maintained.  See 
-	  <filename><replaceable>PREFIX</>/share/pg_service.conf.sample</> for
+	  <filename><replaceable>PREFIX</replaceable>/share/pg_service.conf.sample</filename> for
 	  information on how to set up the file.
 	 </para>
 	 </listitem>
@@ -606,7 +607,7 @@ name automatically. Without the option, the name is auto-generated, prefixed wit
        </variablelist>
 
        If  any  parameter is unspecified, then the corresponding
-       environment variable (see <literal>libpq</> documentation in the <productname>PostgreSQL</> manual)
+       environment variable (see <literal>libpq</literal> documentation in the <productname>PostgreSQL</productname> manual)
        is checked. If the  environment  variable is not set either,
        then built-in defaults are used.
        </para>
@@ -900,7 +901,7 @@ pg_conndefaults
    of the format:
 <synopsis>{optname label dispchar dispsize value}
 </synopsis>
-   where the <replaceable>optname</> is usable as an option in
+   where the <replaceable>optname</replaceable> is usable as an option in
    <function>pg_connect -conninfo</function>.
   </para>
  </refsect1>
@@ -968,7 +969,7 @@ pg_exec <parameter>conn</parameter> <parameter>commandString</parameter> <option
     <term><parameter>args</parameter></term>
     <listitem>
      <para>
-      For <productname>PostgreSQL</> versions greater than 7.4, <parameter>args</parameter>
+      For <productname>PostgreSQL</productname> versions greater than 7.4, <parameter>args</parameter>
       consists of zero or more optional values that can be inserted,
       unquoted, into the SQL statement using $-style substitution.
      </para>
@@ -1035,7 +1036,7 @@ pg_exec_prepared <parameter>conn</parameter> <parameter>statementName</parameter
   </para>
 
   <para>
-  Note that prepared statements are only support under <productname>PostgreSQL</> 7.4
+  Note that prepared statements are only support under <productname>PostgreSQL</productname> 7.4
   and later.
   </para>
  </refsect1>
@@ -1130,7 +1131,7 @@ pg_result <parameter>resultHandle</parameter> <parameter>resultOption</parameter
    You can keep a command result around for as long as you need it,
    but when you are done with it, be sure to free it by executing
    <function>pg_result -clear</function>.  Otherwise, you have a
-   memory leak, and <application>pgtcl</> will eventually start
+   memory leak, and <application>pgtcl</application> will eventually start
    complaining that you have created too many command result objects.
   </para>
  </refsect1>
@@ -1198,7 +1199,7 @@ pg_result <parameter>resultHandle</parameter> <parameter>resultOption</parameter
 	    <listitem>
 	     <para>
 	      The <literal>SQLSTATE</literal> code for the error.
-	      (See <productname>PostgreSQL</> manual Appendix A).
+	      (See <productname>PostgreSQL</productname> manual Appendix A).
 	     </para>
 	    </listitem>
 	   </varlistentry>
@@ -1321,7 +1322,7 @@ pg_result <parameter>resultHandle</parameter> <parameter>resultOption</parameter
        </varlistentry>
 
        <varlistentry>
-        <term><option>-foreach <parameter>arrayName</> <parameter>tclCode</></option></term>
+        <term><option>-foreach <parameter>arrayName</parameter> <parameter>tclCode</parameter></option></term>
         <listitem>
          <para>
           Iterates through each row of the result, filling
@@ -1402,12 +1403,12 @@ pg_result <parameter>resultHandle</parameter> <parameter>resultOption</parameter
        </varlistentry>
 
        <varlistentry>
-        <term><option>-assignbyidx <parameter>arrayName</> <optional role="tcl"><parameter>appendstr</></optional></option></term>
+        <term><option>-assignbyidx <parameter>arrayName</parameter> <optional role="tcl"><parameter>appendstr</parameter></optional></option></term>
         <listitem>
          <para>
           Assign the results to an array using the values of the
           first column and the names of the remaining column as keys.
-          If <parameter>appendstr</> is given then it is appended to
+          If <parameter>appendstr</parameter> is given then it is appended to
           each key.  In short, all but the first column of each row
           are stored into the array, using subscripts of the form
           <literal>(firstColumnValue, columnNameAppendStr)</literal>.
@@ -1426,7 +1427,7 @@ pg_result <parameter>resultHandle</parameter> <parameter>resultOption</parameter
        </varlistentry>
 
        <varlistentry>
-        <term><option>-tupleArray <parameter>rowNumber</> <parameter>arrayName</></option></term>
+        <term><option>-tupleArray <parameter>rowNumber</parameter> <parameter>arrayName</parameter></option></term>
         <listitem>
          <para>
           Stores the columns of the row in array
@@ -1439,7 +1440,7 @@ pg_result <parameter>resultHandle</parameter> <parameter>resultOption</parameter
        </varlistentry>
 
        <varlistentry>
-        <term><option>-tupleArrayWithoutNulls <parameter>rowNumber</> <parameter>arrayName</></option></term>
+        <term><option>-tupleArrayWithoutNulls <parameter>rowNumber</parameter> <parameter>arrayName</parameter></option></term>
         <listitem>
          <para>
           Stores the columns of the row in array
@@ -1503,7 +1504,7 @@ pg_result <parameter>resultHandle</parameter> <parameter>resultOption</parameter
        </varlistentry>
 
        <varlistentry>
-        <term><option>-null_value_string <optional role="tcl"><parameter>string</></optional></option></term>
+        <term><option>-null_value_string <optional role="tcl"><parameter>string</parameter></optional></option></term>
         <listitem>
          <para>
           Defines or retrieves the string that will be returned for null values in query results.  Defaults to whatever was set by <function>pg_null_value_string</function> but can be set here and, in this case, affects only this query result.
@@ -1576,7 +1577,7 @@ pg_select <optional role="tcl"><parameter>-rowbyrow</parameter></optional> <opti
 
    <variablelist>
     <varlistentry>
-     <term><literal>.headers</></term>
+     <term><literal>.headers</literal></term>
      <listitem>
       <para>
        A list of the column names returned by the query.
@@ -1585,7 +1586,7 @@ pg_select <optional role="tcl"><parameter>-rowbyrow</parameter></optional> <opti
     </varlistentry>
 
     <varlistentry>
-     <term><literal>.numcols</></term>
+     <term><literal>.numcols</literal></term>
      <listitem>
       <para>
        The number of columns returned by the query.
@@ -1594,7 +1595,7 @@ pg_select <optional role="tcl"><parameter>-rowbyrow</parameter></optional> <opti
     </varlistentry>
 
     <varlistentry>
-     <term><literal>.tupno</></term>
+     <term><literal>.tupno</literal></term>
      <listitem>
       <para>
        The current row number, starting at zero and incrementing for
@@ -1688,8 +1689,8 @@ pg_select <optional role="tcl"><parameter>-rowbyrow</parameter></optional> <opti
   <title>Examples</title>
 
   <para>
-   This examples assumes that the table <classname>table1</> has
-   columns <structfield>control</> and <structfield>name</> (and
+   This examples assumes that the table <classname>table1</classname> has
+   columns <structfield>control</structfield> and <structfield>name</structfield> (and
    perhaps others):
 <programlisting>
 pg_select $pgconn "SELECT * FROM table1;" array {
@@ -1723,7 +1724,7 @@ pg_execute <optional role="tcl">-array <parameter>arrayVar</parameter></optional
 
   <para>
    <function>pg_execute</function> submits a command to the
-   <productname>PostgreSQL</> server.
+   <productname>PostgreSQL</productname> server.
   </para>
 
   <para>
@@ -1731,7 +1732,7 @@ pg_execute <optional role="tcl">-array <parameter>arrayVar</parameter></optional
    number of rows affected by the command is returned.  If the command
    is an <command>INSERT</command> statement and a single row is
    inserted, the OID of the inserted row is stored in the variable
-   <parameter>oidVar</> if the optional <parameter>-oid</parameter>
+   <parameter>oidVar</parameter> if the optional <parameter>-oid</parameter>
    argument is supplied.
   </para>
 
@@ -1784,7 +1785,7 @@ pg_execute <optional role="tcl">-array <parameter>arrayVar</parameter></optional
      <para>
       Specifies the name of an array variable where result rows are
       stored, indexed by the column names.  This is ignored if
-      <parameter>commandString</> is not a <command>SELECT</>
+      <parameter>commandString</parameter> is not a <command>SELECT</command>
       statement.
      </para>
     </listitem>
@@ -1847,14 +1848,14 @@ pg_execute <optional role="tcl">-array <parameter>arrayVar</parameter></optional
   </para>
 
   <para>
-   Insert a row and save the OID in <varname>result_oid</>:
+   Insert a row and save the OID in <varname>result_oid</varname>:
 <programlisting>
 pg_execute -oid result_oid $pgconn "INSERT INTO mytable VALUES (1);"
 </programlisting>
   </para>
 
   <para>
-   Print the columns <literal>item</> and <literal>value</> from each
+   Print the columns <literal>item</literal> and <literal>value</literal> from each
    row:
 <programlisting>
 pg_execute -array d $pgconn "SELECT item, value FROM mytable;" {
@@ -1865,7 +1866,7 @@ pg_execute -array d $pgconn "SELECT item, value FROM mytable;" {
 
   <para>
    Find the maximum and minimum values and store them in
-   <literal>$s(max)</> and <literal>$s(min)</>:
+   <literal>$s(max)</literal> and <literal>$s(min)</literal>:
 <programlisting>
 pg_execute -array s $pgconn "SELECT max(value) AS max, min(value) AS min FROM mytable;"
 </programlisting>
@@ -1873,7 +1874,7 @@ pg_execute -array s $pgconn "SELECT max(value) AS max, min(value) AS min FROM my
 
   <para>
    Find the maximum and minimum values and store them in
-   <literal>$max</> and <literal>$min</>:
+   <literal>$max</literal> and <literal>$min</literal>:
 <programlisting>
 pg_execute $pgconn "SELECT max(value) AS max, min(value) AS min FROM mytable;"
 </programlisting>
@@ -1905,9 +1906,9 @@ pg_listen <parameter>conn</parameter> <parameter>notifyName</parameter> <optiona
    <function>pg_listen</function> creates, changes, or cancels a
    request to listen for asynchronous notification messages from the
    <productname>PostgreSQL</productname> server.  With a
-   <parameter>callbackCommand</> parameter, the request is
+   <parameter>callbackCommand</parameter> parameter, the request is
    established, or the command string of an already existing request
-   is replaced.  With no <parameter>callbackCommand</> parameter, a
+   is replaced.  With no <parameter>callbackCommand</parameter> parameter, a
    prior request is canceled.
   </para>
 
@@ -1917,8 +1918,8 @@ pg_listen <parameter>conn</parameter> <parameter>notifyName</parameter> <optiona
    message bearing the given name arrives from the server.  This
    occurs when any <productname>PostgreSQL</productname> client
    application issues a
-   <command>NOTIFY</command><indexterm><primary>NOTIFY</><secondary
-   sortas="pgtcl">in pgtcl</></> command referencing that name.  The
+   <command>NOTIFY</command><indexterm><primary>NOTIFY</primary><secondary
+   sortas="pgtcl">in pgtcl</secondary></indexterm> command referencing that name.  The
    command string is executed from the Tcl idle loop.  That is the
    normal idle state of an application written with Tk.  In non-Tk Tcl
    shells, you can execute <function>update</function> or
@@ -2005,9 +2006,9 @@ pg_on_connection_loss <parameter>conn</parameter> <optional role="tcl"><paramete
    <function>pg_on_connection_loss</function> creates, changes, or
    cancels a request to execute a callback command if an unexpected
    loss of connection to the database occurs.  With a
-   <parameter>callbackCommand</> parameter, the request is
+   <parameter>callbackCommand</parameter> parameter, the request is
    established, or the command string of an already existing request
-   is replaced.  With no <parameter>callbackCommand</> parameter, a
+   is replaced.  With no <parameter>callbackCommand</parameter> parameter, a
    prior request is canceled.
   </para>
 
@@ -2811,7 +2812,7 @@ pg_lo_creat <parameter>conn</parameter> <parameter>mode</parameter>
     <listitem>
      <para>
       The access mode for the large object.  It can be any or'ing
-      together of <literal>INV_READ</> and <literal>INV_WRITE</>.  The
+      together of <literal>INV_READ</literal> and <literal>INV_WRITE</literal>.  The
       <quote>or</quote> operator is <literal>|</literal>.  For
       example:
 <programlisting>
@@ -2887,7 +2888,7 @@ pg_lo_open <parameter>conn</parameter> <parameter>loid</parameter> <parameter>mo
     <listitem>
      <para>
       Specifies the access mode for the large object.  Mode can be
-      either <literal>r</>, <literal>w</>, or <literal>rw</>.
+      either <literal>r</literal>, <literal>w</literal>, or <literal>rw</literal>.
      </para>
     </listitem>
    </varlistentry>
@@ -3199,8 +3200,8 @@ pg_lo_lseek <parameter>conn</parameter> <parameter>descriptor</parameter> <param
     <listitem>
      <para>
       Specified from where to calculate the new seek position:
-      <literal>SEEK_CUR</> (from current position),
-      <literal>SEEK_END</> (from end), or <literal>SEEK_SET</> (from
+      <literal>SEEK_CUR</literal> (from current position),
+      <literal>SEEK_END</literal> (from end), or <literal>SEEK_SET</literal> (from
       start).
      </para>
     </listitem>
@@ -3479,7 +3480,7 @@ pg_lo_import <parameter>conn</parameter> <parameter>filename</parameter>
 
   <para>
    <function>pg_lo_import</function> must be called within a
-   <command>BEGIN</>/<command>COMMIT</> transaction block.
+   <command>BEGIN</command>/<command>COMMIT</command> transaction block.
   </para>
  </refsect1>
 </refentry>
@@ -3557,7 +3558,7 @@ pg_lo_export <parameter>conn</parameter> <parameter>loid</parameter> <parameter>
 
   <para>
    <function>pg_lo_export</function> must be called within a
-   <command>BEGIN</>/<command>COMMIT</> transaction block.
+   <command>BEGIN</command>/<command>COMMIT</command> transaction block.
   </para>
  </refsect1>
 </refentry>
@@ -3604,7 +3605,7 @@ Note that deleting the command (<command>rename $conn {}</command>), has the sam
  <title>Example Program</title>
 
  <para>
-  <xref linkend="pgtcl-example"> shows a small example of how to use
+  <xref linkend="pgtcl-example"/> shows a small example of how to use
   the <application>pgtcl</application> commands.
  </para>
 
@@ -3621,7 +3622,7 @@ proc getDBs { {host "localhost"} {port "5432"} } {
     set conn [pg_connect template1 -host $host -port $port]
     set res [pg_exec $conn "SELECT datname FROM pg_database ORDER BY datname;"]
     set ntups [pg_result $res -numTuples]
-    for {set i 0} {$i < $ntups} {incr i} {
+    for {set i 0} {$i &lt; $ntups} {incr i} {
 	lappend datnames [pg_result $res -getTuple $i]
     }
     pg_result $res -clear

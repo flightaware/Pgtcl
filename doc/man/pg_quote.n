@@ -1,0 +1,54 @@
+.\" -*- coding: us-ascii -*-
+.if \n(.g .ds T< \\FC
+.if \n(.g .ds T> \\F[\n[.fam]]
+.de URL
+\\$2 \(la\\$1\(ra\\$3
+..
+.if \n(.g .mso www.tmac
+.TH pg_quote n "20 June 2016" "" "PostgreSQL Tcl Interface Documentation"
+.SH NAME
+pg_quote \- escapes a string for inclusion into SQL statements 
+.SH SYNOPSIS
+.nf
+
+pg_quote [\-null] [\*(T<connection\*(T>] \*(T<string\*(T>
+.fi
+.SH DESCRIPTION
+\*(T<\fBpg_quote\fR\*(T> quotes a string and escapes single
+quotes and backslashes within the string, making it safe for inclusion
+into SQL statements.
+.PP
+If a \*(T<connection\*(T> is provided, the connection is used to
+customize the quoting process for the database referenced by the connection.
+.PP
+If the [-null] option is provided, then if the text matches
+the null string (either the empty string, or the null string specified in the
+\*(T<connection\*(T>) then the SQL keyword NULL is returned, rather than
+a quoted string.
+.PP
+If you're doing something like
+
+.nf
+\*(T<
+    pg_exec $conn "insert into foo values ('$name');" 
+\*(T>.fi
+
+and \*(T<name\*(T> contains text includeing an unescaped single
+quote, such as \*(T<Bob's House\*(T>, the insert will fail. 
+Passing value strings through \*(T<\fBpg_quote\fR\*(T>
+make sure they can be used as values and stuff in PostgreSQL.
+
+.nf
+\*(T<
+    pg_exec $conn "insert into foo values ([pg_quote $name]);" 
+\*(T>.fi
+
+\&...will make sure that any special characters that occur in name, such as
+single quote or backslash, will be properly quoted.
+.SH ARGUMENTS
+.TP 
+\*(T<string\*(T>
+The string to be escaped.
+.SH "RETURN VALUE"
+Returns the string, escaped for inclusion into SQL queries. Note that
+it adds a set of single quotes around the outside of the string as well.

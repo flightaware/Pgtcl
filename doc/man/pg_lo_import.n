@@ -1,0 +1,31 @@
+.\" -*- coding: us-ascii -*-
+.if \n(.g .ds T< \\FC
+.if \n(.g .ds T> \\F[\n[.fam]]
+.de URL
+\\$2 \(la\\$1\(ra\\$3
+..
+.if \n(.g .mso www.tmac
+.TH pg_lo_import n "20 June 2016" "" "PostgreSQL Tcl Interface Documentation"
+.SH NAME
+pg_lo_import \- import a large object from a file
+.SH SYNOPSIS
+.nf
+
+pg_lo_import \*(T<conn\*(T> \*(T<filename\*(T>
+.fi
+.SH DESCRIPTION
+\*(T<\fBpg_lo_import\fR\*(T> reads the specified file and
+places the contents into a new large object.
+.SH ARGUMENTS
+.TP 
+\*(T<conn\*(T>
+The handle of a connection to the database in which to create the large
+object.
+.TP 
+\*(T<filename\*(T>
+Specified the file from which to import the data.
+.SH "RETURN VALUE"
+The OID of the large object created.
+.SH NOTES
+\*(T<\fBpg_lo_import\fR\*(T> must be called within a
+\fBBEGIN\fR/\fBCOMMIT\fR transaction block.

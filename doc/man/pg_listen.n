@@ -1,0 +1,56 @@
+.\" -*- coding: us-ascii -*-
+.if \n(.g .ds T< \\FC
+.if \n(.g .ds T> \\F[\n[.fam]]
+.de URL
+\\$2 \(la\\$1\(ra\\$3
+..
+.if \n(.g .mso www.tmac
+.TH pg_listen n "20 June 2016" "" "PostgreSQL Tcl Interface Documentation"
+.SH NAME
+pg_listen \- set or change a callback for asynchronous notification messages
+.SH SYNOPSIS
+.nf
+
+pg_listen \*(T<conn\*(T> \*(T<notifyName\*(T> [\*(T<callbackCommand\*(T>]
+.fi
+.SH DESCRIPTION
+\*(T<\fBpg_listen\fR\*(T> creates, changes, or cancels a
+request to listen for asynchronous notification messages from the
+PostgreSQL server. With a
+\*(T<callbackCommand\*(T> parameter, the request is
+established, or the command string of an already existing request
+is replaced. With no \*(T<callbackCommand\*(T> parameter, a
+prior request is canceled.
+.PP
+After a \*(T<\fBpg_listen\fR\*(T> request is established, the
+specified command string is executed whenever a notification
+message bearing the given name arrives from the server. This
+occurs when any PostgreSQL client
+application issues a
+\fBNOTIFY\fR command referencing that name. The
+command string is executed from the Tcl idle loop. That is the
+normal idle state of an application written with Tk. In non-Tk Tcl
+shells, you can execute \*(T<\fBupdate\fR\*(T> or
+\*(T<\fBvwait\fR\*(T> to cause the idle loop to be entered.
+.PP
+You should not invoke the SQL statements \fBLISTEN\fR
+or \fBUNLISTEN\fR directly when using
+\*(T<\fBpg_listen\fR\*(T>. pgtcl
+takes care of issuing those statements for you. But if you want to
+send a notification message yourself, invoke the SQL
+\fBNOTIFY\fR statement using
+\*(T<\fBpg_exec\fR\*(T>.
+.SH ARGUMENTS
+.TP 
+\*(T<conn\*(T>
+The handle of the connection on which to listen for notifications.
+.TP 
+\*(T<notifyName\*(T>
+The name of the notification condition to start or stop
+listening to.
+.TP 
+\*(T<callbackCommand\*(T>
+If present, provides the command string to execute when a
+matching notification arrives.
+.SH "RETURN VALUE"
+None

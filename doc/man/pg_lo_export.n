@@ -1,0 +1,34 @@
+.\" -*- coding: us-ascii -*-
+.if \n(.g .ds T< \\FC
+.if \n(.g .ds T> \\F[\n[.fam]]
+.de URL
+\\$2 \(la\\$1\(ra\\$3
+..
+.if \n(.g .mso www.tmac
+.TH pg_lo_export n "20 June 2016" "" "PostgreSQL Tcl Interface Documentation"
+.SH NAME
+pg_lo_export \- export a large object to a file
+.SH SYNOPSIS
+.nf
+
+pg_lo_export \*(T<conn\*(T> \*(T<loid\*(T> \*(T<filename\*(T>
+.fi
+.SH DESCRIPTION
+\*(T<\fBpg_lo_export\fR\*(T> writes the specified large object
+into a file.
+.SH ARGUMENTS
+.TP 
+\*(T<conn\*(T>
+The handle of a connection to the database in which the large object
+exists.
+.TP 
+\*(T<loid\*(T>
+The OID of the large object.
+.TP 
+\*(T<filename\*(T>
+Specifies the file into which the data is to be exported.
+.SH "RETURN VALUE"
+None
+.SH NOTES
+\*(T<\fBpg_lo_export\fR\*(T> must be called within a
+\fBBEGIN\fR/\fBCOMMIT\fR transaction block.

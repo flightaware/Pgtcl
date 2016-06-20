@@ -1,0 +1,27 @@
+.\" -*- coding: us-ascii -*-
+.if \n(.g .ds T< \\FC
+.if \n(.g .ds T> \\F[\n[.fam]]
+.de URL
+\\$2 \(la\\$1\(ra\\$3
+..
+.if \n(.g .mso www.tmac
+.TH pg_isbusy n "20 June 2016" "" "PostgreSQL Tcl Interface Documentation"
+.SH NAME
+pg_isbusy \- see if a query is busy
+.SH SYNOPSIS
+.nf
+
+pg_isbusy \*(T<conn\*(T>
+.fi
+.SH DESCRIPTION
+\*(T<\fBpg_isbusy\fR\*(T> checks to see if the backend is
+busy handling a query or not.
+.SH ARGUMENTS
+.TP 
+\*(T<conn\*(T>
+The handle of a connection to the database in which the large object
+exists.
+.SH "RETURN VALUE"
+Returns \*(T<1\*(T> if the backend is busy, in which case a call to 
+\*(T<\fBpg_getresult\fR\*(T> would block, otherwise
+it returns \*(T<0\*(T>.

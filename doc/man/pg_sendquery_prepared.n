@@ -1,0 +1,43 @@
+.\" -*- coding: us-ascii -*-
+.if \n(.g .ds T< \\FC
+.if \n(.g .ds T> \\F[\n[.fam]]
+.de URL
+\\$2 \(la\\$1\(ra\\$3
+..
+.if \n(.g .mso www.tmac
+.TH pg_sendquery_prepared n "20 June 2016" "" "PostgreSQL Tcl Interface Documentation"
+.SH NAME
+pg_sendquery_prepared \- send a request to execute a prepared statement to the backend connection, without waiting for a result
+.SH SYNOPSIS
+.nf
+
+pg_sendquery_prepared \*(T<conn\*(T> \*(T<statementName\*(T> [\*(T<args\*(T>]
+.fi
+.SH DESCRIPTION
+\*(T<\fBpg_sendquery_prepared\fR\*(T> submits a command to the
+PostgreSQL server.
+This function works like \*(T<\fBpg_exec\fR\*(T>, except that
+it does not return a result. Rather, the command is issued
+to the backend asynchronously.
+.PP
+The result is either an error message or nothing. An empty
+return indicates that the command was dispatched to the
+backend.
+.SH ARGUMENTS
+.TP 
+\*(T<conn\*(T>
+The handle of the connection on which to execute the command.
+.TP 
+\*(T<statementName\*(T>
+The name of the prepared SQL statement to execute asynchronously.
+.TP 
+\*(T<args\*(T>
+\*(T<args\*(T>
+consists of zero or more optional values that can be inserted,
+unquoted, into the SQL statement using $-style substitution.
+.SH "RETURN VALUE"
+A Tcl error will be returned if
+pgtcl was unable to issue the command.
+Otherwise, an empty string will be return. It is up to the
+developer to use \*(T<\fBpg_getresult\fR\*(T> to obtain
+results from commands issued with \*(T<\fBpg_sendquery\fR\*(T>.

@@ -1,0 +1,221 @@
+.\" -*- coding: us-ascii -*-
+.if \n(.g .ds T< \\FC
+.if \n(.g .ds T> \\F[\n[.fam]]
+.de URL
+\\$2 \(la\\$1\(ra\\$3
+..
+.if \n(.g .mso www.tmac
+.TH pg_connect n "20 June 2016" "" "PostgreSQL Tcl Interface Documentation"
+.SH NAME
+pg_connect \- open a connection to the server
+.SH SYNOPSIS
+.nf
+
+pg_connect \-conninfo \*(T<connectOptions\*(T> [\-connhandle \*(T<connectionHandleName\*(T>] [\-async \*(T<bool\*(T>]
+pg_connect \*(T<dbName\*(T> [\-host \*(T<hostName\*(T>] [\-port \*(T<portNumber\*(T>] [\-tty \*(T<tty\*(T>] [\-options \*(T<serverOptions\*(T>] [\-connhandle \*(T<connectionHandleName\*(T>] [\-async \*(T<bool\*(T>]
+pg_connect \-connlist \*(T<connectNameValueList\*(T> [\-connhandle \*(T<connectionHandleName\*(T>] [\-async \*(T<bool\*(T>]
+.fi
+.SH DESCRIPTION
+\*(T<\fBpg_connect\fR\*(T> opens a connection to the
+PostgreSQL server.
+.PP
+Three syntaxes are available. In the older one, each possible option
+has a separate option switch in the \fBpg_connect\fR
+command. In the newer form, a single option string is supplied
+that can contain multiple option values. The third form takes
+the parameters as a name value Tcl list.
+\*(T<\fBpg_conndefaults\fR\*(T> can be used to retrieve
+information about the available options in the newer syntax.
+.SH ARGUMENTS
+.TP 
+\*(T<connectOptions\*(T>
+\*(T<\fBpg_connect\fR\*(T> opens a new database connection using the 
+parameters taken from the \*(T<connectOptions\*(T> string. Unlike 
+the old-style usage of \*(T<\fBpg_connect\fR\*(T>,
+with the new-style usage the parameter set can be extended without 
+requiring changes to either \*(T<\fIlibpgtcl\fR\*(T> or the underlying
+libpq library,
+so use of the new style (or its nonexistent
+nonblocking analogues \*(T<\fBpg_connect_start\fR\*(T>
+and \*(T<\fBpg_connect_poll\fR\*(T>) is preferred for new 
+application programming.
+
+The passed string
+can be empty to use all default parameters, or it can contain one or more
+parameter settings separated by whitespace.
+Each parameter setting is in the form \*(T<keyword = value\*(T>.
+(To write an empty value or a value containing
+spaces, surround it with single quotes, e.g.,
+\*(T<keyword = 'a value'\*(T>.
+Single quotes and backslashes within the value must be escaped with a
+backslash, i.e., \*(T<\e'\*(T> and \*(T<\e\e\*(T>.)
+Spaces around the equal sign are optional.
+
+The currently recognized parameter key words are:
+.RS 
+.TP 
+\*(T<host\*(T>
+Name of host to connect to.
+If this begins with a slash, it specifies Unix-domain
+communication rather than TCP/IP communication; the value is the
+name of the directory in which the socket file is stored. The
+default is to connect to a Unix-domain socket in
+\*(T<\fI/tmp\fR\*(T>.
+.TP 
+\*(T<hostaddr\*(T>
+Numeric IP address of host to connect to. This should be in the
+standard IPv4 address format, e.g., \*(T<172.28.40.9\*(T>. If
+your machine supports IPv6, you can also use IPv6 address
+format, e.g., \*(T<fe80::203:93ff:fedb:49bc\*(T>.
+TCP/IP communication is
+always used when a nonempty string is specified for this parameter.
+
+Using \*(T<hostaddr\*(T> instead of \*(T<host\*(T> allows the
+application to avoid a host name lookup, which may be important in
+applications with time constraints. However, Kerberos authentication
+requires the host name. The following therefore applies: If
+\*(T<host\*(T> is specified without \*(T<hostaddr\*(T>, a host name
+lookup occurs. If \*(T<hostaddr\*(T> is specified without
+\*(T<host\*(T>, the value for \*(T<hostaddr\*(T> gives the remote
+address. When Kerberos is used, a reverse name query occurs to obtain
+the host name for Kerberos. If both
+\*(T<host\*(T> and \*(T<hostaddr\*(T> are specified, the value for
+\*(T<hostaddr\*(T> gives the remote address; the value for
+\*(T<host\*(T> is ignored, unless Kerberos is used, in which case that
+value is used for Kerberos authentication. (Note that authentication is
+likely to fail if libpq is passed a host name
+that is not the name of the machine at \*(T<hostaddr\*(T>.) Also,
+\*(T<host\*(T> rather than \*(T<hostaddr\*(T> is used to identify
+the connection in \*(T<\fI$HOME/.pgpass\fR\*(T>.
+
+Without either a host name or host address,
+Pgtcl will connect using a
+local Unix domain socket.
+.TP 
+\*(T<port\*(T>
+Port number to connect to at the server host, or socket file
+name extension for Unix-domain
+connections.
+.TP 
+\*(T<dbname\*(T>
+The database name. Defaults to be the same as the user name.
+.TP 
+\*(T<user\*(T>
+PostgreSQL user name to connect as.
+.TP 
+\*(T<password\*(T>
+Password to be used if the server demands password authentication.
+.TP 
+\*(T<connect_timeout\*(T>
+Maximum wait for connection, in seconds (write as a decimal integer
+string). Zero or not specified means wait indefinitely. It is not
+recommended to use a timeout of less than 2 seconds.
+.TP 
+\*(T<options\*(T>
+Command-line options to be sent to the server.
+.TP 
+\*(T<tty\*(T>
+Ignored (formerly, this specified where to send server debug output).
+.TP 
+\*(T<sslmode\*(T>
+This option determines whether or with what priority an
+SSL connection will be negotiated with the
+server. There are four modes: \*(T<disable\*(T> will attempt
+only an unencrypted SSL connection;
+\*(T<allow\*(T> will negotiate, trying first a
+non-SSL connection, then if that fails, trying an
+SSL connection; \*(T<prefer\*(T> (the default)
+will negotiate, trying first an SSL connection,
+then if that fails, trying a regular non-SSL
+connection; \*(T<require\*(T> will try only an
+SSL connection.
+
+If PostgreSQL is compiled without SSL support,
+using option \*(T<require\*(T> will cause an error, and
+options \*(T<allow\*(T> and \*(T<prefer\*(T> will be
+tolerated but libpq will be unable to negotiate
+an SSL
+connection.
+.TP 
+\*(T<requiressl\*(T>
+This option is deprecated in favor of the \*(T<sslmode\*(T>
+setting.
+
+If set to 1, an SSL connection to the server
+is required (this is equivalent to \*(T<sslmode\*(T>
+\*(T<require\*(T>). libpq will then refuse
+to connect if the server does not accept an
+SSL connection. If set to 0 (default),
+libpq will negotiate the connection type with
+the server (equivalent to \*(T<sslmode\*(T>
+\*(T<prefer\*(T>). This option is only available if
+PostgreSQL is compiled with SSL support.
+.TP 
+\*(T<service\*(T>
+Service name to use for additional parameters. It specifies a service
+name in \*(T<\fIpg_service.conf\fR\*(T> that holds additional connection parameters.
+This allows applications to specify only a service name so connection parameters 
+can be centrally maintained. See 
+\*(T<\fIPREFIX/share/pg_service.conf.sample\fR\*(T> for
+information on how to set up the file.
+.TP 
+\*(T<\fB\-connhandle \fR\*(T>\*(T<\fBconnectionHandleName\fR\*(T>
+Name to use for the connection handle, instead of pgtcl generating the
+name automatically. Without the option, the name is auto-generated, prefixed with pgsql, and with a numeric id at the end. This gives the programmer control over the name of the connection handle.
+.TP 
+\*(T<\fB\-async \fR\*(T>\*(T<\fBbool\fR\*(T>
+Connect asyncronously if [bool] is true.
+.RE
+
+If any parameter is unspecified, then the corresponding
+environment variable (see \*(T<libpq\*(T> documentation in the PostgreSQL manual)
+is checked. If the environment variable is not set either,
+then built-in defaults are used.
+.TP 
+\*(T<dbName\*(T>
+The name of the database to connect to.
+.TP 
+\*(T<\fB\-host \fR\*(T>\*(T<\fBhostName\fR\*(T>
+The host name of the database server to connect to.
+.TP 
+\*(T<\fB\-port \fR\*(T>\*(T<\fBportNumber\fR\*(T>
+The TCP port number of the database server to connect to.
+.TP 
+\*(T<\fB\-tty \fR\*(T>\*(T<\fBtty\fR\*(T>
+A file or TTY for optional debug output from
+the server.
+.TP 
+\*(T<\fB\-options \fR\*(T>\*(T<\fBserverOptions\fR\*(T>
+Additional configuration options to pass to the server.
+.TP 
+\*(T<\fB\-connhandle \fR\*(T>\*(T<\fBconnectionHandleName\fR\*(T>
+Name to use for the connection handle, instead of pgtcl generating the
+name automatically. Without the option, the name is auto-generated, prefixed with pgsql, and with a numeric id at the end. This gives the programmer control over the name of the connection handle.
+.TP 
+\*(T<\fB\-async \fR\*(T>\*(T<\fBbool\fR\*(T>
+Connect asyncronously if [bool] is true.
+.TP 
+\*(T<\-connlist connectNameValuelist\*(T>
+\*(T<\fBpg_connect\fR\*(T> opens a new database connection using the 
+parameters taken from the \*(T<connectNameValuelist\*(T> list. The parameters are exactly the same for the New Style, but they are stored as a Tcl list, instead of a string. The list is a name value pair, for example: \fB[list host localhost port 5400 dbname template1]\fR.
+
+.nf
+\*(T<
+array set conninfo {
+    host    192.168.123.180
+    port    5801
+    dbname  template1
+    user    postgres
+}
+set conn [pg::connect \-connlist [array get ::conninfo]]
+\*(T>.fi
+.TP 
+\*(T<\fB\-async \fR\*(T>\*(T<\fBbool\fR\*(T>
+Connect asyncronously if [bool] is true.
+.TP 
+\*(T<\fB\-connhandle \fR\*(T>\*(T<\fBconnectionHandleName\fR\*(T>
+Name to use for the connection handle, instead of pgtcl generating the
+name automatically. Without the option, the name is auto-generated, prefixed with pgsql, and with a numeric id at the end. This gives the programmer control over the name of the connection handle.
+.SH "RETURN VALUE"
+If successful, a handle for a database connection is returned.
+Handles start with the prefix \*(T<pgsql\*(T>.

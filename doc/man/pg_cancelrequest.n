@@ -1,0 +1,26 @@
+.\" -*- coding: us-ascii -*-
+.if \n(.g .ds T< \\FC
+.if \n(.g .ds T> \\F[\n[.fam]]
+.de URL
+\\$2 \(la\\$1\(ra\\$3
+..
+.if \n(.g .mso www.tmac
+.TH pg_cancelrequest n "20 June 2016" "" "PostgreSQL Tcl Interface Documentation"
+.SH NAME
+pg_cancelrequest \- request that PostgreSQL abandon processing of the current command 
+.SH SYNOPSIS
+.nf
+
+pg_cancelrequest \*(T<conn\*(T>
+.fi
+.SH DESCRIPTION
+\*(T<\fBpg_cancelrequest\fR\*(T> requests that the processing
+of the current command be abandoned.
+.SH ARGUMENTS
+.TP 
+\*(T<conn\*(T>
+The handle of a connection to the database in which the large object
+exists.
+.SH "RETURN VALUE"
+Returns nothing if the command was successfully dispatched or if no
+query was being processed. Otherwise, returns an error.

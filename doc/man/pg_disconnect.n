@@ -1,0 +1,24 @@
+.\" -*- coding: us-ascii -*-
+.if \n(.g .ds T< \\FC
+.if \n(.g .ds T> \\F[\n[.fam]]
+.de URL
+\\$2 \(la\\$1\(ra\\$3
+..
+.if \n(.g .mso www.tmac
+.TH pg_disconnect n "20 June 2016" "" "PostgreSQL Tcl Interface Documentation"
+.SH NAME
+pg_disconnect \- close a connection to the server
+.SH SYNOPSIS
+.nf
+
+pg_disconnect \*(T<conn\*(T>
+.fi
+.SH DESCRIPTION
+\*(T<\fBpg_disconnect\fR\*(T> closes a connection to the
+PostgreSQL server.
+.SH ARGUMENTS
+.TP 
+\*(T<conn\*(T>
+The handle of the connection to be closed.
+.SH "RETURN VALUE"
+None

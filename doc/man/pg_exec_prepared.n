@@ -1,0 +1,48 @@
+.\" -*- coding: us-ascii -*-
+.if \n(.g .ds T< \\FC
+.if \n(.g .ds T> \\F[\n[.fam]]
+.de URL
+\\$2 \(la\\$1\(ra\\$3
+..
+.if \n(.g .mso www.tmac
+.TH pg_exec_prepared n "20 June 2016" "" "PostgreSQL Tcl Interface Documentation"
+.SH NAME
+pg_exec_prepared \- send a request to execute a prepared SQL statement to the server
+.SH SYNOPSIS
+.nf
+
+pg_exec_prepared \*(T<conn\*(T> \*(T<statementName\*(T> [\*(T<args\*(T>]
+.fi
+.SH DESCRIPTION
+\*(T<\fBpg_exec_prepared\fR\*(T> submits a command to the
+PostgreSQL server and returns a result.
+.PP
+\*(T<\fBpg_exec_prepared\fR\*(T> functions identically to
+\*(T<\fBpg_exec\fR\*(T>, except that it operates using
+statements prepared by the \fBPREPARE\fR SQL command.
+.PP
+Note that prepared statements are only support under PostgreSQL 7.4
+and later.
+.SH ARGUMENTS
+.TP 
+\*(T<conn\*(T>
+The handle of the connection on which to execute the command.
+.TP 
+\*(T<statementName\*(T>
+The name of the prepared statement to execute.
+.TP 
+\*(T<args\*(T>
+\*(T<args\*(T>
+consists of zero or more optional values that can be inserted,
+unquoted, into the SQL statement using $-style substitution.
+.SH "RETURN VALUE"
+A result handle. See \*(T<\fBpg_exec\fR\*(T> for details.
+.SH EXAMPLE
+.nf
+\*(T<
+pg_exec $conn {prepare insert_people 
+    (varchar, varchar, varchar, varchar, varchar, varchar) 
+    as insert into people values ($1, $2, $3, $4, $5, $6);}
+
+pg_exec_prepared $conn insert_people $email $name $address $city $state $zip
+\*(T>.fi

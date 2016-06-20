@@ -1,0 +1,34 @@
+.\" -*- coding: us-ascii -*-
+.if \n(.g .ds T< \\FC
+.if \n(.g .ds T> \\F[\n[.fam]]
+.de URL
+\\$2 \(la\\$1\(ra\\$3
+..
+.if \n(.g .mso www.tmac
+.TH pg_blocking n "20 June 2016" "" "PostgreSQL Tcl Interface Documentation"
+.SH NAME
+pg_blocking \- see or set whether or not a connection is set to blocking or nonblocking
+.SH SYNOPSIS
+.nf
+
+pg_blocking \*(T<conn\*(T> [\*(T<mode\*(T>]
+.fi
+.SH DESCRIPTION
+\*(T<\fBpg_blocking\fR\*(T> can set the connection to either
+blocking or nonblocking, and it can see which way the connection
+is currently set.
+.SH ARGUMENTS
+.TP 
+\*(T<conn\*(T>
+The handle of a connection to the database in which the large object
+exists.
+.TP 
+\*(T<mode\*(T>
+If present, sets the mode of the connection to \*(T<nonblocking\*(T>
+if \*(T<0\*(T>. Otherwise it sets the connection to 
+\*(T<blocking\*(T>.
+.SH "RETURN VALUE"
+Returns nothing if called with the \*(T<mode\*(T> argument.
+Otherwise it returns \*(T<1\*(T> if the connection is set for
+\*(T<blocking\*(T>, or \*(T<0\*(T> if the connection
+is set for \*(T<nonblocking\*(T>.

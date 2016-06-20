@@ -1,0 +1,38 @@
+.\" -*- coding: us-ascii -*-
+.if \n(.g .ds T< \\FC
+.if \n(.g .ds T> \\F[\n[.fam]]
+.de URL
+\\$2 \(la\\$1\(ra\\$3
+..
+.if \n(.g .mso www.tmac
+.TH pg_on_connection_loss n "20 June 2016" "" "PostgreSQL Tcl Interface Documentation"
+.SH NAME
+pg_on_connection_loss \- set or change a callback for unexpected connection loss
+.SH SYNOPSIS
+.nf
+
+pg_on_connection_loss \*(T<conn\*(T> [\*(T<callbackCommand\*(T>]
+.fi
+.SH DESCRIPTION
+\*(T<\fBpg_on_connection_loss\fR\*(T> creates, changes, or
+cancels a request to execute a callback command if an unexpected
+loss of connection to the database occurs. With a
+\*(T<callbackCommand\*(T> parameter, the request is
+established, or the command string of an already existing request
+is replaced. With no \*(T<callbackCommand\*(T> parameter, a
+prior request is canceled.
+.PP
+The callback command string is executed from the Tcl idle loop.
+That is the normal idle state of an application written with Tk.
+In non-Tk Tcl shells, you can execute \*(T<\fBupdate\fR\*(T>
+or \*(T<\fBvwait\fR\*(T> to cause the idle loop to be entered.
+.SH ARGUMENTS
+.TP 
+\*(T<conn\*(T>
+The handle to watch for connection losses.
+.TP 
+\*(T<callbackCommand\*(T>
+If present, provides the command string to execute when
+connection loss is detected.
+.SH "RETURN VALUE"
+None

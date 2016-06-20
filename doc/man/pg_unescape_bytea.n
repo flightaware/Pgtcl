@@ -1,0 +1,23 @@
+.\" -*- coding: us-ascii -*-
+.if \n(.g .ds T< \\FC
+.if \n(.g .ds T> \\F[\n[.fam]]
+.de URL
+\\$2 \(la\\$1\(ra\\$3
+..
+.if \n(.g .mso www.tmac
+.TH pg_unescape_bytea n "20 June 2016" "" "PostgreSQL Tcl Interface Documentation"
+.SH NAME
+pg_unescape_bytea \- unescapes a binary string. 
+.SH SYNOPSIS
+.nf
+
+pg_unescape_bytea \*(T<string\*(T>
+.fi
+.SH DESCRIPTION
+\*(T<\fBpg_unescape_bytea\fR\*(T> unescapes a binary string, when retrieving from the backend.
+.SH ARGUMENTS
+.TP 
+\*(T<binary_string\*(T>
+The string to be unescaped.
+.SH "RETURN VALUE"
+Returns the binary string.
