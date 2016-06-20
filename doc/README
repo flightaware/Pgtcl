@@ -19,3 +19,4 @@ There are some good hints on everything you need and how to get it built
 and installed at https://www.postgresql.org/docs/current/static/docguide.html
 
 
+pkg install docbook docbook-sgml dsssl-docbook-modular openjade tex-jadetex
