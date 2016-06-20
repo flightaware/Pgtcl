@@ -28,6 +28,8 @@ all:	html man
 #
 # all:	html libpgtcl.pdf
 
+.PHONY: html man pdf clean
+
 html:	html/HTML.index
 html/HTML.index:	$(SGMLSOURCE)
 	-rm html/*.html html/HTML.index
@@ -46,6 +48,7 @@ man:	$(SGMLSOURCE)
 	rm man/$(SGMLSOURCE)*
 
 
+pdf:	libpgtcl.pdf
 libpgtcl.pdf:	$(SGMLSOURCE)
 	openjade -V draft-mode -D . -c $(DOCBOOKDIR) -d $(STYLESHEET) -t tex -V tex-backend -i output-print -V texpdf-output -o libpgtcl.tex-pdf $(SGMLSOURCE)
 	pdfjadetex libpgtcl.tex-pdf
