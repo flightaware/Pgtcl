@@ -1,3 +1,6 @@
+2016-06-20 Peter da Silva
+    * Add man-page generation using docbook2man
+
 2016-06-16 Jeff Lawson
     * Change functionality of pg_quote regarding NULL values.
       pg_quote will now only return "NULL" if the new "-null" flag is
