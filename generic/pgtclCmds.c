@@ -2694,6 +2694,10 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	/* Transfer any notify events from libpq to Tcl event queue. */
 	// PgNotifyTransferEvents(connid);
 
+	// Invariant from this point: If retval != TCL_OK we're exiting
+	retval = TCL_OK;
+
+	// Invariant from this point - result is NULL or result needs to be PQclear()ed
 	while (result != NULL)
 	{
 		int resultStatus = PQresultStatus(result);
@@ -2712,7 +2716,6 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 			}
 
 			Tcl_SetResult(interp, errString, TCL_VOLATILE);
-			PQclear(result);
 			retval = TCL_ERROR;
 			goto done;
 		}
@@ -2732,7 +2735,6 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 					sprintf(msg, "PQfname() returned NULL for column %d, ncols %d",
 								column, ncols);
 					Tcl_SetResult(interp, msg, TCL_VOLATILE);
-					PQclear(result);
 					retval = TCL_ERROR;
 					goto done;
 				} else {
@@ -2745,8 +2747,6 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 			firstPass = 0;
 		}
-
-		retval = TCL_OK;
 
 		// Loop over the result, even if it's a single row.
 		for (tupno = 0; tupno < PQntuples(result); tupno++)
@@ -2765,7 +2765,6 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				    Tcl_SetVar2Ex(interp, varNameString, ".tupno",
 						  Tcl_NewIntObj(tupno), TCL_LEAVE_ERR_MSG) == NULL)
 				{
-					PQclear(result);
 					retval = TCL_ERROR;
 					goto done;
 				}
@@ -2781,7 +2780,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				if (*string == '\0') {
 					if (PQgetisnull (result, tupno, column)) {
 						if (withoutNulls) {
-							Tcl_UnsetVar2 (interp, varNameString, PQfname(result, column), 0);
+							// Don't need to unset because the array was cleared.
 							continue;
 						}
 
@@ -2798,7 +2797,6 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				if (Tcl_ObjSetVar2(interp, varNameObj, columnNameObjs[column],
 							   valueObj, TCL_LEAVE_ERR_MSG) == NULL)
 				{
-					PQclear(result);
 					retval = TCL_ERROR;
 					goto done;
 				}
@@ -2810,8 +2808,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 			{
 				if (r == TCL_BREAK)
 				{
-					PQclear(result);
-					goto done;			/* exit loop, but return TCL_OK */
+					goto done;			/* exit loop, but leave TCL_OK in retval */
 				}
 
 				if (r == TCL_ERROR)
@@ -2824,7 +2821,6 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				}
 
 				retval = r;
-				PQclear(result);
 				goto done;
 			}
 		}
@@ -2837,11 +2833,14 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	}
 
 	done:
-	if(rowByRow) {
-		/* drain output */
-		while ((result = PQgetResult (conn)) != NULL)
-		{
-			PQclear(result);
+	/* drain output */
+	while (result)
+	{
+		PQclear(result);
+		if(rowByRow) {
+			result = PQgetResult (conn);
+		} else {
+			result = NULL;
 		}
 	}
 	if (columnListObj != NULL)
