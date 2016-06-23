@@ -16,14 +16,8 @@ if {[llength $flist] == 0} {
 
 load [lindex $flist end]
 
-#
-#   set this to your specific location
-#
-array set conninfo {
-    host    localhost
-    port    5843
-    dbname  template1
-    user    postgres
+if [file exists conninfo.tcl] {
+    source conninfo.tcl
 }
 
 if {[file exists [file join $env(HOME) .conninfo.tcl]]} {
