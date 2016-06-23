@@ -4197,10 +4197,17 @@ Pg_dbinfo(ClientData cData, Tcl_Interp *interp, int objc,
      */
     if (optIndex != OPT_CONNECTIONS)
     {
-        if (objc != 3) {
+	if (optIndex == OPT_PARAM) { // OPT_PARAM is a maverick
+        	if (objc != 4) {
+			Tcl_WrongNumArgs(interp, 2, objv, "connHandle paramName");
+			return TCL_ERROR;
+		}
+	} else {
+        	if (objc != 3) {
 			Tcl_WrongNumArgs(interp, 2, objv, "connHandle");
 			return TCL_ERROR;
 		}
+	}
 
 	connString = Tcl_GetString(objv[2]);
 	conn_chan = Tcl_GetChannel(interp, connString, 0);
