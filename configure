@@ -4930,7 +4930,7 @@ done
 
 
 
-    vars="generic/libpgtcl.h"
+    vars=""
     for i in $vars; do
 	# check for existence, be strict because it is installed
 	if test ! -f "${srcdir}/$i" ; then
