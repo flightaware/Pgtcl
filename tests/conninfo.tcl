@@ -3,7 +3,14 @@
 #
 array set conninfo {
     host    localhost
-    port    5747
-    dbname  template1
-    user    postgres
+    port    5432
+    dbname  ####
+    user    ####
 }
+
+# Or copy and fill out the above datastructure into ~/.conninfo
+
+if {[file exists [file join $env(HOME) .conninfo.tcl]]} {
+    source [file join $env(HOME) .conninfo.tcl]
+}
+

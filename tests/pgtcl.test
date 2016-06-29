@@ -20,10 +20,6 @@ if [file exists conninfo.tcl] {
     source conninfo.tcl
 }
 
-if {[file exists [file join $env(HOME) .conninfo.tcl]]} {
-    source [file join $env(HOME) .conninfo.tcl]
-}
-
 #
 #
 #
