@@ -14,19 +14,13 @@
 #
 #	http://docbook2x.sourceforge.net/
 #
-# $Id$
-#
 
 
 DOCBOOKDIR=/usr/local/share/sgml/docbook/dsssl/modular/catalog
 STYLESHEET=stylesheet.dsl
 SGMLSOURCE=libpgtcl.sgml
 
-all:	html man
-#
-# Need to get pdfjadetex working
-#
-# all:	html libpgtcl.pdf
+all:	html man pdf
 
 .PHONY: html man pdf clean
 
@@ -43,7 +37,7 @@ man:	$(SGMLSOURCE)
 	-rm -rf man
 	-mkdir man
 	cp $(SGMLSOURCE) man/$(SGMLSOURCE)
-	cd man && patch <../dtd-patch.txt $(SGMLSOURCE)
+	patch man/$(SGMLSOURCE) < dtd-patch.txt
 	cd man && docbook2man --string-param default-manpage-section=n $(SGMLSOURCE)
 	rm man/$(SGMLSOURCE)*
 	sh ./fix-fi.sh man/*
