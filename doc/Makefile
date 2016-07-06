@@ -46,6 +46,7 @@ man:	$(SGMLSOURCE)
 	cd man && patch <../dtd-patch.txt $(SGMLSOURCE)
 	cd man && docbook2man --string-param default-manpage-section=n $(SGMLSOURCE)
 	rm man/$(SGMLSOURCE)*
+	sh ./fix-fi.sh man/*
 
 
 pdf:	libpgtcl.pdf
