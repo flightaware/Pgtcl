@@ -5,7 +5,7 @@
 \\$2 \(la\\$1\(ra\\$3
 ..
 .if \n(.g .mso www.tmac
-.TH pg_exec n "20 June 2016" "" "PostgreSQL Tcl Interface Documentation"
+.TH pg_exec n "6 July 2016" "" "PostgreSQL Tcl Interface Documentation"
 .SH NAME
 pg_exec \- send a command to the server
 .SH SYNOPSIS
@@ -46,4 +46,5 @@ command.
 .nf
 \*(T<
 pg_exec $conn {select * from table1 where id = $1 and user = $2} $id $user
-\*(T>.fi
+\*(T>
+.fi

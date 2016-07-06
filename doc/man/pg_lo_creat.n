@@ -5,7 +5,7 @@
 \\$2 \(la\\$1\(ra\\$3
 ..
 .if \n(.g .mso www.tmac
-.TH pg_lo_creat n "20 June 2016" "" "PostgreSQL Tcl Interface Documentation"
+.TH pg_lo_creat n "6 July 2016" "" "PostgreSQL Tcl Interface Documentation"
 .SH NAME
 pg_lo_creat \- create a large object
 .SH SYNOPSIS
@@ -30,6 +30,7 @@ example:
 .nf
 \*(T<
 [pg_lo_creat $conn "INV_READ|INV_WRITE"]
-\*(T>.fi
+\*(T>
+.fi
 .SH "RETURN VALUE"
 The OID of the large object created.
