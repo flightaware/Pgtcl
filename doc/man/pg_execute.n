@@ -5,7 +5,7 @@
 \\$2 \(la\\$1\(ra\\$3
 ..
 .if \n(.g .mso www.tmac
-.TH pg_execute n "20 June 2016" "" "PostgreSQL Tcl Interface Documentation"
+.TH pg_execute n "6 July 2016" "" "PostgreSQL Tcl Interface Documentation"
 .SH NAME
 pg_execute \- send a query and optionally loop over the results
 .SH SYNOPSIS
@@ -85,7 +85,8 @@ Insert a row and save the OID in \*(T<result_oid\*(T>:
 .nf
 \*(T<
 pg_execute \-oid result_oid $pgconn "INSERT INTO mytable VALUES (1);"
-\*(T>.fi
+\*(T>
+.fi
 .PP
 Print the columns \*(T<item\*(T> and \*(T<value\*(T> from each
 row:
@@ -95,7 +96,8 @@ row:
 pg_execute \-array d $pgconn "SELECT item, value FROM mytable;" {
     puts "Item=$d(item) Value=$d(value)"
 }
-\*(T>.fi
+\*(T>
+.fi
 .PP
 Find the maximum and minimum values and store them in
 \*(T<$s(max)\*(T> and \*(T<$s(min)\*(T>:
@@ -103,7 +105,8 @@ Find the maximum and minimum values and store them in
 .nf
 \*(T<
 pg_execute \-array s $pgconn "SELECT max(value) AS max, min(value) AS min FROM mytable;"
-\*(T>.fi
+\*(T>
+.fi
 .PP
 Find the maximum and minimum values and store them in
 \*(T<$max\*(T> and \*(T<$min\*(T>:
@@ -111,4 +114,5 @@ Find the maximum and minimum values and store them in
 .nf
 \*(T<
 pg_execute $pgconn "SELECT max(value) AS max, min(value) AS min FROM mytable;"
-\*(T>.fi
+\*(T>
+.fi
