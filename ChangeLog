@@ -1,3 +1,21 @@
+2016-07-06 Jeff Lawson
+    * Increment to 2.0.1
+
+    * Update pre-generated pdf documentation.
+
+    * Update Makefile target to install manpages
+
+2016-07-06 Pietro Cerutti
+    * Avoid installing .h file only needed during build.
+
+2016-07-06 Peter da Silva
+    * Fix some manpage formatting glitches
+
+    * Add more test cases
+
+2016-06-20 Jeff Lawson
+    * Released 2.0.0
+
 2016-06-20 Peter da Silva
     * Add man-page generation using docbook2man
 
