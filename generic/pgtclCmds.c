@@ -2958,7 +2958,9 @@ Pg_select_substituting (ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj 
 	queryString = Tcl_GetString(objv[index++]);
 
 	// Count and validate parameters for PQexecParams(...paramValues...).
-	{
+	// If no parameters array provided, we fall back to the same behaviour as pg_select
+	// for maximal merge-ability later on.
+	if(withParams) {
 	    int nQuotes = 0;
 	    char *cursor = queryString;
 	    while(*cursor) {
@@ -2971,10 +2973,6 @@ Pg_select_substituting (ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj 
 		Tcl_SetResult(interp, "Unmatched substitution back-quotes in SQL query", TCL_STATIC);
 		return TCL_ERROR;
             }
-	    if (nQuotes > 0 && withParams == 0) {
-		Tcl_SetResult(interp, "Parameter array must be specified when substitution back-quotes are provided", TCL_STATIC);
-		return TCL_ERROR;
-	    }
 	    nParams = nQuotes / 2;
 	    if(nParams >= 100000) {
 		Tcl_SetResult(interp, "Too many parameter substitutions requested (max 100,000)", TCL_STATIC);
@@ -3004,7 +3002,7 @@ Pg_select_substituting (ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj 
 		    // Defense, make sure we're not about to stomp over the end of the array
 		    if(paramIndex > nParams) {
 			Tcl_SetResult(interp, "INTERNAL ERROR Inconsistent parameter count", TCL_STATIC);
-			goto abortparamparse;
+			goto cleanup_params_and_exit_error;
 		    }
 
 		    // base and length for name string
@@ -3015,7 +3013,7 @@ Pg_select_substituting (ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj 
 		    while(*input && *input != '`') {
 			if (!isalnum(*input) && *input != '_') {
 			    Tcl_SetResult(interp, "Invalid name between back-quotes", TCL_STATIC);
-			    goto abortparamparse;
+			    goto cleanup_params_and_exit_error;
 			}
 			input++;
 			paramNameLength++;
@@ -3025,7 +3023,7 @@ Pg_select_substituting (ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj 
 		    // but check anyway
 		    if(!*input) {
 			Tcl_SetResult(interp, "INTERNAL ERROR Unmatched back-quote", TCL_STATIC);
-			goto abortparamparse;
+			goto cleanup_params_and_exit_error;
 		    }
 
 		    // Copy name out so we can null terminate it
@@ -3072,7 +3070,7 @@ Pg_select_substituting (ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj 
 	    // If this triggers then something is very wrong with the logic above.
 	    if(paramIndex != nParams) {
 		Tcl_SetResult(interp, "INTERNAL ERROR Inconsistent parameter count", TCL_STATIC);
-		abortparamparse:
+		cleanup_params_and_exit_error:
 		    if(paramValues) ckfree(paramValues);
 		    if(newQueryString) ckfree(newQueryString);
 		    return TCL_ERROR;
@@ -3086,12 +3084,20 @@ Pg_select_substituting (ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj 
 	connid->sql_count++;
 	if (rowByRow)
 	{
+		int status;
+
 		// Make the call
-		if (PQsendQuery(conn, queryString) == 0)
-		{
+		if (nParams) {
+			status = PQSendQueryParams(conn, newQueryString, nParams,
+				NULL, paramValues, NULL, NULL, 0);
+		} else {
+			status = PQsendQuery(conn, queryString);
+		}
+
+		if(status == 0) {
 			/* error occurred sending the query */
 			Tcl_SetResult(interp, PQerrorMessage(conn), TCL_VOLATILE);
-			return TCL_ERROR;
+			goto cleanup_params_and_exit_error;
 		}
 
 		// It doesn't matter if this fails, the logic for handling the results is the same, we'll
@@ -3102,12 +3108,29 @@ Pg_select_substituting (ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj 
 		result = PQgetResult (conn);
 	} else {
 		// Make the call AND queue up the result.
-		if ((result = PQexec(conn, queryString)) == 0)
-		{
+		if (nParams) {
+			result = PQexecParams(conn, newQueryString, nParams,
+				NULL, paramValues, NULL, NULL, 0);
+		} else {
+			result = PQexec(conn, queryString);
+		}
+
+		if (result == 0) {
 			/* error occurred sending the query */
 			Tcl_SetResult(interp, PQerrorMessage(conn), TCL_VOLATILE);
-			return TCL_ERROR;
+			goto cleanup_params_and_exit_error;
 		}
+	}
+
+	// At this point we no longer need these. Zap them so we don't have to worry about them
+	// in the big loop.
+	if(paramValues) {
+		ckfree(paramValues);
+		paramValues = NULL;
+	}
+	if(newQueryString) {
+		ckfree(newQueryString);
+		newQueryString = NULL;
 	}
 
 	/* Transfer any notify events from libpq to Tcl event queue. */
