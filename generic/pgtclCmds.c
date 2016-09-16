@@ -3000,10 +3000,7 @@ Pg_select_substituting (ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj 
 		    ++input;
 
 		    // Defense, make sure we're not about to stomp over the end of the array
-		    if(paramIndex > nParams) {
-			Tcl_SetResult(interp, "INTERNAL ERROR Inconsistent parameter count", TCL_STATIC);
-			goto cleanup_params_and_exit_error;
-		    }
+		    assert(paramIndex < nParams);
 
 		    // base and length for name string
 		    char *nameMarker = input;
@@ -3013,7 +3010,11 @@ Pg_select_substituting (ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj 
 		    while(*input && *input != '`') {
 			if (!isalnum(*input) && *input != '_') {
 			    Tcl_SetResult(interp, "Invalid name between back-quotes", TCL_STATIC);
-			    goto cleanup_params_and_exit_error;
+			    cleanup_params_and_exit_error: {
+				if(paramValues) ckfree(paramValues);
+				if(newQueryString) ckfree(newQueryString);
+				return TCL_ERROR;
+			    }
 			}
 			input++;
 			paramNameLength++;
@@ -3021,10 +3022,7 @@ Pg_select_substituting (ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj 
 
 		    // Should never happen because we already know the back-quotes are paired
 		    // but check anyway
-		    if(!*input) {
-			Tcl_SetResult(interp, "INTERNAL ERROR Unmatched back-quote", TCL_STATIC);
-			goto cleanup_params_and_exit_error;
-		    }
+		    assert(*input != 0);
 
 		    // Copy name out so we can null terminate it
 		    char *paramName = ckalloc(paramNameLength+1);
@@ -3068,13 +3066,7 @@ Pg_select_substituting (ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj 
 	    *output = 0;
 
 	    // If this triggers then something is very wrong with the logic above.
-	    if(paramIndex != nParams) {
-		Tcl_SetResult(interp, "INTERNAL ERROR Inconsistent parameter count", TCL_STATIC);
-		cleanup_params_and_exit_error:
-		    if(paramValues) ckfree(paramValues);
-		    if(newQueryString) ckfree(newQueryString);
-		    return TCL_ERROR;
-	    }
+	    assert(paramIndex == nParams);
 	}
 
 	conn = PgGetConnectionId(interp, connString, &connid);
