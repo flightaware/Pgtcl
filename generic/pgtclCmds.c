@@ -2855,6 +2855,287 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	return retval;
 }
 
+/**********************************
+ * pg_select_substituting
+ send a select query string to the backend connection
+
+ syntax:
+ pg_select_substituting ?-nodotfields? ?-withoutnulls? ?-params paramArray? connection query var proc
+
+ The query must be a select statement
+
+ The var is used in the proc as an array
+
+ The proc is run once for each row found
+
+ .headers, .numcols and .tupno are not set if -nodotfields is specified
+
+ null variables are set as empty strings unless -withoutnulls is specified,
+ in which case null variables are made to simply be absent from the
+ array
+
+ Originally I was also going to update changes but that has turned out
+ to be not so simple.  Instead, the caller should get the OID of any
+ table they want to update and update it themself in the loop.	I may
+ try to write a simplified table lookup and update function to make
+ that task a little easier.
+
+ The return is either TCL_OK, TCL_ERROR or TCL_RETURN and interp->result
+ may contain more information.
+ **********************************/
+
+int
+Pg_select_substituting (ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+{
+	Pg_ConnectionId *connid;
+	PGconn	   *conn;
+	PGresult   *result;
+	int			r,
+				retval = TCL_ERROR;
+	int			tupno,
+				column,
+				ncols = 0;
+	int         withoutNulls = 0;
+	int         noDotFields = 0;
+	int         rowByRow = 0;
+	int         firstPass = 1;
+	int         index = 1;
+	char       *optString;
+	char	   *connString;
+	char	   *queryString;
+	char	   *varNameString;
+	Tcl_Obj    *varNameObj;
+	Tcl_Obj    *procStringObj;
+	Tcl_Obj    *columnListObj = NULL;
+	Tcl_Obj   **columnNameObjs = NULL;
+
+	if (objc < 5 || objc > 10)
+	{
+	    wrongargs:
+		Tcl_WrongNumArgs(interp, 1, objv, "?-nodotfields? ?-rowbyrow? ?-withoutnulls? ?-params paramArray? connection queryString var proc");
+		return TCL_ERROR;
+	}
+
+	while (objc - index >= 5) {
+	    optString = Tcl_GetString (objv[index]);
+	    if (*optString == '-' && strcmp (optString, "-withoutnulls") == 0) {
+	        withoutNulls = 1;
+		index++;
+	    } else if (*optString == '-' && strcmp (optString, "-rowbyrow") == 0) {
+	        rowByRow = 1;
+		index++;
+	    } else if (*optString == '-' && strcmp (optString, "-nodotfields") == 0) {
+	        noDotFields = 1;
+		index++;
+	    } else {
+	        goto wrongargs;
+	    }
+	}
+
+	connString = Tcl_GetString(objv[index++]);
+	queryString = Tcl_GetString(objv[index++]);
+
+	varNameObj = objv[index++];
+	varNameString = Tcl_GetString(varNameObj);
+
+	procStringObj = objv[index++];
+
+	conn = PgGetConnectionId(interp, connString, &connid);
+	if (conn == NULL)
+		return TCL_ERROR;
+
+	connid->sql_count++;
+	if (rowByRow)
+	{
+		// Make the call
+		if (PQsendQuery(conn, queryString) == 0)
+		{
+			/* error occurred sending the query */
+			Tcl_SetResult(interp, PQerrorMessage(conn), TCL_VOLATILE);
+			return TCL_ERROR;
+		}
+
+		// It doesn't matter if this fails, the logic for handling the results is the same, we'll
+		// just have a big wait before the first result comes out.
+		PQsetSingleRowMode (conn);
+
+		// Queue up the result.
+		result = PQgetResult (conn);
+	} else {
+		// Make the call AND queue up the result.
+		if ((result = PQexec(conn, queryString)) == 0)
+		{
+			/* error occurred sending the query */
+			Tcl_SetResult(interp, PQerrorMessage(conn), TCL_VOLATILE);
+			return TCL_ERROR;
+		}
+	}
+
+	/* Transfer any notify events from libpq to Tcl event queue. */
+	// PgNotifyTransferEvents(connid);
+
+	// Invariant from this point: If retval != TCL_OK we're exiting
+	retval = TCL_OK;
+
+	// Invariant from this point - result is NULL or result needs to be PQclear()ed
+	while (result != NULL)
+	{
+		int resultStatus = PQresultStatus(result);
+
+		// Don't care if it's row-by-row or not, these are the only good result statuses either way.
+		if (resultStatus != PGRES_TUPLES_OK && resultStatus != PGRES_SINGLE_TUPLE)
+		{
+			/* query failed, or it wasn't SELECT */
+			/* NB FIX there isn't necessarily an error here,
+			 * meaning we can get an empty string */
+			char *errString = PQresultErrorMessage(result);
+
+			if (*errString == '\0')
+			{
+				errString = PQresStatus (resultStatus);
+			}
+
+			Tcl_SetResult(interp, errString, TCL_VOLATILE);
+			retval = TCL_ERROR;
+			goto done;
+		}
+
+		// Save the list of column names.
+		if (firstPass)
+		{
+			ncols = PQnfields(result);
+			columnNameObjs = (Tcl_Obj **)ckalloc(sizeof(Tcl_Obj *) * ncols);
+
+			for (column = 0; column < ncols; column++) {
+				char *colName = PQfname(result, column);
+				if (colName == NULL) {
+					// PQfname failed, shouldn't happen, but we've seen it
+					char		msg[60];
+
+					sprintf(msg, "PQfname() returned NULL for column %d, ncols %d",
+								column, ncols);
+					Tcl_SetResult(interp, msg, TCL_VOLATILE);
+					retval = TCL_ERROR;
+					goto done;
+				} else {
+					columnNameObjs[column] = Tcl_NewStringObj(colName, -1);
+				}
+			}
+
+			columnListObj = Tcl_NewListObj(ncols, columnNameObjs);
+			Tcl_IncrRefCount (columnListObj);
+
+			firstPass = 0;
+		}
+
+		// Loop over the result, even if it's a single row.
+		for (tupno = 0; tupno < PQntuples(result); tupno++)
+		{
+			// Clear array before filling it in. Ignore failure because it's
+			// OK for the array not to exist at this point.
+			Tcl_UnsetVar2(interp, varNameString, NULL, 0);
+
+			// Set the dot fields in the array.
+			if (!noDotFields)
+			{
+				if (Tcl_SetVar2Ex(interp, varNameString, ".headers",
+						  columnListObj, TCL_LEAVE_ERR_MSG) == NULL ||
+				    Tcl_SetVar2Ex(interp, varNameString, ".numcols",
+						  Tcl_NewIntObj(ncols), TCL_LEAVE_ERR_MSG) == NULL ||
+				    Tcl_SetVar2Ex(interp, varNameString, ".tupno",
+						  Tcl_NewIntObj(tupno), TCL_LEAVE_ERR_MSG) == NULL)
+				{
+					retval = TCL_ERROR;
+					goto done;
+				}
+			}
+
+			// Set all of the column values for this row.
+			for (column = 0; column < ncols; column++)
+			{
+				Tcl_Obj    *valueObj = NULL;
+				char *string;
+
+				string = PQgetvalue (result, tupno, column);
+				if (*string == '\0') {
+					if (PQgetisnull (result, tupno, column)) {
+						if (withoutNulls) {
+							// Don't need to unset because the array was cleared.
+							continue;
+						}
+
+						if ((connid->nullValueString != NULL) && (*connid->nullValueString != '\0')) {
+							valueObj = Tcl_NewStringObj(connid->nullValueString, -1);
+						}
+					}
+				}
+
+				if (valueObj == NULL) {
+					valueObj = Tcl_NewStringObj(string, -1);
+				}
+
+				if (Tcl_ObjSetVar2(interp, varNameObj, columnNameObjs[column],
+							   valueObj, TCL_LEAVE_ERR_MSG) == NULL)
+				{
+					retval = TCL_ERROR;
+					goto done;
+				}
+			}
+
+			// Run the code body.
+			r = Tcl_EvalObjEx(interp, procStringObj, 0);
+			if ((r != TCL_OK) && (r != TCL_CONTINUE))
+			{
+				if (r == TCL_BREAK)
+				{
+					goto done;			/* exit loop, but leave TCL_OK in retval */
+				}
+
+				if (r == TCL_ERROR)
+				{
+					char		msg[60];
+
+					sprintf(msg, "\n    (\"pg_select\" body line %d)",
+							Tcl_GetErrorLine(interp));
+					Tcl_AddErrorInfo(interp, msg);
+				}
+
+				retval = r;
+				goto done;
+			}
+		}
+		PQclear(result);
+		if(rowByRow) {
+			result = PQgetResult (conn);
+		} else {
+			result = NULL;
+		}
+	}
+
+	done:
+	/* drain output */
+	while (result)
+	{
+		PQclear(result);
+		if(rowByRow) {
+			result = PQgetResult (conn);
+		} else {
+			result = NULL;
+		}
+	}
+	if (columnListObj != NULL)
+	{
+		Tcl_DecrRefCount (columnListObj);
+	}
+	if (columnNameObjs != NULL)
+	{
+		ckfree((void *)columnNameObjs);
+	}
+	Tcl_UnsetVar(interp, varNameString, 0);
+	return retval;
+}
+
+
 /*
  * Test whether any callbacks are registered on this connection for
  * the given relation name.  NB: supplied name must be case-folded already.
