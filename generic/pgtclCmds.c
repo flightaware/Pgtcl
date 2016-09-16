@@ -2874,6 +2874,19 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
  in which case null variables are made to simply be absent from the
  array
 
+ If -params is provided, then occurrences of `name` will be replaced (via PQexecParams)
+ with the corresponding value from paramArray. If the array doesn't contain the name
+ then NULL will be replaced instead.
+
+  * `name` must occur in a location where a value or field name could occur.
+
+  * There are a maximum of 99,999 substitutions.
+
+  * The name must contain only alphanumercis and underscores.
+
+ If -params is not provided, it is an error for the string to contain the backtick (`)
+ character.
+
  Originally I was also going to update changes but that has turned out
  to be not so simple.  Instead, the caller should get the OID of any
  table they want to update and update it themself in the loop.	I may
@@ -2900,6 +2913,8 @@ Pg_select_substituting (ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj 
 	int         rowByRow = 0;
 	int         firstPass = 1;
 	int         index = 1;
+	int	    withParams = 0;
+	int	    nParams = 0;
 	char       *optString;
 	char	   *connString;
 	char	   *queryString;
@@ -2908,13 +2923,7 @@ Pg_select_substituting (ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj 
 	Tcl_Obj    *procStringObj;
 	Tcl_Obj    *columnListObj = NULL;
 	Tcl_Obj   **columnNameObjs = NULL;
-
-	if (objc < 5 || objc > 10)
-	{
-	    wrongargs:
-		Tcl_WrongNumArgs(interp, 1, objv, "?-nodotfields? ?-rowbyrow? ?-withoutnulls? ?-params paramArray? connection queryString var proc");
-		return TCL_ERROR;
-	}
+	Tcl_Obj    *paramArrayObj = NULL;
 
 	while (objc - index >= 5) {
 	    optString = Tcl_GetString (objv[index]);
@@ -2927,13 +2936,49 @@ Pg_select_substituting (ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj 
 	    } else if (*optString == '-' && strcmp (optString, "-nodotfields") == 0) {
 	        noDotFields = 1;
 		index++;
+	    } else if (*optString == '-' && strcmp (optString, "-params") == 0) {
+	        withParams = 1;
+		index++;
+		paramArrayObj = objv[index];
+		index++;
 	    } else {
 	        goto wrongargs;
 	    }
 	}
 
+	if (objc - index != 4) {
+	    wrongargs:
+		Tcl_WrongNumArgs(interp, 1, objv, "?-nodotfields? ?-rowbyrow? ?-withoutnulls? ?-params paramArray? connection queryString var proc");
+		return TCL_ERROR;
+	}
+
 	connString = Tcl_GetString(objv[index++]);
 	queryString = Tcl_GetString(objv[index++]);
+
+	// Count and validate parameters for PQexecParams(...paramValues...).
+	{
+	    int nQuotes = 0;
+	    char *cursor = queryString;
+	    while(*cursor) {
+		if(*cursor == '`') {
+		    nQuotes++;
+		}
+		cursor++;
+	    }
+	    if (nQuotes & 1) {
+		Tcl_SetResult(interp, "Unmatched substitution back-quotes in SQL query", TCL_STATIC);
+		return TCL_ERROR;
+            }
+	    if (nQuotes > 0 && withParams == 0) {
+		Tcl_SetResult(interp, "Parameter array must be specified when substitution back-quotes are provided", TCL_STATIC);
+		return TCL_ERROR;
+	    }
+	    nParams = nQuotes / 2;
+	    if(nParams >= 100000) {
+		Tcl_SetResult(interp, "Too many parameter substitutions requested (max 100,000)", TCL_STATIC);
+		return TCL_ERROR;
+	    }
+	}
 
 	varNameObj = objv[index++];
 	varNameString = Tcl_GetString(varNameObj);
