@@ -286,7 +286,7 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
     static CONST84 char *options[] = {
         "quote", "escape_bytea", "unescape_bytea", "disconnect", "exec", 
-	"sqlexec", "execute", "select", 
+	"sqlexec", "execute", "select", "select_substituting",
 	"listen", "on_connection_loss", "lo_creat", "lo_open", "lo_close", 
         "lo_read", "lo_write", "lo_lseek", "lo_tell", "lo_truncate", 
 	"lo_unlink", "lo_import", "lo_export", "sendquery", "exec_prepared", 
@@ -299,7 +299,7 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
     enum options
     {
         QUOTE, ESCAPE_BYTEA, UNESCAPE_BYTEA, DISCONNECT, EXEC, 
-	SQLEXEC, EXECUTE, SELECT, 
+	SQLEXEC, EXECUTE, SELECT, SELECT_SUBSTITUTING,
 	LISTEN, ON_CONNECTION_LOSS, LO_CREAT, LO_OPEN, LO_CLOSE, 
 	LO_READ, LO_WRITE, LO_LSEEK, LO_TELL, LO_TRUNCATE, LO_UNLINK, 
 	LO_IMPORT, LO_EXPORT, SENDQUERY, EXEC_PREPARED, 
@@ -446,6 +446,12 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
         {
             objvx[1] = Tcl_NewStringObj(connid->id, -1);
             returnCode = Pg_select(cData, interp, objc, objvx);
+			break;
+        }
+        case SELECT_SUBSTITUTING:
+        {
+            objvx[1] = Tcl_NewStringObj(connid->id, -1);
+            returnCode = Pg_select_substituting(cData, interp, objc, objvx);
 			break;
         }
         case LISTEN:
