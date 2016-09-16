@@ -16,6 +16,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <libpq-fe.h>
+#include <assert.h>
 
 #include "pgtclCmds.h"
 #include "pgtclId.h"
@@ -2901,31 +2902,31 @@ int
 Pg_select_substituting (ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	Pg_ConnectionId *connid;
-	PGconn	   *conn;
-	PGresult   *result;
+	PGconn	    *conn;
+	PGresult    *result;
 	int			r,
 				retval = TCL_ERROR;
 	int			tupno,
 				column,
 				ncols = 0;
-	int         withoutNulls = 0;
-	int         noDotFields = 0;
-	int         rowByRow = 0;
-	int         firstPass = 1;
-	int         index = 1;
-	int	    withParams = 0;
-	int	    nParams = 0;
-	char       *optString;
-	char	   *connString;
-	char	   *queryString;
-	char	   *varNameString;
-	char       *paramArrayName = NULL;
-	Tcl_Obj    *varNameObj;
-	Tcl_Obj    *procStringObj;
-	Tcl_Obj    *columnListObj = NULL;
-	Tcl_Obj   **columnNameObjs = NULL;
-	char       *paramvalues = NULL;
-	char       *newQueryString = NULL;
+	int          withoutNulls = 0;
+	int          noDotFields = 0;
+	int          rowByRow = 0;
+	int          firstPass = 1;
+	int          index = 1;
+	int	     withParams = 0;
+	int	     nParams = 0;
+	char        *optString;
+	char	    *connString;
+	char	    *queryString;
+	char	    *varNameString;
+	char        *paramArrayName = NULL;
+	Tcl_Obj     *varNameObj;
+	Tcl_Obj     *procStringObj;
+	Tcl_Obj     *columnListObj = NULL;
+	Tcl_Obj    **columnNameObjs = NULL;
+	const char **paramValues = NULL;
+	char        *newQueryString = NULL;
 
 	while (objc - index >= 5) {
 	    optString = Tcl_GetString (objv[index]);
@@ -2986,9 +2987,9 @@ Pg_select_substituting (ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj 
 	procStringObj = objv[index++];
 
 	if (nParams) {
-	    paramValues = ckalloc(nParams * sizeof (*paramValues));
+	    paramValues = (const char **)ckalloc(nParams * sizeof (*paramValues));
 	    // Allocating space for parameter IDs up to 100,000 (5 characters)
-	    newQueryString = ckalloc(strlen(queryString) + 5 * nparams);
+	    newQueryString = ckalloc(strlen(queryString) + 5 * nParams);
 
 	    char *input = queryString;
 	    char *output = newQueryString;
@@ -3034,7 +3035,7 @@ Pg_select_substituting (ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj 
 		    Tcl_Obj *paramValueObj = Tcl_GetVar2Ex(interp, paramArrayName, paramName, 0);
 
 		    // This has done its work, ditch it;
-		    ckfree(paramName)
+		    ckfree(paramName);
 		    paramName = NULL;
 
 		    // If the name is not present in the parameter array, then treat it as a NULL
@@ -3080,7 +3081,7 @@ Pg_select_substituting (ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj 
 
 		// Make the call
 		if (nParams) {
-			status = PQSendQueryParams(conn, newQueryString, nParams,
+			status = PQsendQueryParams(conn, newQueryString, nParams,
 				NULL, paramValues, NULL, NULL, 0);
 		} else {
 			status = PQsendQuery(conn, queryString);
