@@ -2919,11 +2919,13 @@ Pg_select_substituting (ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj 
 	char	   *connString;
 	char	   *queryString;
 	char	   *varNameString;
+	char       *paramArrayName = NULL;
 	Tcl_Obj    *varNameObj;
 	Tcl_Obj    *procStringObj;
 	Tcl_Obj    *columnListObj = NULL;
 	Tcl_Obj   **columnNameObjs = NULL;
-	Tcl_Obj    *paramArrayObj = NULL;
+	char       *paramvalues = NULL;
+	char       *newQueryString = NULL;
 
 	while (objc - index >= 5) {
 	    optString = Tcl_GetString (objv[index]);
@@ -2939,7 +2941,7 @@ Pg_select_substituting (ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj 
 	    } else if (*optString == '-' && strcmp (optString, "-params") == 0) {
 	        withParams = 1;
 		index++;
-		paramArrayObj = objv[index];
+		paramArrayName = Tcl_GetString(objv[index]);
 		index++;
 	    } else {
 	        goto wrongargs;
@@ -2984,6 +2986,94 @@ Pg_select_substituting (ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj 
 	varNameString = Tcl_GetString(varNameObj);
 
 	procStringObj = objv[index++];
+
+	if (nParams) {
+	    paramValues = ckalloc(nParams * sizeof (*paramValues));
+	    // Allocating space for parameter IDs up to 100,000 (5 characters)
+	    newQueryString = ckalloc(strlen(queryString) + 5 * nparams);
+
+	    char *input = queryString;
+	    char *output = newQueryString;
+	    int paramIndex = 0;
+
+	    while(*input) {
+		if(*input == '`') {
+		    // Step over quote
+		    ++input;
+
+		    // Defense, make sure we're not about to stomp over the end of the array
+		    if(paramIndex > nParams) {
+			Tcl_SetResult(interp, "INTERNAL ERROR Inconsistent parameter count", TCL_STATIC);
+			goto abortparamparse;
+		    }
+
+		    // base and length for name string
+		    char *nameMarker = input;
+		    int paramNameLength = 0;
+
+		    // Step over name, making sure it's legit
+		    while(*input && *input != '`') {
+			if (!isalnum(*input) && *input != '_') {
+			    Tcl_SetResult(interp, "Invalid name between back-quotes", TCL_STATIC);
+			    goto abortparamparse;
+			}
+			input++;
+			paramNameLength++;
+		    }
+
+		    // Should never happen because we already know the back-quotes are paired
+		    // but check anyway
+		    if(!*input) {
+			Tcl_SetResult(interp, "INTERNAL ERROR Unmatched back-quote", TCL_STATIC);
+			goto abortparamparse;
+		    }
+
+		    // Copy name out so we can null terminate it
+		    char *paramName = ckalloc(paramNameLength+1);
+		    strncpy(paramName, nameMarker, paramNameLength);
+		    paramName[paramNameLength] = 0;
+
+		    // Get name from array. Ignore errors. Maybe we want to trap some errors?
+		    // Think about that later.
+		    Tcl_Obj *paramValueObj = Tcl_GetVar2Ex(interp, paramArrayName, paramName, 0);
+
+		    // If the name is not present in the parameter array, then treat it as a NULL
+		    // in the SQL sense, represented by a literal NULL in the parameter list
+		    if(paramValueObj) {
+			paramValues[paramIndex] = Tcl_GetString(paramValueObj);
+		    } else {
+			paramValues[paramIndex] = NULL;
+		    }
+
+		    // First param (paramValues[0]) is $1, etc...
+		    sprintf(output, "$%d", paramIndex + 1);
+		    output += strlen(output);
+
+		    // step into next parameter
+		    paramIndex++;
+
+		    // step over closing back-quote
+		    input++;
+		} else {
+		    // Literally copy everything outside `name`
+		    *output = *input;
+		    output++;
+		    input++;
+		}
+	    }
+
+	    // Null terminate that puppy
+	    *output = 0;
+
+	    // If this triggers then something is very wrong with the logic above.
+	    if(paramIndex != nParams) {
+		Tcl_SetResult(interp, "INTERNAL ERROR Inconsistent parameter count", TCL_STATIC);
+		abortparamparse:
+		    if(paramValues) ckfree(paramValues);
+		    if(newQueryString) ckfree(newQueryString);
+		    return TCL_ERROR;
+	    }
+	}
 
 	conn = PgGetConnectionId(interp, connString, &connid);
 	if (conn == NULL)
