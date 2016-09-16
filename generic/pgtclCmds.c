@@ -3037,6 +3037,10 @@ Pg_select_substituting (ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj 
 		    // Think about that later.
 		    Tcl_Obj *paramValueObj = Tcl_GetVar2Ex(interp, paramArrayName, paramName, 0);
 
+		    // This has done its work, ditch it;
+		    ckfree(paramName)
+		    paramName = NULL;
+
 		    // If the name is not present in the parameter array, then treat it as a NULL
 		    // in the SQL sense, represented by a literal NULL in the parameter list
 		    if(paramValueObj) {
