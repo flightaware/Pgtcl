@@ -32,6 +32,9 @@
 static int execute_put_values(Tcl_Interp *interp, CONST84 char *array_varname,
 				   PGresult *result, char *nullString, int tupno);
 
+static int count_parameters(Tcl_Interp *interp, char *queryString, int *nParamsPtr);
+
+static int expand_parameters(Tcl_Interp *interp, char *queryString, int nParams, char *paramArrayName, char **newQueryStringPtr, const char ***paramValuesPtr);
 
 #ifdef TCL_ARRAYS
 
@@ -2576,6 +2579,146 @@ Pg_lo_export(ClientData cData, Tcl_Interp *interp, int objc,
 	return TCL_OK;
 }
 
+/*********************************
+ * Helper functions for Pg_select()
+ *********************************/
+
+/* count_parameters
+
+ Returns TCL_OK or TCL_ERROR
+
+ If successful, sets nParams to the number of expected parameters in queryString
+ */
+static int count_parameters(Tcl_Interp *interp, char *queryString, int *nParamsPtr)
+{
+
+    int nQuotes = 0;
+    int nParams;
+    char *cursor = queryString;
+    while(*cursor) {
+	if(*cursor == '`') {
+	    nQuotes++;
+	}
+	cursor++;
+    }
+    if (nQuotes & 1) {
+	Tcl_SetResult(interp, "Unmatched substitution back-quotes in SQL query", TCL_STATIC);
+	return TCL_ERROR;
+    }
+    nParams = nQuotes / 2;
+    if(nParams >= 100000) {
+	Tcl_SetResult(interp, "Too many parameter substitutions requested (max 100,000)", TCL_STATIC);
+	return TCL_ERROR;
+    }
+    *nParamsPtr = nParams;
+    return TCL_OK;
+}
+
+/* expand_paremeters
+
+ Returns TCL_OK or TCL_ERROR
+
+ If successful, allocates newQueryString and paramValues array.
+
+ If not, does not modify the arguments.
+ */
+static int expand_parameters(Tcl_Interp *interp, char *queryString, int nParams, char *paramArrayName, char **newQueryStringPtr, const char ***paramValuesPtr)
+{
+	// Allocating space for parameter IDs up to 100,000 (5 characters)
+	char        *newQueryString = ckalloc(strlen(queryString) + 5 * nParams);
+	const char **paramValues    = (const char **)ckalloc(nParams * sizeof (*paramValues));
+	char         *input         = queryString;
+	char         *output        = newQueryString;
+	int           paramIndex    = 0;
+
+	while(*input) {
+	    if(*input == '`') {
+		// Step over quote
+		++input;
+
+		// Defense, make sure we're not about to stomp over the end of the array
+		assert(paramIndex < nParams);
+
+		// base and length for name string
+		char *nameMarker = input;
+		int paramNameLength = 0;
+
+		// Step over name, making sure it's legit
+		while(*input && *input != '`') {
+		    if (!isalnum(*input) && *input != '_') {
+			Tcl_SetResult(interp, "Invalid name between back-quotes", TCL_STATIC);
+			goto error_return;
+		    }
+		    input++;
+		    paramNameLength++;
+		}
+
+		// More likely a mistake than some bizarre attempt to use the null name in the param array.
+		if(paramNameLength == 0) {
+		    Tcl_SetResult(interp, "Parameter name must not be empty", TCL_STATIC);
+		    goto error_return;
+		}
+
+		// Should never happen because we already know the back-quotes are paired
+		// but check anyway
+		assert(*input != 0);
+
+		// Copy name out so we can null terminate it
+		char *paramName = ckalloc(paramNameLength+1);
+		strncpy(paramName, nameMarker, paramNameLength);
+		paramName[paramNameLength] = 0;
+
+		// Get name from array. Ignore errors. Maybe we want to trap some errors?
+		// Think about that later.
+		Tcl_Obj *paramValueObj = Tcl_GetVar2Ex(interp, paramArrayName, paramName, 0);
+
+		// This has done its work, ditch it;
+		ckfree(paramName);
+		paramName = NULL;
+
+		// If the name is not present in the parameter array, then treat it as a NULL
+		// in the SQL sense, represented by a literal NULL in the parameter list
+		if(paramValueObj) {
+		    paramValues[paramIndex] = Tcl_GetString(paramValueObj);
+		} else {
+		    paramValues[paramIndex] = NULL;
+		}
+
+		// First param (paramValues[0]) is $1, etc...
+		sprintf(output, "$%d", paramIndex + 1);
+		output += strlen(output);
+
+		// step into next parameter
+		paramIndex++;
+
+		// step over closing back-quote
+		input++;
+	    } else {
+		// Literally copy everything outside `name`
+		*output = *input;
+		output++;
+		input++;
+	    }
+	}
+
+	// Null terminate that puppy
+	*output = 0;
+
+	// If this triggers then something is very wrong with the logic above.
+	assert(paramIndex == nParams);
+
+	// Normal return, push parameters and return OK.
+	*paramValuesPtr = paramValues;
+	*newQueryStringPtr = newQueryString;
+	return TCL_OK;
+
+error_return:
+	// Something went wrong, clean up and return ERROR.
+	if(paramValues) ckfree(paramValues);
+	if(newQueryString) ckfree(newQueryString);
+	return TCL_ERROR;
+}
+
 /**********************************
  * pg_select
  send a select query string to the backend connection
@@ -2679,21 +2822,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	// If no parameters array provided, we fall back to the same behaviour as pg_select
 	// for maximal merge-ability later on.
 	if(withParams) {
-	    int nQuotes = 0;
-	    char *cursor = queryString;
-	    while(*cursor) {
-		if(*cursor == '`') {
-		    nQuotes++;
-		}
-		cursor++;
-	    }
-	    if (nQuotes & 1) {
-		Tcl_SetResult(interp, "Unmatched substitution back-quotes in SQL query", TCL_STATIC);
-		return TCL_ERROR;
-	    }
-	    nParams = nQuotes / 2;
-	    if(nParams >= 100000) {
-		Tcl_SetResult(interp, "Too many parameter substitutions requested (max 100,000)", TCL_STATIC);
+	    if(count_parameters(interp, queryString, &nParams) == TCL_ERROR) {
 		return TCL_ERROR;
 	    }
 	}
@@ -2704,98 +2833,19 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	procStringObj = objv[index++];
 
 	if (nParams) {
-	    paramValues = (const char **)ckalloc(nParams * sizeof (*paramValues));
-	    // Allocating space for parameter IDs up to 100,000 (5 characters)
-	    newQueryString = ckalloc(strlen(queryString) + 5 * nParams);
-
-	    char *input = queryString;
-	    char *output = newQueryString;
-	    int paramIndex = 0;
-
-	    while(*input) {
-		if(*input == '`') {
-		    // Step over quote
-		    ++input;
-
-		    // Defense, make sure we're not about to stomp over the end of the array
-		    assert(paramIndex < nParams);
-
-		    // base and length for name string
-		    char *nameMarker = input;
-		    int paramNameLength = 0;
-
-		    // Step over name, making sure it's legit
-		    while(*input && *input != '`') {
-			if (!isalnum(*input) && *input != '_') {
-			    Tcl_SetResult(interp, "Invalid name between back-quotes", TCL_STATIC);
-			    cleanup_params_and_exit_error: {
-				if(paramValues) ckfree(paramValues);
-				if(newQueryString) ckfree(newQueryString);
-				return TCL_ERROR;
-			    }
-			}
-			input++;
-			paramNameLength++;
-		    }
-
-		    // More likely a mistake than some bizarre attempt to use the null name in the param array.
-		    if(paramNameLength == 0) {
-			Tcl_SetResult(interp, "Parameter name must not be empty", TCL_STATIC);
-			goto cleanup_params_and_exit_error;
-		    }
-
-		    // Should never happen because we already know the back-quotes are paired
-		    // but check anyway
-		    assert(*input != 0);
-
-		    // Copy name out so we can null terminate it
-		    char *paramName = ckalloc(paramNameLength+1);
-		    strncpy(paramName, nameMarker, paramNameLength);
-		    paramName[paramNameLength] = 0;
-
-		    // Get name from array. Ignore errors. Maybe we want to trap some errors?
-		    // Think about that later.
-		    Tcl_Obj *paramValueObj = Tcl_GetVar2Ex(interp, paramArrayName, paramName, 0);
-
-		    // This has done its work, ditch it;
-		    ckfree(paramName);
-		    paramName = NULL;
-
-		    // If the name is not present in the parameter array, then treat it as a NULL
-		    // in the SQL sense, represented by a literal NULL in the parameter list
-		    if(paramValueObj) {
-			paramValues[paramIndex] = Tcl_GetString(paramValueObj);
-		    } else {
-			paramValues[paramIndex] = NULL;
-		    }
-
-		    // First param (paramValues[0]) is $1, etc...
-		    sprintf(output, "$%d", paramIndex + 1);
-		    output += strlen(output);
-
-		    // step into next parameter
-		    paramIndex++;
-
-		    // step over closing back-quote
-		    input++;
-		} else {
-		    // Literally copy everything outside `name`
-		    *output = *input;
-		    output++;
-		    input++;
-		}
+	    if(expand_parameters(interp, queryString, nParams, paramArrayName, &newQueryString, &paramValues) == TCL_ERROR) {
+		return TCL_ERROR;
 	    }
-
-	    // Null terminate that puppy
-	    *output = 0;
-
-	    // If this triggers then something is very wrong with the logic above.
-	    assert(paramIndex == nParams);
 	}
 
 	conn = PgGetConnectionId(interp, connString, &connid);
-	if (conn == NULL)
+	if (conn == NULL) {
+	    cleanup_params_and_return_error: {
+		if(paramValues) ckfree(paramValues);
+		if(newQueryString) ckfree(newQueryString);
 		return TCL_ERROR;
+	    }
+	}
 
 	connid->sql_count++;
 	if (rowByRow)
@@ -2813,7 +2863,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		if(status == 0) {
 			/* error occurred sending the query */
 			Tcl_SetResult(interp, PQerrorMessage(conn), TCL_VOLATILE);
-			goto cleanup_params_and_exit_error;
+			goto cleanup_params_and_return_error;
 		}
 
 		// It doesn't matter if this fails, the logic for handling the results is the same, we'll
@@ -2834,7 +2884,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		if (result == 0) {
 			/* error occurred sending the query */
 			Tcl_SetResult(interp, PQerrorMessage(conn), TCL_VOLATILE);
-			goto cleanup_params_and_exit_error;
+			goto cleanup_params_and_return_error;
 		}
 	}
 
