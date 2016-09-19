@@ -3021,6 +3021,12 @@ Pg_select_substituting (ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj 
 			paramNameLength++;
 		    }
 
+		    // More likely a mistake than some bizarre attempt to use the null name in the param array.
+		    if(paramNameLength == 0) {
+			Tcl_SetResult(interp, "Parameter name must not be empty", TCL_STATIC);
+			goto cleanup_params_and_exit_error;
+		    }
+
 		    // Should never happen because we already know the back-quotes are paired
 		    // but check anyway
 		    assert(*input != 0);
