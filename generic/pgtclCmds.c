@@ -2581,7 +2581,7 @@ Pg_lo_export(ClientData cData, Tcl_Interp *interp, int objc,
  send a select query string to the backend connection
 
  syntax:
- pg_select ?-nodotfields? ?-withoutnulls? ?-params paramArray? connection query var proc
+ pg_select ?-nodotfields? ?-withoutnulls? ?-paramarray var? connection query var proc
 
  The query must be a select statement
 
@@ -2595,7 +2595,7 @@ Pg_lo_export(ClientData cData, Tcl_Interp *interp, int objc,
  in which case null variables are made to simply be absent from the
  array
 
- If -params is provided, then occurrences of `name` will be replaced (via PQexecParams)
+ If -paramarray is provided, then occurrences of `name` will be replaced (via PQexecParams)
  with the corresponding value from paramArray. If the array doesn't contain the name
  then NULL will be replaced instead.
 
@@ -2604,9 +2604,6 @@ Pg_lo_export(ClientData cData, Tcl_Interp *interp, int objc,
   * There are a maximum of 99,999 substitutions.
 
   * The name must contain only alphanumercis and underscores.
-
- If -params is not provided, it is an error for the string to contain the backtick (`)
- character.
 
  Originally I was also going to update changes but that has turned out
  to be not so simple.  Instead, the caller should get the OID of any
@@ -2659,7 +2656,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	    } else if (*optString == '-' && strcmp (optString, "-nodotfields") == 0) {
 	        noDotFields = 1;
 		index++;
-	    } else if (*optString == '-' && strcmp (optString, "-params") == 0) {
+	    } else if (*optString == '-' && strcmp (optString, "-paramarray") == 0) {
 	        withParams = 1;
 		index++;
 		paramArrayName = Tcl_GetString(objv[index]);
@@ -2693,7 +2690,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	    if (nQuotes & 1) {
 		Tcl_SetResult(interp, "Unmatched substitution back-quotes in SQL query", TCL_STATIC);
 		return TCL_ERROR;
-            }
+	    }
 	    nParams = nQuotes / 2;
 	    if(nParams >= 100000) {
 		Tcl_SetResult(interp, "Too many parameter substitutions requested (max 100,000)", TCL_STATIC);
