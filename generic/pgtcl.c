@@ -64,7 +64,6 @@ static PgCmd commands[] = {
     {"pg_exec", "::pg::sqlexec", Pg_exec,2},
     {"pg_exec_prepared", "::pg::exec_prepared", Pg_exec_prepared,3},
     {"pg_select", "::pg::select", Pg_select,2},
-    {"pg_select_substituting", "::pg::select_substituting", Pg_select_substituting,3},
     {"pg_result", "::pg::result", Pg_result,2},
     {"pg_execute", "::pg::execute", Pg_execute,2},
     {"pg_lo_open", "::pg::lo_open", Pg_lo_open,2},
