@@ -21,6 +21,12 @@ dnl	to configure the system for the local environment.
 
 AC_INIT([pgtcl], [2.0.1])
 
+#-----
+# Version with patch stripped
+#-----
+
+AC_SUBST(PKG_MAJ_MIN,`expr $PACKAGE_VERSION : '\(.*\)\..*'`)
+
 #--------------------------------------------------------------------
 # Call TEA_INIT as the first TEA_ macro to set up initial vars.
 # This will define a ${TEA_PLATFORM} variable == "unix" or "windows"

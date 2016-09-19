@@ -79,7 +79,8 @@ mandir		= @mandir@
 
 DESTDIR		=
 
-PKG_DIR		= $(PACKAGE_NAME)$(PACKAGE_VERSION)
+PKG_MAJ_MIN     = @PKG_MAJ_MIN@
+PKG_DIR         = $(PACKAGE_NAME)$(PKG_MAJ_MIN)
 pkgdatadir	= $(datadir)/$(PKG_DIR)
 pkglibdir	= $(libdir)/$(PKG_DIR)
 pkgincludedir	= $(includedir)/$(PKG_DIR)

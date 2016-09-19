@@ -698,6 +698,7 @@ PKG_STUB_LIB_FILE
 PKG_LIB_FILE
 EXEEXT
 CYGPATH
+PKG_MAJ_MIN
 target_alias
 host_alias
 build_alias
@@ -2176,6 +2177,13 @@ ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
+
+
+#-----
+# Version with patch stripped
+#-----
+
+PKG_MAJ_MIN=`expr $PACKAGE_VERSION : '\(.*\)\..*'`
 
 
 #--------------------------------------------------------------------
