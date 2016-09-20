@@ -32,9 +32,12 @@
 static int execute_put_values(Tcl_Interp *interp, CONST84 char *array_varname,
 				   PGresult *result, char *nullString, int tupno);
 
-static int count_parameters(Tcl_Interp *interp, char *queryString, int *nParamsPtr);
+static int count_parameters(Tcl_Interp *interp, char *queryString,
+				    int *nParamsPtr);
 
-static int expand_parameters(Tcl_Interp *interp, char *queryString, int nParams, char *paramArrayName, char **newQueryStringPtr, const char ***paramValuesPtr);
+static int expand_parameters(Tcl_Interp *interp, char *queryString,
+				    int nParams, char *paramArrayName,
+				    char **newQueryStringPtr, const char ***paramValuesPtr);
 
 #ifdef TCL_ARRAYS
 
@@ -2622,10 +2625,11 @@ static int count_parameters(Tcl_Interp *interp, char *queryString, int *nParamsP
 
  If not, does not modify the arguments.
  */
-static int expand_parameters(Tcl_Interp *interp, char *queryString, int nParams, char *paramArrayName, char **newQueryStringPtr, const char ***paramValuesPtr)
+static int expand_parameters(Tcl_Interp *interp, char *queryString, int nParams, char *paramArrayName,
+				char **newQueryStringPtr, const char ***paramValuesPtr)
 {
 	// Allocating space for parameter IDs up to 100,000 (5 characters)
-	char        *newQueryString = ckalloc(strlen(queryString) + 5 * nParams);
+	char        *newQueryString = (char *)ckalloc(strlen(queryString) + 5 * nParams);
 	const char **paramValues    = (const char **)ckalloc(nParams * sizeof (*paramValues));
 	char         *input         = queryString;
 	char         *output        = newQueryString;
@@ -2811,7 +2815,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 	if (objc - index != 4) {
 	    wrongargs:
-		Tcl_WrongNumArgs(interp, 1, objv, "?-nodotfields? ?-rowbyrow? ?-withoutnulls? ?-params paramArray? connection queryString var proc");
+		Tcl_WrongNumArgs(interp, 1, objv, "?-nodotfields? ?-rowbyrow? ?-withoutnulls? ?-paramarray var? connection queryString var proc");
 		return TCL_ERROR;
 	}
 
