@@ -1,44 +1,42 @@
 
-$Id$
+# $Id$
 
-This is the start of a tests directory.
+# This is the start of a tests directory.
 
-Right now you can start up a default database, like one owned by you,
-and use psql
+# Right now you can start up a default database, like one owned by you,
+# and use psql
 
-psql
-karl=# \i create.sql
+psql -c '\i create.sql'
 
-You can time importing the 5,000 sample data items by doing a
+# You can time importing the 5,000 sample data items by doing a
 
-time tclsh8.4 import_sampledata.tcl
+time tclsh import_sampledata.tcl
 
-You can time importing the 5,000 sample data items via a prepared
-statement using
+# You can time importing the 5,000 sample data items via a prepared
+# statement using
 
-time tclsh8.4 import_sampledata_prepared.tcl
+time tclsh import_sampledata_prepared.tcl
 
-You can time importing the 5,000 sample data items as one single
-transaction using
+# You can time importing the 5,000 sample data items as one single
+# transaction using
 
-time tclsh8.4 import_sampledata_onetransaction.tcl
+time tclsh import_sampledata_onetransaction.tcl
 
-You can time importing the 5,000 sample data items as single
-transaction but using a pre-prepared statement using
+# You can time importing the 5,000 sample data items as single
+# transaction but using a pre-prepared statement using
 
-time tclsh8.4 import_sampledata_prepared_onetransaction.tcl
+time tclsh import_sampledata_prepared_onetransaction.tcl
 
-
-You will see that batching lots of inserts into a single transaction is
-much faster, and although even batching prepared statements as a single
-transaction is much faster than separate transactions, its still slower
-than import_sampledata_onetransaction, since it communicates each
-insert separately to the server.
-
-The trouble with doing tons of inserts as one transaction is that any error
-in any insert will abort the entire transaction.  Postgres 8 is supposed
-to have powerful new capabilities to handle errors in the middle of a
-transaction without aborting the transaction.
-
-The data set is in sampledata.txt.
+# You will see that batching lots of inserts into a single transaction is
+# much faster, and although even batching prepared statements as a single
+# transaction is much faster than separate transactions, its still slower
+# than import_sampledata_onetransaction, since it communicates each
+# insert separately to the server.
+# 
+# The trouble with doing tons of inserts as one transaction is that any error
+# in any insert will abort the entire transaction.  Postgres 8 is supposed
+# to have powerful new capabilities to handle errors in the middle of a
+# transaction without aborting the transaction.
+# 
+# The data set is in sampledata.txt.
 

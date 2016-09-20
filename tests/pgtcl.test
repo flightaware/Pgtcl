@@ -609,7 +609,7 @@ test pgtcl-5.2 {escape a binary string} -body {
     set qstr [pg::escape_bytea $bn]
 
     set qstr
-} -result \\\\000\\\\\\\\HELLO''s
+} -result \\000\\\\HELLO''s
 
 #
 #
@@ -784,7 +784,7 @@ test pgtcl-9.1 {dbinfo version} -body {
     lappend res [string equal $val $val2]
     ::pg::disconnect $conn
 
-    lappend res [regexp {(7|8)0([0-9])0([0-9])} $val]
+    lappend res [regexp {(7|8|9)0([0-9])0([0-9])} $val]
 
 } -result [list 1 1]
 
@@ -818,7 +818,7 @@ test pgtcl-9.3 {dbinfo param} -body {
     lappend res [string equal $val $val2]
     ::pg::disconnect $conn
 
-    lappend res [regexp {(7|8)\.([0-9])\.([0-9])} $val]
+    lappend res [regexp {(7|8|9)\.([0-9])\.([0-9])} $val]
 
 } -result [list 1 1]
 
