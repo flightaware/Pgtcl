@@ -2764,7 +2764,7 @@ error_return:
  send a select query string to the backend connection
 
  syntax:
- pg_select ?-nodotfields? ?-withoutnulls? ?-paramarray var? connection query var proc
+ pg_select ?-nodotfields? ?-withoutnulls? ?-paramarray var? ?-params list? connection query var proc
 
  The query must be a select statement
 
@@ -2777,6 +2777,9 @@ error_return:
  null variables are set as empty strings unless -withoutnulls is specified,
  in which case null variables are made to simply be absent from the
  array
+
+ If -params is provided, then it is a list of parameters that will replace "$1" "$2" and so on in
+ the query. Don't forget to escape the "$" signs or {brace-enclose} the query. :)
 
  If -paramarray is provided, then occurrences of `name` will be replaced (via PQexecParams)
  with the corresponding value from paramArray. If the array doesn't contain the name
@@ -2881,7 +2884,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	
 	if (index < objc || nextPositionalArg != SELECT_ARGS) {
 	    wrong_args:
-		Tcl_WrongNumArgs(interp, 1, objv, "?-nodotfields? ?-rowbyrow? ?-withoutnulls? ?-paramarray var? connection queryString var proc");
+		Tcl_WrongNumArgs(interp, 1, objv, "?-nodotfields? ?-rowbyrow? ?-withoutnulls? ?-paramarray var? ?-params list? connection queryString var proc");
 		return TCL_ERROR;
 	}
 
