@@ -25,11 +25,20 @@ if [file exists conninfo.tcl] {
 #
 test pgtcl-1.1 {connect to db using old connection string} -body {
 
-    set conn [pg_connect $::conninfo(dbname) \
-        -connhandle pgsql3 \
-        -host $::conninfo(host) \
-        -port $::conninfo(port) \
-        -user $::conninfo(user)]
+    if [info exists ::conninfo(password)] {
+        set conn [pg_connect $::conninfo(dbname) \
+            -connhandle pgsql3 \
+            -host $::conninfo(host) \
+            -port $::conninfo(port) \
+            -user $::conninfo(user) \
+	    -password $::conninfo(password)]
+    } else {
+        set conn [pg_connect $::conninfo(dbname) \
+            -connhandle pgsql3 \
+            -host $::conninfo(host) \
+            -port $::conninfo(port) \
+            -user $::conninfo(user)]
+    }
 
     pg_disconnect $conn
 
@@ -42,8 +51,11 @@ test pgtcl-1.1 {connect to db using old connection string} -body {
 #
 test pgtcl-1.2 {connect to db using conninfo string} -body {
 
-    set conn [pg_connect -connhandle pgsql3 -conninfo \
-        "dbname=$::conninfo(dbname) host=$::conninfo(host) port=$::conninfo(port) user=$::conninfo(user)"]
+    set l [list dbname=$::conninfo(dbname) host=$::conninfo(host) port=$::conninfo(port) user=$::conninfo(user)]
+    if [info exists ::conninfo(password)] {
+	lappend l password=$::conninfo(password)
+    }
+    set conn [pg_connect -connhandle pgsql3 -conninfo [join $l " "]]
 
     pg_disconnect $conn
 
