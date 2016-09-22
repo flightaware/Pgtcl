@@ -32,12 +32,14 @@
 static int execute_put_values(Tcl_Interp *interp, CONST84 char *array_varname,
 				   PGresult *result, char *nullString, int tupno);
 
-static int count_parameters(Tcl_Interp *interp, char *queryString,
+static int count_parameters(Tcl_Interp *interp, const char *queryString,
 				    int *nParamsPtr);
 
-static int expand_parameters(Tcl_Interp *interp, char *queryString,
+static int expand_parameters(Tcl_Interp *interp, const char *queryString,
 				    int nParams, char *paramArrayName,
-				    char **newQueryStringPtr, const char ***paramValuesPtr);
+				    const char **newQueryStringPtr, const char ***paramValuesPtr);
+
+static void build_param_array(Tcl_Interp *interp, int nParams, Tcl_Obj *CONST objv[], const char ***paramValuesPtr);
 
 #ifdef TCL_ARRAYS
 
@@ -648,6 +650,33 @@ Pg_disconnect(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
     return TCL_OK;
 }
 
+/* build_param_array - helper for pg_exec and pg_sendquery */
+/* If there are any extra params, allocate paramValues and fill it
+ * with the string representations of all of the extra parameters
+ * substituted on the command line.  Otherwise nParams will be 0,
+ * and PQexecParams will work just like PQexec (no $-substitutions).
+ * The magic string NULL is replaced by a null value!
+ */
+void build_param_array(Tcl_Interp *interp, int nParams, Tcl_Obj *CONST objv[], const char ***paramValuesPtr)
+{
+	const char **paramValues = NULL;
+	int  param;
+
+	if(nParams == 0)
+	    return;
+
+	paramValues = (const char **)ckalloc (nParams * sizeof (char *));
+
+	for (param = 0; param < nParams; param++) {
+	    paramValues[param] = Tcl_GetString(objv[param]);
+	    if (strcmp(paramValues[param], "NULL") == 0)
+            {
+                paramValues[param] = NULL;
+            }
+	}
+	*paramValuesPtr = paramValues;
+}
+
 /**********************************
  * pg_exec
  send a query string to the backend connection
@@ -663,64 +692,90 @@ int
 Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	Pg_ConnectionId *connid;
-	PGconn	   *conn;
-	PGresult   *result;
-	CONST84 char	   *connString;
-	const char *execString;
-	const char **paramValues = NULL;
+	PGconn	        *conn;
+	PGresult        *result;
+	CONST84 char    *connString = NULL;
+	const char      *execString = NULL;
+	const char      *newExecString = NULL;
+	const char     **paramValues = NULL;
+	char		*paramArrayName = NULL;
+	int              nParams;
+	int              index;
 
-	/* THIS CODE IS REPLICATED IN Pg_sendquery AND SHOULD BE FACTORED */
-	int         nParams;
+	enum             positionalArgs {EXEC_ARG_CONN, EXEC_ARG_SQL, EXEC_ARGS};
+	int              nextPositionalArg = EXEC_ARG_CONN;
 
-	if (objc < 3)
+	for(index = 1; index < objc && nextPositionalArg != EXEC_ARGS; index++) {
+	    char *arg = Tcl_GetString(objv[index]);
+	    if (arg[0] == '-') {
+		if(strcmp(arg, "-paramarray") == 0) {
+		    index++;
+		    paramArrayName = Tcl_GetString(objv[index]);
+		} else {
+		    goto wrong_args;
+		}
+	    } else {
+		switch(nextPositionalArg) {
+		    case EXEC_ARG_CONN:
+			connString = Tcl_GetString(objv[index]);
+			nextPositionalArg = EXEC_ARG_SQL;
+			break;
+		    case EXEC_ARG_SQL:
+			execString = Tcl_GetString(objv[index]);
+			nextPositionalArg = EXEC_ARGS;
+			break;
+		}
+	    }
+	}
+	
+	if (nextPositionalArg != EXEC_ARGS)
 	{
-		Tcl_WrongNumArgs(interp, 1, objv, "connection queryString ?parm...?");
+	    wrong_args:
+		Tcl_WrongNumArgs(interp, 1, objv, "?-paramarray var? connection queryString ?parm...?");
 		return TCL_ERROR;
 	}
 
-	/* extra params will substitute for $1, $2, etc, in the statement */
-	/* objc must be 3 or greater at this point */
-	nParams = objc - 3;
-
-	/* If there are any extra params, allocate paramValues and fill it
-	 * with the string representations of all of the extra parameters
-	 * substituted on the command line.  Otherwise nParams will be 0,
-	 * and PQexecParams will work just like PQexec (no $-substitutions).
-	 */
-	if (nParams > 0) {
-	    int param;
-
-	    paramValues = (const char **)ckalloc (nParams * sizeof (char *));
-
-	    for (param = 0; param < nParams; param++) {
-		paramValues[param] = Tcl_GetString(objv[3+param]);
-		if (strcmp(paramValues[param], "NULL") == 0)
-                {
-                    paramValues[param] = NULL;
-                }
-	    }
-	}
-
 	/* figure out the connect string and get the connection ID */
-
-	connString = Tcl_GetString(objv[1]);
 	conn = PgGetConnectionId(interp, connString, &connid);
 	if (conn == NULL)
 		return TCL_ERROR;
 
 	if (connid->res_copyStatus != RES_COPY_NONE)
 	{
-		Tcl_SetResult(interp, "Attempt to query while COPY in progress", TCL_STATIC);
-		return TCL_ERROR;
+	    Tcl_SetResult(interp, "Attempt to query while COPY in progress", TCL_STATIC);
+	    return TCL_ERROR;
 	}
 
         if (connid->callbackPtr || connid->callbackInterp)
         {
-               Tcl_SetResult(interp, "Attempt to query while waiting for callback", TCL_STATIC);
-               return TCL_ERROR;
-         }
+            Tcl_SetResult(interp, "Attempt to query while waiting for callback", TCL_STATIC);
+	    return TCL_ERROR;
+        }
 
-	execString = Tcl_GetString(objv[2]);
+	/* extra params will substitute for $1, $2, etc, in the statement */
+	/* objc must be 3 or greater at this point */
+	nParams = objc - index;
+
+	if (paramArrayName) {
+	    // Can't combine positional params and -paramarray
+	    if (nParams) {
+		Tcl_SetResult(interp, "Can't use both positional and named parameters", TCL_STATIC);
+		return TCL_ERROR;
+	    }
+	    if (count_parameters(interp, execString, &nParams) == TCL_ERROR) {
+		return TCL_ERROR;
+	    }
+	    if(nParams) {
+		// After this point we must free newExecString and paramValues before exiting
+		if (expand_parameters(interp, execString, nParams, paramArrayName, &newExecString, &paramValues) == TCL_ERROR) {
+		    return TCL_ERROR;
+		}
+		execString = newExecString;
+	    }
+	} else if (nParams) {
+	    // After this point we must free paramValues before exiting
+	    build_param_array(interp, nParams, &objv[index], &paramValues);
+        }
 
 	/* we could call PQexecParams when nParams is 0, but PQexecParams
 	 * will not accept more than one SQL statement per call, while
@@ -733,6 +788,7 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	} else {
 	    result = PQexecParams(conn, execString, nParams, NULL, paramValues, NULL, NULL, 0);
 	    ckfree ((void *)paramValues);
+	    if(newExecString) ckfree(newExecString);
 	}
 
 	connid->sql_count++;
@@ -743,24 +799,22 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 	if (result)
 	{
-		int	rId = PgSetResultId(interp, connString, result);
+	    int	rId = PgSetResultId(interp, connString, result);
 
-         
+	    ExecStatusType rStat = PQresultStatus(result);
 
-		ExecStatusType rStat = PQresultStatus(result);
-
-		if (rStat == PGRES_COPY_IN || rStat == PGRES_COPY_OUT)
-		{
-			connid->res_copyStatus = RES_COPY_INPROGRESS;
-			connid->res_copy = rId;
-		}
-		return TCL_OK;
+	    if (rStat == PGRES_COPY_IN || rStat == PGRES_COPY_OUT)
+	    {
+		connid->res_copyStatus = RES_COPY_INPROGRESS;
+		connid->res_copy = rId;
+	    }
+	    return TCL_OK;
 	}
 	else
 	{
-		/* error occurred during the query */
-		Tcl_SetObjResult(interp, Tcl_NewStringObj(PQerrorMessage(conn), -1));
-		return TCL_ERROR;
+	    /* error occurred during the query */
+	    Tcl_SetObjResult(interp, Tcl_NewStringObj(PQerrorMessage(conn), -1));
+	    return TCL_ERROR;
 	}
 }
 
@@ -788,7 +842,6 @@ Pg_exec_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 
 	int         nParams;
 
-    /* THIS CODE IS REPLICATED IN Pg_sendquery_prepared AND NEEDS TO BE FACTORED */
 	if (objc < 3)
 	{
 		Tcl_WrongNumArgs(interp, 1, objv, "connection statementName [parm...]");
@@ -814,30 +867,13 @@ Pg_exec_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
                return TCL_ERROR;
          }
 
-
 	/* extra params will substitute for $1, $2, etc, in the statement */
 	/* objc must be 3 or greater at this point */
 	nParams = objc - 3;
 
-	/* If there are any extra params, allocate paramValues and fill it
-	 * with the string representations of all of the extra parameters
-	 * substituted on the command line.  Otherwise nParams will be 0,
-	 * and we don't need to allocate space, paramValues will be NULL.
-	 * However, prepared statements that don't take any parameters aren't
-	 * generally real useful.
-	 */
 	if (nParams > 0) {
-	    int param;
-
-	    paramValues = (const char **)ckalloc (nParams * sizeof (char *));
-
-	    for (param = 0; param < nParams; param++) {
-		paramValues[param] = Tcl_GetString (objv[3+param]);
-		if (strcmp(paramValues[param], "NULL") == 0)
-                {
-                    paramValues[param] = NULL;
-                }
-	    }
+	    // After this point we must free paramValues before exiting
+	    build_param_array(interp, nParams, &objv[3], &paramValues);
 	}
 
 	statementNameString = Tcl_GetString(objv[2]);
@@ -2592,12 +2628,12 @@ Pg_lo_export(ClientData cData, Tcl_Interp *interp, int objc,
 
  If successful, sets nParams to the number of expected parameters in queryString
  */
-static int count_parameters(Tcl_Interp *interp, char *queryString, int *nParamsPtr)
+static int count_parameters(Tcl_Interp *interp, const char *queryString, int *nParamsPtr)
 {
 
     int nQuotes = 0;
     int nParams;
-    char *cursor = queryString;
+    const char *cursor = queryString;
     while(*cursor) {
 	if(*cursor == '`') {
 	    nQuotes++;
@@ -2625,13 +2661,13 @@ static int count_parameters(Tcl_Interp *interp, char *queryString, int *nParamsP
 
  If not, does not modify the arguments.
  */
-static int expand_parameters(Tcl_Interp *interp, char *queryString, int nParams, char *paramArrayName,
-				char **newQueryStringPtr, const char ***paramValuesPtr)
+static int expand_parameters(Tcl_Interp *interp, const char *queryString, int nParams, char *paramArrayName,
+				const char **newQueryStringPtr, const char ***paramValuesPtr)
 {
 	// Allocating space for parameter IDs up to 100,000 (5 characters)
 	char        *newQueryString = (char *)ckalloc(strlen(queryString) + 5 * nParams);
 	const char **paramValues    = (const char **)ckalloc(nParams * sizeof (*paramValues));
-	char         *input         = queryString;
+	const char   *input         = queryString;
 	char         *output        = newQueryString;
 	int           paramIndex    = 0;
 
@@ -2644,7 +2680,7 @@ static int expand_parameters(Tcl_Interp *interp, char *queryString, int nParams,
 		assert(paramIndex < nParams);
 
 		// base and length for name string
-		char *nameMarker = input;
+		const char *nameMarker = input;
 		int paramNameLength = 0;
 
 		// Step over name, making sure it's legit
@@ -2768,73 +2804,81 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	Pg_ConnectionId *connid;
 	PGconn	    *conn;
 	PGresult    *result;
-	int			r,
-				retval = TCL_ERROR;
-	int			tupno,
-				column,
-				ncols = 0;
+	int          r,
+	             retval = TCL_ERROR;
+	int          tupno,
+	             column,
+	             ncols = 0;
 	int          withoutNulls = 0;
 	int          noDotFields = 0;
 	int          rowByRow = 0;
 	int          firstPass = 1;
 	int          index = 1;
-	int	     withParams = 0;
-	int	     nParams = 0;
-	char        *optString;
-	char	    *connString;
-	char	    *queryString;
-	char	    *varNameString;
+	int          nParams = 0;
+	char        *connString     = NULL;
+	const char  *queryString    = NULL;
+	char        *varNameString  = NULL;
 	char        *paramArrayName = NULL;
-	Tcl_Obj     *varNameObj;
-	Tcl_Obj     *procStringObj;
-	Tcl_Obj     *columnListObj = NULL;
+	Tcl_Obj     *varNameObj     = NULL;
+	Tcl_Obj     *procStringObj  = NULL;
+	Tcl_Obj     *columnListObj  = NULL;
 	Tcl_Obj    **columnNameObjs = NULL;
-	const char **paramValues = NULL;
-	char        *newQueryString = NULL;
+	const char **paramValues    = NULL;
+	const char  *newQueryString = NULL;
 
-	while (objc - index >= 5) {
-	    optString = Tcl_GetString (objv[index]);
-	    if (*optString == '-' && strcmp (optString, "-withoutnulls") == 0) {
-	        withoutNulls = 1;
-		index++;
-	    } else if (*optString == '-' && strcmp (optString, "-rowbyrow") == 0) {
-	        rowByRow = 1;
-		index++;
-	    } else if (*optString == '-' && strcmp (optString, "-nodotfields") == 0) {
-	        noDotFields = 1;
-		index++;
-	    } else if (*optString == '-' && strcmp (optString, "-paramarray") == 0) {
-	        withParams = 1;
-		index++;
-		paramArrayName = Tcl_GetString(objv[index]);
-		index++;
+	enum         positionalArgs {SELECT_ARG_CONN, SELECT_ARG_QUERY, SELECT_ARG_VAR, SELECT_ARG_PROC, SELECT_ARGS};
+	int          nextPositionalArg = SELECT_ARG_CONN;
+
+	for(index = 1; index < objc && nextPositionalArg != SELECT_ARGS; index++) {
+	    char *arg = Tcl_GetString(objv[index]);
+	    if (arg[0] == '-') {
+		if        (strcmp(arg, "-withoutnulls") == 0) {
+		    withoutNulls = 1;
+		} else if (strcmp(arg, "-rowbyrow") == 0) {
+	            rowByRow = 1;
+		} else if (strcmp(arg, "-nodotfields") == 0) {
+	            noDotFields = 1;
+		} else if (strcmp(arg, "-paramarray") == 0) {
+		    index++;
+		    paramArrayName = Tcl_GetString(objv[index]);
+		} else {
+		    goto wrong_args;
+		}
 	    } else {
-	        goto wrongargs;
+		switch(nextPositionalArg) {
+		    case SELECT_ARG_CONN:
+			connString = Tcl_GetString(objv[index]);
+			nextPositionalArg = SELECT_ARG_QUERY;
+			break;
+		    case SELECT_ARG_QUERY:
+			queryString = Tcl_GetString(objv[index]);
+			nextPositionalArg = SELECT_ARG_VAR;
+			break;
+		    case SELECT_ARG_VAR:
+			varNameObj = objv[index];
+			varNameString = Tcl_GetString(varNameObj);
+			nextPositionalArg = SELECT_ARG_PROC;
+			break;
+		    case SELECT_ARG_PROC:
+			procStringObj = objv[index];
+			nextPositionalArg = SELECT_ARGS;
+			break;
+		}
 	    }
 	}
-
-	if (objc - index != 4) {
-	    wrongargs:
+	
+	if (index < objc || nextPositionalArg != SELECT_ARGS) {
+	    wrong_args:
 		Tcl_WrongNumArgs(interp, 1, objv, "?-nodotfields? ?-rowbyrow? ?-withoutnulls? ?-paramarray var? connection queryString var proc");
 		return TCL_ERROR;
 	}
 
-	connString = Tcl_GetString(objv[index++]);
-	queryString = Tcl_GetString(objv[index++]);
-
 	// Count and validate parameters for PQexecParams(...paramValues...).
-	// If no parameters array provided, we fall back to the same behaviour as pg_select
-	// for maximal merge-ability later on.
-	if(withParams) {
+	if(paramArrayName) {
 	    if(count_parameters(interp, queryString, &nParams) == TCL_ERROR) {
 		return TCL_ERROR;
 	    }
 	}
-
-	varNameObj = objv[index++];
-	varNameString = Tcl_GetString(varNameObj);
-
-	procStringObj = objv[index++];
 
 	if (nParams) {
 	    if(expand_parameters(interp, queryString, nParams, paramArrayName, &newQueryString, &paramValues) == TCL_ERROR) {
@@ -3310,62 +3354,96 @@ Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
 			 Tcl_Obj *CONST objv[])
 {
 	Pg_ConnectionId *connid;
-	PGconn	   *conn;
-	char	   *connString;
-	char	   *execString;
-	int			status;
+	PGconn	        *conn;
+        int              status;
+	CONST84 char    *connString = NULL;
+	const char      *execString = NULL;
+	const char      *newExecString = NULL;
+	const char     **paramValues = NULL;
+	char		*paramArrayName = NULL;
+	int              nParams;
+	int              index;
 
-	/* THIS CODE IS REPLICATED IN Pg_exec AND SHOULD BE FACTORED */
-	int         nParams;
-	const char **paramValues = NULL;
+	enum             positionalArgs {SENDQUERY_ARG_CONN, SENDQUERY_ARG_SQL, SENDQUERY_ARGS};
+	int              nextPositionalArg = SENDQUERY_ARG_CONN;
 
-	if (objc < 3)
+	for(index = 1; index < objc && nextPositionalArg != SENDQUERY_ARGS; index++) {
+	    char *arg = Tcl_GetString(objv[index]);
+	    if (arg[0] == '-') {
+		if(strcmp(arg, "-paramarray") == 0) {
+		    index++;
+		    paramArrayName = Tcl_GetString(objv[index]);
+		} else {
+		    goto wrong_args;
+		}
+	    } else {
+		switch(nextPositionalArg) {
+		    case SENDQUERY_ARG_CONN:
+			connString = Tcl_GetString(objv[index]);
+			nextPositionalArg = SENDQUERY_ARG_SQL;
+			break;
+		    case SENDQUERY_ARG_SQL:
+			execString = Tcl_GetString(objv[index]);
+			nextPositionalArg = SENDQUERY_ARGS;
+			break;
+		}
+	    }
+	}
+	
+	if (nextPositionalArg != SENDQUERY_ARGS || connString == NULL || execString == NULL)
 	{
-		Tcl_WrongNumArgs(interp, 1, objv, "connection queryString [parm...]");
+	    wrong_args:
+		Tcl_WrongNumArgs(interp, 1, objv, "?-paramarray var? connection queryString ?parm...?");
 		return TCL_ERROR;
 	}
 
-	/* extra params will substitute for $1, $2, etc, in the statement */
-	/* objc must be 3 or greater at this point */
-	nParams = objc - 3;
-
-	/* If there are any extra params, allocate paramValues and fill it
-	 * with the string representations of all of the extra parameters
-	 * substituted on the command line.  Otherwise nParams will be 0,
-	 * and PQexecParams will work just like PQexec (no $-substitutions).
-	 */
-	if (nParams > 0) {
-	    int param;
-
-	    paramValues = (const char **)ckalloc (nParams * sizeof (char *));
-
-	    for (param = 0; param < nParams; param++) {
-		paramValues[param] = Tcl_GetString (objv[3+param]);
-		if (strcmp(paramValues[param], "NULL") == 0)
-                {
-                    paramValues[param] = NULL;
-                }
-	    }
-	}
-
-	connString = Tcl_GetString(objv[1]);
-
+	/* figure out the connect string and get the connection ID */
 	conn = PgGetConnectionId(interp, connString, &connid);
 	if (conn == NULL)
 		return TCL_ERROR;
 
 	if (connid->res_copyStatus != RES_COPY_NONE)
 	{
-		Tcl_SetResult(interp, "Attempt to query while COPY in progress", TCL_STATIC);
-		return TCL_ERROR;
+	    Tcl_SetResult(interp, "Attempt to query while COPY in progress", TCL_STATIC);
+	    return TCL_ERROR;
 	}
 
-	execString = Tcl_GetString(objv[2]);
+        if (connid->callbackPtr || connid->callbackInterp)
+        {
+            Tcl_SetResult(interp, "Attempt to query while waiting for callback", TCL_STATIC);
+	    return TCL_ERROR;
+        }
+
+	/* extra params will substitute for $1, $2, etc, in the statement */
+	/* objc must be 3 or greater at this point */
+	nParams = objc - index;
+
+	if (paramArrayName) {
+	    // Can't combine positional params and -paramarray
+	    if (nParams) {
+		Tcl_SetResult(interp, "Can't use both positional and named parameters", TCL_STATIC);
+		return TCL_ERROR;
+	    }
+	    if (count_parameters(interp, execString, &nParams) == TCL_ERROR) {
+		return TCL_ERROR;
+	    }
+	    if(nParams) {
+		// After this point we must free newExecString and paramValues before exiting
+		if (expand_parameters(interp, execString, nParams, paramArrayName, &newExecString, &paramValues) == TCL_ERROR) {
+		    return TCL_ERROR;
+		}
+		execString = newExecString;
+	    }
+	} else if (nParams) {
+	    // After this point we must free paramValues before exiting
+	    build_param_array(interp, nParams, &objv[index], &paramValues);
+        }
 
 	if (nParams == 0) {
-		status = PQsendQuery(conn, execString);
+	    status = PQsendQuery(conn, execString);
 	} else {
 	    status = PQsendQueryParams(conn, execString, nParams, NULL, paramValues, NULL, NULL, 1);
+	    if(newExecString) ckfree(newExecString);
 	    ckfree ((void *)paramValues);
 	}
 	connid->sql_count++;
@@ -3374,12 +3452,12 @@ Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
 	PgNotifyTransferEvents(connid);
 
 	if (status)
-		return TCL_OK;
+	    return TCL_OK;
 	else
 	{
-		/* error occurred during the query */
-		Tcl_SetObjResult(interp, Tcl_NewStringObj(PQerrorMessage(conn), -1));
-		return TCL_ERROR;
+	    /* error occurred during the query */
+	    Tcl_SetObjResult(interp, Tcl_NewStringObj(PQerrorMessage(conn), -1));
+	    return TCL_ERROR;
 	}
 }
 
@@ -3407,7 +3485,6 @@ Pg_sendquery_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *C
 	int         nParams;
 	int         status;
 
-    /* THIS CODE IS REPLICATED IN Pg_exec_prepared AND NEEDS TO BE FACTORED */
 	if (objc < 3)
 	{
 		Tcl_WrongNumArgs(interp, 1, objv, "connection statementName [parm...]");
