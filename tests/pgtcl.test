@@ -616,7 +616,6 @@ test pgtcl-5.2 {escape a binary string} -body {
 #
 test pgtcl-5.3 {unescape a binary string} -body {
 
-    set bn [binary format a* \000\\HELLO's]
     set qstr [pg::unescape_bytea "\\\\000\\\\\\\\HELLO\\'s"]
 
     set qstr
@@ -682,6 +681,34 @@ test pgtcl-6.2 {using pg_exec_prepared with params} -body {
 
 } -result [list pg_aggregate pg_aggregate_fnoid_index pg_am pg_am_name_index pg_am_oid_index]
 
+#
+#
+#
+test pgtcl-6.3 {using pg_exec with named params} -body {
+
+    unset -nocomplain res
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+
+    array set params {pattern "pg_%" limit 5}
+
+    set res [$conn exec -paramarray params {SELECT relname
+                           FROM Pg_class
+                          WHERE relname LIKE `pattern`
+                       ORDER BY relname
+                          LIMIT `limit`}]
+
+    set results [pg::result $res -list]
+
+    pg_result $res -clear
+
+    pg_disconnect $conn
+
+    lsort $results
+
+} -result [list pg_aggregate pg_aggregate_fnoid_index pg_am pg_am_name_index pg_am_oid_index]
+
+
 
 #
 #
@@ -691,6 +718,8 @@ test pgtcl-7.1 {using pg_select} -body {
     unset -nocomplain res
 
     set conn [pg::connect -connlist [array get ::conninfo]]
+
+    set names {}
 
     pg::select $conn "SELECT relname FROM Pg_class LIMIT 5" resultArr {
         set headers $resultArr(.headers)
@@ -706,6 +735,63 @@ test pgtcl-7.1 {using pg_select} -body {
     llength $names
  
 } -result 5
+
+
+
+#
+#
+#
+test pgtcl-7.2 {using pg_select via handle} -body {
+
+    unset -nocomplain res
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+
+    set names {}
+
+    $conn select "SELECT relname FROM Pg_class LIMIT 5" resultArr {
+        set headers $resultArr(.headers)
+        set numcols $resultArr(.numcols)
+        set tupno $resultArr(.tupno)
+
+        lappend names $resultArr(relname)
+        
+    } 
+
+    rename $conn {}
+
+    llength $names
+ 
+} -result 5
+
+
+#
+#
+#
+test pgtcl-7.3 {using pg_select with parameters} -body {
+
+    unset -nocomplain res
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+
+    set names {}
+
+    array set params {pattern pg_% limit 5}
+
+    $conn select -paramarray params "SELECT relname FROM Pg_class WHERE relname like `pattern` LIMIT `limit`" resultArr {
+        set headers $resultArr(.headers)
+        set numcols $resultArr(.numcols)
+        set tupno $resultArr(.tupno)
+
+        lappend names $resultArr(relname)
+    } 
+
+    rename $conn {}
+
+    llength $names
+ 
+} -result 5
+
 
 
 
