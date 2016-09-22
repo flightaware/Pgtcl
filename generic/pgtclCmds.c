@@ -2826,6 +2826,9 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	const char **paramValues    = NULL;
 	const char  *newQueryString = NULL;
 
+	enum         paramTypes { SELECT_PARAM_NONE, SELECT_PARAM_ARRAY, SELECT_PARAM_LIST };
+	int          paramType = SELECT_PARAM_NONE;
+
 	enum         positionalArgs {SELECT_ARG_CONN, SELECT_ARG_QUERY, SELECT_ARG_VAR, SELECT_ARG_PROC, SELECT_ARGS};
 	int          nextPositionalArg = SELECT_ARG_CONN;
 
@@ -2839,6 +2842,19 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		} else if (strcmp(arg, "-nodotfields") == 0) {
 	            noDotFields = 1;
 		} else if (strcmp(arg, "-paramarray") == 0) {
+		    if(paramType == SELECT_PARAM_LIST) {
+			Tcl_SetResult(interp, "Can't have both -paramarray and -params", TCL_STATIC);
+			return TCL_ERROR;
+		    }
+		    paramType = SELECT_PARAM_ARRAY;
+		    index++;
+		    paramArrayName = Tcl_GetString(objv[index]);
+		} else if (strcmp(arg, "-params") == 0) {
+		    if(paramType == SELECT_PARAM_ARRAY) {
+			Tcl_SetResult(interp, "Can't have both -paramarray and -params", TCL_STATIC);
+			return TCL_ERROR;
+		    }
+		    paramType = SELECT+PARAM_LIST;
 		    index++;
 		    paramArrayName = Tcl_GetString(objv[index]);
 		} else {
