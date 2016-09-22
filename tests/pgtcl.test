@@ -776,6 +776,32 @@ test pgtcl-7.3 {using pg_select with parameters} -body {
 
     set names {}
 
+    $conn select -params {pg_% 5} {SELECT relname FROM Pg_class WHERE relname like $1 LIMIT $2} resultArr {
+        set headers $resultArr(.headers)
+        set numcols $resultArr(.numcols)
+        set tupno $resultArr(.tupno)
+
+        lappend names $resultArr(relname)
+    } 
+
+    rename $conn {}
+
+    llength $names
+ 
+} -result 5
+
+
+#
+#
+#
+test pgtcl-7.4 {using pg_select with named parameters} -body {
+
+    unset -nocomplain res
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+
+    set names {}
+
     array set params {pattern pg_% limit 5}
 
     $conn select -paramarray params "SELECT relname FROM Pg_class WHERE relname like `pattern` LIMIT `limit`" resultArr {
@@ -791,8 +817,6 @@ test pgtcl-7.3 {using pg_select with parameters} -body {
     llength $names
  
 } -result 5
-
-
 
 
 #

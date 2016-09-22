@@ -2825,9 +2825,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	Tcl_Obj    **columnNameObjs = NULL;
 	const char **paramValues    = NULL;
 	const char  *newQueryString = NULL;
-
-	enum         paramTypes { SELECT_PARAM_NONE, SELECT_PARAM_ARRAY, SELECT_PARAM_LIST };
-	int          paramType = SELECT_PARAM_NONE;
+	Tcl_Obj     *paramListObj   = NULL;
 
 	enum         positionalArgs {SELECT_ARG_CONN, SELECT_ARG_QUERY, SELECT_ARG_VAR, SELECT_ARG_PROC, SELECT_ARGS};
 	int          nextPositionalArg = SELECT_ARG_CONN;
@@ -2842,21 +2840,19 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		} else if (strcmp(arg, "-nodotfields") == 0) {
 	            noDotFields = 1;
 		} else if (strcmp(arg, "-paramarray") == 0) {
-		    if(paramType == SELECT_PARAM_LIST) {
+		    if(paramListObj) {
 			Tcl_SetResult(interp, "Can't have both -paramarray and -params", TCL_STATIC);
 			return TCL_ERROR;
 		    }
-		    paramType = SELECT_PARAM_ARRAY;
 		    index++;
 		    paramArrayName = Tcl_GetString(objv[index]);
 		} else if (strcmp(arg, "-params") == 0) {
-		    if(paramType == SELECT_PARAM_ARRAY) {
+		    if(paramArrayName) {
 			Tcl_SetResult(interp, "Can't have both -paramarray and -params", TCL_STATIC);
 			return TCL_ERROR;
 		    }
-		    paramType = SELECT+PARAM_LIST;
 		    index++;
-		    paramArrayName = Tcl_GetString(objv[index]);
+		    paramListObj = objv[index];
 		} else {
 		    goto wrong_args;
 		}
@@ -2889,16 +2885,26 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		return TCL_ERROR;
 	}
 
-	// Count and validate parameters for PQexecParams(...paramValues...).
+	if(paramListObj) {
+	    Tcl_Obj **listObjv;
+
+	    if (Tcl_ListObjGetElements(interp, paramListObj, &nParams, &listObjv) == TCL_ERROR) {
+		return TCL_ERROR;
+	    }
+	    build_param_array(interp, nParams, listObjv, &paramValues);
+        }
+
 	if(paramArrayName) {
+	    // Count and validate parameters for PQexecParams(...paramValues...).
 	    if(count_parameters(interp, queryString, &nParams) == TCL_ERROR) {
 		return TCL_ERROR;
 	    }
-	}
 
-	if (nParams) {
-	    if(expand_parameters(interp, queryString, nParams, paramArrayName, &newQueryString, &paramValues) == TCL_ERROR) {
-		return TCL_ERROR;
+	    if (nParams) {
+		if(expand_parameters(interp, queryString, nParams, paramArrayName, &newQueryString, &paramValues) == TCL_ERROR) {
+		    return TCL_ERROR;
+		}
+		queryString = newQueryString;
 	    }
 	}
 
@@ -2918,7 +2924,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 		// Make the call
 		if (nParams) {
-			status = PQsendQueryParams(conn, newQueryString, nParams,
+			status = PQsendQueryParams(conn, queryString, nParams,
 				NULL, paramValues, NULL, NULL, 0);
 		} else {
 			status = PQsendQuery(conn, queryString);
@@ -2939,7 +2945,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	} else {
 		// Make the call AND queue up the result.
 		if (nParams) {
-			result = PQexecParams(conn, newQueryString, nParams,
+			result = PQexecParams(conn, queryString, nParams,
 				NULL, paramValues, NULL, NULL, 0);
 		} else {
 			result = PQexec(conn, queryString);
