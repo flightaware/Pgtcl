@@ -921,7 +921,7 @@ pg_conndefaults
 
  <refsynopsisdiv>
 <synopsis>
-pg_exec <parameter>conn</parameter> <parameter>commandString</parameter> <optional role="tcl"><parameter>args</parameter></optional>
+pg_exec <optional><parameter>-paramarray</parameter> arrayVar</optional> <parameter>conn</parameter> <parameter>commandString</parameter> <optional role="tcl"><parameter>args</parameter></optional>
 </synopsis>
  </refsynopsisdiv>
 
@@ -940,6 +940,13 @@ pg_exec <parameter>conn</parameter> <parameter>commandString</parameter> <option
    succeeded!  An error message returned by the server will be
    processed as a command result with failure status, not by
    generating a Tcl error in <function>pg_exec</function>.
+  </para>
+
+  <para>
+   If the <optional>-paramarray</optional> flag is provided, then a substitution is performed on the query, securely replacing
+   each back-quote delimited name with the corresponding entry from the named array. If the array does not contain the named element,
+   then NULL is substituted (similarly to the way an array created by -withoutnulls is generated).
+   Each such name must occur in a location where a value or field name could appear. See pg_select for more info.
   </para>
  </refsect1>
 
@@ -1550,7 +1557,7 @@ pg_result <parameter>resultHandle</parameter> <parameter>resultOption</parameter
 
  <refsynopsisdiv>
 <synopsis>
-pg_select <optional role="tcl"><parameter>-rowbyrow</parameter></optional> <optional role="tcl"><parameter>-nodotfields</parameter></optional> <optional role="tcl"><parameter>-withoutnulls</parameter></optional> <optional role="tcl"><parameter>-paramarray var</parameter></optional> <parameter>conn</parameter> <parameter>commandString</parameter> <parameter>arrayVar</parameter> <parameter>procedure</parameter>
+pg_select <optional role="tcl"><parameter>-rowbyrow</parameter></optional> <optional role="tcl"><parameter>-nodotfields</parameter></optional> <optional role="tcl"><parameter>-withoutnulls</parameter></optional> <optional role="tcl"><parameter>-paramarray var</parameter></optional> <optional role="tcl"><parameter>-params</parameter> paramList</optional> <parameter>conn</parameter> <parameter>commandString</parameter> <parameter>arrayVar</parameter> <parameter>procedure</parameter>
 </synopsis>
  </refsynopsisdiv>
 
@@ -1604,6 +1611,11 @@ pg_select <optional role="tcl"><parameter>-rowbyrow</parameter></optional> <opti
      </listitem>
     </varlistentry>
    </variablelist>
+  </para>
+
+  <para>
+   If the <optional>-param</optional> flag is provided, then it contains a list of parameters that will replace "$1", "$2" and so
+   on in the query string, as if it were a prepared statement. Be sure to properly escape or quote the "$" in the query. :)
   </para>
 
   <para>
@@ -2080,7 +2092,7 @@ pg_on_connection_loss <parameter>conn</parameter> <optional role="tcl"><paramete
 
  <refsynopsisdiv>
 <synopsis>
-pg_sendquery <parameter>conn</parameter> <parameter>commandString</parameter>
+pg_sendquery <optional><parameter>-paramarray</parameter> arrayVar</optional> <parameter>conn</parameter> <parameter>commandString</parameter>
 </synopsis>
  </refsynopsisdiv>
 
@@ -2099,6 +2111,13 @@ pg_sendquery <parameter>conn</parameter> <parameter>commandString</parameter>
    The result is either an error message or nothing.  An empty
    return indicates that the command was dispatched to the
    backend.
+  </para>
+
+  <para>
+   If the <optional>-paramarray</optional> flag is provided, then a substitution is performed on the query, securely replacing
+   each back-quote delimited name with the corresponding entry from the named array. If the array does not contain the named element,
+   then NULL is substituted (similarly to the way an array created by -withoutnulls is generated).
+   Each such name must occur in a location where a value or field name could appear. See pg_select for more info.
   </para>
  </refsect1>
 
