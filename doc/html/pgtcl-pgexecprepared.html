@@ -11,7 +11,7 @@
 <link rel="PREVIOUS" title="pg_exec" href="pgtcl-pgexec.html">
 <link rel="NEXT" title="pg_result" href="pgtcl-pgresult.html">
 <link rel="STYLESHEET" type="text/css" href="stylesheet.css">
-<meta name="creation" content="2016-06-20T18:42:07">
+<meta name="creation" content="2016-09-26T16:04:34">
 </head>
 <body class="REFENTRY">
 <div class="NAVHEADER">
@@ -29,19 +29,19 @@
 </table>
 <hr align="left" width="100%"></div>
 <h1><a name="PGTCL-PGEXECPREPARED" id="PGTCL-PGEXECPREPARED"></a>pg_exec_prepared</h1>
-<div class="REFNAMEDIV"><a name="AEN696" id="AEN696"></a>
+<div class="REFNAMEDIV"><a name="AEN700" id="AEN700"></a>
 <h2>Name</h2>
 pg_exec_prepared&nbsp;--&nbsp;send a request to execute a prepared SQL statement to the server<a name="IX-PGTCL-PGEXECPREPARED-2" id="IX-PGTCL-PGEXECPREPARED-2"></a></div>
-<div class="REFSYNOPSISDIV"><a name="AEN701" id="AEN701"></a>
+<div class="REFSYNOPSISDIV"><a name="AEN705" id="AEN705"></a>
 <h2>Synopsis</h2>
 <pre class="SYNOPSIS">pg_exec_prepared <code class="PARAMETER">conn</code> <code class="PARAMETER">statementName</code> ?<span class="OPTIONAL"><code class="PARAMETER">args</code></span>?</pre></div>
-<div class="REFSECT1"><a name="AEN707" id="AEN707"></a>
+<div class="REFSECT1"><a name="AEN711" id="AEN711"></a>
 <h2>Description</h2>
 <p><code class="FUNCTION">pg_exec_prepared</code> submits a command to the <span class="PRODUCTNAME">PostgreSQL</span> server and returns a result.</p>
 <p><code class="FUNCTION">pg_exec_prepared</code> functions identically to <code class="FUNCTION">pg_exec</code>, except that it operates using statements prepared by the <tt class="COMMAND">PREPARE</tt> SQL command.</p>
 <p>Note that prepared statements are only support under <span class="PRODUCTNAME">PostgreSQL</span> 7.4 and later.</p>
 </div>
-<div class="REFSECT1"><a name="AEN718" id="AEN718"></a>
+<div class="REFSECT1"><a name="AEN722" id="AEN722"></a>
 <h2>Arguments</h2>
 <div class="VARIABLELIST">
 <dl>
@@ -60,11 +60,11 @@ pg_exec_prepared&nbsp;--&nbsp;send a request to execute a prepared SQL statement
 </dl>
 </div>
 </div>
-<div class="REFSECT1"><a name="AEN737" id="AEN737"></a>
+<div class="REFSECT1"><a name="AEN741" id="AEN741"></a>
 <h2>Return Value</h2>
 <p>A result handle. See <code class="FUNCTION">pg_exec</code> for details.</p>
 </div>
-<div class="REFSECT1"><a name="AEN741" id="AEN741"></a>
+<div class="REFSECT1"><a name="AEN745" id="AEN745"></a>
 <h2>Example</h2>
 <pre class="PROGRAMLISTING">pg_exec $conn {prepare insert_people 
     (varchar, varchar, varchar, varchar, varchar, varchar) 

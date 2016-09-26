@@ -11,7 +11,7 @@
 <link rel="PREVIOUS" title="pg_sendquery_prepared" href="pgtcl-pgsendqueryprepared.html">
 <link rel="NEXT" title="pg_isbusy" href="pgtcl-pgisbusy.html">
 <link rel="STYLESHEET" type="text/css" href="stylesheet.css">
-<meta name="creation" content="2016-06-20T18:42:07">
+<meta name="creation" content="2016-09-26T16:04:34">
 </head>
 <body class="REFENTRY">
 <div class="NAVHEADER">
@@ -29,19 +29,19 @@
 </table>
 <hr align="left" width="100%"></div>
 <h1><a name="PGTCL-PGGETRESULT" id="PGTCL-PGGETRESULT"></a>pg_getresult</h1>
-<div class="REFNAMEDIV"><a name="AEN1382" id="AEN1382"></a>
+<div class="REFNAMEDIV"><a name="AEN1399" id="AEN1399"></a>
 <h2>Name</h2>
 pg_getresult&nbsp;--&nbsp;process asychronous results<a name="IX-PGTCL-PGGETRESULT-2" id="IX-PGTCL-PGGETRESULT-2"></a></div>
-<div class="REFSYNOPSISDIV"><a name="AEN1387" id="AEN1387"></a>
+<div class="REFSYNOPSISDIV"><a name="AEN1404" id="AEN1404"></a>
 <h2>Synopsis</h2>
 <pre class="SYNOPSIS">pg_getresult <code class="PARAMETER">conn</code></pre></div>
-<div class="REFSECT1"><a name="AEN1390" id="AEN1390"></a>
+<div class="REFSECT1"><a name="AEN1407" id="AEN1407"></a>
 <h2>Description</h2>
 <p><code class="FUNCTION">pg_getresult</code> checks to see if any commands issued by <code class="FUNCTION">pg_sendquery</code> have completed.</p>
 <p>This will return the same sort of result handle that <code class="FUNCTION">pg_exec</code> returns.</p>
 <p>If there is no query currently being processed or all of the results have been obtained, <code class="FUNCTION">pg_getresult</code> returns nothing.</p>
 </div>
-<div class="REFSECT1"><a name="AEN1399" id="AEN1399"></a>
+<div class="REFSECT1"><a name="AEN1416" id="AEN1416"></a>
 <h2>Arguments</h2>
 <div class="VARIABLELIST">
 <dl>
@@ -52,7 +52,7 @@ pg_getresult&nbsp;--&nbsp;process asychronous results<a name="IX-PGTCL-PGGETRESU
 </dl>
 </div>
 </div>
-<div class="REFSECT1"><a name="AEN1407" id="AEN1407"></a>
+<div class="REFSECT1"><a name="AEN1424" id="AEN1424"></a>
 <h2>Return Value</h2>
 <p>If a query result is available, a command result object is returned. This handle can be passed to <code class="FUNCTION">pg_result</code> to obtain the results of the command.</p>
 <p>If there is no query currently being processed or all of the results have been obtained, <code class="FUNCTION">pg_getresult</code> returns nothing.</p>

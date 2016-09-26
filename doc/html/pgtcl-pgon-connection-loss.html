@@ -11,7 +11,7 @@
 <link rel="PREVIOUS" title="pg_listen" href="pgtcl-pglisten.html">
 <link rel="NEXT" title="pg_sendquery" href="pgtcl-pgsendquery.html">
 <link rel="STYLESHEET" type="text/css" href="stylesheet.css">
-<meta name="creation" content="2016-06-20T18:42:07">
+<meta name="creation" content="2016-09-26T16:04:34">
 </head>
 <body class="REFENTRY">
 <div class="NAVHEADER">
@@ -29,18 +29,18 @@
 </table>
 <hr align="left" width="100%"></div>
 <h1><a name="PGTCL-PGON-CONNECTION-LOSS" id="PGTCL-PGON-CONNECTION-LOSS"></a>pg_on_connection_loss</h1>
-<div class="REFNAMEDIV"><a name="AEN1260" id="AEN1260"></a>
+<div class="REFNAMEDIV"><a name="AEN1273" id="AEN1273"></a>
 <h2>Name</h2>
 pg_on_connection_loss&nbsp;--&nbsp;set or change a callback for unexpected connection loss<a name="IX-PGTCL-PGON-CONNECTION-LOSS-2" id="IX-PGTCL-PGON-CONNECTION-LOSS-2"></a></div>
-<div class="REFSYNOPSISDIV"><a name="AEN1265" id="AEN1265"></a>
+<div class="REFSYNOPSISDIV"><a name="AEN1278" id="AEN1278"></a>
 <h2>Synopsis</h2>
 <pre class="SYNOPSIS">pg_on_connection_loss <code class="PARAMETER">conn</code> ?<span class="OPTIONAL"><code class="PARAMETER">callbackCommand</code></span>?</pre></div>
-<div class="REFSECT1"><a name="AEN1270" id="AEN1270"></a>
+<div class="REFSECT1"><a name="AEN1283" id="AEN1283"></a>
 <h2>Description</h2>
 <p><code class="FUNCTION">pg_on_connection_loss</code> creates, changes, or cancels a request to execute a callback command if an unexpected loss of connection to the database occurs. With a <code class="PARAMETER">callbackCommand</code> parameter, the request is established, or the command string of an already existing request is replaced. With no <code class="PARAMETER">callbackCommand</code> parameter, a prior request is canceled.</p>
 <p>The callback command string is executed from the Tcl idle loop. That is the normal idle state of an application written with Tk. In non-Tk Tcl shells, you can execute <code class="FUNCTION">update</code> or <code class="FUNCTION">vwait</code> to cause the idle loop to be entered.</p>
 </div>
-<div class="REFSECT1"><a name="AEN1279" id="AEN1279"></a>
+<div class="REFSECT1"><a name="AEN1292" id="AEN1292"></a>
 <h2>Arguments</h2>
 <div class="VARIABLELIST">
 <dl>
@@ -55,7 +55,7 @@ pg_on_connection_loss&nbsp;--&nbsp;set or change a callback for unexpected conne
 </dl>
 </div>
 </div>
-<div class="REFSECT1"><a name="AEN1292" id="AEN1292"></a>
+<div class="REFSECT1"><a name="AEN1305" id="AEN1305"></a>
 <h2>Return Value</h2>
 <p>None</p>
 </div>

@@ -11,7 +11,7 @@
 <link rel="PREVIOUS" title="pg_exec_prepared" href="pgtcl-pgexecprepared.html">
 <link rel="NEXT" title="pg_select" href="pgtcl-pgselect.html">
 <link rel="STYLESHEET" type="text/css" href="stylesheet.css">
-<meta name="creation" content="2016-06-20T18:42:07">
+<meta name="creation" content="2016-09-26T16:04:34">
 </head>
 <body class="REFENTRY">
 <div class="NAVHEADER">
@@ -29,18 +29,18 @@
 </table>
 <hr align="left" width="100%"></div>
 <h1><a name="PGTCL-PGRESULT" id="PGTCL-PGRESULT"></a>pg_result</h1>
-<div class="REFNAMEDIV"><a name="AEN748" id="AEN748"></a>
+<div class="REFNAMEDIV"><a name="AEN752" id="AEN752"></a>
 <h2>Name</h2>
 pg_result&nbsp;--&nbsp;get information about a command result<a name="IX-PGTCL-PGRESULT-2" id="IX-PGTCL-PGRESULT-2"></a></div>
-<div class="REFSYNOPSISDIV"><a name="AEN753" id="AEN753"></a>
+<div class="REFSYNOPSISDIV"><a name="AEN757" id="AEN757"></a>
 <h2>Synopsis</h2>
 <pre class="SYNOPSIS">pg_result <code class="PARAMETER">resultHandle</code> <code class="PARAMETER">resultOption</code></pre></div>
-<div class="REFSECT1"><a name="AEN757" id="AEN757"></a>
+<div class="REFSECT1"><a name="AEN761" id="AEN761"></a>
 <h2>Description</h2>
 <p><code class="FUNCTION">pg_result</code> returns information about a command result created by a prior <code class="FUNCTION">pg_exec</code>.</p>
 <p>You can keep a command result around for as long as you need it, but when you are done with it, be sure to free it by executing <code class="FUNCTION">pg_result -clear</code>. Otherwise, you have a memory leak, and <span class="APPLICATION">pgtcl</span> will eventually start complaining that you have created too many command result objects.</p>
 </div>
-<div class="REFSECT1"><a name="AEN765" id="AEN765"></a>
+<div class="REFSECT1"><a name="AEN769" id="AEN769"></a>
 <h2>Arguments</h2>
 <div class="VARIABLELIST">
 <dl>
@@ -199,7 +199,7 @@ pg_result&nbsp;--&nbsp;get information about a command result<a name="IX-PGTCL-P
 </dl>
 </div>
 </div>
-<div class="REFSECT1"><a name="AEN994" id="AEN994"></a>
+<div class="REFSECT1"><a name="AEN998" id="AEN998"></a>
 <h2>Return Value</h2>
 <p>The result depends on the selected option, as described above.</p>
 </div>

@@ -5,7 +5,7 @@
 \\$2 \(la\\$1\(ra\\$3
 ..
 .if \n(.g .mso www.tmac
-.TH pg_listen n "6 July 2016" "" "PostgreSQL Tcl Interface Documentation"
+.TH pg_listen n "26 September 2016" "" "PostgreSQL Tcl Interface Documentation"
 .SH NAME
 pg_listen \- set or change a callback for asynchronous notification messages
 .SH SYNOPSIS

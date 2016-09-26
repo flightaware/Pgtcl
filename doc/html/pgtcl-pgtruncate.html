@@ -11,7 +11,7 @@
 <link rel="PREVIOUS" title="pg_lo_tell" href="pgtcl-pglotell.html">
 <link rel="NEXT" title="pg_lo_unlink" href="pgtcl-pglounlink.html">
 <link rel="STYLESHEET" type="text/css" href="stylesheet.css">
-<meta name="creation" content="2016-06-20T18:42:07">
+<meta name="creation" content="2016-09-26T16:04:34">
 </head>
 <body class="REFENTRY">
 <div class="NAVHEADER">
@@ -29,17 +29,17 @@
 </table>
 <hr align="left" width="100%"></div>
 <h1><a name="PGTCL-PGTRUNCATE" id="PGTCL-PGTRUNCATE"></a>pg_lo_truncate</h1>
-<div class="REFNAMEDIV"><a name="AEN1955" id="AEN1955"></a>
+<div class="REFNAMEDIV"><a name="AEN1972" id="AEN1972"></a>
 <h2>Name</h2>
 pg_lo_truncate&nbsp;--&nbsp;Truncate a large object to a given length<a name="IX-PGTCL-PGLOTRUNCATE-2" id="IX-PGTCL-PGLOTRUNCATE-2"></a></div>
-<div class="REFSYNOPSISDIV"><a name="AEN1960" id="AEN1960"></a>
+<div class="REFSYNOPSISDIV"><a name="AEN1977" id="AEN1977"></a>
 <h2>Synopsis</h2>
 <pre class="SYNOPSIS">pg_lo_truncate <code class="PARAMETER">conn</code> <code class="PARAMETER">descriptor</code> <code class="PARAMETER">length</code></pre></div>
-<div class="REFSECT1"><a name="AEN1965" id="AEN1965"></a>
+<div class="REFSECT1"><a name="AEN1982" id="AEN1982"></a>
 <h2>Description</h2>
 <p><code class="FUNCTION">pg_lo_truncate</code> truncates the specified large object to the given length. If the length is greater than the current large object length, the large object is extended with null bytes.</p>
 </div>
-<div class="REFSECT1"><a name="AEN1969" id="AEN1969"></a>
+<div class="REFSECT1"><a name="AEN1986" id="AEN1986"></a>
 <h2>Arguments</h2>
 <div class="VARIABLELIST">
 <dl>
@@ -58,7 +58,7 @@ pg_lo_truncate&nbsp;--&nbsp;Truncate a large object to a given length<a name="IX
 </dl>
 </div>
 </div>
-<div class="REFSECT1"><a name="AEN1988" id="AEN1988"></a>
+<div class="REFSECT1"><a name="AEN2005" id="AEN2005"></a>
 <h2>Return Value</h2>
 <p>A zero-based offset in bytes suitable for input to <code class="FUNCTION">pg_lo_lseek</code>.</p>
 </div>

@@ -11,7 +11,7 @@
 <link rel="PREVIOUS" title="pg_sendquery" href="pgtcl-pgsendquery.html">
 <link rel="NEXT" title="pg_getresult" href="pgtcl-pggetresult.html">
 <link rel="STYLESHEET" type="text/css" href="stylesheet.css">
-<meta name="creation" content="2016-06-20T18:42:07">
+<meta name="creation" content="2016-09-26T16:04:34">
 </head>
 <body class="REFENTRY">
 <div class="NAVHEADER">
@@ -29,18 +29,18 @@
 </table>
 <hr align="left" width="100%"></div>
 <h1><a name="PGTCL-PGSENDQUERYPREPARED" id="PGTCL-PGSENDQUERYPREPARED"></a>pg_sendquery_prepared</h1>
-<div class="REFNAMEDIV"><a name="AEN1336" id="AEN1336"></a>
+<div class="REFNAMEDIV"><a name="AEN1353" id="AEN1353"></a>
 <h2>Name</h2>
 pg_sendquery_prepared&nbsp;--&nbsp;send a request to execute a prepared statement to the backend connection, without waiting for a result<a name="IX-PGTCL-PGSENDQUERYPREPARED-2" id="IX-PGTCL-PGSENDQUERYPREPARED-2"></a></div>
-<div class="REFSYNOPSISDIV"><a name="AEN1341" id="AEN1341"></a>
+<div class="REFSYNOPSISDIV"><a name="AEN1358" id="AEN1358"></a>
 <h2>Synopsis</h2>
 <pre class="SYNOPSIS">pg_sendquery_prepared <code class="PARAMETER">conn</code> <code class="PARAMETER">statementName</code> ?<span class="OPTIONAL"><code class="PARAMETER">args</code></span>?</pre></div>
-<div class="REFSECT1"><a name="AEN1347" id="AEN1347"></a>
+<div class="REFSECT1"><a name="AEN1364" id="AEN1364"></a>
 <h2>Description</h2>
 <p><code class="FUNCTION">pg_sendquery_prepared</code> submits a command to the <span class="PRODUCTNAME">PostgreSQL</span> server. This function works like <code class="FUNCTION">pg_exec</code>, except that it does not return a result. Rather, the command is issued to the backend asynchronously.</p>
 <p>The result is either an error message or nothing. An empty return indicates that the command was dispatched to the backend.</p>
 </div>
-<div class="REFSECT1"><a name="AEN1354" id="AEN1354"></a>
+<div class="REFSECT1"><a name="AEN1371" id="AEN1371"></a>
 <h2>Arguments</h2>
 <div class="VARIABLELIST">
 <dl>
@@ -59,7 +59,7 @@ pg_sendquery_prepared&nbsp;--&nbsp;send a request to execute a prepared statemen
 </dl>
 </div>
 </div>
-<div class="REFSECT1"><a name="AEN1373" id="AEN1373"></a>
+<div class="REFSECT1"><a name="AEN1390" id="AEN1390"></a>
 <h2>Return Value</h2>
 <p>A Tcl error will be returned if <span class="APPLICATION">pgtcl</span> was unable to issue the command. Otherwise, an empty string will be return. It is up to the developer to use <code class="FUNCTION">pg_getresult</code> to obtain results from commands issued with <code class="FUNCTION">pg_sendquery</code>.</p>
 </div>

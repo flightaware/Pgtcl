@@ -5,13 +5,13 @@
 \\$2 \(la\\$1\(ra\\$3
 ..
 .if \n(.g .mso www.tmac
-.TH pg_exec n "6 July 2016" "" "PostgreSQL Tcl Interface Documentation"
+.TH pg_exec n "26 September 2016" "" "PostgreSQL Tcl Interface Documentation"
 .SH NAME
 pg_exec \- send a command to the server
 .SH SYNOPSIS
 .nf
 
-pg_exec \*(T<conn\*(T> \*(T<commandString\*(T> [\*(T<args\*(T>]
+pg_exec [\*(T<\-paramarray\*(T> arrayVar] \*(T<conn\*(T> \*(T<commandString\*(T> [\*(T<args\*(T>]
 .fi
 .SH DESCRIPTION
 \*(T<\fBpg_exec\fR\*(T> submits a command to the
@@ -23,6 +23,11 @@ Note that lack of a Tcl error is not proof that the command
 succeeded! An error message returned by the server will be
 processed as a command result with failure status, not by
 generating a Tcl error in \*(T<\fBpg_exec\fR\*(T>.
+.PP
+If the [-paramarray] flag is provided, then a substitution is performed on the query, securely replacing
+each back-quote delimited name with the corresponding entry from the named array. If the array does not contain the named element,
+then NULL is substituted (similarly to the way an array created by -withoutnulls is generated).
+Each such name must occur in a location where a value or field name could appear. See pg_select for more info.
 .SH ARGUMENTS
 .TP 
 \*(T<conn\*(T>
