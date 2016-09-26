@@ -978,7 +978,7 @@ pg_exec <optional><parameter>-paramarray</parameter> arrayVar</optional> <parame
      <para>
       For <productname>PostgreSQL</productname> versions greater than 7.4, <parameter>args</parameter>
       consists of zero or more optional values that can be inserted,
-      unquoted, into the SQL statement using $-style substitution. Nulls are represented by the string "NULL.
+      unquoted, into the SQL statement using $-style substitution. Nulls are represented by the string "NULL".
      </para>
     </listitem>
    </varlistentry>
@@ -2149,7 +2149,7 @@ pg_sendquery <optional><parameter>-paramarray</parameter> arrayVar</optional> <p
      <para>
       For <productname>PostgreSQL</productname> versions greater than 7.4, <parameter>args</parameter>
       consists of zero or more optional values that can be inserted,
-      unquoted, into the SQL statement using $-style substitution. Nulls are represented by the string "NULL.
+      unquoted, into the SQL statement using $-style substitution. Nulls are represented by the string "NULL".
      </para>
     </listitem>
    </varlistentry>

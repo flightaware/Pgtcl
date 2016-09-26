@@ -39,7 +39,7 @@ The SQL command to execute.
 \*(T<args\*(T>
 For PostgreSQL versions greater than 7.4, \*(T<args\*(T>
 consists of zero or more optional values that can be inserted,
-unquoted, into the SQL statement using $-style substitution. Nulls are represented by the string "NULL.
+unquoted, into the SQL statement using $-style substitution. Nulls are represented by the string "NULL".
 .SH "RETURN VALUE"
 A result handle. A Tcl error will be returned if
 pgtcl was unable to obtain a server
