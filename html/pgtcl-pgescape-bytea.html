@@ -1,0 +1,73 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="HTML Tidy for HTML5 for FreeBSD version 5.2.0">
+<title>pg_escape_bytea</title>
+<meta name="GENERATOR" content="Modular DocBook HTML Stylesheet Version 1.79">
+<link rev="MADE" href="mailto:pgsql-docs@postgresql.org">
+<link rel="HOME" title="PostgreSQL Tcl Interface Documentation" href="index.html">
+<link rel="UP" title="pgtcl Command Reference" href="libpgtcl-ref.html">
+<link rel="PREVIOUS" title="pg_escape_string" href="pgtcl-pgescape-string.html">
+<link rel="NEXT" title="pg_unescape_bytea" href="pgtcl-pgunescape-bytea.html">
+<link rel="STYLESHEET" type="text/css" href="stylesheet.css">
+<meta name="creation" content="2016-09-26T16:13:57">
+</head>
+<body class="REFENTRY">
+<div class="NAVHEADER">
+<table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<th colspan="5" align="center" valign="bottom">PostgreSQL Tcl Interface Documentation</th>
+</tr>
+<tr>
+<td width="10%" align="left" valign="top"><a href="pgtcl-pgescape-string.html" accesskey="P">Prev</a></td>
+<td width="10%" align="left" valign="top"><a href="pgtcl-pgescape-string.html">Fast Backward</a></td>
+<td width="60%" align="center" valign="bottom"></td>
+<td width="10%" align="right" valign="top"><a href="pgtcl-pgunescape-bytea.html">Fast Forward</a></td>
+<td width="10%" align="right" valign="top"><a href="pgtcl-pgunescape-bytea.html" accesskey="N">Next</a></td>
+</tr>
+</table>
+<hr align="left" width="100%"></div>
+<h1><a name="PGTCL-PGESCAPE-BYTEA" id="PGTCL-PGESCAPE-BYTEA"></a>pg_escape_bytea</h1>
+<div class="REFNAMEDIV"><a name="AEN1638" id="AEN1638"></a>
+<h2>Name</h2>
+pg_escape_bytea&nbsp;--&nbsp;escapes a binary string for inclusion into SQL statements. <a name="IX-PGTCL-PGESCAPE-BYTEA-2" id="IX-PGTCL-PGESCAPE-BYTEA-2"></a></div>
+<div class="REFSYNOPSISDIV"><a name="AEN1643" id="AEN1643"></a>
+<h2>Synopsis</h2>
+<pre class="SYNOPSIS">pg_escape_bytea <code class="PARAMETER">string</code></pre></div>
+<div class="REFSECT1"><a name="AEN1646" id="AEN1646"></a>
+<h2>Description</h2>
+<p><code class="FUNCTION">pg_escape_bytea</code> escapes a binary string, making it safe for inclusion into SQL statements.</p>
+<pre class="PROGRAMLISTING">    pg_exec $conn "insert into foo values ([pg_escape_binary $name]);" </pre></div>
+<div class="REFSECT1"><a name="AEN1652" id="AEN1652"></a>
+<h2>Arguments</h2>
+<div class="VARIABLELIST">
+<dl>
+<dt><code class="PARAMETER">binary_string</code></dt>
+<dd>
+<p>The binary string to be escaped.</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="REFSECT1"><a name="AEN1660" id="AEN1660"></a>
+<h2>Return Value</h2>
+<p>Returns the binary string, escaped for inclusion into SQL queries.</p>
+</div>
+<div class="NAVFOOTER">
+<hr align="left" width="100%">
+<table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td width="33%" align="left" valign="top"><a href="pgtcl-pgescape-string.html" accesskey="P">Prev</a></td>
+<td width="34%" align="center" valign="top"><a href="index.html" accesskey="H">Home</a></td>
+<td width="33%" align="right" valign="top"><a href="pgtcl-pgunescape-bytea.html" accesskey="N">Next</a></td>
+</tr>
+<tr>
+<td width="33%" align="left" valign="top">pg_escape_string</td>
+<td width="34%" align="center" valign="top"><a href="libpgtcl-ref.html" accesskey="U">Up</a></td>
+<td width="33%" align="right" valign="top">pg_unescape_bytea</td>
+</tr>
+</table>
+</div>
+</body>
+</html>

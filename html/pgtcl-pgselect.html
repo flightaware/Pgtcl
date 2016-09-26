@@ -1,0 +1,123 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="HTML Tidy for HTML5 for FreeBSD version 5.2.0">
+<title>pg_select</title>
+<meta name="GENERATOR" content="Modular DocBook HTML Stylesheet Version 1.79">
+<link rev="MADE" href="mailto:pgsql-docs@postgresql.org">
+<link rel="HOME" title="PostgreSQL Tcl Interface Documentation" href="index.html">
+<link rel="UP" title="pgtcl Command Reference" href="libpgtcl-ref.html">
+<link rel="PREVIOUS" title="pg_result" href="pgtcl-pgresult.html">
+<link rel="NEXT" title="pg_execute" href="pgtcl-pgexecute.html">
+<link rel="STYLESHEET" type="text/css" href="stylesheet.css">
+<meta name="creation" content="2016-09-26T16:13:57">
+</head>
+<body class="REFENTRY">
+<div class="NAVHEADER">
+<table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<th colspan="5" align="center" valign="bottom">PostgreSQL Tcl Interface Documentation</th>
+</tr>
+<tr>
+<td width="10%" align="left" valign="top"><a href="pgtcl-pgresult.html" accesskey="P">Prev</a></td>
+<td width="10%" align="left" valign="top"><a href="pgtcl-pgresult.html">Fast Backward</a></td>
+<td width="60%" align="center" valign="bottom"></td>
+<td width="10%" align="right" valign="top"><a href="pgtcl-pgexecute.html">Fast Forward</a></td>
+<td width="10%" align="right" valign="top"><a href="pgtcl-pgexecute.html" accesskey="N">Next</a></td>
+</tr>
+</table>
+<hr align="left" width="100%"></div>
+<h1><a name="PGTCL-PGSELECT" id="PGTCL-PGSELECT"></a>pg_select</h1>
+<div class="REFNAMEDIV"><a name="AEN1004" id="AEN1004"></a>
+<h2>Name</h2>
+pg_select&nbsp;--&nbsp;loop over the result of a query<a name="IX-PGTCL-PGSELECT-2" id="IX-PGTCL-PGSELECT-2"></a></div>
+<div class="REFSYNOPSISDIV"><a name="AEN1009" id="AEN1009"></a>
+<h2>Synopsis</h2>
+<pre class="SYNOPSIS">pg_select ?<span class="OPTIONAL"><code class="PARAMETER">-rowbyrow</code></span>? ?<span class="OPTIONAL"><code class="PARAMETER">-nodotfields</code></span>? ?<span class="OPTIONAL"><code class="PARAMETER">-withoutnulls</code></span>? ?<span class="OPTIONAL"><code class="PARAMETER">-paramarray var</code></span>? ?<span class="OPTIONAL"><code class="PARAMETER">-params</code> paramList</span>? <code class="PARAMETER">conn</code> <code class="PARAMETER">commandString</code> <code class="PARAMETER">arrayVar</code> <code class="PARAMETER">procedure</code></pre></div>
+<div class="REFSECT1"><a name="AEN1025" id="AEN1025"></a>
+<h2>Description</h2>
+<p><code class="FUNCTION">pg_select</code> submits a query (<tt class="COMMAND">SELECT</tt> statement) to the <span class="PRODUCTNAME">PostgreSQL</span> server and executes a given chunk of code for each row in the result. The <code class="PARAMETER">commandString</code> must be a <tt class="COMMAND">SELECT</tt> statement; anything else returns an error. The <code class="PARAMETER">arrayVar</code> variable is an array name used in the loop. For each row, <code class="PARAMETER">arrayVar</code> is filled in with the row values, using the column names as the array indices. Then the <code class="PARAMETER">procedure</code> is executed.</p>
+<p>In addition to the column values, the following special entries are made in the array (unless the [<span class="OPTIONAL">-nodotfields</span>] flag is provided):</p>
+<div class="VARIABLELIST">
+<dl>
+<dt><tt class="LITERAL">.headers</tt></dt>
+<dd>
+<p>A list of the column names returned by the query.</p>
+</dd>
+<dt><tt class="LITERAL">.numcols</tt></dt>
+<dd>
+<p>The number of columns returned by the query.</p>
+</dd>
+<dt><tt class="LITERAL">.tupno</tt></dt>
+<dd>
+<p>The current row number, starting at zero and incrementing for each iteration of the loop body.</p>
+</dd>
+</dl>
+</div>
+<p>If the [<span class="OPTIONAL">-param</span>] flag is provided, then it contains a list of parameters that will replace "$1", "$2" and so on in the query string, as if it were a prepared statement. Be sure to properly escape or quote the "$" in the query. :)</p>
+<p>If the [<span class="OPTIONAL">-paramarray</span>] flag is provided, then a substitution is performed on the query, securely replacing each back-quote delimited name with the corresponding entry from the named array. If the array does not contain the named element, then NULL is substituted (similarly to the way an array created by -withoutnulls is generated). Each such name must occur in a location where a value or field name could appear.</p>
+<p>Notes: This substitution is performed by generating a positional parameter list and calling PQExecParams with a modified query containing $1, $2, ... where the original `names` appeared. This is a straight substitution, so if this mechanism is used the back-quote character (`) can not appear elsewhere in the query, even in a quoted string. There are a maximum of 99,999 names.</p>
+</div>
+<div class="REFSECT1"><a name="AEN1059" id="AEN1059"></a>
+<h2>Arguments</h2>
+<div class="VARIABLELIST">
+<dl>
+<dt>[<span class="OPTIONAL">-rowbyrow</span>]</dt>
+<dd>
+<p>Perform the select in row-by-row mode. This means that the code block is called immediately results become available, rather than waiting for the query to complete.</p>
+</dd>
+<dt>[<span class="OPTIONAL">-nodotfields</span>]</dt>
+<dd>
+<p>Suppress generation of the pseudo-fields .headers, .numcols, and .tupno.</p>
+</dd>
+<dt>[<span class="OPTIONAL">-withoutnulls</span>]</dt>
+<dd>
+<p>If specified null columns will be unset from the array rather than being defined and containing the null string, typically an empty string.</p>
+</dd>
+<dt><code class="PARAMETER">conn</code></dt>
+<dd>
+<p>The handle of the connection on which to execute the query.</p>
+</dd>
+<dt><code class="PARAMETER">commandString</code></dt>
+<dd>
+<p>The SQL query to execute.</p>
+</dd>
+<dt><code class="PARAMETER">arrayVar</code></dt>
+<dd>
+<p>An array variable for returned rows.</p>
+</dd>
+<dt><code class="PARAMETER">procedure</code></dt>
+<dd>
+<p>The procedure to run for each returned row.</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="REFSECT1"><a name="AEN1097" id="AEN1097"></a>
+<h2>Return Value</h2>
+<p>None</p>
+</div>
+<div class="REFSECT1"><a name="AEN1100" id="AEN1100"></a>
+<h2>Examples</h2>
+<p>This examples assumes that the table <code class="CLASSNAME">table1</code> has columns <tt class="STRUCTFIELD">control</tt> and <tt class="STRUCTFIELD">name</tt> (and perhaps others):</p>
+<pre class="PROGRAMLISTING">pg_select $pgconn "SELECT * FROM table1;" array {
+    puts [format "%5d %s" $array(control) $array(name)]
+}</pre></div>
+<div class="NAVFOOTER">
+<hr align="left" width="100%">
+<table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td width="33%" align="left" valign="top"><a href="pgtcl-pgresult.html" accesskey="P">Prev</a></td>
+<td width="34%" align="center" valign="top"><a href="index.html" accesskey="H">Home</a></td>
+<td width="33%" align="right" valign="top"><a href="pgtcl-pgexecute.html" accesskey="N">Next</a></td>
+</tr>
+<tr>
+<td width="33%" align="left" valign="top">pg_result</td>
+<td width="34%" align="center" valign="top"><a href="libpgtcl-ref.html" accesskey="U">Up</a></td>
+<td width="33%" align="right" valign="top">pg_execute</td>
+</tr>
+</table>
+</div>
+</body>
+</html>

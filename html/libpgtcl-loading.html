@@ -1,0 +1,59 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="HTML Tidy for HTML5 for FreeBSD version 5.2.0">
+<title>Loading pgtcl into an Application</title>
+<meta name="GENERATOR" content="Modular DocBook HTML Stylesheet Version 1.79">
+<link rev="MADE" href="mailto:pgsql-docs@postgresql.org">
+<link rel="HOME" title="PostgreSQL Tcl Interface Documentation" href="index.html">
+<link rel="UP" title="pgtcl - Tcl Binding Library" href="libpgtcl.html">
+<link rel="PREVIOUS" title="pgtcl - Tcl Binding Library" href="libpgtcl.html">
+<link rel="NEXT" title="pgtcl Command Reference" href="libpgtcl-ref.html">
+<link rel="STYLESHEET" type="text/css" href="stylesheet.css">
+<meta name="creation" content="2016-09-26T16:13:57">
+</head>
+<body class="SECT1">
+<div class="NAVHEADER">
+<table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<th colspan="5" align="center" valign="bottom">PostgreSQL Tcl Interface Documentation</th>
+</tr>
+<tr>
+<td width="10%" align="left" valign="top"><a href="libpgtcl.html" accesskey="P">Prev</a></td>
+<td width="10%" align="left" valign="top"><a href="libpgtcl.html">Fast Backward</a></td>
+<td width="60%" align="center" valign="bottom">Chapter 1. <span class="APPLICATION">pgtcl</span> - Tcl Binding Library</td>
+<td width="10%" align="right" valign="top"><a href="libpgtcl.html">Fast Forward</a></td>
+<td width="10%" align="right" valign="top"><a href="libpgtcl-ref.html" accesskey="N">Next</a></td>
+</tr>
+</table>
+<hr align="left" width="100%"></div>
+<div class="SECT1">
+<h1 class="SECT1"><a name="LIBPGTCL-LOADING" id="LIBPGTCL-LOADING">1.2. Loading <span class="APPLICATION">pgtcl</span> into an Application</a></h1>
+<p>Before using <span class="APPLICATION">pgtcl</span> commands, you must load the <tt class="FILENAME">libpgtcl</tt> library into your Tcl application. This is normally done with the <tt class="LITERAL">package require</tt> command. Here is an example:</p>
+<pre class="PROGRAMLISTING">package require Pgtcl 1.5</pre>
+<p><tt class="LITERAL">package require</tt> loads the <tt class="LITERAL">libpgtcl</tt> shared library, and loads any additional Tcl code that is part of the <tt class="LITERAL">Pgtcl</tt> package. Note that you can manually generate the pkgIndex.tcl file, or use <tt class="COMMAND">make pkgIndex.tcl</tt> or <tt class="COMMAND">make pkgIndex.tcl-hand</tt> to have make generate it.</p>
+<p>The old way to load the shared library is by using the Tcl <tt class="LITERAL">load</tt> command. Here is an example:</p>
+<pre class="PROGRAMLISTING">load libpgtcl[info sharedlibextension]</pre>
+<p>Although this way of loading the shared library is deprecated, we continue to document it for the time being, because it may help in debugging if, for some reason, <tt class="LITERAL">package require</tt> is failing. The use of <tt class="LITERAL">info sharedlibextension</tt> is recommended in preference to hard-wiring <tt class="LITERAL">.so</tt> or <tt class="LITERAL">.sl</tt> or <tt class="LITERAL">.dll</tt> into the program.</p>
+<p>The <tt class="LITERAL">load</tt> command will fail unless the system's dynamic loader knows where to look for the <tt class="FILENAME">libpgtcl</tt> shared library file. You may need to work with <tt class="COMMAND">ldconfig</tt>, or set the environment variable <tt class="ENVAR">LD_LIBRARY_PATH</tt>, or use some equivalent facility for your platform to make it work. Refer to the <span class="PRODUCTNAME">PostgreSQL</span> installation instructions for more information.</p>
+<p><tt class="FILENAME">libpgtcl</tt> in turn depends on the interface library <tt class="FILENAME">libpq</tt>, so the dynamic loader must also be able to find the <tt class="FILENAME">libpq</tt> shared library. In practice this is seldom an issue, since both of these shared libraries are normally stored in the same directory, but it can be a stumbling block in some configurations.</p>
+<p>If you use a custom executable for your application, you might choose to statically bind <tt class="FILENAME">libpgtcl</tt> into the executable and thereby avoid the <tt class="LITERAL">load</tt> command and the potential problems of dynamic linking. See the source code for <span class="APPLICATION">pgtclsh</span> for an example.</p>
+</div>
+<div class="NAVFOOTER">
+<hr align="left" width="100%">
+<table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td width="33%" align="left" valign="top"><a href="libpgtcl.html" accesskey="P">Prev</a></td>
+<td width="34%" align="center" valign="top"><a href="index.html" accesskey="H">Home</a></td>
+<td width="33%" align="right" valign="top"><a href="libpgtcl-ref.html" accesskey="N">Next</a></td>
+</tr>
+<tr>
+<td width="33%" align="left" valign="top"><span class="APPLICATION">pgtcl</span> - Tcl Binding Library</td>
+<td width="34%" align="center" valign="top"><a href="libpgtcl.html" accesskey="U">Up</a></td>
+<td width="33%" align="right" valign="top"><span class="APPLICATION">pgtcl</span> Command Reference</td>
+</tr>
+</table>
+</div>
+</body>
+</html>

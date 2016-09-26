@@ -1,0 +1,94 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="HTML Tidy for HTML5 for FreeBSD version 5.2.0">
+<title>Example Program</title>
+<meta name="GENERATOR" content="Modular DocBook HTML Stylesheet Version 1.79">
+<link rev="MADE" href="mailto:pgsql-docs@postgresql.org">
+<link rel="HOME" title="PostgreSQL Tcl Interface Documentation" href="index.html">
+<link rel="UP" title="pgtcl - Tcl Binding Library" href="libpgtcl.html">
+<link rel="PREVIOUS" title="Connection/result handles as commands" href="pgtcl-commandhandles.html">
+<link rel="STYLESHEET" type="text/css" href="stylesheet.css">
+<meta name="creation" content="2016-09-26T16:13:57">
+</head>
+<body class="SECT1">
+<div class="NAVHEADER">
+<table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<th colspan="5" align="center" valign="bottom">PostgreSQL Tcl Interface Documentation</th>
+</tr>
+<tr>
+<td width="10%" align="left" valign="top"><a href="pgtcl-commandhandles.html" accesskey="P">Prev</a></td>
+<td width="10%" align="left" valign="top"><a href="libpgtcl.html">Fast Backward</a></td>
+<td width="60%" align="center" valign="bottom">Chapter 1. <span class="APPLICATION">pgtcl</span> - Tcl Binding Library</td>
+<td width="10%" align="right" valign="top"><a href="libpgtcl.html">Fast Forward</a></td>
+<td width="10%" align="right" valign="top">&nbsp;</td>
+</tr>
+</table>
+<hr align="left" width="100%"></div>
+<div class="SECT1">
+<h1 class="SECT1"><a name="PGTCL-EXAMPLESECT" id="PGTCL-EXAMPLESECT">1.6. Example Program</a></h1>
+<p><a href="pgtcl-examplesect.html#PGTCL-EXAMPLE">Example 1-1</a>&gt; shows a small example of how to use the <span class="APPLICATION">pgtcl</span> commands.</p>
+<div class="EXAMPLE"><a name="PGTCL-EXAMPLE" id="PGTCL-EXAMPLE"></a>
+<p><b>Example 1-1. <span class="APPLICATION">pgtcl</span> Example Program</b></p>
+<pre class="PROGRAMLISTING"># getDBs :
+#   get the names of all the databases at a given host and port number
+#   with the defaults being the localhost and port 5432
+#   return them in alphabetical order
+proc getDBs { {host "localhost"} {port "5432"} } {
+    # datnames is the list to be result
+    set conn [pg_connect template1 -host $host -port $port]
+    set res [pg_exec $conn "SELECT datname FROM pg_database ORDER BY datname;"]
+    set ntups [pg_result $res -numTuples]
+    for {set i 0} {$i &lt; $ntups} {incr i} {
+        lappend datnames [pg_result $res -getTuple $i]
+    }
+    pg_result $res -clear
+    pg_disconnect $conn
+    return $datnames
+}
+
+## OR an alternative
+
+proc getDBs { {host "localhost"} {port "5432"} } {
+    # datnames is the list to be result
+    set conn [pg_connect template1 -host $host -port $port]
+    set res [pg_exec $conn "SELECT datname FROM pg_database ORDER BY datname;"]
+
+    set datnames [pg_result $res -list]
+    pg_result $res -clear
+    pg_disconnect $conn
+    return $datnames
+}
+
+## OR an alternative
+
+proc getDBs { {host "localhost"} {port "5432"} } {
+    # datnames is the list to be result
+    set conn [pg_connect template1 -host $host -port $port]
+    set res [$conn exec "SELECT datname FROM pg_database ORDER BY datname;"]
+
+    set datnames [$res -dict]
+    $res -clear
+    rename $conn {}
+    return [dict get $datnames]
+}</pre></div>
+</div>
+<div class="NAVFOOTER">
+<hr align="left" width="100%">
+<table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td width="33%" align="left" valign="top"><a href="pgtcl-commandhandles.html" accesskey="P">Prev</a></td>
+<td width="34%" align="center" valign="top"><a href="index.html" accesskey="H">Home</a></td>
+<td width="33%" align="right" valign="top">&nbsp;</td>
+</tr>
+<tr>
+<td width="33%" align="left" valign="top">Connection/result handles as commands</td>
+<td width="34%" align="center" valign="top"><a href="libpgtcl.html" accesskey="U">Up</a></td>
+<td width="33%" align="right" valign="top">&nbsp;</td>
+</tr>
+</table>
+</div>
+</body>
+</html>

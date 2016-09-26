@@ -1,0 +1,73 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="HTML Tidy for HTML5 for FreeBSD version 5.2.0">
+<title>pg_cancelrequest</title>
+<meta name="GENERATOR" content="Modular DocBook HTML Stylesheet Version 1.79">
+<link rev="MADE" href="mailto:pgsql-docs@postgresql.org">
+<link rel="HOME" title="PostgreSQL Tcl Interface Documentation" href="index.html">
+<link rel="UP" title="pgtcl Command Reference" href="libpgtcl-ref.html">
+<link rel="PREVIOUS" title="pg_blocking" href="pgtcl-pgblocking.html">
+<link rel="NEXT" title="pg_null_value_string" href="pgtcl-nullvaluestring.html">
+<link rel="STYLESHEET" type="text/css" href="stylesheet.css">
+<meta name="creation" content="2016-09-26T16:13:57">
+</head>
+<body class="REFENTRY">
+<div class="NAVHEADER">
+<table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<th colspan="5" align="center" valign="bottom">PostgreSQL Tcl Interface Documentation</th>
+</tr>
+<tr>
+<td width="10%" align="left" valign="top"><a href="pgtcl-pgblocking.html" accesskey="P">Prev</a></td>
+<td width="10%" align="left" valign="top"><a href="pgtcl-pgblocking.html">Fast Backward</a></td>
+<td width="60%" align="center" valign="bottom"></td>
+<td width="10%" align="right" valign="top"><a href="pgtcl-nullvaluestring.html">Fast Forward</a></td>
+<td width="10%" align="right" valign="top"><a href="pgtcl-nullvaluestring.html" accesskey="N">Next</a></td>
+</tr>
+</table>
+<hr align="left" width="100%"></div>
+<h1><a name="PGTCL-PGCANCELREQUEST" id="PGTCL-PGCANCELREQUEST"></a>pg_cancelrequest</h1>
+<div class="REFNAMEDIV"><a name="AEN1512" id="AEN1512"></a>
+<h2>Name</h2>
+pg_cancelrequest&nbsp;--&nbsp;request that <span class="PRODUCTNAME">PostgreSQL</span> abandon processing of the current command <a name="IX-PGTCL-PGCANCELREQUEST-2" id="IX-PGTCL-PGCANCELREQUEST-2"></a></div>
+<div class="REFSYNOPSISDIV"><a name="AEN1518" id="AEN1518"></a>
+<h2>Synopsis</h2>
+<pre class="SYNOPSIS">pg_cancelrequest <code class="PARAMETER">conn</code></pre></div>
+<div class="REFSECT1"><a name="AEN1521" id="AEN1521"></a>
+<h2>Description</h2>
+<p><code class="FUNCTION">pg_cancelrequest</code> requests that the processing of the current command be abandoned.</p>
+</div>
+<div class="REFSECT1"><a name="AEN1525" id="AEN1525"></a>
+<h2>Arguments</h2>
+<div class="VARIABLELIST">
+<dl>
+<dt><code class="PARAMETER">conn</code></dt>
+<dd>
+<p>The handle of a connection to the database in which the large object exists.</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="REFSECT1"><a name="AEN1533" id="AEN1533"></a>
+<h2>Return Value</h2>
+<p>Returns nothing if the command was successfully dispatched or if no query was being processed. Otherwise, returns an error.</p>
+</div>
+<div class="NAVFOOTER">
+<hr align="left" width="100%">
+<table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td width="33%" align="left" valign="top"><a href="pgtcl-pgblocking.html" accesskey="P">Prev</a></td>
+<td width="34%" align="center" valign="top"><a href="index.html" accesskey="H">Home</a></td>
+<td width="33%" align="right" valign="top"><a href="pgtcl-nullvaluestring.html" accesskey="N">Next</a></td>
+</tr>
+<tr>
+<td width="33%" align="left" valign="top">pg_blocking</td>
+<td width="34%" align="center" valign="top"><a href="libpgtcl-ref.html" accesskey="U">Up</a></td>
+<td width="33%" align="right" valign="top">pg_null_value_string</td>
+</tr>
+</table>
+</div>
+</body>
+</html>

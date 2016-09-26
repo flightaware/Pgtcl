@@ -1,0 +1,76 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="HTML Tidy for HTML5 for FreeBSD version 5.2.0">
+<title>pg_getresult</title>
+<meta name="GENERATOR" content="Modular DocBook HTML Stylesheet Version 1.79">
+<link rev="MADE" href="mailto:pgsql-docs@postgresql.org">
+<link rel="HOME" title="PostgreSQL Tcl Interface Documentation" href="index.html">
+<link rel="UP" title="pgtcl Command Reference" href="libpgtcl-ref.html">
+<link rel="PREVIOUS" title="pg_sendquery_prepared" href="pgtcl-pgsendqueryprepared.html">
+<link rel="NEXT" title="pg_isbusy" href="pgtcl-pgisbusy.html">
+<link rel="STYLESHEET" type="text/css" href="stylesheet.css">
+<meta name="creation" content="2016-09-26T16:13:57">
+</head>
+<body class="REFENTRY">
+<div class="NAVHEADER">
+<table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<th colspan="5" align="center" valign="bottom">PostgreSQL Tcl Interface Documentation</th>
+</tr>
+<tr>
+<td width="10%" align="left" valign="top"><a href="pgtcl-pgsendqueryprepared.html" accesskey="P">Prev</a></td>
+<td width="10%" align="left" valign="top"><a href="pgtcl-pgsendqueryprepared.html">Fast Backward</a></td>
+<td width="60%" align="center" valign="bottom"></td>
+<td width="10%" align="right" valign="top"><a href="pgtcl-pgisbusy.html">Fast Forward</a></td>
+<td width="10%" align="right" valign="top"><a href="pgtcl-pgisbusy.html" accesskey="N">Next</a></td>
+</tr>
+</table>
+<hr align="left" width="100%"></div>
+<h1><a name="PGTCL-PGGETRESULT" id="PGTCL-PGGETRESULT"></a>pg_getresult</h1>
+<div class="REFNAMEDIV"><a name="AEN1408" id="AEN1408"></a>
+<h2>Name</h2>
+pg_getresult&nbsp;--&nbsp;process asychronous results<a name="IX-PGTCL-PGGETRESULT-2" id="IX-PGTCL-PGGETRESULT-2"></a></div>
+<div class="REFSYNOPSISDIV"><a name="AEN1413" id="AEN1413"></a>
+<h2>Synopsis</h2>
+<pre class="SYNOPSIS">pg_getresult <code class="PARAMETER">conn</code></pre></div>
+<div class="REFSECT1"><a name="AEN1416" id="AEN1416"></a>
+<h2>Description</h2>
+<p><code class="FUNCTION">pg_getresult</code> checks to see if any commands issued by <code class="FUNCTION">pg_sendquery</code> have completed.</p>
+<p>This will return the same sort of result handle that <code class="FUNCTION">pg_exec</code> returns.</p>
+<p>If there is no query currently being processed or all of the results have been obtained, <code class="FUNCTION">pg_getresult</code> returns nothing.</p>
+</div>
+<div class="REFSECT1"><a name="AEN1425" id="AEN1425"></a>
+<h2>Arguments</h2>
+<div class="VARIABLELIST">
+<dl>
+<dt><code class="PARAMETER">conn</code></dt>
+<dd>
+<p>The handle of a connection to the database to which asynchronous requests are being issued.</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="REFSECT1"><a name="AEN1433" id="AEN1433"></a>
+<h2>Return Value</h2>
+<p>If a query result is available, a command result object is returned. This handle can be passed to <code class="FUNCTION">pg_result</code> to obtain the results of the command.</p>
+<p>If there is no query currently being processed or all of the results have been obtained, <code class="FUNCTION">pg_getresult</code> returns nothing.</p>
+</div>
+<div class="NAVFOOTER">
+<hr align="left" width="100%">
+<table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td width="33%" align="left" valign="top"><a href="pgtcl-pgsendqueryprepared.html" accesskey="P">Prev</a></td>
+<td width="34%" align="center" valign="top"><a href="index.html" accesskey="H">Home</a></td>
+<td width="33%" align="right" valign="top"><a href="pgtcl-pgisbusy.html" accesskey="N">Next</a></td>
+</tr>
+<tr>
+<td width="33%" align="left" valign="top">pg_sendquery_prepared</td>
+<td width="34%" align="center" valign="top"><a href="libpgtcl-ref.html" accesskey="U">Up</a></td>
+<td width="33%" align="right" valign="top">pg_isbusy</td>
+</tr>
+</table>
+</div>
+</body>
+</html>

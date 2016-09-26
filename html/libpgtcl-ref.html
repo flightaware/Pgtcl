@@ -1,0 +1,88 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="HTML Tidy for HTML5 for FreeBSD version 5.2.0">
+<title>pgtcl Command Reference</title>
+<meta name="GENERATOR" content="Modular DocBook HTML Stylesheet Version 1.79">
+<link rev="MADE" href="mailto:pgsql-docs@postgresql.org">
+<link rel="HOME" title="PostgreSQL Tcl Interface Documentation" href="index.html">
+<link rel="UP" title="pgtcl - Tcl Binding Library" href="libpgtcl.html">
+<link rel="PREVIOUS" title="Loading pgtcl into an Application" href="libpgtcl-loading.html">
+<link rel="NEXT" title="pg_connect" href="pgtcl-pgconnect.html">
+<link rel="STYLESHEET" type="text/css" href="stylesheet.css">
+<meta name="creation" content="2016-09-26T16:13:57">
+</head>
+<body class="SECT1">
+<div class="NAVHEADER">
+<table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<th colspan="5" align="center" valign="bottom">PostgreSQL Tcl Interface Documentation</th>
+</tr>
+<tr>
+<td width="10%" align="left" valign="top"><a href="libpgtcl-loading.html" accesskey="P">Prev</a></td>
+<td width="10%" align="left" valign="top"><a href="libpgtcl.html">Fast Backward</a></td>
+<td width="60%" align="center" valign="bottom">Chapter 1. <span class="APPLICATION">pgtcl</span> - Tcl Binding Library</td>
+<td width="10%" align="right" valign="top"><a href="libpgtcl.html">Fast Forward</a></td>
+<td width="10%" align="right" valign="top"><a href="pgtcl-pgconnect.html" accesskey="N">Next</a></td>
+</tr>
+</table>
+<hr align="left" width="100%"></div>
+<div class="SECT1">
+<h1 class="SECT1"><a name="LIBPGTCL-REF" id="LIBPGTCL-REF">1.3. <span class="APPLICATION">pgtcl</span> Command Reference</a></h1>
+<div class="TOC">
+<dl>
+<dt><b>Table of Contents</b></dt>
+<dt><a href="pgtcl-pgconnect.html">pg_connect</a>&nbsp;--&nbsp;open a connection to the server</dt>
+<dt><a href="pgtcl-pgconninfo.html">pg_dbinfo</a>&nbsp;--&nbsp;returns a list of current open connection/result handles</dt>
+<dt><a href="pgtcl-pgdisconnect.html">pg_disconnect</a>&nbsp;--&nbsp;close a connection to the server</dt>
+<dt><a href="pgtcl-pgconndefaults.html">pg_conndefaults</a>&nbsp;--&nbsp;get connection options and their defaults</dt>
+<dt><a href="pgtcl-pgexec.html">pg_exec</a>&nbsp;--&nbsp;send a command to the server</dt>
+<dt><a href="pgtcl-pgexecprepared.html">pg_exec_prepared</a>&nbsp;--&nbsp;send a request to execute a prepared SQL statement to the server</dt>
+<dt><a href="pgtcl-pgresult.html">pg_result</a>&nbsp;--&nbsp;get information about a command result</dt>
+<dt><a href="pgtcl-pgselect.html">pg_select</a>&nbsp;--&nbsp;loop over the result of a query</dt>
+<dt><a href="pgtcl-pgexecute.html">pg_execute</a>&nbsp;--&nbsp;send a query and optionally loop over the results</dt>
+<dt><a href="pgtcl-pglisten.html">pg_listen</a>&nbsp;--&nbsp;set or change a callback for asynchronous notification messages</dt>
+<dt><a href="pgtcl-pgon-connection-loss.html">pg_on_connection_loss</a>&nbsp;--&nbsp;set or change a callback for unexpected connection loss</dt>
+<dt><a href="pgtcl-pgsendquery.html">pg_sendquery</a>&nbsp;--&nbsp;send a query string to the backend connection without waiting for a result</dt>
+<dt><a href="pgtcl-pgsendqueryprepared.html">pg_sendquery_prepared</a>&nbsp;--&nbsp;send a request to execute a prepared statement to the backend connection, without waiting for a result</dt>
+<dt><a href="pgtcl-pggetresult.html">pg_getresult</a>&nbsp;--&nbsp;process asychronous results</dt>
+<dt><a href="pgtcl-pgisbusy.html">pg_isbusy</a>&nbsp;--&nbsp;see if a query is busy</dt>
+<dt><a href="pgtcl-pgblocking.html">pg_blocking</a>&nbsp;--&nbsp;see or set whether or not a connection is set to blocking or nonblocking</dt>
+<dt><a href="pgtcl-pgcancelrequest.html">pg_cancelrequest</a>&nbsp;--&nbsp;request that <span class="PRODUCTNAME">PostgreSQL</span> abandon processing of the current command</dt>
+<dt><a href="pgtcl-nullvaluestring.html">pg_null_value_string</a>&nbsp;--&nbsp;define a value to be returned for NULL fields distinct from the default value of an empty string.</dt>
+<dt><a href="pgtcl-quote.html">pg_quote</a>&nbsp;--&nbsp;escapes a string for inclusion into SQL statements</dt>
+<dt><a href="pgtcl-pgescape-string.html">pg_escape_string</a>&nbsp;--&nbsp;escapes a string for inclusion into SQL statements. This is the same as pg_quote. It was added for consistency.</dt>
+<dt><a href="pgtcl-pgescape-bytea.html">pg_escape_bytea</a>&nbsp;--&nbsp;escapes a binary string for inclusion into SQL statements.</dt>
+<dt><a href="pgtcl-pgunescape-bytea.html">pg_unescape_bytea</a>&nbsp;--&nbsp;unescapes a binary string.</dt>
+<dt><a href="pgtcl-pglocreat.html">pg_lo_creat</a>&nbsp;--&nbsp;create a large object</dt>
+<dt><a href="pgtcl-pgloopen.html">pg_lo_open</a>&nbsp;--&nbsp;open a large object</dt>
+<dt><a href="pgtcl-pgloclose.html">pg_lo_close</a>&nbsp;--&nbsp;close a large object</dt>
+<dt><a href="pgtcl-pgloread.html">pg_lo_read</a>&nbsp;--&nbsp;read from a large object</dt>
+<dt><a href="pgtcl-pglowrite.html">pg_lo_write</a>&nbsp;--&nbsp;write to a large object</dt>
+<dt><a href="pgtcl-pglolseek.html">pg_lo_lseek</a>&nbsp;--&nbsp;seek to a position of a large object</dt>
+<dt><a href="pgtcl-pglotell.html">pg_lo_tell</a>&nbsp;--&nbsp;return the current seek position of a large object</dt>
+<dt><a href="pgtcl-pgtruncate.html">pg_lo_truncate</a>&nbsp;--&nbsp;Truncate a large object to a given length</dt>
+<dt><a href="pgtcl-pglounlink.html">pg_lo_unlink</a>&nbsp;--&nbsp;delete a large object</dt>
+<dt><a href="pgtcl-pgloimport.html">pg_lo_import</a>&nbsp;--&nbsp;import a large object from a file</dt>
+<dt><a href="pgtcl-pgloexport.html">pg_lo_export</a>&nbsp;--&nbsp;export a large object to a file</dt>
+</dl>
+</div>
+</div>
+<div class="NAVFOOTER">
+<hr align="left" width="100%">
+<table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td width="33%" align="left" valign="top"><a href="libpgtcl-loading.html" accesskey="P">Prev</a></td>
+<td width="34%" align="center" valign="top"><a href="index.html" accesskey="H">Home</a></td>
+<td width="33%" align="right" valign="top"><a href="pgtcl-pgconnect.html" accesskey="N">Next</a></td>
+</tr>
+<tr>
+<td width="33%" align="left" valign="top">Loading <span class="APPLICATION">pgtcl</span> into an Application</td>
+<td width="34%" align="center" valign="top"><a href="libpgtcl.html" accesskey="U">Up</a></td>
+<td width="33%" align="right" valign="top">pg_connect</td>
+</tr>
+</table>
+</div>
+</body>
+</html>
