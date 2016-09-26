@@ -11,7 +11,7 @@ pg_sendquery \- send a query string to the backend connection without waiting fo
 .SH SYNOPSIS
 .nf
 
-pg_sendquery [\*(T<\-paramarray\*(T> arrayVar] \*(T<conn\*(T> \*(T<commandString\*(T>
+pg_sendquery [\*(T<\-paramarray\*(T> arrayVar] \*(T<conn\*(T> \*(T<commandString\*(T> [\*(T<args\*(T>]
 .fi
 .SH DESCRIPTION
 \*(T<\fBpg_sendquery\fR\*(T> submits a command to the
@@ -35,6 +35,11 @@ The handle of the connection on which to execute the command.
 .TP 
 \*(T<commandString\*(T>
 The SQL command to execute.
+.TP 
+\*(T<args\*(T>
+For PostgreSQL versions greater than 7.4, \*(T<args\*(T>
+consists of zero or more optional values that can be inserted,
+unquoted, into the SQL statement using $-style substitution. Nulls are represented by the string "NULL.
 .SH "RETURN VALUE"
 A Tcl error will be returned if
 pgtcl was unable to issue the command.

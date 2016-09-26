@@ -11,7 +11,7 @@
 <link rel="PREVIOUS" title="pg_getresult" href="pgtcl-pggetresult.html">
 <link rel="NEXT" title="pg_blocking" href="pgtcl-pgblocking.html">
 <link rel="STYLESHEET" type="text/css" href="stylesheet.css">
-<meta name="creation" content="2016-09-26T16:04:34">
+<meta name="creation" content="2016-09-26T16:09:47">
 </head>
 <body class="REFENTRY">
 <div class="NAVHEADER">
@@ -29,17 +29,17 @@
 </table>
 <hr align="left" width="100%"></div>
 <h1><a name="PGTCL-PGISBUSY" id="PGTCL-PGISBUSY"></a>pg_isbusy</h1>
-<div class="REFNAMEDIV"><a name="AEN1433" id="AEN1433"></a>
+<div class="REFNAMEDIV"><a name="AEN1442" id="AEN1442"></a>
 <h2>Name</h2>
 pg_isbusy&nbsp;--&nbsp;see if a query is busy<a name="IX-PGTCL-PGISBUSY-2" id="IX-PGTCL-PGISBUSY-2"></a></div>
-<div class="REFSYNOPSISDIV"><a name="AEN1438" id="AEN1438"></a>
+<div class="REFSYNOPSISDIV"><a name="AEN1447" id="AEN1447"></a>
 <h2>Synopsis</h2>
 <pre class="SYNOPSIS">pg_isbusy <code class="PARAMETER">conn</code></pre></div>
-<div class="REFSECT1"><a name="AEN1441" id="AEN1441"></a>
+<div class="REFSECT1"><a name="AEN1450" id="AEN1450"></a>
 <h2>Description</h2>
 <p><code class="FUNCTION">pg_isbusy</code> checks to see if the backend is busy handling a query or not.</p>
 </div>
-<div class="REFSECT1"><a name="AEN1445" id="AEN1445"></a>
+<div class="REFSECT1"><a name="AEN1454" id="AEN1454"></a>
 <h2>Arguments</h2>
 <div class="VARIABLELIST">
 <dl>
@@ -50,7 +50,7 @@ pg_isbusy&nbsp;--&nbsp;see if a query is busy<a name="IX-PGTCL-PGISBUSY-2" id="I
 </dl>
 </div>
 </div>
-<div class="REFSECT1"><a name="AEN1453" id="AEN1453"></a>
+<div class="REFSECT1"><a name="AEN1462" id="AEN1462"></a>
 <h2>Return Value</h2>
 <p>Returns <tt class="LITERAL">1</tt> if the backend is busy, in which case a call to <code class="FUNCTION">pg_getresult</code> would block, otherwise it returns <tt class="LITERAL">0</tt>.</p>
 </div>
