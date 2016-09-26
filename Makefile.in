@@ -191,7 +191,7 @@ libraries:
 
 doc:
 	@echo "If you really want to rebuild the documentation, do the following:"
-	@echo "        cd docs ; make all"
+	@echo "        cd doc ; make all"
 
 install: all install-binaries install-libraries install-doc
 
