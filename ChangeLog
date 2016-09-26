@@ -1,3 +1,12 @@
+2016-10-26 Peter da Silva
+    * Increment version to v2.1.0
+
+    * Add -params and -paramarray to pg_select
+
+    * Add -paramarray to pg_exec and pg_sendquery
+
+    * Update documentation to match.
+
 2016-07-06 Jeff Lawson
     * Increment to 2.0.1
 
