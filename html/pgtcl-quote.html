@@ -11,7 +11,6 @@
 <link rel="PREVIOUS" title="pg_null_value_string" href="pgtcl-nullvaluestring.html">
 <link rel="NEXT" title="pg_escape_string" href="pgtcl-pgescape-string.html">
 <link rel="STYLESHEET" type="text/css" href="stylesheet.css">
-<meta name="creation" content="2016-09-26T16:13:57">
 </head>
 <body class="REFENTRY">
 <div class="NAVHEADER">
@@ -42,7 +41,7 @@ pg_quote&nbsp;--&nbsp;escapes a string for inclusion into SQL statements <a name
 <p>If the [<span class="OPTIONAL">-null</span>] option is provided, then if the text matches the null string (either the empty string, or the null string specified in the <code class="PARAMETER">connection</code>) then the SQL keyword NULL is returned, rather than a quoted string.</p>
 <p>If you're doing something like</p>
 <pre class="PROGRAMLISTING">    pg_exec $conn "insert into foo values ('$name');" </pre>
-<p>and <code class="VARNAME">name</code> contains text includeing an unescaped single quote, such as <tt class="LITERAL">Bob's House</tt>, the insert will fail. Passing value strings through <code class="FUNCTION">pg_quote</code> make sure they can be used as values and stuff in PostgreSQL.</p>
+<p>and <code class="VARNAME">name</code> contains text includeng an unescaped single quote, such as <tt class="LITERAL">Bob's House</tt>, at best the insert will fail, and at worst your software will be exploited via an SQL injection attack. Passing value strings through <code class="FUNCTION">pg_quote</code> will properly quote them for insertion into SQL commands.</p>
 <pre class="PROGRAMLISTING">    pg_exec $conn "insert into foo values ([pg_quote $name]);" </pre>
 <p>...will make sure that any special characters that occur in name, such as single quote or backslash, will be properly quoted.</p>
 </div>
@@ -60,6 +59,10 @@ pg_quote&nbsp;--&nbsp;escapes a string for inclusion into SQL statements <a name
 <div class="REFSECT1"><a name="AEN1600" id="AEN1600"></a>
 <h2>Return Value</h2>
 <p>Returns the string, escaped for inclusion into SQL queries. Note that it adds a set of single quotes around the outside of the string as well.</p>
+</div>
+<div class="REFSECT1"><a name="AEN1603" id="AEN1603"></a>
+<h2>See Also</h2>
+<p>In most cases, with recent versions of SQL, it is better to use the native parameter insertion capabilities of the SQL server and protocol. If you are using a version of PostgreSQL more recent then 7.4, consider the optional parameter arguments to pg_exec and pg_sendquery, and the paramarray option to pg_exec, pg_sendquery, and pg_select.</p>
 </div>
 <div class="NAVFOOTER">
 <hr align="left" width="100%">

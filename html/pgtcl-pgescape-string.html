@@ -11,7 +11,6 @@
 <link rel="PREVIOUS" title="pg_quote" href="pgtcl-quote.html">
 <link rel="NEXT" title="pg_escape_bytea" href="pgtcl-pgescape-bytea.html">
 <link rel="STYLESHEET" type="text/css" href="stylesheet.css">
-<meta name="creation" content="2016-09-26T16:13:57">
 </head>
 <body class="REFENTRY">
 <div class="NAVHEADER">
@@ -29,22 +28,22 @@
 </table>
 <hr align="left" width="100%"></div>
 <h1><a name="PGTCL-PGESCAPE-STRING" id="PGTCL-PGESCAPE-STRING"></a>pg_escape_string</h1>
-<div class="REFNAMEDIV"><a name="AEN1606" id="AEN1606"></a>
+<div class="REFNAMEDIV"><a name="AEN1609" id="AEN1609"></a>
 <h2>Name</h2>
 pg_escape_string&nbsp;--&nbsp;escapes a string for inclusion into SQL statements. This is the same as pg_quote. It was added for consistency. <a name="IX-PGTCL-PGESCAPE-STRING-2" id="IX-PGTCL-PGESCAPE-STRING-2"></a></div>
-<div class="REFSYNOPSISDIV"><a name="AEN1611" id="AEN1611"></a>
+<div class="REFSYNOPSISDIV"><a name="AEN1614" id="AEN1614"></a>
 <h2>Synopsis</h2>
 <pre class="SYNOPSIS">pg_escape_string <code class="PARAMETER">string</code></pre></div>
-<div class="REFSECT1"><a name="AEN1614" id="AEN1614"></a>
+<div class="REFSECT1"><a name="AEN1617" id="AEN1617"></a>
 <h2>Description</h2>
 <p><code class="FUNCTION">pg_escape_string</code> quotes a string and escapes single quotes and backslashes within the string, making it safe for inclusion into SQL statements.</p>
 <p>If you're doing something like</p>
 <pre class="PROGRAMLISTING">    pg_exec $conn "insert into foo values ('$name');" </pre>
-<p>and <code class="VARNAME">name</code> contains text includeing an unescaped single quote, such as <tt class="LITERAL">Bob's House</tt>, the insert will fail. Passing value strings through <code class="FUNCTION">pg_escape_string</code> make sure they can be used as values and stuff in PostgreSQL.</p>
+<p>and <code class="VARNAME">name</code> contains text includeng an unescaped single quote, such as <tt class="LITERAL">Bob's House</tt>, at best the insert will fail, and at worst your software will be exploited via an SQL injection attack. Passing value strings through <code class="FUNCTION">pg_escape_string</code> will properly quote them for insertion into SQL commands.</p>
 <pre class="PROGRAMLISTING">    pg_exec $conn "insert into foo values ([pg_escape_string $name]);" </pre>
 <p>...will make sure that any special characters that occur in name, such as single quote or backslash, will be properly quoted.</p>
 </div>
-<div class="REFSECT1"><a name="AEN1624" id="AEN1624"></a>
+<div class="REFSECT1"><a name="AEN1627" id="AEN1627"></a>
 <h2>Arguments</h2>
 <div class="VARIABLELIST">
 <dl>
@@ -55,9 +54,13 @@ pg_escape_string&nbsp;--&nbsp;escapes a string for inclusion into SQL statements
 </dl>
 </div>
 </div>
-<div class="REFSECT1"><a name="AEN1632" id="AEN1632"></a>
+<div class="REFSECT1"><a name="AEN1635" id="AEN1635"></a>
 <h2>Return Value</h2>
 <p>Returns the string, escaped for inclusion into SQL queries. Note that it adds a set of single quotes around the outside of the string as well.</p>
+</div>
+<div class="REFSECT1"><a name="AEN1638" id="AEN1638"></a>
+<h2>See Also</h2>
+<p>In most cases, with recent versions of SQL, it is better to use the native parameter insertion capabilities of the SQL server and protocol. If you are using a version of PostgreSQL more recent then 7.4, consider the optional parameter arguments to pg_exec and pg_sendquery, and the paramarray option to pg_exec, pg_sendquery, and pg_select.</p>
 </div>
 <div class="NAVFOOTER">
 <hr align="left" width="100%">
