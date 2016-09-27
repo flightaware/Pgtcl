@@ -2595,10 +2595,11 @@ If you're doing something like
 <programlisting>
     pg_exec $conn "insert into foo values ('$name');" 
 </programlisting>
-and <varname>name</varname> contains text includeing an unescaped single
-quote, such as <literal>Bob's House</literal>, the insert will fail.  
+and <varname>name</varname> contains text includeng an unescaped single
+quote, such as <literal>Bob's House</literal>, at best the insert will fail, and
+at worst your software will be exploited via an SQL injection attack.
 Passing value strings through <function>pg_quote</function>
-make sure they can be used as values and stuff in PostgreSQL.
+will properly quote them for insertion into SQL commands.
 
 <programlisting>
     pg_exec $conn "insert into foo values ([pg_quote $name]);" 
@@ -2629,6 +2630,17 @@ single quote or backslash, will be properly quoted.
   <para>
    Returns the string, escaped for inclusion into SQL queries.  Note that
    it adds a set of single quotes around the outside of the string as well.
+  </para>
+
+ </refsect1>
+ <refsect1>
+  <title>See Also</title>
+
+  <para>
+   In most cases, with recent versions of SQL, it is better to use the native parameter insertion capabilities
+   of the SQL server and protocol. If you are using a version of PostgreSQL more recent then 7.4, consider the
+   optional parameter arguments to pg_exec and pg_sendquery, and the paramarray option to pg_exec, pg_sendquery, and
+   pg_select.
   </para>
  </refsect1>
 </refentry>
@@ -2665,10 +2677,11 @@ If you're doing something like
 <programlisting>
     pg_exec $conn "insert into foo values ('$name');" 
 </programlisting>
-and <varname>name</varname> contains text includeing an unescaped single
-quote, such as <literal>Bob's House</literal>, the insert will fail.  
+and <varname>name</varname> contains text includeng an unescaped single
+quote, such as <literal>Bob's House</literal>, at best the insert will fail, and
+at worst your software will be exploited via an SQL injection attack.
 Passing value strings through <function>pg_escape_string</function>
-make sure they can be used as values and stuff in PostgreSQL.
+will properly quote them for insertion into SQL commands.
 
 <programlisting>
     pg_exec $conn "insert into foo values ([pg_escape_string $name]);" 
@@ -2701,6 +2714,17 @@ single quote or backslash, will be properly quoted.
    it adds a set of single quotes around the outside of the string as well.
   </para>
  </refsect1>
+ <refsect1>
+  <title>See Also</title>
+
+  <para>
+   In most cases, with recent versions of SQL, it is better to use the native parameter insertion capabilities
+   of the SQL server and protocol. If you are using a version of PostgreSQL more recent then 7.4, consider the
+   optional parameter arguments to pg_exec and pg_sendquery, and the paramarray option to pg_exec, pg_sendquery, and
+   pg_select.
+  </para>
+ </refsect1>
+
 </refentry>
 
 
