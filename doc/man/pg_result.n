@@ -5,7 +5,7 @@
 \\$2 \(la\\$1\(ra\\$3
 ..
 .if \n(.g .mso www.tmac
-.TH pg_result n "26 September 2016" "" "PostgreSQL Tcl Interface Documentation"
+.TH pg_result n "September 2016" "" "PostgreSQL Tcl Interface Documentation"
 .SH NAME
 pg_result \- get information about a command result
 .SH SYNOPSIS

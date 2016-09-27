@@ -5,7 +5,7 @@
 \\$2 \(la\\$1\(ra\\$3
 ..
 .if \n(.g .mso www.tmac
-.TH pg_cancelrequest n "26 September 2016" "" "PostgreSQL Tcl Interface Documentation"
+.TH pg_cancelrequest n "September 2016" "" "PostgreSQL Tcl Interface Documentation"
 .SH NAME
 pg_cancelrequest \- request that PostgreSQL abandon processing of the current command 
 .SH SYNOPSIS

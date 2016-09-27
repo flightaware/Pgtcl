@@ -31,6 +31,7 @@ html/HTML.index:	$(SGMLSOURCE)
 	-mkdir html
 	cd html && openjade -V draft-mode -wall -wno-unused-param -wno-empty -D .. -c $(DOCBOOKDIR) -d $(STYLESHEET) -i output-html -t sgml $(SGMLSOURCE)
 	-find html/ -type f -name "*.html" -exec tidy5 -quiet -wrap 2000 -modify \{\} \;
+	sh ./clean-html.sh html/*
 
 # docbook2X is written for version 5.0 of the DTD, so patch the SGML to claim it's 5.0
 man:	$(SGMLSOURCE)
@@ -41,6 +42,7 @@ man:	$(SGMLSOURCE)
 	cd man && docbook2man --string-param default-manpage-section=n $(SGMLSOURCE)
 	rm man/$(SGMLSOURCE)*
 	sh ./fix-fi.sh man/*
+	sh ./clean-man.sh man/*
 
 
 pdf:	libpgtcl.pdf

@@ -5,7 +5,7 @@
 \\$2 \(la\\$1\(ra\\$3
 ..
 .if \n(.g .mso www.tmac
-.TH pg_lo_export n "26 September 2016" "" "PostgreSQL Tcl Interface Documentation"
+.TH pg_lo_export n "September 2016" "" "PostgreSQL Tcl Interface Documentation"
 .SH NAME
 pg_lo_export \- export a large object to a file
 .SH SYNOPSIS

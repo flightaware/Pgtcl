@@ -5,7 +5,7 @@
 \\$2 \(la\\$1\(ra\\$3
 ..
 .if \n(.g .mso www.tmac
-.TH pg_escape_string n "26 September 2016" "" "PostgreSQL Tcl Interface Documentation"
+.TH pg_escape_string n "September 2016" "" "PostgreSQL Tcl Interface Documentation"
 .SH NAME
 pg_escape_string \- escapes a string for inclusion into SQL statements. This is the same as pg_quote. It was added for consistency. 
 .SH SYNOPSIS
@@ -26,10 +26,11 @@ If you're doing something like
 \*(T>
 .fi
 
-and \*(T<name\*(T> contains text includeing an unescaped single
-quote, such as \*(T<Bob's House\*(T>, the insert will fail. 
+and \*(T<name\*(T> contains text includeng an unescaped single
+quote, such as \*(T<Bob's House\*(T>, at best the insert will fail, and
+at worst your software will be exploited via an SQL injection attack.
 Passing value strings through \*(T<\fBpg_escape_string\fR\*(T>
-make sure they can be used as values and stuff in PostgreSQL.
+will properly quote them for insertion into SQL commands.
 
 .nf
 \*(T<
@@ -46,3 +47,8 @@ The string to be escaped.
 .SH "RETURN VALUE"
 Returns the string, escaped for inclusion into SQL queries. Note that
 it adds a set of single quotes around the outside of the string as well.
+.SH "SEE ALSO"
+In most cases, with recent versions of SQL, it is better to use the native parameter insertion capabilities
+of the SQL server and protocol. If you are using a version of PostgreSQL more recent then 7.4, consider the
+optional parameter arguments to pg_exec and pg_sendquery, and the paramarray option to pg_exec, pg_sendquery, and
+pg_select.
