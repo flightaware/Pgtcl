@@ -105,8 +105,8 @@ pg_select&nbsp;--&nbsp;loop over the result of a query<a name="IX-PGTCL-PGSELECT
 }</pre>
 <p>This example demonstrates how to use named parameters to securely perform queries on an SQL database:</p>
 <pre class="PROGRAMLISTING"># An array imported from some hive of scum and villainy like a web form.
-set form first {Andrew'); DROP TABLE students;--}
-set form last {Randall}
+set form(first) {Andrew'); DROP TABLE students;--}
+set form(last) {Randall}
 
 # Secure extraction of data
 pg_select -paramarray form $pgconn "SELECT * from students WHERE firstname = `first` AND lastname = `last`;" row {
