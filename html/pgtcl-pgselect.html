@@ -102,6 +102,15 @@ pg_select&nbsp;--&nbsp;loop over the result of a query<a name="IX-PGTCL-PGSELECT
 <p>This examples assumes that the table <code class="CLASSNAME">table1</code> has columns <tt class="STRUCTFIELD">control</tt> and <tt class="STRUCTFIELD">name</tt> (and perhaps others):</p>
 <pre class="PROGRAMLISTING">pg_select $pgconn "SELECT * FROM table1;" array {
     puts [format "%5d %s" $array(control) $array(name)]
+}</pre>
+<p>This example demonstrates how to use named parameters to securely perform queries on an SQL database:</p>
+<pre class="PROGRAMLISTING"># An array imported from some hive of scum and villainy like a web form.
+set form first {Andrew'); DROP TABLE students;--}
+set form last {Randall}
+
+# Secure extraction of data
+pg_select -paramarray form $pgconn "SELECT * from students WHERE firstname = `first` AND lastname = `last`;" row {
+    lappend candidates $row(student_id) $row(firstname) $row(lastname) $row(age)
 }</pre></div>
 <div class="NAVFOOTER">
 <hr align="left" width="100%">
