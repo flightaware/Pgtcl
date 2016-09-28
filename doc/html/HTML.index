@@ -124,8 +124,8 @@ significance NORMAL
 id IX-PGTCL-PGLISTEN-2
 PRIMARY pg_listen
 /INDEXTERM
-INDEXTERM pgtcl-pglisten.html#AEN1226
-INDEXPOINT pgtcl-pglisten.html#AEN1237
+INDEXTERM pgtcl-pglisten.html#AEN1228
+INDEXPOINT pgtcl-pglisten.html#AEN1239
 TITLE Description
 significance NORMAL
 PRIMARY NOTIFY

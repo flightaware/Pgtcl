@@ -28,17 +28,17 @@
 </table>
 <hr align="left" width="100%"></div>
 <h1><a name="PGTCL-PGBLOCKING" id="PGTCL-PGBLOCKING"></a>pg_blocking</h1>
-<div class="REFNAMEDIV"><a name="AEN1471" id="AEN1471"></a>
+<div class="REFNAMEDIV"><a name="AEN1473" id="AEN1473"></a>
 <h2>Name</h2>
 pg_blocking&nbsp;--&nbsp;see or set whether or not a connection is set to blocking or nonblocking<a name="IX-PGTCL-PGBLOCKING-2" id="IX-PGTCL-PGBLOCKING-2"></a></div>
-<div class="REFSYNOPSISDIV"><a name="AEN1476" id="AEN1476"></a>
+<div class="REFSYNOPSISDIV"><a name="AEN1478" id="AEN1478"></a>
 <h2>Synopsis</h2>
 <pre class="SYNOPSIS">pg_blocking <code class="PARAMETER">conn</code> ?<span class="OPTIONAL"><code class="PARAMETER">mode</code></span>?</pre></div>
-<div class="REFSECT1"><a name="AEN1481" id="AEN1481"></a>
+<div class="REFSECT1"><a name="AEN1483" id="AEN1483"></a>
 <h2>Description</h2>
 <p><code class="FUNCTION">pg_blocking</code> can set the connection to either blocking or nonblocking, and it can see which way the connection is currently set.</p>
 </div>
-<div class="REFSECT1"><a name="AEN1485" id="AEN1485"></a>
+<div class="REFSECT1"><a name="AEN1487" id="AEN1487"></a>
 <h2>Arguments</h2>
 <div class="VARIABLELIST">
 <dl>
@@ -53,7 +53,7 @@ pg_blocking&nbsp;--&nbsp;see or set whether or not a connection is set to blocki
 </dl>
 </div>
 </div>
-<div class="REFSECT1"><a name="AEN1501" id="AEN1501"></a>
+<div class="REFSECT1"><a name="AEN1503" id="AEN1503"></a>
 <h2>Return Value</h2>
 <p>Returns nothing if called with the <code class="PARAMETER">mode</code> argument. Otherwise it returns <tt class="LITERAL">1</tt> if the connection is set for <tt class="LITERAL">blocking</tt>, or <tt class="LITERAL">0</tt> if the connection is set for <tt class="LITERAL">nonblocking</tt>.</p>
 </div>
