@@ -14,9 +14,12 @@ if {[llength $flist] == 0} {
     exit
 }
 
+
 load [lindex $flist end]
 
-if [file exists conninfo.tcl] {
+if [file exists $env(HOME)/.conninfo.tcl] {
+    source $env(HOME)/.conninfo.tcl
+} elseif [file exists conninfo.tcl] {
     source conninfo.tcl
 }
 
