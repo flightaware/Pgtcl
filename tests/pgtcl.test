@@ -15,14 +15,18 @@ if {[llength $flist] == 0} {
 }
 
 
+puts [list loading [lindex $flist end] ...]
 load [lindex $flist end]
 
 if [file exists $env(HOME)/.conninfo.tcl] {
+    puts [list sourcing $env(HOME)/.conninfo.tcl ...]
     source $env(HOME)/.conninfo.tcl
 } elseif [file exists conninfo.tcl] {
+    puts [list sourcing conninfo.tcl ...]
     source conninfo.tcl
 }
 
+puts [list running tests ...]
 #
 #
 #

@@ -216,7 +216,9 @@ TEA_ENABLE_SHARED
 # NOTE - WE HAVE A SPECIFAL VERSION OF TEA_CONFIG_CFLAGS that includes
 # paths to the postgres libraries alongside the Tcl libraries.
 # see aclocal.m4
-PGTCL_CONFIG_CFLAGS
+# This now gets included by TEA_ENABLE_SYMBOLS below, so don't include
+# anything here. Leaving this comment here so the next person to try and
+# figure out what happened in 2.0 won't go down the rabbit hole.
 
 #--------------------------------------------------------------------
 # Set the default compiler switches based on the --enable-symbols option.

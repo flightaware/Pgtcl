@@ -9,9 +9,10 @@ builtin(include,tclconfig/tcl.m4)
 #
 
 #--------------------------------------------------------------------
-# PGTCL_CONFIG_CFLAGS
+# TEA_CONFIG_CFLAGS (formerly PGTCL_CONFIG_CFLAGS)
 #
-# a modified copy of TEA_CONFIG_CFLAGS
+# a modified copy of TEA_CONFIG_CFLAGS, overriding the original so it gets called at the right
+# time by TEA_ENABLE_SYMBOLS
 #
 # The reason is that we have to set up search paths to the Tcl shared lib
 # AND the postgresql libpq shared library.
