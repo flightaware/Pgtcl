@@ -1,3 +1,10 @@
+2017-04-25 Peter da Silva
+    * Update minor version to 2.1.1
+
+    * Documentation updates for 2.1.x
+
+    * Remove dead macro from configure.in (change in TEA)
+
 2016-10-26 Peter da Silva
     * Increment version to v2.1.0
 
