@@ -2857,7 +2857,8 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		    index++;
 		    paramListObj = objv[index];
 		} else {
-		    goto wrong_args;
+			Tcl_SetObjResult(interp, Tcl_NewStringObj ("-arg argument isn't one of \"-nodotfields\", \"-paramarray\", \"-params\", \"-rowbyrow\", or \"-withoutnulls\" -- does your query start with \"--\"?", -1));
+			return TCL_ERROR;
 		}
 	    } else {
 		switch(nextPositionalArg) {
@@ -2883,7 +2884,6 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	}
 	
 	if (index < objc || nextPositionalArg != SELECT_ARGS) {
-	    wrong_args:
 		Tcl_WrongNumArgs(interp, 1, objv, "?-nodotfields? ?-rowbyrow? ?-withoutnulls? ?-paramarray var? ?-params list? connection queryString var proc");
 		return TCL_ERROR;
 	}
