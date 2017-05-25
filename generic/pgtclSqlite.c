@@ -2,10 +2,11 @@
 #include <string.h>
 #include <libpq-fe.h>
 #include <assert.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #include "pgtclCmds.h"
 #include "pgtclId.h"
-#include "libpq/libpq-fs.h"		/* large-object interface */
 
 #include <sqlite3.h>
 
@@ -28,8 +29,51 @@ struct SqliteDb {
   // other stuff we don't look at, but probably should maybe use to validate...
 };
 
+static Tcl_ObjCmdProc *sqlite3_ObjProc = NULL;
+
 int
-Pg_sqlite3(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+sqlite_probe(Tcl_Interp *interp)
+{
+	if (sqlite3_ObjProc != NULL) return TCL_OK;
+
+	char cmd_name[256];
+	char create_cmd[256];
+	char delete_cmd[256];
+        struct Tcl_CmdInfo  cmd_info;
+	
+	snprintf(cmd_name, 256, "::dummy%d", getpid());
+	snprintf(create_cmd, 256, "sqlite3 %s :memory:", cmd_name);
+	snprintf(delete_cmd, 256, "%s close", cmd_name);
+
+	if (Tcl_Eval(interp, create_cmd) != TCL_OK) {
+		return TCL_ERROR;
+	}
+
+        if (!Tcl_GetCommandInfo(interp, cmd_name, &cmd_info)) {
+                Tcl_AppendResult(interp, "pg_sqlite3 probe failed (", cmd_name, " not found)", (char *)NULL);
+		Tcl_Eval(interp, delete_cmd);
+                return TCL_ERROR;
+        }
+
+	if (!cmd_info.isNativeObjectProc) {
+		Tcl_AppendResult(interp, "pg_sqlite2 probe failed (", cmd_name, " not a native object proc)", (char *)NULL);
+		Tcl_Eval(interp, delete_cmd);
+		return TCL_ERROR;
+	}
+
+	sqlite3_ObjProc = cmd_info.objProc;
+	Tcl_Eval(interp, delete_cmd);
+
+	if (!sqlite3_ObjProc) {
+                Tcl_AppendResult(interp, "pg_sqlite2 probe failed (", cmd_name, " not a native object proc)", (char *)NULL);
+		return TCL_ERROR;
+	}
+
+	return TCL_OK;
+}
+
+int
+Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
         char               *sqlite_commandName;
         struct Tcl_CmdInfo  sqlite_commandInfo;
@@ -56,9 +100,18 @@ Pg_sqlite3(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
         sqlite_commandName = Tcl_GetString(objv[1]);
 
         if (!Tcl_GetCommandInfo(interp, sqlite_commandName, &sqlite_commandInfo)) {
-                Tcl_AppendResult(interp, sqlite_commandName, " is not a sqlite3 handle.", (char *)NULL);
+                Tcl_AppendResult(interp, sqlite_commandName, " is not a command.", (char *)NULL);
                 return TCL_ERROR;
         }
+
+	if (sqlite_probe(interp) != TCL_OK) {
+		return TCL_ERROR;
+	}
+
+	if (sqlite3_ObjProc != sqlite_commandInfo.objProc) {
+		Tcl_AppendResult(interp, sqlite_commandName, " is not an sqlite3 handle.", (char *)NULL);
+		return TCL_ERROR;
+	}
 
         sqlite_clientData = (struct SqliteDb *)sqlite_commandInfo.objClientData;
 
