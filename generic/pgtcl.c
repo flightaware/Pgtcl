@@ -94,6 +94,7 @@ static PgCmd commands[] = {
     {"pg_dbinfo", "::pg::dbinfo", Pg_dbinfo,2},
     {"pg_getdata", "::pg::getdata", Pg_getdata,2},
     {"pg_sql", "::pg::sql", Pg_sql,2},
+    {"pg_sqlite", "::pg::sqlite", Pg_sqlite2, 3},
     {NULL, NULL, NULL, 0}
 };
 
