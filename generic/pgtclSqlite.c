@@ -26,14 +26,14 @@
 struct SqliteDb {
   sqlite3 *db;               /* The "real" database structure. MUST BE FIRST */
   // other stuff we don't look at, but probably should maybe use to validate...
-}
+};
 
 int
 Pg_sqlite3(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
         char               *sqlite_commandName;
         struct Tcl_CmdInfo  sqlite_commandInfo;
-        struct SqliteDb     sqlite_clientData;
+        struct SqliteDb    *sqlite_clientData;
         sqlite3            *sqlite_db;
 	int                 cmdIndex;
 
@@ -49,7 +49,7 @@ Pg_sqlite3(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
 	};
 
         if (objc <= 2) {
-                Tcl_WrongNumArgs(interp, 1, objv, "sqlite_handle command ?args?")
+                Tcl_WrongNumArgs(interp, 1, objv, "sqlite_handle command ?args?");
                 return TCL_ERROR;
         }
 
@@ -69,8 +69,8 @@ Pg_sqlite3(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
 
 	switch (cmdIndex) {
 		case CMD_FILENAME: {
-			char *sqlite_dbname;
-			char *sqlite_filename;
+			char       *sqlite_dbname;
+			const char *sqlite_filename;
 
 			if(objc == 3) {
 				sqlite_dbname = "main";
@@ -81,11 +81,13 @@ Pg_sqlite3(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
 				return TCL_ERROR;
 			}
 
-			sqlite_filename = sqlite_db_filename(sqlite_db, sqlite_dbname);
+			sqlite_filename = sqlite3_db_filename(sqlite_db, sqlite_dbname);
 
 			Tcl_AppendResult(interp, sqlite_filename, (char *)NULL);
-			return TCL_OK;
+			break;
 		}
 	}
+
+	return TCL_OK;
 }
 

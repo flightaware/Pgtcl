@@ -141,7 +141,7 @@ AC_SUBST(PG_LIB_DIR)
 # and PKG_TCL_SOURCES.
 #-----------------------------------------------------------------------
 
-TEA_ADD_SOURCES([pgtcl.c pgtclCmds.c pgtclId.c])
+TEA_ADD_SOURCES([pgtcl.c pgtclCmds.c pgtclId.c pgtclSqlite.c])
 TEA_ADD_HEADERS([])
 TEA_ADD_INCLUDES([])
 TEA_ADD_LIBS([])

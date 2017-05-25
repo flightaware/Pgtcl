@@ -5437,7 +5437,7 @@ LIBS=$SAVE_LIBS
 #-----------------------------------------------------------------------
 
 
-    vars="pgtcl.c pgtclCmds.c pgtclId.c"
+    vars="pgtcl.c pgtclCmds.c pgtclId.c pgtclSqlite.c"
     for i in $vars; do
 	case $i in
 	    \$*)
