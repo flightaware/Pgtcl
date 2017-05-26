@@ -84,6 +84,68 @@ int Pg_sqlite_mapTypes(Tcl_Interp *interp, Tcl_Obj *list, int start, int stride,
 	return TCL_OK;
 }
 
+char *
+Pg_sqlite_createTable(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sqliteTable, Tcl_Obj *nameTypeList)
+{
+	char             **objv;
+	int                objc;
+	Tcl_Obj *create = Tcl_NewObj();
+	Tcl_Obj *sql = Tcl_NewObj();
+	Tcl_Obj *values = Tcl_NewObj();
+	sqlite3_stmt *statement = NULL;
+
+	if(Tcl_ListObjGetElements(interp, list, &objc, &objv) != TCL_OK)
+		return NULL;
+
+	Tcl_AppendToObj(create, "CREATE TABLE (\n", -1);
+
+	Tcl_AppendToObj(sql, "INSERT INTO ", -1);
+	Tcl_AppendToObj(sql, sqliteTable, -1);
+	Tcl_AppendToObj(sql, " (", -1);
+
+	for(i = 0; i < objc; i+= 2) {
+		Tcl_AppendToObj(create, "\t", -1);
+		Tcl_AppendObjToObj(create, objv[i]);
+		Tcl_AppendToObj(create, " ", -1);
+		Tcl_AppendObjToObj(create, objv[i+1]);
+		if(i == 0)
+			Tcl_AppendToObj(create, "PRIMARY KEY,\n", -1);
+		else
+			Tcl_AppendToObj(create, ",\n", -1);
+
+		if(i > 0)
+			Tcl_AppendToObj(sql, ", ");
+		Tcl_AppendObjToObj(sql, objv[i]);
+
+		if(i > 0)
+			Tcl_AppendToObj(values, ", ");
+		Tcl_AppendToObj(values, "?", -1);
+	}
+
+	Tcl_AppendToObj(create, "\n);", -1);
+
+	Tcl_AppendToObj(sql, Tcl_StringObj(") VALUES (", -1));
+	Tcl_AppendObjToObj(sql, values);
+	Tcl_AppendToObj(sql, ");");
+
+	if(sqlite3_prepare_v2(sqlite_db, create, -1, &statement, NULL) != SQLITE_OK) {
+		Tcl_AppendResult(interp, sqlite3_errmsg(sqlite_db));
+		return NULL;
+	}
+
+	if(sqlite3_step(statement) != SQLITE_DONE)
+		Tcl_AppendResult(interp, sqlite3_errmsg(sqlite_db));
+		sqlite3_finalize(statement);
+		return NULL;
+	}
+
+	sqlite3_finalize(statement);
+
+	return Tcl_GetString(sql);
+}
+
+
+
 int
 sqlite_probe(Tcl_Interp *interp)
 {
