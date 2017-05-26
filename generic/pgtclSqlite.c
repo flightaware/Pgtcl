@@ -31,6 +31,59 @@ struct SqliteDb {
 
 static Tcl_ObjCmdProc *sqlite3_ObjProc = NULL;
 
+enum mappedTypes {
+	SQLITE_INT,
+	SQLITE_DOUBLE,
+	SQLITE_TEXT,
+	SQLITE_NOTYPE,
+	SQLITE_NUMTYPES
+};
+
+struct {
+	char *name;
+	enum mappedTypes type
+} mappedTypes[] = {
+	"int",          SQLITE_INT,
+	"text",         SQLITE_TEXT,
+	"double",       SQLITE_DOUBLE,
+	NULL,		SQLITE_NOTYPE
+};
+
+int Pg_sqlite_mapTypes(Tcl_Interp *interp, Tcl_Obj *list, int start, int stride, enum mappedTypes ***arrayPtr, int *lengthPtr)
+{
+	char             **objv;
+	int                objc;
+	enum mappedTypes **array;
+	int                i;
+
+	if(Tcl_ListObjGetElements(interp, list, &objc, &objv) != TCL_OK)
+		return TCL_ERROR;
+
+	array = (enum mappedTypes **)ckalloc(objc / stride);
+
+	for(i = start; i < objc; i += stride) {
+		char *typeName = Tcl_GetSTring(objv[i]);
+		int   t;
+
+		for(t = 0; mappedTypes[t].name; t++) {
+			if(strcmp(typeName, mappedTypes[t].name) == 0) {
+				array[i] = mappedTypes[t].type;
+				break;
+			}
+		}
+
+		if(!mappedTypes[t].name) {
+			ckfree(array);
+			Tcl_AppendResult(interp, "Unknown type ", typeName, (char *)NULL)
+			return TCL_ERROR;
+		}
+	}
+
+	*arrayPtr = array;
+	*lengthPtr = objc / stride;
+	return TCL_OK;
+}
+
 int
 sqlite_probe(Tcl_Interp *interp)
 {
@@ -147,17 +200,19 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 				return TCL_ERROR;
 			}
 
-			char         *pghandle_name = Tcl_GetString(objv[3]);
-			char         *sqliteCode = NULL;
-			char         *sqliteTable = NULL;
-			char         *dropTable = NULL;
-			sqlite3_stmt *statement = NULL;
-			int           optIndex = 4;
-			Tcl_Obj      *typeList = NULL;
-			Tcl_Obj      *nameTypeList = NULL;
-			int           rowbyrow = 0;
-			int           returnCode = TCL_OK;
-			char         *errorMessage = NULL;
+			char              *pghandle_name = Tcl_GetString(objv[3]);
+			char              *sqliteCode = NULL;
+			char              *sqliteTable = NULL;
+			char              *dropTable = NULL;
+			sqlite3_stmt      *statement = NULL;
+			int                optIndex = 4;
+			Tcl_Obj           *typeList = NULL;
+			Tcl_Obj           *nameTypeList = NULL;
+			int                rowbyrow = 0;
+			int                returnCode = TCL_OK;
+			char              *errorMessage = NULL;
+			enum mappedTypes **columnTypes;
+			int                nColumns = -1;
 
 			while(optIndex < objc) {
 				char *optName = Tcl_GetString(objv[optIndex]);
@@ -193,7 +248,8 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			}
 
 			if(typeList) {
-				importList = Pg_sqlite_createImportList(typeList, 0, 1);
+				if (Pg_sqlite_mapTypes(interp, typeList, 0, 1, &columnTypes, &nColumns) != TCL_OK)
+					return TCL_ERROR;
 			}
 
 			if(sqliteTable) {
@@ -202,8 +258,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 					return TCL_ERROR;
 				}
 
-				importList = Pg_sqlite_createImportList(nameTypeList, 1, 2);
-				if (!importList)
+				if (Pg_sqlite_mapTypes(interp, nameTypeList, 1, 2, &columnTypes, &nColumns) != TCL_OK)
 					return TCL_ERROR;
 
 				sqliteCode = Pg_sqlite_createTable(interp, sqlite_db, sqliteTable, nameTypeList);
@@ -220,7 +275,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			}
 
 			if(rowbyrow) {
-				conn = PqGetConnectionId(interp, pghandle, NULL);
+				conn = PgGetConnectionId(interp, pghandle, NULL);
 				if(conn == NULL) {
 					Tcl_AppendResult (interp, " while getting connection from ", pghandle, (char *)NULL);
 					returnCode = TCL_ERROR;
@@ -229,7 +284,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 				PQSetSingleRowMode(conn);
 				result = PQGetResult(conn);
 			} else {
-				result = PqGetResultId(interp, pghandle, NULL);
+				result = PgGetResultId(interp, pghandle, NULL);
 			}
 
 			if(!result) {
@@ -258,7 +313,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 					totalTuples++;
 					for(column = 0; column < nColumns; column++) {
 						value = PQgetValue(result, tupleIndex, column);
-						switch(importList[column]) {
+						switch(columnTypes[column]) {
 							case SQLITE_INT: {
 								sqlite3_bind_int(statement, column, atoi(value));
 								break;
@@ -305,8 +360,8 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			if(statement)
 				sqlite3_finalize(statement);
 
-			if(importList)
-				ckfree(importList);
+			if(columnTypes)
+				ckfree(columnTypes);
 
 			if(returnCode == TCL_ERROR) {
 				if(dropTable) {
