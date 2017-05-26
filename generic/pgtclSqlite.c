@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
 #include <libpq-fe.h>
@@ -32,37 +33,41 @@ struct SqliteDb {
 static Tcl_ObjCmdProc *sqlite3_ObjProc = NULL;
 
 enum mappedTypes {
-	SQLITE_INT,
-	SQLITE_DOUBLE,
-	SQLITE_TEXT,
-	SQLITE_NOTYPE,
-	SQLITE_NUMTYPES
+	PG_SQLITE_INT,
+	PG_SQLITE_DOUBLE,
+	PG_SQLITE_TEXT,
+	PG_SQLITE_NOTYPE
 };
 
 struct {
 	char *name;
-	enum mappedTypes type
+	enum mappedTypes type;
 } mappedTypes[] = {
-	"int",          SQLITE_INT,
-	"text",         SQLITE_TEXT,
-	"double",       SQLITE_DOUBLE,
-	NULL,		SQLITE_NOTYPE
+	{"int",          PG_SQLITE_INT},
+	{"text",         PG_SQLITE_TEXT},
+	{"double",       PG_SQLITE_DOUBLE},
+	{NULL,           PG_SQLITE_NOTYPE}
 };
 
-int Pg_sqlite_mapTypes(Tcl_Interp *interp, Tcl_Obj *list, int start, int stride, enum mappedTypes ***arrayPtr, int *lengthPtr)
+int Pg_sqlite_mapTypes(Tcl_Interp *interp, Tcl_Obj *list, int start, int stride, enum mappedTypes **arrayPtr, int *lengthPtr)
 {
-	char             **objv;
+	Tcl_Obj          **objv;
 	int                objc;
-	enum mappedTypes **array;
+	enum mappedTypes  *array;
 	int                i;
 
 	if(Tcl_ListObjGetElements(interp, list, &objc, &objv) != TCL_OK)
 		return TCL_ERROR;
 
-	array = (enum mappedTypes **)ckalloc(objc / stride);
+	if (stride > 1 && (objc % stride) != 0) {
+		Tcl_AppendResult(interp, "List not an even length", (char *)NULL);
+		return TCL_ERROR;
+	}
+
+	array = (enum mappedTypes *)ckalloc((sizeof *array) * (objc / stride));
 
 	for(i = start; i < objc; i += stride) {
-		char *typeName = Tcl_GetSTring(objv[i]);
+		char *typeName = Tcl_GetString(objv[i]);
 		int   t;
 
 		for(t = 0; mappedTypes[t].name; t++) {
@@ -74,7 +79,7 @@ int Pg_sqlite_mapTypes(Tcl_Interp *interp, Tcl_Obj *list, int start, int stride,
 
 		if(!mappedTypes[t].name) {
 			ckfree(array);
-			Tcl_AppendResult(interp, "Unknown type ", typeName, (char *)NULL)
+			Tcl_AppendResult(interp, "Unknown type ", typeName, (char *)NULL);
 			return TCL_ERROR;
 		}
 	}
@@ -87,15 +92,21 @@ int Pg_sqlite_mapTypes(Tcl_Interp *interp, Tcl_Obj *list, int start, int stride,
 char *
 Pg_sqlite_createTable(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sqliteTable, Tcl_Obj *nameTypeList)
 {
-	char             **objv;
+	Tcl_Obj          **objv;
 	int                objc;
 	Tcl_Obj *create = Tcl_NewObj();
 	Tcl_Obj *sql = Tcl_NewObj();
 	Tcl_Obj *values = Tcl_NewObj();
 	sqlite3_stmt *statement = NULL;
+	int i;
 
-	if(Tcl_ListObjGetElements(interp, list, &objc, &objv) != TCL_OK)
+	if(Tcl_ListObjGetElements(interp, nameTypeList, &objc, &objv) != TCL_OK)
 		return NULL;
+
+	if(objc & 1) {
+		Tcl_AppendResult(interp, "List must have an even number of elements", (char *)NULL);
+		return NULL;
+	}
 
 	Tcl_AppendToObj(create, "CREATE TABLE (\n", -1);
 
@@ -114,26 +125,26 @@ Pg_sqlite_createTable(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sqliteTable,
 			Tcl_AppendToObj(create, ",\n", -1);
 
 		if(i > 0)
-			Tcl_AppendToObj(sql, ", ");
+			Tcl_AppendToObj(sql, ", ", -1);
 		Tcl_AppendObjToObj(sql, objv[i]);
 
 		if(i > 0)
-			Tcl_AppendToObj(values, ", ");
+			Tcl_AppendToObj(values, ", ", -1);
 		Tcl_AppendToObj(values, "?", -1);
 	}
 
 	Tcl_AppendToObj(create, "\n);", -1);
 
-	Tcl_AppendToObj(sql, Tcl_StringObj(") VALUES (", -1));
+	Tcl_AppendToObj(sql, ") VALUES (", -1);
 	Tcl_AppendObjToObj(sql, values);
-	Tcl_AppendToObj(sql, ");");
+	Tcl_AppendToObj(sql, ");", -1);
 
-	if(sqlite3_prepare_v2(sqlite_db, create, -1, &statement, NULL) != SQLITE_OK) {
+	if(sqlite3_prepare_v2(sqlite_db, Tcl_GetString(create), -1, &statement, NULL) != SQLITE_OK) {
 		Tcl_AppendResult(interp, sqlite3_errmsg(sqlite_db));
 		return NULL;
 	}
 
-	if(sqlite3_step(statement) != SQLITE_DONE)
+	if(sqlite3_step(statement) != SQLITE_DONE) {
 		Tcl_AppendResult(interp, sqlite3_errmsg(sqlite_db));
 		sqlite3_finalize(statement);
 		return NULL;
@@ -273,8 +284,17 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			int                rowbyrow = 0;
 			int                returnCode = TCL_OK;
 			char              *errorMessage = NULL;
-			enum mappedTypes **columnTypes;
+			enum mappedTypes  *columnTypes;
 			int                nColumns = -1;
+			int                column;
+			int                prepStatus;
+			PGconn            *conn = NULL;
+			PGresult          *result = NULL;
+			ExecStatusType     status;
+			int                nTuples;
+			int                totalTuples = 0;
+			int                tupleIndex;
+			int                stepStatus;
 
 			while(optIndex < objc) {
 				char *optName = Tcl_GetString(objv[optIndex]);
@@ -337,56 +357,58 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			}
 
 			if(rowbyrow) {
-				conn = PgGetConnectionId(interp, pghandle, NULL);
+				conn = PgGetConnectionId(interp, pghandle_name, NULL);
 				if(conn == NULL) {
-					Tcl_AppendResult (interp, " while getting connection from ", pghandle, (char *)NULL);
+					Tcl_AppendResult (interp, " while getting connection from ", pghandle_name, (char *)NULL);
 					returnCode = TCL_ERROR;
 					goto import_cleanup_and_exit;
 				}
-				PQSetSingleRowMode(conn);
-				result = PQGetResult(conn);
+				PQsetSingleRowMode(conn);
+				result = PQgetResult(conn);
 			} else {
-				result = PgGetResultId(interp, pghandle, NULL);
+				result = PgGetResultId(interp, pghandle_name, NULL);
 			}
 
 			if(!result) {
-				Tcl_AppendResult (interp, "Failed to get handle from ", pghandle, (char *)NULL);
+				Tcl_AppendResult (interp, "Failed to get handle from ", pghandle_name, (char *)NULL);
 				returnCode = TCL_ERROR;
 				goto import_cleanup_and_exit;
 			}
 
-			int   nTuples;
-			int   totalTupes = 0;
-
 			while(result) {
-				status = PQResultStatus(result);
+				status = PQresultStatus(result);
 
-				if(status != PGRES_TULES_OK && status != PGRES_SINGLE_TUPLE) {
+				if(status != PGRES_TUPLES_OK && status != PGRES_SINGLE_TUPLE) {
 					errorMessage = PQresultErrorMessage(result);
 					if (!*errorMessage)
 						errorMessage = PQresStatus(status);
-					tclStatus = TCL_ERROR;
+					returnCode = TCL_ERROR;
 					break;
 				}
 
 				nTuples = PQntuples(result);
 
-				for (tupleIndex = 0; tupleIndex < nTuples, tupleIndex++) {
+				for (tupleIndex = 0; tupleIndex < nTuples; tupleIndex++) {
 					totalTuples++;
 					for(column = 0; column < nColumns; column++) {
-						value = PQgetValue(result, tupleIndex, column);
+						char *value = PQgetvalue(result, tupleIndex, column);
 						switch(columnTypes[column]) {
-							case SQLITE_INT: {
+							case PG_SQLITE_INT: {
 								sqlite3_bind_int(statement, column, atoi(value));
 								break;
 							}
-							case SQLITE_DOUBLE: {
+							case PG_SQLITE_DOUBLE: {
 								sqlite3_bind_double(statement, column, atof(value));
 								break;
 							}
-							case SQLITE_TEXT: {
+							case PG_SQLITE_TEXT: {
 								sqlite3_bind_text(statement, column, value, -1, SQLITE_TRANSIENT);
 								break;
+							}
+							default: {
+								errorMessage = "INTERNAL ERROR invalid type code";
+								returnCode = TCL_ERROR;
+								goto import_loop_end;
 							}
 						}
 					}
