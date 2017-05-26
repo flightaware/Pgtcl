@@ -743,6 +743,7 @@ enable_option_checking
 with_tcl
 with_postgres_include
 with_postgres_lib
+with_sqlite3
 with_tclinclude
 enable_threads
 enable_shared
@@ -1386,6 +1387,7 @@ Optional Packages:
                           (tclConfig.sh)
 --with-postgres-include        directory containing PostgreSQL include files
 --with-postgres-lib        directory containing PostgreSQL library files
+  --with-sqlite3          Include pg_sqlite function [default=check]
   --with-tclinclude       directory containing the public Tcl header files
   --with-celib=DIR        use Windows/CE support library from DIR
 
@@ -5437,7 +5439,7 @@ LIBS=$SAVE_LIBS
 #-----------------------------------------------------------------------
 
 
-    vars="pgtcl.c pgtclCmds.c pgtclId.c pgtclSqlite.c"
+    vars="pgtcl.c pgtclCmds.c pgtclId.c"
     for i in $vars; do
 	case $i in
 	    \$*)
@@ -5539,6 +5541,111 @@ LIBS=$SAVE_LIBS
     done
 
 
+
+#--------------------------------------------------------------------
+# SQLITE option
+#--------------------------------------------------------------------
+
+# Check whether --with-sqlite3 was given.
+if test "${with_sqlite3+set}" = set; then :
+  withval=$with_sqlite3;
+else
+  with_sqlite3=check
+fi
+
+if test "x$with_sqlite3" != "xno"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for main in -lsqlite3" >&5
+$as_echo_n "checking for main in -lsqlite3... " >&6; }
+if ${ac_cv_lib_sqlite3_main+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lsqlite3  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+
+int
+main ()
+{
+return main ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_sqlite3_main=yes
+else
+  ac_cv_lib_sqlite3_main=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_sqlite3_main" >&5
+$as_echo "$ac_cv_lib_sqlite3_main" >&6; }
+if test "x$ac_cv_lib_sqlite3_main" = xyes; then :
+
+    vars="-lsqlite3"
+    for i in $vars; do
+	if test "${TEA_PLATFORM}" = "windows" -a "$GCC" = "yes" ; then
+	    # Convert foo.lib to -lfoo for GCC.  No-op if not *.lib
+	    i=`echo "$i" | sed -e 's/^\([^-].*\)\.lib$/-l\1/i'`
+	fi
+	PKG_LIBS="$PKG_LIBS $i"
+    done
+
+
+
+    vars="pgtclSqlite.c"
+    for i in $vars; do
+	case $i in
+	    \$*)
+		# allow $-var names
+		PKG_SOURCES="$PKG_SOURCES $i"
+		PKG_OBJECTS="$PKG_OBJECTS $i"
+		;;
+	    *)
+		# check for existence - allows for generic/win/unix VPATH
+		# To add more dirs here (like 'src'), you have to update VPATH
+		# in Makefile.in as well
+		if test ! -f "${srcdir}/$i" -a ! -f "${srcdir}/generic/$i" \
+		    -a ! -f "${srcdir}/win/$i" -a ! -f "${srcdir}/unix/$i" \
+		    -a ! -f "${srcdir}/macosx/$i" \
+		    ; then
+		    as_fn_error $? "could not find source file '$i'" "$LINENO" 5
+		fi
+		PKG_SOURCES="$PKG_SOURCES $i"
+		# this assumes it is in a VPATH dir
+		i=`basename $i`
+		# handle user calling this before or after TEA_SETUP_COMPILER
+		if test x"${OBJEXT}" != x ; then
+		    j="`echo $i | sed -e 's/\.[^.]*$//'`.${OBJEXT}"
+		else
+		    j="`echo $i | sed -e 's/\.[^.]*$//'`.\${OBJEXT}"
+		fi
+		PKG_OBJECTS="$PKG_OBJECTS $j"
+		;;
+	esac
+    done
+
+
+
+
+$as_echo "#define HAVE_SQLITE3 1" >>confdefs.h
+
+
+else
+  if test "x$with_sqlite3" != "xcheck"; then
+			{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "--with-sqlite3 was given, but test for sqlite3 failed
+See \`config.log' for more details" "$LINENO" 5; }
+		 fi
+
+fi
+
+fi
 
 #--------------------------------------------------------------------
 # __CHANGE__
