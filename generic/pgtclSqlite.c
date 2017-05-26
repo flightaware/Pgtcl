@@ -139,6 +139,190 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			Tcl_AppendResult(interp, sqlite_filename, (char *)NULL);
 			break;
 		}
+
+		case CMD_IMPORT_POSTGRES_RESULT: {
+			if (objc < 4) {
+			  import_wrong_num_args:
+				Tcl_WrongNumArgs(interp, 3, objv, "handle ?-sql sqlite_sql? ?-into new_table? ?-names name-list? ?-as name-type-list? ?-types type-list? ?-rowbyrow?");
+				return TCL_ERROR;
+			}
+
+			char         *pghandle_name = Tcl_GetString(objv[3]);
+			char         *sqliteCode = NULL;
+			char         *sqliteTable = NULL;
+			char         *dropTable = NULL;
+			sqlite3_stmt *statement = NULL;
+			int           optIndex = 4;
+			Tcl_Obj      *typeList = NULL;
+			Tcl_Obj      *nameTypeList = NULL;
+			int           rowbyrow = 0;
+			int           returnCode = TCL_OK;
+			char         *errorMessage = NULL;
+
+			while(optIndex < objc) {
+				char *optName = Tcl_GetString(objv[optIndex]);
+				optIndex++;
+				if (optName[0] != '-')
+					goto import_wrong_num_args;
+				if (strcmp(optName, "-types") == 0) {
+					typeList = objv[optIndex];
+					optIndex++;
+				} else if (strcmp(optName, "-as") == 0) {
+					nameTypeList = objv[optIndex];
+					optIndex++;
+				} else if (strcmp(optName, "-sql") == 0) {
+					sqliteCode = Tcl_GetString(objv[optIndex]);
+					optIndex++;
+				} else if (strcmp(optName, "-into") == 0) {
+					sqliteTable = Tcl_GetString(objv[optIndex]);
+					optIndex++;
+				} else if (strcmp(optName, "-rowbyrow") == 0) {
+					rowbyrow = 1;
+				} else
+					goto import_wrong_num_args;
+			}
+
+			if (sqliteCode && sqliteTable) {
+				Tcl_AppendResult(interp, "Can't use both -sql and -into", (char *)NULL);
+				return TCL_ERROR;
+			}
+
+			if (typeList && nameTypeList) {
+				Tcl_AppendResult(interp, "Can't use both -types and -as", (char *)NULL);
+				return TCL_ERROR;
+			}
+
+			if(typeList) {
+				importList = Pg_sqlite_createImportList(typeList, 0, 1);
+			}
+
+			if(sqliteTable) {
+				if (!nameTypeList) {
+					Tcl_AppendResult(interp, "No template (-as) provided for -into", (char *)NULL);
+					return TCL_ERROR;
+				}
+
+				importList = Pg_sqlite_createImportList(nameTypeList, 1, 2);
+				if (!importList)
+					return TCL_ERROR;
+
+				sqliteCode = Pg_sqlite_createTable(interp, sqlite_db, sqliteTable, nameTypeList);
+				if (!sqliteCode)
+					return TCL_ERROR;
+				dropTable = sqliteTable;
+			}
+
+			prepStatus = sqlite3_prepare_v2(sqlite_db, sqliteCode, -1, &statement, NULL);
+			if(prepStatus != SQLITE_OK) {
+				errorMessage = "Failed to prepare sqlite3 statement";
+				returnCode = TCL_ERROR;
+				goto import_cleanup_and_exit;
+			}
+
+			if(rowbyrow) {
+				conn = PqGetConnectionId(interp, pghandle, NULL);
+				if(conn == NULL) {
+					Tcl_AppendResult (interp, " while getting connection from ", pghandle, (char *)NULL);
+					returnCode = TCL_ERROR;
+					goto import_cleanup_and_exit;
+				}
+				PQSetSingleRowMode(conn);
+				result = PQGetResult(conn);
+			} else {
+				result = PqGetResultId(interp, pghandle, NULL);
+			}
+
+			if(!result) {
+				Tcl_AppendResult (interp, "Failed to get handle from ", pghandle, (char *)NULL);
+				returnCode = TCL_ERROR;
+				goto import_cleanup_and_exit;
+			}
+
+			int   nTuples;
+			int   totalTupes = 0;
+
+			while(result) {
+				status = PQResultStatus(result);
+
+				if(status != PGRES_TULES_OK && status != PGRES_SINGLE_TUPLE) {
+					errorMessage = PQresultErrorMessage(result);
+					if (!*errorMessage)
+						errorMessage = PQresStatus(status);
+					tclStatus = TCL_ERROR;
+					break;
+				}
+
+				nTuples = PQntuples(result);
+
+				for (tupleIndex = 0; tupleIndex < nTuples, tupleIndex++) {
+					totalTuples++;
+					for(column = 0; column < nColumns; column++) {
+						value = PQgetValue(result, tupleIndex, column);
+						switch(importList[column]) {
+							case SQLITE_INT: {
+								sqlite3_bind_int(statement, column, atoi(value));
+								break;
+							}
+							case SQLITE_DOUBLE: {
+								sqlite3_bind_double(statement, column, atof(value));
+								break;
+							}
+							case SQLITE_TEXT: {
+								sqlite3_bind_text(statement, column, value, -1, SQLITE_TRANSIENT);
+								break;
+							}
+						}
+					}
+					stepStatus = sqlite3_step(statement);
+					if (stepStatus != SQLITE_DONE) {
+						errorMessage = sqlite3_errmsg(sqlite_db);
+						returnCode = TCL_ERROR;
+						goto import_loop_end;
+					}
+					sqlite3_reset(statement);
+					sqlite3_clear_bindings(statement);
+				}
+
+				if(rowbyrow) {
+					PQclear(result);
+					result = PQgetResult(conn);
+				} else {
+					result = NULL;
+				}
+			}
+
+		  import_loop_end:
+
+			if(rowbyrow) {
+				while(result) {
+					PQclear(result);
+					result = PQgetResult(conn);
+				}
+			}
+
+		  import_cleanup_and_exit:
+
+			if(statement)
+				sqlite3_finalize(statement);
+
+			if(importList)
+				ckfree(importList);
+
+			if(returnCode == TCL_ERROR) {
+				if(dropTable) {
+					Pg_sqlite_dropTable(sqlite_db, dropTable);
+				}
+
+				if (errorMessage) {
+					Tcl_SetResult(interp, errorMessage, TCL_VOLATILE);
+				}
+
+				return TCL_ERROR;
+			}
+
+			Tcl_SetObjResult(interp, Tcl_NewIntObj(totalTuples));
+			return returnCode;
+		}
 	}
 
 	return TCL_OK;
