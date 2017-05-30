@@ -73,7 +73,8 @@ struct {
 
 char *typenames[sizeof mappedTypes / sizeof *mappedTypes];
 
-int Pg_sqlite_mapTypes(Tcl_Interp *interp, Tcl_Obj *list, int start, int stride, enum mappedTypes **arrayPtr, int *lengthPtr)
+int
+Pg_sqlite_mapTypes(Tcl_Interp *interp, Tcl_Obj *list, int start, int stride, enum mappedTypes **arrayPtr, int *lengthPtr)
 {
 	Tcl_Obj          **objv;
 	int                objc;
@@ -112,6 +113,32 @@ int Pg_sqlite_mapTypes(Tcl_Interp *interp, Tcl_Obj *list, int start, int stride,
 
 	*arrayPtr = array;
 	*lengthPtr = col;
+	return TCL_OK;
+}
+
+int
+Pg_sqlite_bindValue(sqlite3_stmt *statement, int column, char *value, enum mappedTypes type)
+{
+	switch(type) {
+		case PG_SQLITE_INT: {
+			if (sqlite3_bind_int(statement, column+1, atoi(value)) != SQLITE_OK)
+				return TCL_ERROR;
+			break;
+		}
+		case PG_SQLITE_DOUBLE: {
+			if (sqlite3_bind_double(statement, column+1, atof(value)) != SQLITE_OK)
+				return TCL_ERROR;
+			break;
+		}
+		case PG_SQLITE_TEXT: {
+			if (sqlite3_bind_text(statement, column+1, value, -1, SQLITE_TRANSIENT) != SQLITE_OK)
+				return TCL_ERROR;
+			break;
+		}
+		default: {
+			return TCL_BREAK;
+		}
+	}
 	return TCL_OK;
 }
 
@@ -268,6 +295,122 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 	if (Tcl_GetIndexFromObj(interp, objv[2], subCommands, "command", TCL_EXACT, &cmdIndex) != TCL_OK)
 		return TCL_ERROR;
 
+	int minargs[NUM_COMMANDS] = { -1 };
+	int incoming[NUM_COMMANDS] = { -1 };
+	char *argerr[NUM_COMMANDS] = { "" };
+	if(minargs[0] == -1) {
+		int i;
+		for(i = 0; i < NUM_COMMANDS; i++) {
+			minargs[i] = 0;
+			incoming[i] = 0;
+			argerr[i] = "";
+		}
+		minargs[CMD_IMPORT_POSTGRES_RESULT] = 4;
+		minargs[CMD_READ_TABSEP] = 4;
+		minargs[CMD_WRITE_TABSEP] = 3;
+		incoming[CMD_IMPORT_POSTGRES_RESULT] = 1;
+		incoming[CMD_READ_TABSEP] = 1;
+		argerr[CMD_READ_TABSEP] = "?-row tabsep_row? ?-from file_handle? ?-into new_table? ?-names name-list? ?-as name-type-list? ?-types type-list?";
+		argerr[CMD_IMPORT_POSTGRES_RESULT] = "handle ?-sql sqlite_sql? ?-into new_table? ?-names name-list? ?-as name-type-list? ?-types type-list? ?-rowbyrow?";
+	}
+
+	// common variables
+	char              *sqliteCode = NULL;
+	char              *sqliteTable = NULL;
+	char              *dropTable = NULL;
+	sqlite3_stmt      *statement = NULL;
+	int                optIndex = 4;
+	Tcl_Obj           *typeList = NULL;
+	Tcl_Obj           *nameTypeList = NULL;
+	int                rowbyrow = 0;
+	int                returnCode = TCL_OK;
+	const char        *errorMessage = NULL;
+	enum mappedTypes  *columnTypes;
+	int                nColumns = -1;
+	int                column;
+	int                prepStatus;
+	PGconn            *conn = NULL;
+	PGresult          *result = NULL;
+	ExecStatusType     status;
+
+	// common code
+	if(incoming[cmdIndex]) {
+		optIndex = minargs[cmdIndex];
+
+		if (objc < optIndex) {
+		  common_wrong_num_args:
+			Tcl_WrongNumArgs(interp, 3, objv, argerr[cmdIndex]);
+			return TCL_ERROR;
+		}
+
+		while(optIndex < objc) {
+			char *optName = Tcl_GetString(objv[optIndex]);
+			optIndex++;
+			if (optName[0] != '-')
+				goto common_wrong_num_args;
+			if (strcmp(optName, "-types") == 0) {
+				typeList = objv[optIndex];
+				optIndex++;
+			} else if (strcmp(optName, "-as") == 0) {
+				nameTypeList = objv[optIndex];
+				optIndex++;
+			} else if (strcmp(optName, "-sql") == 0) {
+				sqliteCode = Tcl_GetString(objv[optIndex]);
+				optIndex++;
+			} else if (strcmp(optName, "-into") == 0) {
+				sqliteTable = Tcl_GetString(objv[optIndex]);
+				optIndex++;
+			} else if (cmdIndex == CMD_IMPORT_POSTGRES_RESULT && strcmp(optName, "-rowbyrow") == 0) {
+				rowbyrow = 1;
+			} else
+				goto common_wrong_num_args;
+		}
+
+		if (sqliteCode && sqliteTable) {
+			Tcl_AppendResult(interp, "Can't use both -sql and -into", (char *)NULL);
+			return TCL_ERROR;
+		}
+
+		if (typeList && nameTypeList) {
+			Tcl_AppendResult(interp, "Can't use both -types and -as", (char *)NULL);
+			return TCL_ERROR;
+		}
+
+		if(typeList) {
+			if (Pg_sqlite_mapTypes(interp, typeList, 0, 1, &columnTypes, &nColumns) != TCL_OK)
+				return TCL_ERROR;
+		}
+
+		if(sqliteTable) {
+			if (!nameTypeList) {
+				Tcl_AppendResult(interp, "No template (-as) provided for -into", (char *)NULL);
+				return TCL_ERROR;
+			}
+
+			if (Pg_sqlite_mapTypes(interp, nameTypeList, 1, 2, &columnTypes, &nColumns) != TCL_OK)
+				return TCL_ERROR;
+
+			sqliteCode = Pg_sqlite_createTable(interp, sqlite_db, sqliteTable, nameTypeList);
+			if (!sqliteCode) {
+				if (columnTypes)
+					ckfree(columnTypes);
+				return TCL_ERROR;
+			}
+			dropTable = sqliteTable;
+		}
+
+		prepStatus = sqlite3_prepare_v2(sqlite_db, sqliteCode, -1, &statement, NULL);
+		if(prepStatus != SQLITE_OK) {
+			Tcl_AppendResult(interp, sqlite3_errmsg(sqlite_db), (char *)NULL);
+			if(columnTypes)
+				ckfree(columnTypes);
+			if(dropTable)
+				Pg_sqlite_dropTable(interp, sqlite_db, dropTable);
+			return TCL_ERROR;
+		}
+
+	}
+
 	switch (cmdIndex) {
 		case CMD_FILENAME: {
 			char       *sqlite_dbname;
@@ -288,95 +431,17 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			break;
 		}
 
+		//case CMD_READ_TABSEP: {
+		//	FILE              *fp = NULL;
+		//	char              *row = NULL;
+		//}
+
 		case CMD_IMPORT_POSTGRES_RESULT: {
-			if (objc < 4) {
-			  import_wrong_num_args:
-				Tcl_WrongNumArgs(interp, 3, objv, "handle ?-sql sqlite_sql? ?-into new_table? ?-names name-list? ?-as name-type-list? ?-types type-list? ?-rowbyrow?");
-				return TCL_ERROR;
-			}
-
-			char              *pghandle_name = Tcl_GetString(objv[3]);
-			char              *sqliteCode = NULL;
-			char              *sqliteTable = NULL;
-			char              *dropTable = NULL;
-			sqlite3_stmt      *statement = NULL;
-			int                optIndex = 4;
-			Tcl_Obj           *typeList = NULL;
-			Tcl_Obj           *nameTypeList = NULL;
-			int                rowbyrow = 0;
-			int                returnCode = TCL_OK;
-			const char        *errorMessage = NULL;
-			enum mappedTypes  *columnTypes;
-			int                nColumns = -1;
-			int                column;
-			int                prepStatus;
-			PGconn            *conn = NULL;
-			PGresult          *result = NULL;
-			ExecStatusType     status;
-			int                nTuples;
-			int                totalTuples = 0;
-			int                tupleIndex;
-			int                stepStatus;
-
-			while(optIndex < objc) {
-				char *optName = Tcl_GetString(objv[optIndex]);
-				optIndex++;
-				if (optName[0] != '-')
-					goto import_wrong_num_args;
-				if (strcmp(optName, "-types") == 0) {
-					typeList = objv[optIndex];
-					optIndex++;
-				} else if (strcmp(optName, "-as") == 0) {
-					nameTypeList = objv[optIndex];
-					optIndex++;
-				} else if (strcmp(optName, "-sql") == 0) {
-					sqliteCode = Tcl_GetString(objv[optIndex]);
-					optIndex++;
-				} else if (strcmp(optName, "-into") == 0) {
-					sqliteTable = Tcl_GetString(objv[optIndex]);
-					optIndex++;
-				} else if (strcmp(optName, "-rowbyrow") == 0) {
-					rowbyrow = 1;
-				} else
-					goto import_wrong_num_args;
-			}
-
-			if (sqliteCode && sqliteTable) {
-				Tcl_AppendResult(interp, "Can't use both -sql and -into", (char *)NULL);
-				return TCL_ERROR;
-			}
-
-			if (typeList && nameTypeList) {
-				Tcl_AppendResult(interp, "Can't use both -types and -as", (char *)NULL);
-				return TCL_ERROR;
-			}
-
-			if(typeList) {
-				if (Pg_sqlite_mapTypes(interp, typeList, 0, 1, &columnTypes, &nColumns) != TCL_OK)
-					return TCL_ERROR;
-			}
-
-			if(sqliteTable) {
-				if (!nameTypeList) {
-					Tcl_AppendResult(interp, "No template (-as) provided for -into", (char *)NULL);
-					return TCL_ERROR;
-				}
-
-				if (Pg_sqlite_mapTypes(interp, nameTypeList, 1, 2, &columnTypes, &nColumns) != TCL_OK)
-					return TCL_ERROR;
-
-				sqliteCode = Pg_sqlite_createTable(interp, sqlite_db, sqliteTable, nameTypeList);
-				if (!sqliteCode)
-					return TCL_ERROR;
-				dropTable = sqliteTable;
-			}
-
-			prepStatus = sqlite3_prepare_v2(sqlite_db, sqliteCode, -1, &statement, NULL);
-			if(prepStatus != SQLITE_OK) {
-				errorMessage = "Failed to prepare sqlite3 statement";
-				returnCode = TCL_ERROR;
-				goto import_cleanup_and_exit;
-			}
+			char *pghandle_name = Tcl_GetString(objv[3]);
+			int   nTuples;
+			int   totalTuples = 0;
+			int   tupleIndex;
+			int   stepStatus;
 
 			if(rowbyrow) {
 				conn = PgGetConnectionId(interp, pghandle_name, NULL);
@@ -414,20 +479,11 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 					totalTuples++;
 					for(column = 0; column < nColumns; column++) {
 						char *value = PQgetvalue(result, tupleIndex, column);
-						switch(columnTypes[column]) {
-							case PG_SQLITE_INT: {
-								if (sqlite3_bind_int(statement, column+1, atoi(value)) != SQLITE_OK)
-									goto import_bailout;
-								break;
+						switch (Pg_sqlite_bindValue(statement, column, value, columnTypes[column])) {
+							case TCL_ERROR: {
+								goto import_bailout;
 							}
-							case PG_SQLITE_DOUBLE: {
-								if (sqlite3_bind_double(statement, column+1, atof(value)) != SQLITE_OK)
-									goto import_bailout;
-								break;
-							}
-							case PG_SQLITE_TEXT: {
-								if (sqlite3_bind_text(statement, column+1, value, -1, SQLITE_TRANSIENT) != SQLITE_OK)
-									goto import_bailout;
+							case TCL_OK: {
 								break;
 							}
 							default: {
