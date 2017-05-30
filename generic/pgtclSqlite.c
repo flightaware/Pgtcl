@@ -34,8 +34,8 @@ int Pg_sqlite_execObj(Tcl_Interp *interp, sqlite3 *sqlite_db, Tcl_Obj *obj)
 {
 	sqlite3_stmt *statement = NULL;
 	int           result = TCL_OK;
-//fprintf(stderr, "Pg_sqlite_execObj(Tcl_Interp *interp, sqlite3 *sqlite_db, Tcl_Obj *obj);\n");
-//fprintf(stderr, "obj = {%s};\n", Tcl_GetString(obj));
+//fprintf(stderr, "DEBUG Pg_sqlite_execObj(Tcl_Interp *interp, sqlite3 *sqlite_db, Tcl_Obj *obj);\n");
+//fprintf(stderr, "DEBUG obj = {%s};\n", Tcl_GetString(obj));
 
 	if(sqlite3_prepare_v2(sqlite_db, Tcl_GetString(obj), -1, &statement, NULL) != SQLITE_OK) {
 		Tcl_AppendResult(interp, sqlite3_errmsg(sqlite_db), (char *)NULL);
@@ -97,7 +97,6 @@ int Pg_sqlite_mapTypes(Tcl_Interp *interp, Tcl_Obj *list, int start, int stride,
 
 		for(t = 0; mappedTypes[t].name; t++) {
 			if(strcmp(typeName, mappedTypes[t].name) == 0) {
-fprintf(stderr, "name '%s' matched {'%s', '%d'} for col %d\n", typeName, mappedTypes[t].name, mappedTypes[t].type, col);
 				typenames[mappedTypes[t].type] = mappedTypes[t].name;
 				array[col] = mappedTypes[t].type;
 				break;
@@ -413,21 +412,22 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 
 				for (tupleIndex = 0; tupleIndex < nTuples; tupleIndex++) {
 					totalTuples++;
-fprintf(stderr, "IMPORTING row %d:", totalTuples);
 					for(column = 0; column < nColumns; column++) {
 						char *value = PQgetvalue(result, tupleIndex, column);
-fprintf(stderr, " '%s' (%s)", value, typenames[columnTypes[column]]);
 						switch(columnTypes[column]) {
 							case PG_SQLITE_INT: {
-								sqlite3_bind_int(statement, column, atoi(value));
+								if (sqlite3_bind_int(statement, column+1, atoi(value)) != SQLITE_OK)
+									goto import_bailout;
 								break;
 							}
 							case PG_SQLITE_DOUBLE: {
-								sqlite3_bind_double(statement, column, atof(value));
+								if (sqlite3_bind_double(statement, column+1, atof(value)) != SQLITE_OK)
+									goto import_bailout;
 								break;
 							}
 							case PG_SQLITE_TEXT: {
-								sqlite3_bind_text(statement, column, value, -1, SQLITE_TRANSIENT);
+								if (sqlite3_bind_text(statement, column+1, value, -1, SQLITE_TRANSIENT) != SQLITE_OK)
+									goto import_bailout;
 								break;
 							}
 							default: {
@@ -437,10 +437,10 @@ fprintf(stderr, " '%s' (%s)", value, typenames[columnTypes[column]]);
 							}
 						}
 					}
-fprintf(stderr, "\n");
 
 					stepStatus = sqlite3_step(statement);
 					if (stepStatus != SQLITE_DONE) {
+					  import_bailout:
 						errorMessage = sqlite3_errmsg(sqlite_db);
 						returnCode = TCL_ERROR;
 						goto import_loop_end;
