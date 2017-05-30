@@ -143,14 +143,15 @@ Pg_sqlite_bindValue(sqlite3_stmt *statement, int column, char *value, enum mappe
 }
 
 char *
-Pg_sqlite_createTable(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sqliteTable, Tcl_Obj *nameTypeList)
+Pg_sqlite_createTable(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sqliteTable, Tcl_Obj *nameTypeList, TclObj *primaryKey)
 {
-	Tcl_Obj          **objv;
-	int                objc;
-	Tcl_Obj *create = Tcl_NewObj();
-	Tcl_Obj *sql = Tcl_NewObj();
-	Tcl_Obj *values = Tcl_NewObj();
-	int i;
+	Tcl_Obj **objv;
+	int       objc;
+	Tcl_Obj  *create = Tcl_NewObj();
+	Tcl_Obj  *sql = Tcl_NewObj();
+	Tcl_Obj  *values = Tcl_NewObj();
+	int       i;
+	int       primaryKeyIndex = 0;
 
 	if(Tcl_ListObjGetElements(interp, nameTypeList, &objc, &objv) != TCL_OK)
 		return NULL;
@@ -158,6 +159,18 @@ Pg_sqlite_createTable(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sqliteTable,
 	if(objc & 1) {
 		Tcl_AppendResult(interp, "List must have an even number of elements", (char *)NULL);
 		return NULL;
+	}
+
+	if(primaryKey) {
+		char *keyName = Tcl_GetString(primaryKey);
+		for(i = 0; i < objc; i += 2)
+			if(strcmp(keyName, Tcl_GetString(objv[i])) == 0)
+				break;
+		if(i >= objc) {
+			Tcl_AppendResult(interp, "Primary key not found in list", (char *)NULL);
+			return NULL;
+		}
+		primaryKeyIndex = i/2;
 	}
 
 	Tcl_AppendStringsToObj(create, "CREATE TABLE ", sqliteTable, " (", (char *)NULL);
@@ -169,7 +182,7 @@ Pg_sqlite_createTable(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sqliteTable,
 		Tcl_AppendObjToObj(create, objv[i]);
 		Tcl_AppendToObj(create, " ", -1);
 		Tcl_AppendObjToObj(create, objv[i+1]);
-		if(i == 0)
+		if(i == primaryKeyIndex)
 			Tcl_AppendToObj(create, " PRIMARY KEY", -1);
 
 		if(i < objc-2)
@@ -248,6 +261,25 @@ sqlite_probe(Tcl_Interp *interp)
 }
 
 int
+Pg_sqlite_gets(Tcl_Channel *chan, char **linePtr)
+{
+	Tcl_Obj *obj = NULL;
+
+	if(Tcl_GetsObj(chan, &obj) == -1) {
+		*linePtr = NULL;
+		if(Tcl_Eof(chan)) {
+			return TCL_BREAK;
+		} else {
+			Tcl_AppendResult (interp, Tcl_ErrnoMsg(tabsepChannel), (char *)NULL);
+			return TCL_ERROR;
+		}
+	}
+	*linePtr = Tcl_GetString(obj);
+	return TCL_OK;
+}
+
+
+int
 Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
         char               *sqlite_commandName;
@@ -275,7 +307,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
         sqlite_commandName = Tcl_GetString(objv[1]);
 
         if (!Tcl_GetCommandInfo(interp, sqlite_commandName, &sqlite_commandInfo)) {
-                Tcl_AppendResult(interp, sqlite_commandName, " is not a command.", (char *)NULL);
+                Tcl_AppendResult(interp, sqlite_commandName, " is not a command", (char *)NULL);
                 return TCL_ERROR;
         }
 
@@ -284,7 +316,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 	}
 
 	if (sqlite3_ObjProc != sqlite_commandInfo.objProc) {
-		Tcl_AppendResult(interp, sqlite_commandName, " is not an sqlite3 handle.", (char *)NULL);
+		Tcl_AppendResult(interp, sqlite_commandName, " is not an sqlite3 handle", (char *)NULL);
 		return TCL_ERROR;
 	}
 
@@ -298,6 +330,8 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 	int minargs[NUM_COMMANDS] = { -1 };
 	int incoming[NUM_COMMANDS] = { -1 };
 	char *argerr[NUM_COMMANDS] = { "" };
+
+	// one time initialization of common code
 	if(minargs[0] == -1) {
 		int i;
 		for(i = 0; i < NUM_COMMANDS; i++) {
@@ -310,8 +344,8 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 		minargs[CMD_WRITE_TABSEP] = 3;
 		incoming[CMD_IMPORT_POSTGRES_RESULT] = 1;
 		incoming[CMD_READ_TABSEP] = 1;
-		argerr[CMD_READ_TABSEP] = "?-row tabsep_row? ?-from file_handle? ?-into new_table? ?-names name-list? ?-as name-type-list? ?-types type-list?";
-		argerr[CMD_IMPORT_POSTGRES_RESULT] = "handle ?-sql sqlite_sql? ?-into new_table? ?-names name-list? ?-as name-type-list? ?-types type-list? ?-rowbyrow?";
+		argerr[CMD_READ_TABSEP] = "?-row tabsep_row? ?-file file_handle? ?-into new_table? ?-as name-type-list? ?-types type-list? ?-pkey primary_key?";
+		argerr[CMD_IMPORT_POSTGRES_RESULT] = "handle ?-sql sqlite_sql? ?-into new_table? ?-as name-type-list? ?-types type-list? ?-rowbyrow? ?-pkey primary_key?";
 	}
 
 	// common variables
@@ -332,6 +366,9 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 	PGconn            *conn = NULL;
 	PGresult          *result = NULL;
 	ExecStatusType     status;
+	char              *tabsepFile = NULL;
+	char              *tabsepRow = NULL;
+        Tcl_Obj           *primaryKey = NULL;
 
 	// common code
 	if(incoming[cmdIndex]) {
@@ -354,16 +391,36 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			} else if (strcmp(optName, "-as") == 0) {
 				nameTypeList = objv[optIndex];
 				optIndex++;
+			} else if (strcmp(optName, "-pkey") == 0) {
+				primaryKey = objv[optIndex];
+				optIndex++;
 			} else if (strcmp(optName, "-sql") == 0) {
 				sqliteCode = Tcl_GetString(objv[optIndex]);
 				optIndex++;
 			} else if (strcmp(optName, "-into") == 0) {
 				sqliteTable = Tcl_GetString(objv[optIndex]);
 				optIndex++;
+			} else if (cmdIndex == CMD_READ_TABSEP && strcmp(optName, "-row") == 0) {
+				tabsepRow = Tcl_GetString(objv[optIndex]);
+				optIndex++;
+			} else if (cmdIndex == CMD_READ_TABSEP && strcmp(optName, "-file") == 0) {
+				tabsepFile = Tcl_GetString(objv[optIndex]);
+				optIndex++;
 			} else if (cmdIndex == CMD_IMPORT_POSTGRES_RESULT && strcmp(optName, "-rowbyrow") == 0) {
 				rowbyrow = 1;
 			} else
 				goto common_wrong_num_args;
+		}
+
+		if (cmdIndex == CMD_READ_TABSEP) {
+			if(!tabsepFile && !tabsepRow) {
+				Tcl_AppendResult(interp, "read_tabsep requires either -row or -file", (char *)NULL);
+				return TCL_ERROR;
+			}
+
+			if(tabsepFile && tabsepRow) {
+				Tcl_AppendResult(interp, "Can't use both -row and -file", (char *)NULL);
+			}
 		}
 
 		if (sqliteCode && sqliteTable) {
@@ -390,7 +447,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			if (Pg_sqlite_mapTypes(interp, nameTypeList, 1, 2, &columnTypes, &nColumns) != TCL_OK)
 				return TCL_ERROR;
 
-			sqliteCode = Pg_sqlite_createTable(interp, sqlite_db, sqliteTable, nameTypeList);
+			sqliteCode = Pg_sqlite_createTable(interp, sqlite_db, sqliteTable, nameTypeList, primaryKey);
 			if (!sqliteCode) {
 				if (columnTypes)
 					ckfree(columnTypes);
@@ -431,10 +488,100 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			break;
 		}
 
-		//case CMD_READ_TABSEP: {
-		//	FILE              *fp = NULL;
-		//	char              *row = NULL;
-		//}
+		case CMD_READ_TABSEP: {
+			Tcl_Channel *tabsepChannel = NULL;
+			char *row = NULL;
+
+			if(tabsepFile) {
+				tabsepChannel = Tcl_GetChannel(interp, tabsepFile, &channelMode);
+				if(!tabsepChannel) {
+					returnCode = TCL_ERROR;
+					goto read_tabsep_cleanup_and_exit;
+				}
+				if (!channelMode && TCL_READABLE) {
+					Tcl_AppendResult (interp, "File in -from argument must be readable", (char *)NULL);
+					returnCode = TCL_ERROR;
+					goto read_tabsep_cleanup_and_exit;
+				}
+				if((resultCode = Pg_sqlite_gets(tabsepChannel, &row)) != TCL_OK) {
+					if (resultCode == TCL_BREAK)
+						resultCode = TCL_OK;
+					goto read_tabsep_cleanup_and_exit;
+				}
+
+				row = Tcl_GetString(rowObj);
+			} else {
+				row = tabsepRow;
+			}
+
+			while(row) {
+				if (Pg_sqlite_split_tabsep(row, &columns, nColumns, &errorMessage) == TCL_ERROR) {
+					errorMessage = sqlite3_errmsg(sqlite_db);
+					returnCode = TCL_ERROR;
+					break;
+				}
+
+				for(column = 0; column < nColumns; column++) {
+					switch (Pg_sqlite_bindValue(statement, column, columns[column], columnTypes[column])) {
+						case TCL_ERROR: {
+							errorMessage = sqlite3_errmsg(sqlite_db);
+							returnCode = TCL_ERROR;
+							goto read_tabsep_cleanup_and_exit;
+						}
+						case TCL_OK: {
+							break;
+						}
+						default: {
+							errorMessage = "INTERNAL ERROR invalid type code";
+							returnCode = TCL_ERROR;
+							goto read_tabsep_cleanup_and_exit;
+						}
+					}
+				}
+
+				stepStatus = sqlite3_step(statement);
+				if (stepStatus != SQLITE_DONE) {
+					errorMessage = sqlite3_errmsg(sqlite_db);
+					returnCode = TCL_ERROR;
+					break;
+				}
+				sqlite3_reset(statement);
+				sqlite3_clear_bindings(statement);
+
+				totalTuples++;
+				
+				if(tabsepFile) {
+					if((resultCode = Pg_sqlite_gets(tabsepChannel, &row)) == TCL_BREAK)
+						resultCode = TCL_OK;
+				} else {
+					row = NULL;
+				}
+			}
+
+		  read_tabsep_cleanup_and_exit:
+
+			if(statement)
+				sqlite3_finalize(statement);
+
+			if(columnTypes)
+				ckfree(columnTypes);
+
+			if(returnCode == TCL_ERROR) {
+				if (errorMessage) {
+					Tcl_AppendResult(interp, (char *)errorMessage, (char *)NULL);
+				}
+
+				if(dropTable) {
+					if(Pg_sqlite_dropTable(interp, sqlite_db, dropTable) != TCL_OK)
+						Tcl_AppendResult(interp, " while handling error", (char *)NULL);
+				}
+
+				return TCL_ERROR;
+			}
+
+			Tcl_SetObjResult(interp, Tcl_NewIntObj(totalTuples));
+			return returnCode;
+		}
 
 		case CMD_IMPORT_POSTGRES_RESULT: {
 			char *pghandle_name = Tcl_GetString(objv[3]);
@@ -476,7 +623,6 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 				nTuples = PQntuples(result);
 
 				for (tupleIndex = 0; tupleIndex < nTuples; tupleIndex++) {
-					totalTuples++;
 					for(column = 0; column < nColumns; column++) {
 						char *value = PQgetvalue(result, tupleIndex, column);
 						switch (Pg_sqlite_bindValue(statement, column, value, columnTypes[column])) {
@@ -503,6 +649,8 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 					}
 					sqlite3_reset(statement);
 					sqlite3_clear_bindings(statement);
+
+					totalTuples++;
 				}
 
 				if(rowbyrow) {
