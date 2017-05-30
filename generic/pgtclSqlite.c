@@ -288,11 +288,13 @@ Pg_sqlite_split_tabsep(char *row, char ***columnsPtr, int nColumns, const char *
 	int returnCode = TCL_OK;
 
 	col = row;
-	nextCol = strchr(col, '\t');
+	i = 0;
 	while(col && i < nColumns) {
-		if(nextCol) *nextCol = 0;
+		nextCol = strchr(col, '\t');
 		columns[i++] = col;
-		col = nextCol ? nextCol + 1 : NULL;
+		if(nextCol)
+			*nextCol++ = 0;
+		col = nextCol;
 	}
 	if (col) {
 		*errorMessagePtr = "Too many columns in row";
@@ -371,11 +373,11 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			argerr[i] = "";
 		}
 		minargs[CMD_IMPORT_POSTGRES_RESULT] = 4;
-		minargs[CMD_READ_TABSEP] = 4;
+		minargs[CMD_READ_TABSEP] = 3;
 		minargs[CMD_WRITE_TABSEP] = 3;
 		incoming[CMD_IMPORT_POSTGRES_RESULT] = 1;
 		incoming[CMD_READ_TABSEP] = 1;
-		argerr[CMD_READ_TABSEP] = "?-row tabsep_row? ?-file file_handle? ?-into new_table? ?-as name-type-list? ?-types type-list? ?-pkey primary_key?";
+		argerr[CMD_READ_TABSEP] = "?-row tabsep_row? ?-file file_handle? ?-sql sqlite_sql? ?-into new_table? ?-as name-type-list? ?-types type-list? ?-pkey primary_key?";
 		argerr[CMD_IMPORT_POSTGRES_RESULT] = "handle ?-sql sqlite_sql? ?-into new_table? ?-as name-type-list? ?-types type-list? ?-rowbyrow? ?-pkey primary_key?";
 	}
 
@@ -416,8 +418,10 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 		while(optIndex < objc) {
 			char *optName = Tcl_GetString(objv[optIndex]);
 			optIndex++;
-			if (optName[0] != '-')
+			if (optName[0] != '-') {
 				goto common_wrong_num_args;
+			}
+
 			if (strcmp(optName, "-types") == 0) {
 				typeList = objv[optIndex];
 				optIndex++;
@@ -441,8 +445,9 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 				optIndex++;
 			} else if (cmdIndex == CMD_IMPORT_POSTGRES_RESULT && strcmp(optName, "-rowbyrow") == 0) {
 				rowbyrow = 1;
-			} else
+			} else {
 				goto common_wrong_num_args;
+			}
 		}
 
 		if (cmdIndex == CMD_READ_TABSEP) {
