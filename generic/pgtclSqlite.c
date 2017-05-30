@@ -368,7 +368,9 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 	ExecStatusType     status;
 	char              *tabsepFile = NULL;
 	char              *tabsepRow = NULL;
-        Tcl_Obj           *primaryKey = NULL;
+	Tcl_Obj           *primaryKey = NULL;
+	char             **columns = NULL;
+	int                totalTuples = 0;
 
 	// common code
 	if(incoming[cmdIndex]) {
@@ -492,9 +494,6 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			Tcl_Channel tabsepChannel = NULL;
 			int channelMode;
 			char *row = NULL;
-			char **columns = NULL;
-			int   totalTuples = 0;
-			int   stepStatus;
 
 			if(tabsepFile) {
 				tabsepChannel = Tcl_GetChannel(interp, tabsepFile, &channelMode);
@@ -541,8 +540,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 					}
 				}
 
-				stepStatus = sqlite3_step(statement);
-				if (stepStatus != SQLITE_DONE) {
+				if (sqlite3_step(statement) != SQLITE_DONE) {
 					errorMessage = sqlite3_errmsg(sqlite_db);
 					returnCode = TCL_ERROR;
 					break;
@@ -568,6 +566,9 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			if(columnTypes)
 				ckfree(columnTypes);
 
+			if(columns)
+				ckfree(columns);
+
 			if(returnCode == TCL_ERROR) {
 				if (errorMessage) {
 					Tcl_AppendResult(interp, (char *)errorMessage, (char *)NULL);
@@ -589,8 +590,6 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			char *pghandle_name = Tcl_GetString(objv[3]);
 			int   nTuples;
 			int   tupleIndex;
-			int   totalTuples = 0;
-			int   stepStatus;
 
 			if(rowbyrow) {
 				conn = PgGetConnectionId(interp, pghandle_name, NULL);
@@ -642,8 +641,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 						}
 					}
 
-					stepStatus = sqlite3_step(statement);
-					if (stepStatus != SQLITE_DONE) {
+					if (sqlite3_step(statement) != SQLITE_DONE) {
 					  import_bailout:
 						errorMessage = sqlite3_errmsg(sqlite_db);
 						returnCode = TCL_ERROR;
