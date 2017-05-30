@@ -143,7 +143,7 @@ Pg_sqlite_bindValue(sqlite3_stmt *statement, int column, char *value, enum mappe
 }
 
 char *
-Pg_sqlite_createTable(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sqliteTable, Tcl_Obj *nameTypeList, TclObj *primaryKey)
+Pg_sqlite_createTable(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sqliteTable, Tcl_Obj *nameTypeList, Tcl_Obj *primaryKey)
 {
 	Tcl_Obj **objv;
 	int       objc;
