@@ -261,16 +261,16 @@ sqlite_probe(Tcl_Interp *interp)
 }
 
 int
-Pg_sqlite_gets(Tcl_Channel *chan, char **linePtr)
+Pg_sqlite_gets(Tcl_Interp *interp, Tcl_Channel chan, char **linePtr)
 {
 	Tcl_Obj *obj = NULL;
 
-	if(Tcl_GetsObj(chan, &obj) == -1) {
+	if(Tcl_GetsObj(chan, obj) == -1) {
 		*linePtr = NULL;
 		if(Tcl_Eof(chan)) {
 			return TCL_BREAK;
 		} else {
-			Tcl_AppendResult (interp, Tcl_ErrnoMsg(tabsepChannel), (char *)NULL);
+			Tcl_AppendResult (interp, Tcl_ErrnoMsg(Tcl_GetErrno()), (char *)NULL);
 			return TCL_ERROR;
 		}
 	}
@@ -489,8 +489,12 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 		}
 
 		case CMD_READ_TABSEP: {
-			Tcl_Channel *tabsepChannel = NULL;
+			Tcl_Channel tabsepChannel = NULL;
+			int channelMode;
 			char *row = NULL;
+			char **columns = NULL;
+			int   totalTuples = 0;
+			int   stepStatus;
 
 			if(tabsepFile) {
 				tabsepChannel = Tcl_GetChannel(interp, tabsepFile, &channelMode);
@@ -503,13 +507,11 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 					returnCode = TCL_ERROR;
 					goto read_tabsep_cleanup_and_exit;
 				}
-				if((resultCode = Pg_sqlite_gets(tabsepChannel, &row)) != TCL_OK) {
-					if (resultCode == TCL_BREAK)
-						resultCode = TCL_OK;
+				if((returnCode = Pg_sqlite_gets(interp, tabsepChannel, &row)) != TCL_OK) {
+					if (returnCode == TCL_BREAK)
+						returnCode = TCL_OK;
 					goto read_tabsep_cleanup_and_exit;
 				}
-
-				row = Tcl_GetString(rowObj);
 			} else {
 				row = tabsepRow;
 			}
@@ -551,8 +553,8 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 				totalTuples++;
 				
 				if(tabsepFile) {
-					if((resultCode = Pg_sqlite_gets(tabsepChannel, &row)) == TCL_BREAK)
-						resultCode = TCL_OK;
+					if((returnCode = Pg_sqlite_gets(interp, tabsepChannel, &row)) == TCL_BREAK)
+						returnCode = TCL_OK;
 				} else {
 					row = NULL;
 				}
@@ -586,8 +588,8 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 		case CMD_IMPORT_POSTGRES_RESULT: {
 			char *pghandle_name = Tcl_GetString(objv[3]);
 			int   nTuples;
-			int   totalTuples = 0;
 			int   tupleIndex;
+			int   totalTuples = 0;
 			int   stepStatus;
 
 			if(rowbyrow) {
