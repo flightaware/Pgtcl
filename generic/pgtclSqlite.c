@@ -278,6 +278,37 @@ Pg_sqlite_gets(Tcl_Interp *interp, Tcl_Channel chan, char **linePtr)
 	return TCL_OK;
 }
 
+int
+Pg_sqlite_split_tabsep(char *row, char ***columnsPtr, int nColumns, const char **errorMessagePtr)
+{
+	int i;
+	char *col;
+	char *nextCol;
+	char **columns = ckalloc(nColumns * sizeof *columns);
+	int returnCode = TCL_OK;
+
+	col = row;
+	nextCol = strchr(col, '\t');
+	while(col && i < nColumns) {
+		if(nextCol) *nextCol = 0;
+		columns[i++] = col;
+		col = nextCol ? nextCol + 1 : NULL;
+	}
+	if (col) {
+		*errorMessagePtr = "Too many columns in row";
+		returnCode = TCL_ERROR;
+	} else if (i < nColumns) {
+		*errorMessagePtr = "Not enough columns in row";
+		returnCode = TCL_ERROR;
+	}
+	if(returnCode == TCL_OK) {
+		*columnsPtr = columns;
+	} else {
+		ckfree(columns);
+	}
+
+	return returnCode;
+}
 
 int
 Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
@@ -517,7 +548,6 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 
 			while(row) {
 				if (Pg_sqlite_split_tabsep(row, &columns, nColumns, &errorMessage) == TCL_ERROR) {
-					errorMessage = sqlite3_errmsg(sqlite_db);
 					returnCode = TCL_ERROR;
 					break;
 				}
