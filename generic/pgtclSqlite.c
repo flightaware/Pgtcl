@@ -30,6 +30,26 @@ struct SqliteDb {
   // other stuff we don't look at, but probably should maybe use to validate...
 };
 
+int Pg_sqlite_execObj(Tcl_Interp *interp, sqlite3 *sqlite_db, Tcl_Obj *obj)
+{
+	sqlite3_stmt *statement = NULL;
+	int           result = TCL_OK;
+
+	if(sqlite3_prepare_v2(sqlite_db, Tcl_GetString(obj), -1, &statement, NULL) != SQLITE_OK) {
+		Tcl_AppendResult(interp, sqlite3_errmsg(sqlite_db), (char *)NULL);
+		statement = NULL; // probably redundant
+		result = TCL_ERROR;
+	} else if(sqlite3_step(statement) != SQLITE_DONE) {
+		Tcl_AppendResult(interp, sqlite3_errmsg(sqlite_db), (char *)NULL);
+		result = TCL_ERROR;
+	}
+
+	if(statement)
+		sqlite3_finalize(statement);
+
+	return result;
+}
+
 static Tcl_ObjCmdProc *sqlite3_ObjProc = NULL;
 
 enum mappedTypes {
@@ -97,7 +117,6 @@ Pg_sqlite_createTable(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sqliteTable,
 	Tcl_Obj *create = Tcl_NewObj();
 	Tcl_Obj *sql = Tcl_NewObj();
 	Tcl_Obj *values = Tcl_NewObj();
-	sqlite3_stmt *statement = NULL;
 	int i;
 
 	if(Tcl_ListObjGetElements(interp, nameTypeList, &objc, &objv) != TCL_OK)
@@ -110,9 +129,7 @@ Pg_sqlite_createTable(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sqliteTable,
 
 	Tcl_AppendToObj(create, "CREATE TABLE (\n", -1);
 
-	Tcl_AppendToObj(sql, "INSERT INTO ", -1);
-	Tcl_AppendToObj(sql, sqliteTable, -1);
-	Tcl_AppendToObj(sql, " (", -1);
+	Tcl_AppendStringsToObj(sql, "INSERT INTO ", sqliteTable, " (", (char *)NULL);
 
 	for(i = 0; i < objc; i+= 2) {
 		Tcl_AppendToObj(create, "\t", -1);
@@ -139,23 +156,21 @@ Pg_sqlite_createTable(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sqliteTable,
 	Tcl_AppendObjToObj(sql, values);
 	Tcl_AppendToObj(sql, ");", -1);
 
-	if(sqlite3_prepare_v2(sqlite_db, Tcl_GetString(create), -1, &statement, NULL) != SQLITE_OK) {
-		Tcl_AppendResult(interp, sqlite3_errmsg(sqlite_db));
+	if(Pg_sqlite_execObj(interp, sqlite_db, create) != TCL_OK)
 		return NULL;
-	}
-
-	if(sqlite3_step(statement) != SQLITE_DONE) {
-		Tcl_AppendResult(interp, sqlite3_errmsg(sqlite_db));
-		sqlite3_finalize(statement);
-		return NULL;
-	}
-
-	sqlite3_finalize(statement);
 
 	return Tcl_GetString(sql);
 }
 
+int
+Pg_sqlite_dropTable(Tcl_Interp *interp, sqlite3 *sqlite_db, char *dropTable)
+{
+	Tcl_Obj *drop = Tcl_NewObj();
 
+	Tcl_AppendStringsToObj(drop, "DROP TABLE ", dropTable, ";", (char *)NULL);
+
+	return Pg_sqlite_execObj(interp, sqlite_db, drop);
+}
 
 int
 sqlite_probe(Tcl_Interp *interp)
@@ -283,7 +298,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			Tcl_Obj           *nameTypeList = NULL;
 			int                rowbyrow = 0;
 			int                returnCode = TCL_OK;
-			char              *errorMessage = NULL;
+			const char        *errorMessage = NULL;
 			enum mappedTypes  *columnTypes;
 			int                nColumns = -1;
 			int                column;
@@ -448,12 +463,13 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 				ckfree(columnTypes);
 
 			if(returnCode == TCL_ERROR) {
-				if(dropTable) {
-					Pg_sqlite_dropTable(sqlite_db, dropTable);
+				if (errorMessage) {
+					Tcl_AppendResult(interp, (char *)errorMessage, (char *)NULL);
 				}
 
-				if (errorMessage) {
-					Tcl_SetResult(interp, errorMessage, TCL_VOLATILE);
+				if(dropTable) {
+					if(Pg_sqlite_dropTable(interp, sqlite_db, dropTable) != TCL_OK)
+						Tcl_AppendResult(interp, " while handling error", (char *)NULL);
 				}
 
 				return TCL_ERROR;
