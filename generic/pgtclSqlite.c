@@ -34,6 +34,8 @@ int Pg_sqlite_execObj(Tcl_Interp *interp, sqlite3 *sqlite_db, Tcl_Obj *obj)
 {
 	sqlite3_stmt *statement = NULL;
 	int           result = TCL_OK;
+//fprintf(stderr, "Pg_sqlite_execObj(Tcl_Interp *interp, sqlite3 *sqlite_db, Tcl_Obj *obj);\n");
+//fprintf(stderr, "obj = {%s};\n", Tcl_GetString(obj));
 
 	if(sqlite3_prepare_v2(sqlite_db, Tcl_GetString(obj), -1, &statement, NULL) != SQLITE_OK) {
 		Tcl_AppendResult(interp, sqlite3_errmsg(sqlite_db), (char *)NULL);
@@ -64,10 +66,12 @@ struct {
 	enum mappedTypes type;
 } mappedTypes[] = {
 	{"int",          PG_SQLITE_INT},
-	{"text",         PG_SQLITE_TEXT},
 	{"double",       PG_SQLITE_DOUBLE},
+	{"text",         PG_SQLITE_TEXT},
 	{NULL,           PG_SQLITE_NOTYPE}
 };
+
+char *typenames[sizeof mappedTypes / sizeof *mappedTypes];
 
 int Pg_sqlite_mapTypes(Tcl_Interp *interp, Tcl_Obj *list, int start, int stride, enum mappedTypes **arrayPtr, int *lengthPtr)
 {
@@ -75,6 +79,7 @@ int Pg_sqlite_mapTypes(Tcl_Interp *interp, Tcl_Obj *list, int start, int stride,
 	int                objc;
 	enum mappedTypes  *array;
 	int                i;
+	int                col;
 
 	if(Tcl_ListObjGetElements(interp, list, &objc, &objv) != TCL_OK)
 		return TCL_ERROR;
@@ -86,13 +91,15 @@ int Pg_sqlite_mapTypes(Tcl_Interp *interp, Tcl_Obj *list, int start, int stride,
 
 	array = (enum mappedTypes *)ckalloc((sizeof *array) * (objc / stride));
 
-	for(i = start; i < objc; i += stride) {
+	for(col = 0, i = start; i < objc; col++, i += stride) {
 		char *typeName = Tcl_GetString(objv[i]);
 		int   t;
 
 		for(t = 0; mappedTypes[t].name; t++) {
 			if(strcmp(typeName, mappedTypes[t].name) == 0) {
-				array[i] = mappedTypes[t].type;
+fprintf(stderr, "name '%s' matched {'%s', '%d'} for col %d\n", typeName, mappedTypes[t].name, mappedTypes[t].type, col);
+				typenames[mappedTypes[t].type] = mappedTypes[t].name;
+				array[col] = mappedTypes[t].type;
 				break;
 			}
 		}
@@ -105,7 +112,7 @@ int Pg_sqlite_mapTypes(Tcl_Interp *interp, Tcl_Obj *list, int start, int stride,
 	}
 
 	*arrayPtr = array;
-	*lengthPtr = objc / stride;
+	*lengthPtr = col;
 	return TCL_OK;
 }
 
@@ -127,19 +134,20 @@ Pg_sqlite_createTable(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sqliteTable,
 		return NULL;
 	}
 
-	Tcl_AppendToObj(create, "CREATE TABLE (\n", -1);
+	Tcl_AppendStringsToObj(create, "CREATE TABLE ", sqliteTable, " (", (char *)NULL);
 
 	Tcl_AppendStringsToObj(sql, "INSERT INTO ", sqliteTable, " (", (char *)NULL);
 
 	for(i = 0; i < objc; i+= 2) {
-		Tcl_AppendToObj(create, "\t", -1);
+		Tcl_AppendToObj(create, "\n\t", -1);
 		Tcl_AppendObjToObj(create, objv[i]);
 		Tcl_AppendToObj(create, " ", -1);
 		Tcl_AppendObjToObj(create, objv[i+1]);
 		if(i == 0)
-			Tcl_AppendToObj(create, "PRIMARY KEY,\n", -1);
-		else
-			Tcl_AppendToObj(create, ",\n", -1);
+			Tcl_AppendToObj(create, " PRIMARY KEY", -1);
+
+		if(i < objc-2)
+			Tcl_AppendToObj(create, ",", -1);
 
 		if(i > 0)
 			Tcl_AppendToObj(sql, ", ", -1);
@@ -405,8 +413,10 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 
 				for (tupleIndex = 0; tupleIndex < nTuples; tupleIndex++) {
 					totalTuples++;
+fprintf(stderr, "IMPORTING row %d:", totalTuples);
 					for(column = 0; column < nColumns; column++) {
 						char *value = PQgetvalue(result, tupleIndex, column);
+fprintf(stderr, " '%s' (%s)", value, typenames[columnTypes[column]]);
 						switch(columnTypes[column]) {
 							case PG_SQLITE_INT: {
 								sqlite3_bind_int(statement, column, atoi(value));
@@ -427,6 +437,8 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 							}
 						}
 					}
+fprintf(stderr, "\n");
+
 					stepStatus = sqlite3_step(statement);
 					if (stepStatus != SQLITE_DONE) {
 						errorMessage = sqlite3_errmsg(sqlite_db);
