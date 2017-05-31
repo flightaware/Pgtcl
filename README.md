@@ -49,7 +49,7 @@ Fire up your tclsh:
 ```
 tclsh8.6
 % package require Pgtcl
-1.9
+2.1.0
 ```
 
 It's a good idea to switch to using the ``package require`` instead of "load" to pick up Pgtcl, because there will be additional Tcl code shipped in future versions of Pgtcl, and using "package require" will make that code available to your application.  Also it keeps you from hard-coding the path to the library and hard-coding a dependency on a specific version.
@@ -63,11 +63,15 @@ If it compiles and installs ok, but ``package require`` doesn't work, it probabl
     % lappend auto_path /opt/local/lib
     ...
     % package require Pgtcl
-    1.9
+    2.1.0
 ```
 
 # CREDITS
 
-Pgtcl was originally written by Jolly Chen.  Many people have contributed to the further development of Pgtcl over the years, including Randy Kunkee, who added the channel handler code, among other things, and we intend to identify the rest of them and give them credit as well.
+Pgtcl was originally written by Jolly Chen.  Many people have contributed to the development of Pgtcl over the years, including Randy Kunkee, who added the channel handler code, among many other improvements.
 
-Development and maintenance of Pgtcl since version 1.3 has been done by Brett Schwarz and Karl Lehenbauer.
+Karl Lehenbauer has been maintaining the software since 2002.  Brett Schwartz contributed many improvements and bug fixes between 2002 and 2011.  Jeff Lawson and Peter da Silva have made prolific contributions to Pgtcl since 2016.  (Special thanks also to Peter for cleaning up and updating the documentation.)
+
+Additional thanks to David McNett for the work to migrate Pgtcl from Tcl 8.4 to 8.5, and to Pietro Cerutti for ideas, assistance, and for maintaining the Pgtcl port for FreeBSD.
+
+If you have contributed to Pgtcl at any time since its inception and your name is not listed here, please file an issue and we will gladly acknowledge your contribution.
