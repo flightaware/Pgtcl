@@ -293,21 +293,24 @@ Pg_sqlite_gets(Tcl_Interp *interp, Tcl_Channel chan, char **linePtr)
 }
 
 int
-Pg_sqlite_split_tabsep(char *row, char ***columnsPtr, int nColumns, const char **errorMessagePtr)
+Pg_sqlite_split_tabsep(char *row, char ***columnsPtr, int nColumns, char *sepStr, const char **errorMessagePtr)
 {
 	int i;
 	char *col;
 	char *nextCol;
 	char **columns = ckalloc(nColumns * sizeof *columns);
 	int returnCode = TCL_OK;
+	int sepLen = strlen(sepStr);
 
 	col = row;
 	i = 0;
 	while(col && i < nColumns) {
-		nextCol = strchr(col, '\t');
+		nextCol = strstr(col, sepStr);
 		columns[i++] = col;
-		if(nextCol)
-			*nextCol++ = 0;
+		if(nextCol) {
+			*nextCol = 0;
+			nextCol += sepLen;
+		}
 		col = nextCol;
 	}
 	if (col) {
@@ -390,7 +393,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 		minargs[CMD_READ_TABSEP] = 3;
 		incoming[CMD_IMPORT_POSTGRES_RESULT] = 1;
 		incoming[CMD_READ_TABSEP] = 1;
-		argerr[CMD_READ_TABSEP] = "?-row tabsep_row? ?-file file_handle? ?-sql sqlite_sql? ?-into new_table? ?-as name-type-list? ?-types type-list? ?-pkey primary_key?";
+		argerr[CMD_READ_TABSEP] = "?-row tabsep_row? ?-file file_handle? ?-sql sqlite_sql? ?-into new_table? ?-as name-type-list? ?-types type-list? ?-pkey primary_key? ?-sep sepstring?";
 		argerr[CMD_IMPORT_POSTGRES_RESULT] = "handle ?-sql sqlite_sql? ?-into new_table? ?-as name-type-list? ?-types type-list? ?-rowbyrow? ?-pkey primary_key?";
 	}
 
@@ -418,6 +421,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 	Tcl_Obj           *primaryKey = NULL;
 	char             **columns = NULL;
 	int                totalTuples = 0;
+	char		  *sepString = "\t";
 
 	// common code
 	if(incoming[cmdIndex]) {
@@ -447,6 +451,9 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 				optIndex++;
 			} else if (strcmp(optName, "-pkey") == 0) {
 				primaryKey = objv[optIndex];
+				optIndex++;
+			} else if (strcmp(optName, "-sep") == 0) {
+				sepString = Tcl_GetString(objv[optIndex]);
 				optIndex++;
 			} else if (strcmp(optName, "-sql") == 0) {
 				sqliteCode = Tcl_GetString(objv[optIndex]);
@@ -574,7 +581,6 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			const char *channelName = NULL;
 			int channelMode;
 			int sqliteStatus;
-			char *sepString = "\t";
 
 			if(objc == 6) {
 				sepString = Tcl_GetString(objv[5]);
@@ -668,7 +674,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			}
 
 			while(row) {
-				if (Pg_sqlite_split_tabsep(row, &columns, nColumns, &errorMessage) == TCL_ERROR) {
+				if (Pg_sqlite_split_tabsep(row, &columns, nColumns, sepString, &errorMessage) == TCL_ERROR) {
 					returnCode = TCL_ERROR;
 					break;
 				}
