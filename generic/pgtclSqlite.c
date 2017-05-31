@@ -586,6 +586,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			channelName = Tcl_GetString(objv[3]);
 			channel = Tcl_GetChannel(interp, channelName, &channelMode);
 			if(!channel) {
+				Tcl_AppendResult(interp, Tcl_ErrnoMsg(Tcl_GetErrno()), " converting ", channelName, (char *)NULL);
 				return TCL_ERROR;
 			}
 			if (!channelMode && TCL_WRITABLE) {
@@ -605,15 +606,21 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			while (SQLITE_ROW == (sqliteStatus = sqlite3_step(statement))) {
 				int i;
 				for(i = 0; i < nColumns; i++) {
-					char *value = (char *)sqlite3_column_text(statement, i+1);
+					char *value = (char *)sqlite3_column_text(statement, i);
 					if(value == NULL) value = "";
-					if (i > 0 && Tcl_WriteChars(channel, sepString, -1) != TCL_OK)
+					if (i > 0 && Tcl_WriteChars(channel, sepString, -1) == -1) {
+						Tcl_AppendResult(interp, Tcl_ErrnoMsg(Tcl_GetErrno()), (char *)NULL);
 						goto write_tabsep_cleanup_and_exit;
-					if (Tcl_WriteChars(channel, value, -1) != TCL_OK)
+					}
+					if (Tcl_WriteChars(channel, value, -1) == -1) {
+						Tcl_AppendResult(interp, Tcl_ErrnoMsg(Tcl_GetErrno()), (char *)NULL);
 						goto write_tabsep_cleanup_and_exit;
+					}
 				}
-				if(Tcl_WriteChars(channel, "\n", -1) != TCL_OK)
+				if(Tcl_WriteChars(channel, "\n", -1) == -1) {
+					Tcl_AppendResult(interp, Tcl_ErrnoMsg(Tcl_GetErrno()), (char *)NULL);
 					goto write_tabsep_cleanup_and_exit;
+				}
 				totalTuples++;
 			}
 			if(sqliteStatus != SQLITE_DONE) {
@@ -642,6 +649,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			if(tabsepFile) {
 				tabsepChannel = Tcl_GetChannel(interp, tabsepFile, &channelMode);
 				if(!tabsepChannel) {
+					Tcl_AppendResult(interp, Tcl_ErrnoMsg(Tcl_GetErrno()), " converting ", tabsepFile, (char *)NULL);
 					returnCode = TCL_ERROR;
 					goto read_tabsep_cleanup_and_exit;
 				}
