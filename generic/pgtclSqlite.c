@@ -393,8 +393,8 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 		minargs[CMD_READ_TABSEP] = 3;
 		incoming[CMD_IMPORT_POSTGRES_RESULT] = 1;
 		incoming[CMD_READ_TABSEP] = 1;
-		argerr[CMD_READ_TABSEP] = "?-row tabsep_row? ?-file file_handle? ?-sql sqlite_sql? ?-into new_table? ?-as name-type-list? ?-types type-list? ?-pkey primary_key? ?-sep sepstring?";
-		argerr[CMD_IMPORT_POSTGRES_RESULT] = "handle ?-sql sqlite_sql? ?-into new_table? ?-as name-type-list? ?-types type-list? ?-rowbyrow? ?-pkey primary_key?";
+		argerr[CMD_READ_TABSEP] = "?-row tabsep_row? ?-file file_handle? ?-sql sqlite_sql? ?-into new_table? ?-as name-type-list? ?-types type-list? ?-pkey primary_key? ?-sep sepstring? ?-null nullstring?";
+		argerr[CMD_IMPORT_POSTGRES_RESULT] = "handle ?-sql sqlite_sql? ?-into new_table? ?-as name-type-list? ?-types type-list? ?-rowbyrow? ?-pkey primary_key? ?-null nullstring?";
 	}
 
 	// common variables
@@ -422,6 +422,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 	char             **columns = NULL;
 	int                totalTuples = 0;
 	char		  *sepString = "\t";
+	char              *nullString = NULL;
 
 	// common code
 	if(incoming[cmdIndex]) {
@@ -452,8 +453,11 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			} else if (strcmp(optName, "-pkey") == 0) {
 				primaryKey = objv[optIndex];
 				optIndex++;
-			} else if (strcmp(optName, "-sep") == 0) {
+			} else if (cmdIndex == CMD_READ_TABSEP && strcmp(optName, "-sep") == 0) {
 				sepString = Tcl_GetString(objv[optIndex]);
+				optIndex++;
+			} else if (strcmp(optName, "-null") == 0) {
+				nullString = Tcl_GetString(objv[optIndex]);
 				optIndex++;
 			} else if (strcmp(optName, "-sql") == 0) {
 				sqliteCode = Tcl_GetString(objv[optIndex]);
@@ -581,9 +585,9 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			const char *channelName = NULL;
 			int channelMode;
 			int sqliteStatus;
-			char *nullString = "";
 
 			optIndex = 5;
+			nullString = "";
 
 			if(objc < optIndex) {
 			  write_wrong_num_args:
@@ -699,6 +703,9 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 				}
 
 				for(column = 0; column < nColumns; column++) {
+					if(nullString && strcmp(columns[column], nullString) == 0)
+						continue;
+
 					int type = columnTypes ? columnTypes[column] : PG_SQLITE_TEXT;
 					switch (Pg_sqlite_bindValue(statement, column, columns[column], type)) {
 						case TCL_ERROR: {
@@ -802,8 +809,11 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 
 				for (tupleIndex = 0; tupleIndex < nTuples; tupleIndex++) {
 					for(column = 0; column < nColumns; column++) {
-						int type = columnTypes ? columnTypes[column] : PG_SQLITE_TEXT;
 						char *value = PQgetvalue(result, tupleIndex, column);
+						if(nullString && strcmp(value, nullString) == 0)
+							continue;
+
+						int type = columnTypes ? columnTypes[column] : PG_SQLITE_TEXT;
 						switch (Pg_sqlite_bindValue(statement, column, value, type)) {
 							case TCL_ERROR: {
 								goto import_bailout;
