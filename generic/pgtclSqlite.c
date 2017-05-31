@@ -581,12 +581,31 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			const char *channelName = NULL;
 			int channelMode;
 			int sqliteStatus;
+			char *nullString = "";
 
-			if(objc == 6) {
-				sepString = Tcl_GetString(objv[5]);
-			} else if(objc != 5) {
-				Tcl_WrongNumArgs(interp, 3, objv, "handle sql ?separator?");
+			optIndex = 5;
+
+			if(objc < optIndex) {
+			  write_wrong_num_args:
+				Tcl_WrongNumArgs(interp, 3, objv, "handle sql ?-null nullstring? ?-sep sepstring?");
 				return TCL_ERROR;
+			}
+
+			while (optIndex < objc) {
+				char *optName = Tcl_GetString(objv[optIndex]);
+				optIndex++;
+				if (optName[0] != '-') {
+					goto write_wrong_num_args;
+				}
+
+				if (strcmp(optName, "-null") == 0) {
+					nullString = Tcl_GetString(objv[optIndex]);
+					optIndex++;
+				} else if (strcmp(optName, "-sep") == 0) {
+					sepString = Tcl_GetString(objv[optIndex]);
+					optIndex++;
+				} else
+					goto write_wrong_num_args;
 			}
 
 			channelName = Tcl_GetString(objv[3]);
@@ -613,7 +632,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 				int i;
 				for(i = 0; i < nColumns; i++) {
 					char *value = (char *)sqlite3_column_text(statement, i);
-					if(value == NULL) value = "";
+					if(value == NULL) value = nullString;
 					if (i > 0 && Tcl_WriteChars(channel, sepString, -1) == -1) {
 						Tcl_AppendResult(interp, Tcl_ErrnoMsg(Tcl_GetErrno()), (char *)NULL);
 						goto write_tabsep_cleanup_and_exit;
