@@ -143,7 +143,7 @@ Pg_sqlite_bindValue(sqlite3_stmt *statement, int column, char *value, enum mappe
 }
 
 char *
-Pg_sqlite_createTable(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sqliteTable, Tcl_Obj *nameTypeList, Tcl_Obj *primaryKey)
+Pg_sqlite_createTable(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sqliteTable, Tcl_Obj *nameList, Tcl_Obj *nameTypeList, Tcl_Obj *primaryKey)
 {
 	Tcl_Obj **objv;
 	int       objc;
@@ -152,40 +152,54 @@ Pg_sqlite_createTable(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sqliteTable,
 	Tcl_Obj  *values = Tcl_NewObj();
 	int       i;
 	int       primaryKeyIndex = 0;
+	int       stride;
 
-	if(Tcl_ListObjGetElements(interp, nameTypeList, &objc, &objv) != TCL_OK)
-		return NULL;
+	if(nameTypeList) {
+		if(Tcl_ListObjGetElements(interp, nameTypeList, &objc, &objv) != TCL_OK)
+			return NULL;
 
-	if(objc & 1) {
-		Tcl_AppendResult(interp, "List must have an even number of elements", (char *)NULL);
-		return NULL;
+		if(objc & 1) {
+			Tcl_AppendResult(interp, "List must have an even number of elements", (char *)NULL);
+			return NULL;
+		}
+
+		stride = 2;
+	} else {
+		if(Tcl_ListObjGetElements(interp, nameList, &objc, &objv) != TCL_OK)
+			return NULL;
+
+		stride = 1;
 	}
 
 	if(primaryKey) {
 		char *keyName = Tcl_GetString(primaryKey);
-		for(i = 0; i < objc; i += 2)
+		for(i = 0; i < objc; i += stride)
 			if(strcmp(keyName, Tcl_GetString(objv[i])) == 0)
 				break;
 		if(i >= objc) {
 			Tcl_AppendResult(interp, "Primary key not found in list", (char *)NULL);
 			return NULL;
 		}
-		primaryKeyIndex = i/2;
+		primaryKeyIndex = i/stride;
 	}
 
 	Tcl_AppendStringsToObj(create, "CREATE TABLE ", sqliteTable, " (", (char *)NULL);
 
 	Tcl_AppendStringsToObj(sql, "INSERT INTO ", sqliteTable, " (", (char *)NULL);
 
-	for(i = 0; i < objc; i+= 2) {
+	for(i = 0; i < objc; i+= stride) {
 		Tcl_AppendToObj(create, "\n\t", -1);
 		Tcl_AppendObjToObj(create, objv[i]);
-		Tcl_AppendToObj(create, " ", -1);
-		Tcl_AppendObjToObj(create, objv[i+1]);
+		if (stride == 2) {
+			Tcl_AppendToObj(create, " ", -1);
+			Tcl_AppendObjToObj(create, objv[i+1]);
+		} else {
+			Tcl_AppendToObj(create, " TEXT", -1);
+		}
 		if(i == primaryKeyIndex)
 			Tcl_AppendToObj(create, " PRIMARY KEY", -1);
 
-		if(i < objc-2)
+		if(i < objc-stride)
 			Tcl_AppendToObj(create, ",", -1);
 
 		if(i > 0)
@@ -389,11 +403,12 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 	int                optIndex = 4;
 	Tcl_Obj           *typeList = NULL;
 	Tcl_Obj           *nameTypeList = NULL;
+	Tcl_Obj           *nameList = NULL;
 	int                rowbyrow = 0;
 	int                returnCode = TCL_OK;
 	const char        *errorMessage = NULL;
-	enum mappedTypes  *columnTypes;
-	int                nColumns = -1;
+	enum mappedTypes  *columnTypes = NULL;
+	int                nColumns = 0;
 	int                column;
 	int                prepStatus;
 	PGconn            *conn = NULL;
@@ -424,6 +439,9 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 
 			if (strcmp(optName, "-types") == 0) {
 				typeList = objv[optIndex];
+				optIndex++;
+			} else if (strcmp(optName, "-names") == 0) {
+				nameList = objv[optIndex];
 				optIndex++;
 			} else if (strcmp(optName, "-as") == 0) {
 				nameTypeList = objv[optIndex];
@@ -466,32 +484,58 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			return TCL_ERROR;
 		}
 
-		if (typeList && nameTypeList) {
-			Tcl_AppendResult(interp, "Can't use both -types and -as", (char *)NULL);
+		if (!sqliteCode && !sqliteTable) {
+			Tcl_AppendResult(interp, "No sqlite destination provided", (char *)NULL);
+			return TCL_ERROR;
+		}
+
+		if ((nameList || typeList) && nameTypeList) {
+			Tcl_AppendResult(interp, "Can't use both -names/-types and -as", (char *)NULL);
 			return TCL_ERROR;
 		}
 
 		if(typeList) {
 			if (Pg_sqlite_mapTypes(interp, typeList, 0, 1, &columnTypes, &nColumns) != TCL_OK)
 				return TCL_ERROR;
+		} else if(nameList) {
+			if(Tcl_ListObjLength(interp, nameList, &nColumns) != TCL_OK)
+				return TCL_ERROR;
 		}
 
 		if(sqliteTable) {
-			if (!nameTypeList) {
+			if(nameTypeList) {
+				if (Pg_sqlite_mapTypes(interp, nameTypeList, 1, 2, &columnTypes, &nColumns) != TCL_OK)
+					return TCL_ERROR;
+			} else if(!nameList) {
 				Tcl_AppendResult(interp, "No template (-as) provided for -into", (char *)NULL);
+				if (columnTypes)
+					ckfree(columnTypes);
 				return TCL_ERROR;
 			}
 
-			if (Pg_sqlite_mapTypes(interp, nameTypeList, 1, 2, &columnTypes, &nColumns) != TCL_OK)
-				return TCL_ERROR;
-
-			sqliteCode = Pg_sqlite_createTable(interp, sqlite_db, sqliteTable, nameTypeList, primaryKey);
+			sqliteCode = Pg_sqlite_createTable(interp, sqlite_db, sqliteTable, nameList, nameTypeList, primaryKey);
 			if (!sqliteCode) {
 				if (columnTypes)
 					ckfree(columnTypes);
 				return TCL_ERROR;
 			}
 			dropTable = sqliteTable;
+		}
+
+		if(!nColumns) {
+			char *p = strchr(sqliteCode, '?');
+			while(p) {
+				p++;
+				nColumns++;
+				p = strchr(p, '?');
+			}
+		}
+
+		if(!nColumns) {
+			Tcl_AppendResult(interp, "Can't determine row length from provided arguments", (char *)NULL);
+			if (columnTypes)
+				ckfree(columnTypes);
+			return TCL_ERROR;
 		}
 
 		prepStatus = sqlite3_prepare_v2(sqlite_db, sqliteCode, -1, &statement, NULL);
@@ -558,7 +602,8 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 				}
 
 				for(column = 0; column < nColumns; column++) {
-					switch (Pg_sqlite_bindValue(statement, column, columns[column], columnTypes[column])) {
+					int type = columnTypes ? columnTypes[column] : PG_SQLITE_TEXT;
+					switch (Pg_sqlite_bindValue(statement, column, columns[column], type)) {
 						case TCL_ERROR: {
 							errorMessage = sqlite3_errmsg(sqlite_db);
 							returnCode = TCL_ERROR;
@@ -660,8 +705,9 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 
 				for (tupleIndex = 0; tupleIndex < nTuples; tupleIndex++) {
 					for(column = 0; column < nColumns; column++) {
+						int type = columnTypes ? columnTypes[column] : PG_SQLITE_TEXT;
 						char *value = PQgetvalue(result, tupleIndex, column);
-						switch (Pg_sqlite_bindValue(statement, column, value, columnTypes[column])) {
+						switch (Pg_sqlite_bindValue(statement, column, value, type)) {
 							case TCL_ERROR: {
 								goto import_bailout;
 							}
