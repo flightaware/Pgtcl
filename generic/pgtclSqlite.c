@@ -117,29 +117,31 @@ Pg_sqlite_mapTypes(Tcl_Interp *interp, Tcl_Obj *list, int start, int stride, enu
 }
 
 int
-Pg_sqlite_bindValue(sqlite3_stmt *statement, int column, char *value, enum mappedTypes type)
+Pg_sqlite_bindValue(sqlite3 *sqlite_db, sqlite3_stmt *statement, int column, char *value, enum mappedTypes type, const char **errorMessagePtr)
 {
 	switch(type) {
 		case PG_SQLITE_INT: {
-			if (sqlite3_bind_int(statement, column+1, atoi(value)) != SQLITE_OK)
-				return TCL_ERROR;
+			if (sqlite3_bind_int(statement, column+1, atoi(value)) == SQLITE_OK)
+				return TCL_OK;
 			break;
 		}
 		case PG_SQLITE_DOUBLE: {
-			if (sqlite3_bind_double(statement, column+1, atof(value)) != SQLITE_OK)
-				return TCL_ERROR;
+			if (sqlite3_bind_double(statement, column+1, atof(value)) == SQLITE_OK)
+				return TCL_OK;
 			break;
 		}
 		case PG_SQLITE_TEXT: {
-			if (sqlite3_bind_text(statement, column+1, value, -1, SQLITE_TRANSIENT) != SQLITE_OK)
-				return TCL_ERROR;
+			if (sqlite3_bind_text(statement, column+1, value, -1, SQLITE_TRANSIENT) == SQLITE_OK)
+				return TCL_OK;
 			break;
 		}
 		default: {
-			return TCL_BREAK;
+			*errorMessagePtr = "Internal error - invalid column type";
+			return TCL_ERROR;
 		}
 	}
-	return TCL_OK;
+	*errorMessagePtr = sqlite3_errmsg(sqlite_db);
+	return TCL_ERROR;
 }
 
 char *
@@ -344,6 +346,63 @@ Pg_sqlite_split_tabsep(char *row, char ***columnsPtr, int nColumns, char *sepStr
 		*columnsPtr = columns;
 	} else {
 		ckfree(columns);
+	}
+
+	return returnCode;
+}
+
+int
+Pg_sqlite_split_keyval(Tcl_Interp *interp, char *row, char ***columnsPtr, int nColumns, char *sepStr, char **names, Tcl_Obj *unknownObj)
+{
+	char *val;
+	char *key;
+	char *nextVal;
+	int col;
+	char **columns = ckalloc(nColumns * sizeof *columns);
+	int returnCode = TCL_OK;
+	int sepLen = strlen(sepStr);
+
+	Tcl_SetListObj(unknownObj, 0, NULL);
+
+	val = row;
+	while(val) {
+		nextVal = strstr(val, sepStr);
+		if(!nextVal) {
+			Tcl_AppendResult(interp, "Odd number of columns", (char *)NULL);
+			returnCode = TCL_ERROR;
+			break;
+		}
+		key = val;
+		*nextVal = 0;
+		nextVal += sepLen;
+
+		val = nextVal;
+		nextVal = strstr(val, sepStr);
+		if(nextVal) {
+			*nextVal = 0;
+			nextVal += sepLen;
+		}
+
+		for(col = 0; col < nColumns; col++) {
+			if(strcmp(key, names[col]) == 0) {
+				break;
+			}
+		}
+		if(col < nColumns)
+			columns[col] = val;
+		else {
+			Tcl_ListObjAppendElement(interp, unknownObj, Tcl_NewStringObj(key, -1));
+			Tcl_ListObjAppendElement(interp, unknownObj, Tcl_NewStringObj(val, -1));
+		}
+
+		val = nextVal;
+	}
+
+	if(returnCode == TCL_OK) {
+		*columnsPtr = columns;
+	} else {
+		ckfree(columns);
+		Tcl_SetListObj(unknownObj, 0, NULL);
 	}
 
 	return returnCode;
@@ -710,6 +769,10 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			Tcl_Channel tabsepChannel = NULL;
 			int channelMode;
 			char *row = NULL;
+			Tcl_Obj *unknownObj;
+
+			if(cmdIndex == CMD_READ_KEYVAL)
+				unknownObj = Tcl_NewObj();
 
 			if(tabsepFile) {
 				tabsepChannel = Tcl_GetChannel(interp, tabsepFile, &channelMode);
@@ -733,9 +796,26 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			}
 
 			while(row) {
-				if (Pg_sqlite_split_tabsep(row, &columns, nColumns, sepString, &errorMessage) == TCL_ERROR) {
-					returnCode = TCL_ERROR;
-					break;
+				if(cmdIndex == CMD_READ_KEYVAL) {
+					int len;
+					if (Pg_sqlite_split_keyval(interp, row, &columns, nColumns, sepString, columnNames, unknownObj) != TCL_OK) {
+						returnCode = TCL_ERROR;
+						break;
+					}
+
+					if(Tcl_ListObjLength(interp, unknownObj, &len) != TCL_OK) {
+						returnCode = TCL_ERROR;
+						break;
+					}
+					if(len && !unknownKey) {
+						returnCode = TCL_ERROR;
+						break;
+					}
+				} else {
+					if (Pg_sqlite_split_tabsep(row, &columns, nColumns, sepString, &errorMessage) != TCL_OK) {
+						returnCode = TCL_ERROR;
+						break;
+					}
 				}
 
 				for(column = 0; column < nColumns; column++) {
@@ -743,19 +823,18 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 						continue;
 
 					int type = columnTypes ? columnTypes[column] : PG_SQLITE_TEXT;
-					switch (Pg_sqlite_bindValue(statement, column, columns[column], type)) {
-						case TCL_ERROR: {
-							errorMessage = sqlite3_errmsg(sqlite_db);
+					if (Pg_sqlite_bindValue(sqlite_db, statement, column, columns[column], type, &errorMessage)) {
+						returnCode = TCL_ERROR;
+						break;
+					}
+				}
+
+				if(cmdIndex == CMD_READ_KEYVAL && unknownKey) {
+					char *value = Tcl_GetString(unknownObj);
+					if(value[0]) {
+						if (Pg_sqlite_bindValue(sqlite_db, statement, unknownColumn, value, PG_SQLITE_TEXT, &errorMessage) != TCL_OK) {
 							returnCode = TCL_ERROR;
-							goto read_tabsep_cleanup_and_exit;
-						}
-						case TCL_OK: {
 							break;
-						}
-						default: {
-							errorMessage = "INTERNAL ERROR invalid type code";
-							returnCode = TCL_ERROR;
-							goto read_tabsep_cleanup_and_exit;
 						}
 					}
 				}
@@ -850,23 +929,13 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 							continue;
 
 						int type = columnTypes ? columnTypes[column] : PG_SQLITE_TEXT;
-						switch (Pg_sqlite_bindValue(statement, column, value, type)) {
-							case TCL_ERROR: {
-								goto import_bailout;
-							}
-							case TCL_OK: {
-								break;
-							}
-							default: {
-								errorMessage = "INTERNAL ERROR invalid type code";
-								returnCode = TCL_ERROR;
-								goto import_loop_end;
-							}
+						if (Pg_sqlite_bindValue(sqlite_db, statement, column, value, type, &errorMessage) != TCL_OK) {
+							returnCode = TCL_ERROR;
+							goto import_loop_end;
 						}
 					}
 
 					if (sqlite3_step(statement) != SQLITE_DONE) {
-					  import_bailout:
 						errorMessage = sqlite3_errmsg(sqlite_db);
 						returnCode = TCL_ERROR;
 						goto import_loop_end;
