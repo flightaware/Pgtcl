@@ -238,11 +238,11 @@ sqlite_probe(Tcl_Interp *interp)
 {
 	if (sqlite3_ObjProc != NULL) return TCL_OK;
 
-	char cmd_name[256];
-	char create_cmd[256];
-	char delete_cmd[256];
-        struct Tcl_CmdInfo  cmd_info;
-	
+	char               cmd_name[256];
+	char               create_cmd[256];
+	char               delete_cmd[256];
+	struct Tcl_CmdInfo cmd_info;
+
 	snprintf(cmd_name, 256, "::dummy%d", getpid());
 	snprintf(create_cmd, 256, "sqlite3 %s :memory:", cmd_name);
 	snprintf(delete_cmd, 256, "%s close", cmd_name);
@@ -336,7 +336,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 	int                 cmdIndex;
 
 	static CONST84 char *subCommands[] = {
-		"filename", "import_postgres_result", "write_tabsep", "read_tabsep", 
+		"filename", "import_postgres_result", "write_tabsep", "read_tabsep",
 		(char *)NULL
 	};
 
@@ -388,7 +388,6 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 		}
 		minargs[CMD_IMPORT_POSTGRES_RESULT] = 4;
 		minargs[CMD_READ_TABSEP] = 3;
-		minargs[CMD_WRITE_TABSEP] = 3;
 		incoming[CMD_IMPORT_POSTGRES_RESULT] = 1;
 		incoming[CMD_READ_TABSEP] = 1;
 		argerr[CMD_READ_TABSEP] = "?-row tabsep_row? ?-file file_handle? ?-sql sqlite_sql? ?-into new_table? ?-as name-type-list? ?-types type-list? ?-pkey primary_key?";
@@ -570,6 +569,71 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			break;
 		}
 
+		case CMD_WRITE_TABSEP: {
+			Tcl_Channel channel = NULL;
+			const char *channelName = NULL;
+			int channelMode;
+			int sqliteStatus;
+			char *sepString = "\t";
+
+			if(objc == 6) {
+				sepString = Tcl_GetString(objv[5]);
+			} else if(objc != 5) {
+				Tcl_WrongNumArgs(interp, 3, objv, "handle sql ?separator?");
+				return TCL_ERROR;
+			}
+
+			channelName = Tcl_GetString(objv[3]);
+			channel = Tcl_GetChannel(interp, channelName, &channelMode);
+			if(!channel) {
+				return TCL_ERROR;
+			}
+			if (!channelMode && TCL_WRITABLE) {
+				Tcl_AppendResult (interp, "Channel ", channelName, " is not writable", (char *)NULL);
+				return TCL_ERROR;
+			}
+
+			prepStatus = sqlite3_prepare_v2(sqlite_db, Tcl_GetString(objv[4]), -1, &statement, NULL);
+			if(prepStatus != SQLITE_OK) {
+				Tcl_AppendResult(interp, sqlite3_errmsg(sqlite_db), (char *)NULL);
+				return TCL_ERROR;
+			}
+			nColumns = sqlite3_column_count(statement);
+			totalTuples = 0;
+
+			returnCode = TCL_ERROR;
+			while (SQLITE_ROW == (sqliteStatus = sqlite3_step(statement))) {
+				int i;
+				for(i = 0; i < nColumns; i++) {
+					char *value = (char *)sqlite3_column_text(statement, i+1);
+					if(value == NULL) value = "";
+					if (i > 0 && Tcl_WriteChars(channel, sepString, -1) != TCL_OK)
+						goto write_tabsep_cleanup_and_exit;
+					if (Tcl_WriteChars(channel, value, -1) != TCL_OK)
+						goto write_tabsep_cleanup_and_exit;
+				}
+				if(Tcl_WriteChars(channel, "\n", -1) != TCL_OK)
+					goto write_tabsep_cleanup_and_exit;
+				totalTuples++;
+			}
+			if(sqliteStatus != SQLITE_DONE) {
+				Tcl_AppendResult(interp, sqlite3_errmsg(sqlite_db), (char *)NULL);
+				goto write_tabsep_cleanup_and_exit;
+			}
+			returnCode = TCL_OK;
+		  write_tabsep_cleanup_and_exit:
+
+			if(statement)
+				sqlite3_finalize(statement);
+
+			if(returnCode == TCL_ERROR)
+				return TCL_ERROR;
+
+			Tcl_SetObjResult(interp, Tcl_NewIntObj(totalTuples));
+
+			return TCL_OK;
+		}
+
 		case CMD_READ_TABSEP: {
 			Tcl_Channel tabsepChannel = NULL;
 			int channelMode;
@@ -629,7 +693,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 				sqlite3_clear_bindings(statement);
 
 				totalTuples++;
-				
+
 				if(tabsepFile) {
 					if((returnCode = Pg_sqlite_gets(interp, tabsepChannel, &row)) == TCL_BREAK)
 						returnCode = TCL_OK;
