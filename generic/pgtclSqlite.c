@@ -239,7 +239,7 @@ Pg_sqlite_generate(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sqliteTable, Tc
 				Tcl_AppendToObj(create, ",", -1);
 		}
 
-		if(unknownKey && strcmp(Tcl_GetString(objv[i]), unknownKey)) {
+		if(unknownKey && strcmp(Tcl_GetString(objv[i]), unknownKey) == 0) {
 			Tcl_AppendResult(interp, "Unknown key duplicates existing key", (char *)NULL);
 			return NULL;
 		}
@@ -329,7 +329,7 @@ sqlite_probe(Tcl_Interp *interp)
 int
 Pg_sqlite_gets(Tcl_Interp *interp, Tcl_Channel chan, char **linePtr)
 {
-	Tcl_Obj *obj = NULL;
+	Tcl_Obj *obj = Tcl_NewObj();
 
 	if(Tcl_GetsObj(chan, obj) == -1) {
 		*linePtr = NULL;
