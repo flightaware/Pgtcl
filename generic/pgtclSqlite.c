@@ -117,6 +117,34 @@ Pg_sqlite_mapTypes(Tcl_Interp *interp, Tcl_Obj *list, int start, int stride, enu
 }
 
 int
+Pg_sqlite_getNames(Tcl_Interp *interp, Tcl_Obj *list, int stride, char ***arrayPtr, int *lengthPtr)
+{
+	Tcl_Obj **objv;
+	int       objc;
+	char    **array;
+	int       i;
+	int       col;
+
+	if(Tcl_ListObjGetElements(interp, list, &objc, &objv) != TCL_OK)
+		return TCL_ERROR;
+
+	if (stride > 1 && (objc % stride) != 0) {
+		Tcl_AppendResult(interp, "List not an even length", (char *)NULL);
+		return TCL_ERROR;
+	}
+
+	array = (char **)ckalloc((sizeof *array) * (objc / stride));
+
+	for(col = 0, i = 0; i < objc; col++, i += stride) {
+		array[col] = Tcl_GetString(objv[i]);
+	}
+
+	*arrayPtr = array;
+	*lengthPtr = col;
+	return TCL_OK;
+}
+
+int
 Pg_sqlite_bindValue(sqlite3 *sqlite_db, sqlite3_stmt *statement, int column, char *value, enum mappedTypes type, const char **errorMessagePtr)
 {
 	switch(type) {
@@ -211,8 +239,10 @@ Pg_sqlite_generate(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sqliteTable, Tc
 				Tcl_AppendToObj(create, ",", -1);
 		}
 
-		if(unknownKey && strcmp(Tcl_GetString(objv[i]), unknownKey))
-			unknownKey = NULL;
+		if(unknownKey && strcmp(Tcl_GetString(objv[i]), unknownKey)) {
+			Tcl_AppendResult(interp, "Unknown key duplicates existing key", (char *)NULL);
+			return NULL;
+		}
 
 		if(i > 0)
 			Tcl_AppendToObj(sql, ", ", -1);
@@ -492,6 +522,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 	int                returnCode = TCL_OK;
 	const char        *errorMessage = NULL;
 	enum mappedTypes  *columnTypes = NULL;
+	char             **columnNames = NULL;
 	int                nColumns = 0;
 	int                column;
 	int                prepStatus;
@@ -601,9 +632,30 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 		if(typeList) {
 			if (Pg_sqlite_mapTypes(interp, typeList, 0, 1, &columnTypes, &nColumns) != TCL_OK)
 				return TCL_ERROR;
-		} else if(nameList) {
-			if(Tcl_ListObjLength(interp, nameList, &nColumns) != TCL_OK)
-				return TCL_ERROR;
+		}
+
+		if(nameList) {
+			if(cmdIndex == CMD_READ_KEYVAL) {
+				if(Pg_sqlite_getNames(interp, nameList, 1, &columnNames, &nColumns) != TCL_OK) {
+					if (columnTypes)
+						ckfree(columnTypes);
+					return TCL_ERROR;
+				}
+			} else if(!nColumns)  {
+				if(Tcl_ListObjLength(interp, nameList, &nColumns) != TCL_OK) {
+					if (columnTypes)
+						ckfree(columnTypes);
+					return TCL_ERROR;
+				}
+			}
+		} else if(nameTypeList) {
+			if(cmdIndex == CMD_READ_KEYVAL) {
+				if(Pg_sqlite_getNames(interp, nameTypeList, 2, &columnNames, &nColumns) != TCL_OK) {
+					if (columnTypes)
+						ckfree(columnTypes);
+					return TCL_ERROR;
+				}
+			}
 		}
 
 		if(sqliteTable) {
@@ -612,6 +664,8 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 					return TCL_ERROR;
 			} else if(!nameList) {
 				Tcl_AppendResult(interp, "No template (-as) provided for -into", (char *)NULL);
+				if (columnNames)
+					ckfree(columnNames);
 				if (columnTypes)
 					ckfree(columnTypes);
 				return TCL_ERROR;
@@ -626,6 +680,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			if(createTable) dropTable = sqliteTable;
 		}
 
+		// Last try hack to guess columns
 		if(!nColumns) {
 			char *p = strchr(sqliteCode, '?');
 			while(p) {
@@ -633,10 +688,15 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 				nColumns++;
 				p = strchr(p, '?');
 			}
+			// Assume that if an unknown values key was specified that it will be the last key.
+			if(cmdIndex == CMD_READ_KEYVAL && unknownKey)
+				nColumns--;
 		}
 
 		if(!nColumns) {
 			Tcl_AppendResult(interp, "Can't determine row length from provided arguments", (char *)NULL);
+			if (columnNames)
+				ckfree(columnNames);
 			if (columnTypes)
 				ckfree(columnTypes);
 			return TCL_ERROR;
@@ -645,6 +705,8 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 		prepStatus = sqlite3_prepare_v2(sqlite_db, sqliteCode, -1, &statement, NULL);
 		if(prepStatus != SQLITE_OK) {
 			Tcl_AppendResult(interp, sqlite3_errmsg(sqlite_db), (char *)NULL);
+			if (columnNames)
+				ckfree(columnNames);
 			if(columnTypes)
 				ckfree(columnTypes);
 			if(dropTable)
@@ -832,7 +894,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 				if(cmdIndex == CMD_READ_KEYVAL && unknownKey) {
 					char *value = Tcl_GetString(unknownObj);
 					if(value[0]) {
-						if (Pg_sqlite_bindValue(sqlite_db, statement, unknownColumn, value, PG_SQLITE_TEXT, &errorMessage) != TCL_OK) {
+						if (Pg_sqlite_bindValue(sqlite_db, statement, nColumns, value, PG_SQLITE_TEXT, &errorMessage) != TCL_OK) {
 							returnCode = TCL_ERROR;
 							break;
 						}
