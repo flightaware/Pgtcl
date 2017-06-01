@@ -506,7 +506,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 		incoming[CMD_READ_KEYVAL] = 1;
 		argerr[CMD_READ_TABSEP] = "?-row tabsep_row? ?-file file_handle? ?-sql sqlite_sql? ?-create new_table? ?-update table? ?-as name-type-list? ?-types type-list? ?-pkey primary_key? ?-sep sepstring? ?-null nullstring?";
 		argerr[CMD_IMPORT_POSTGRES_RESULT] = "handle ?-sql sqlite_sql? ?-create new_table? ?-update table? ?-as name-type-list? ?-types type-list? ?-rowbyrow? ?-pkey primary_key? ?-null nullstring?";
-		argerr[CMD_READ_KEYVAL] = "?-row tabsep_row? ?-file file_handle? ?-sql sqlite_sql? ?-create new_table? ?-update table? ?-as name-type-list? ?-pkey primary_key? ?-sep sepstring? ?-unknown colname?";
+		argerr[CMD_READ_KEYVAL] = "?-row tabsep_row? ?-file file_handle? ?-create new_table? ?-update table? ?-as name-type-list? ?-pkey primary_key? ?-sep sepstring? ?-unknown colname?";
 	}
 
 	// common variables
@@ -550,6 +550,11 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			return TCL_ERROR;
 		}
 
+		// CMD_READ_KEYVAL assumes -update
+		if(cmdIndex == CMD_READ_KEYVAL) {
+			updateTable = 1;
+		}
+
 		while(optIndex < objc) {
 			char *optName = Tcl_GetString(objv[optIndex]);
 			optIndex++;
@@ -578,7 +583,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			} else if (cmdIndex == CMD_READ_KEYVAL && strcmp(optName, "-unknown") == 0) {
 				unknownKey = Tcl_GetString(objv[optIndex]);
 				optIndex++;
-			} else if (strcmp(optName, "-sql") == 0) {
+			} else if (cmdIndex != CMD_READ_KEYVAL && strcmp(optName, "-sql") == 0) {
 				sqliteCode = Tcl_GetString(objv[optIndex]);
 				optIndex++;
 			} else if (strcmp(optName, "-create") == 0) {
@@ -688,9 +693,6 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 				nColumns++;
 				p = strchr(p, '?');
 			}
-			// Assume that if an unknown values key was specified that it will be the last key.
-			if(cmdIndex == CMD_READ_KEYVAL && unknownKey)
-				nColumns--;
 		}
 
 		if(!nColumns) {
