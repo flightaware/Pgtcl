@@ -173,7 +173,7 @@ Pg_sqlite_bindValue(sqlite3 *sqlite_db, sqlite3_stmt *statement, int column, cha
 }
 
 char *
-Pg_sqlite_generate(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sqliteTable, Tcl_Obj *nameList, Tcl_Obj *nameTypeList, Tcl_Obj *primaryKey, char *unknownKey, int newTable, int updating)
+Pg_sqlite_generate(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sqliteTable, Tcl_Obj *nameList, Tcl_Obj *nameTypeList, Tcl_Obj *primaryKey, char *unknownKey, int newTable, int replacing)
 {
 	Tcl_Obj **objv;
 	int       objc;
@@ -216,10 +216,10 @@ Pg_sqlite_generate(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sqliteTable, Tc
 	if (newTable)
 		Tcl_AppendStringsToObj(create, "CREATE TABLE ", sqliteTable, " (", (char *)NULL);
 
-	if (!updating) {
-		Tcl_AppendStringsToObj(sql, "INSERT INTO ", sqliteTable, " (", (char *)NULL);
+	if (replacing) {
+		Tcl_AppendStringsToObj(sql, "INSERT OR REPLACE INTO ", sqliteTable, " (", (char *)NULL);
 	} else {
-		Tcl_AppendStringsToObj(sql, "INSERT OR UPDATE INTO ", sqliteTable, " (", (char *)NULL);
+		Tcl_AppendStringsToObj(sql, "INSERT INTO ", sqliteTable, " (", (char *)NULL);
 	}
 
 	for(i = 0; i < objc; i+= stride) {
@@ -506,9 +506,9 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 		incoming[CMD_IMPORT_POSTGRES_RESULT] = 1;
 		incoming[CMD_READ_TABSEP] = 1;
 		incoming[CMD_READ_KEYVAL] = 1;
-		argerr[CMD_READ_TABSEP] = "?-row tabsep_row? ?-file file_handle? ?-sql sqlite_sql? ?-create new_table? ?-update table? ?-as name-type-list? ?-types type-list? ?-pkey primary_key? ?-sep sepstring? ?-null nullstring?";
-		argerr[CMD_IMPORT_POSTGRES_RESULT] = "handle ?-sql sqlite_sql? ?-create new_table? ?-update table? ?-as name-type-list? ?-types type-list? ?-rowbyrow? ?-pkey primary_key? ?-null nullstring?";
-		argerr[CMD_READ_KEYVAL] = "?-row tabsep_row? ?-file file_handle? ?-create new_table? ?-update table? ?-as name-type-list? ?-pkey primary_key? ?-sep sepstring? ?-unknown colname?";
+		argerr[CMD_READ_TABSEP] = "?-row tabsep_row? ?-file file_handle? ?-sql sqlite_sql? ?-create new_table? ?-replace table? ?-as name-type-list? ?-types type-list? ?-pkey primary_key? ?-sep sepstring? ?-null nullstring?";
+		argerr[CMD_IMPORT_POSTGRES_RESULT] = "handle ?-sql sqlite_sql? ?-create new_table? ?-replace table? ?-as name-type-list? ?-types type-list? ?-rowbyrow? ?-pkey primary_key? ?-null nullstring?";
+		argerr[CMD_READ_KEYVAL] = "?-row tabsep_row? ?-file file_handle? ?-create new_table? ?-replace table? ?-as name-type-list? ?-pkey primary_key? ?-sep sepstring? ?-unknown colname?";
 	}
 
 	// common variables
@@ -540,7 +540,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 	char              *nullString = NULL;
 	char              *unknownKey = NULL;
 	int		   createTable = 0;
-	int		   updateTable = 0;
+	int		   replaceTable = 0;
 
 	// common code
 	if(incoming[cmdIndex]) {
@@ -550,11 +550,6 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 		  common_wrong_num_args:
 			Tcl_WrongNumArgs(interp, 3, objv, argerr[cmdIndex]);
 			return TCL_ERROR;
-		}
-
-		// CMD_READ_KEYVAL assumes -update
-		if(cmdIndex == CMD_READ_KEYVAL) {
-			updateTable = 1;
 		}
 
 		while(optIndex < objc) {
@@ -603,8 +598,8 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 				optIndex++;
 			} else if (cmdIndex == CMD_IMPORT_POSTGRES_RESULT && strcmp(optName, "-rowbyrow") == 0) {
 				rowbyrow = 1;
-			} else if (strcmp(optName, "-update") == 0) {
-				updateTable = 1;
+			} else if (strcmp(optName, "-replace") == 0) {
+				replaceTable = 1;
 			} else {
 				goto common_wrong_num_args;
 			}
@@ -678,7 +673,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 				return TCL_ERROR;
 			}
 
-			sqliteCode = Pg_sqlite_generate(interp, sqlite_db, sqliteTable, nameList, nameTypeList, primaryKey, unknownKey, createTable, updateTable);
+			sqliteCode = Pg_sqlite_generate(interp, sqlite_db, sqliteTable, nameList, nameTypeList, primaryKey, unknownKey, createTable, replaceTable);
 			if (!sqliteCode) {
 				if (columnTypes)
 					ckfree(columnTypes);
