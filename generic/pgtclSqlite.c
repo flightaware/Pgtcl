@@ -15,7 +15,8 @@
 #     define CONST84
 #endif
 
-// From tclsqlite.c:
+// From tclsqlite.c, part 1 of the hack, sqlite3 conveniently guarantees that the first element in
+// the userdata for an sqlite proc is the sqlite3 database.
 /*
 ** There is one instance of this structure for each SQLite database
 ** that has been opened by the SQLite TCL interface.
@@ -52,7 +53,6 @@ int Pg_sqlite_execObj(Tcl_Interp *interp, sqlite3 *sqlite_db, Tcl_Obj *obj)
 	return result;
 }
 
-static Tcl_ObjCmdProc *sqlite3_ObjProc = NULL;
 
 enum mappedTypes {
 	PG_SQLITE_INT,
@@ -285,6 +285,9 @@ Pg_sqlite_dropTable(Tcl_Interp *interp, sqlite3 *sqlite_db, char *dropTable)
 	return Pg_sqlite_execObj(interp, sqlite_db, drop);
 }
 
+// Part 2 of the hack, locate the ObjProc for a known sqlite3 command so I can validate that the
+// userdata I've pulled out of the command provided really is a sqlite3 userdata.
+static Tcl_ObjCmdProc *sqlite3_ObjProc = NULL;
 int
 sqlite_probe(Tcl_Interp *interp)
 {
@@ -472,7 +475,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
                 return TCL_ERROR;
         }
 
-	if (sqlite_probe(interp) != TCL_OK) {
+	if (sqlite3_ObjProc == NULL && sqlite_probe(interp) != TCL_OK) {
 		return TCL_ERROR;
 	}
 
