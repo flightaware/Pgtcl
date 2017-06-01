@@ -393,6 +393,8 @@ Pg_sqlite_split_keyval(Tcl_Interp *interp, char *row, char ***columnsPtr, int nC
 	int sepLen = strlen(sepStr);
 
 	Tcl_SetListObj(unknownObj, 0, NULL);
+	for(col = 0; col < nColumns; col++)
+		columns[col] = NULL;
 
 	val = row;
 	while(val) {
@@ -883,11 +885,14 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 				}
 
 				for(column = 0; column < nColumns; column++) {
-					if(nullString && strcmp(columns[column], nullString) == 0)
+					char *value = columns[column];
+					if(!value)
+						continue;
+					if(nullString && strcmp(value, nullString) == 0)
 						continue;
 
 					int type = columnTypes ? columnTypes[column] : PG_SQLITE_TEXT;
-					if (Pg_sqlite_bindValue(sqlite_db, statement, column, columns[column], type, &errorMessage)) {
+					if (Pg_sqlite_bindValue(sqlite_db, statement, column, value, type, &errorMessage)) {
 						returnCode = TCL_ERROR;
 						break;
 					}
