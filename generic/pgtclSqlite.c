@@ -516,9 +516,9 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 		incoming[CMD_IMPORT_POSTGRES_RESULT] = 1;
 		incoming[CMD_READ_TABSEP] = 1;
 		incoming[CMD_READ_KEYVAL] = 1;
-		argerr[CMD_READ_TABSEP] = "?-row tabsep_row? ?-file file_handle? ?-sql sqlite_sql? ?-create new_table? ?-replace table? ?-as name-type-list? ?-types type-list? ?-pkey primary_key? ?-sep sepstring? ?-null nullstring?";
-		argerr[CMD_IMPORT_POSTGRES_RESULT] = "handle ?-sql sqlite_sql? ?-create new_table? ?-replace table? ?-as name-type-list? ?-types type-list? ?-rowbyrow? ?-pkey primary_key? ?-null nullstring?";
-		argerr[CMD_READ_KEYVAL] = "?-row tabsep_row? ?-file file_handle? ?-create new_table? ?-replace table? ?-as name-type-list? ?-pkey primary_key? ?-sep sepstring? ?-unknown colname?";
+		argerr[CMD_READ_TABSEP] = "?-row tabsep_row? ?-file file_handle? ?-sql sqlite_sql? ?-create new_table? ?-into table? ?-as name-type-list? ?-types type-list? ?-names name-list? ?-pkey primary_key? ?-sep sepstring? ?-null nullstring? ?-replace?";
+		argerr[CMD_IMPORT_POSTGRES_RESULT] = "handle ?-sql sqlite_sql? ?-create new_table? ?-into table? ?-as name-type-list? ?-types type-list? ?-names name-list? ?-rowbyrow? ?-pkey primary_key? ?-null nullstring? ?-replace?";
+		argerr[CMD_READ_KEYVAL] = "?-row tabsep_row? ?-file file_handle? ?-create new_table? ?-into table? ?-as name-type-list? ?-names name-list? ?-pkey primary_key? ?-sep sepstring? ?-unknown colname? ?-replace?";
 	}
 
 	// common variables
