@@ -234,6 +234,11 @@ $Header$
     <entry><function>pg::lo_export</function></entry>
     <entry>export a large object to a file</entry>
   </row>
+  <row>
+    <entry><function>pg_sqlite</function></entry>
+    <entry><function>pg::sqlite</function></entry>
+    <entry>bridge between pgtcl and the Tcl sqlite package (when compiled with sqlite bridge)</entry>
+  </row>
 </tbody>
 </tgroup>
 </table>
@@ -253,6 +258,13 @@ $Header$
    in a <command>BEGIN</command>/<command>COMMIT</command> transaction
    block.
   </para>
+
+  <para>
+   The <function>pg_sqlite</function> command is only included if
+   <ProductName>Sqlite 3</ProductName> is installed. It can be disabled
+   at compile time with <literal>"./configure --without-sqlite3"</literal>.
+  </para>
+
 
  </sect1>
 
@@ -316,6 +328,12 @@ load libpgtcl[info sharedlibextension]
     to statically bind <filename>libpgtcl</filename> into the executable and thereby
     avoid the <literal>load</literal> command and the potential problems of dynamic
     linking.  See the source code for <application>pgtclsh</application> for an example.
+   </para>
+
+   <para>
+    If you want to use the <function>pg_sqlite</function> bridge, you must
+    still explicitly <literal>"package require sqlite3"</literal> before executing
+    any <literal>sqlite3</sqlite3> commands.
    </para>
 
 </sect1>
@@ -3643,6 +3661,99 @@ pg_lo_export <parameter>conn</parameter> <parameter>loid</parameter> <parameter>
   </para>
  </refsect1>
 </refentry>
+
+<refentry ID="PGTCL-SQLITE">
+ <refmeta>
+  <refentrytitle>pg_sqlite</refentrytitle>
+ </refmeta>
+
+ <refnamediv>
+  <refname>pg_quote</refname>
+  <refpurpose>implements a bridge between PostgreSQL and Sqlite3 using the Pgtcl and sqlite3 packages.
+ </refpurpose>
+  <indexterm ID="IX-PGTCL-SQLITE2-2"><primary>pg_sqlite</primary></indexterm>
+ </refnamediv>
+
+ <refsynopsisdiv>
+<synopsis>
+pg_sqlite <parameter>sqlite_db</parameter> <parameter>command</parameter> <optional>args</optional>
+</synopsis>
+ </refsynopsisdiv>
+
+ <refsect1>
+  <title>Description</title>
+
+  <para>
+   <function>pg_sqlite</function> can import the results of a Postgres SQL query
+   (previously made via <function>pg_exec</function>)
+   directly into an sqlite3 table, export the results of an Sqlite SQL query into
+   a Postgres table (via <literal>write_tabsep</literal>), or import TSV files directly into sqlite3.
+  </para>
+  <para>
+   The commands currently implemented are import_postgres_result, read_tabsep, write_tabsep, and read_tabsep_keylist.
+  </para>
+
+  <para>
+TODO: document the full commands.
+  </para>
+ </refsect1>
+
+ <refsect1>
+  <title>Arguments</title>
+
+  <variablelist>
+
+   <varlistentry>
+    <term><parameter>sqlite_db</parameter></term>
+    <listitem>
+     <para>
+      An Sqlite3 database handle previously created via the <literal>sqlite3</literal> command.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><parameter>command</parameter></term>
+    <listitem>
+     <para>
+      The command, one of
+	<literal>import_postgres_result</literal>,
+	<literal>read_tabsep</literal>,
+	<literal>write_tabsep</literal>, or
+	<literal>read_tabsep_keylist</literal>,
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><parameter>args</parameter></term>
+    <listitem>
+     <para>
+      Command-specific arguments.
+     </para>
+    </listitem>
+   </varlistentry>
+
+  </variablelist>
+ </refsect1>
+
+ <refsect1>
+  <title>Return Value</title>
+
+  <para>
+   Number of rows imported or exported.
+  </para>
+
+ </refsect1>
+ <refsect1>
+  <title>See Also</title>
+
+  <para>
+   <ProductName>Sqlite 3</ProductName>
+  </para>
+ </refsect1>
+</refentry>
+
 
 </sect1>
 
