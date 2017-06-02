@@ -287,44 +287,50 @@ Pg_sqlite_dropTable(Tcl_Interp *interp, sqlite3 *sqlite_db, char *dropTable)
 
 // Part 2 of the hack, locate the ObjProc for a known sqlite3 command so I can validate that the
 // userdata I've pulled out of the command provided really is a sqlite3 userdata.
-static Tcl_ObjCmdProc *sqlite3_ObjProc = NULL;
 int
-sqlite_probe(Tcl_Interp *interp)
+sqlite_probe(Tcl_Interp *interp, Tcl_ObjCmdProc **procPtr)
 {
-	if (sqlite3_ObjProc != NULL) return TCL_OK;
+	static Tcl_ObjCmdProc *sqlite3_ObjProc = NULL;
 
-	char               cmd_name[256];
-	char               create_cmd[256];
-	char               delete_cmd[256];
-	struct Tcl_CmdInfo cmd_info;
+	if (sqlite3_ObjProc == NULL) {
+		char               cmd_name[256];
+		char               create_cmd[256];
+		char               delete_cmd[256];
+		struct Tcl_CmdInfo cmd_info;
 
-	snprintf(cmd_name, 256, "::dummy%d", getpid());
-	snprintf(create_cmd, 256, "sqlite3 %s :memory:", cmd_name);
-	snprintf(delete_cmd, 256, "%s close", cmd_name);
+		if (Tcl_Eval(interp, "package require sqlite3") != TCL_OK) {
+			return TCL_ERROR;
+		}
 
-	if (Tcl_Eval(interp, create_cmd) != TCL_OK) {
-		return TCL_ERROR;
-	}
+		snprintf(cmd_name, 256, "::dummy%d", getpid());
+		snprintf(create_cmd, 256, "sqlite3 %s :memory:", cmd_name);
+		snprintf(delete_cmd, 256, "%s close", cmd_name);
 
-        if (!Tcl_GetCommandInfo(interp, cmd_name, &cmd_info)) {
-                Tcl_AppendResult(interp, "pg_sqlite3 probe failed (", cmd_name, " not found)", (char *)NULL);
+		if (Tcl_Eval(interp, create_cmd) != TCL_OK) {
+			return TCL_ERROR;
+		}
+
+		if (!Tcl_GetCommandInfo(interp, cmd_name, &cmd_info)) {
+			Tcl_AppendResult(interp, "pg_sqlite3 probe failed (", cmd_name, " not found)", (char *)NULL);
+			Tcl_Eval(interp, delete_cmd);
+			return TCL_ERROR;
+		}
+
+		if (!cmd_info.isNativeObjectProc) {
+			Tcl_AppendResult(interp, "pg_sqlite2 probe failed (", cmd_name, " not a native object proc)", (char *)NULL);
+			Tcl_Eval(interp, delete_cmd);
+			return TCL_ERROR;
+		}
+
+		sqlite3_ObjProc = cmd_info.objProc;
 		Tcl_Eval(interp, delete_cmd);
-                return TCL_ERROR;
-        }
 
-	if (!cmd_info.isNativeObjectProc) {
-		Tcl_AppendResult(interp, "pg_sqlite2 probe failed (", cmd_name, " not a native object proc)", (char *)NULL);
-		Tcl_Eval(interp, delete_cmd);
-		return TCL_ERROR;
+		if (!sqlite3_ObjProc) {
+			Tcl_AppendResult(interp, "pg_sqlite2 probe failed (", cmd_name, " not a native object proc)", (char *)NULL);
+			return TCL_ERROR;
+		}
 	}
-
-	sqlite3_ObjProc = cmd_info.objProc;
-	Tcl_Eval(interp, delete_cmd);
-
-	if (!sqlite3_ObjProc) {
-                Tcl_AppendResult(interp, "pg_sqlite2 probe failed (", cmd_name, " not a native object proc)", (char *)NULL);
-		return TCL_ERROR;
-	}
+	*procPtr = sqlite3_ObjProc;
 
 	return TCL_OK;
 }
@@ -451,6 +457,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
         struct SqliteDb    *sqlite_clientData;
         sqlite3            *sqlite_db;
 	int                 cmdIndex;
+	Tcl_ObjCmdProc     *sqlite3_ObjProc = NULL;
 
 	static CONST84 char *subCommands[] = {
 		"filename", "import_postgres_result", "write_tabsep", "read_tabsep", "read_tabsep_keylist",
@@ -475,7 +482,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
                 return TCL_ERROR;
         }
 
-	if (sqlite3_ObjProc == NULL && sqlite_probe(interp) != TCL_OK) {
+	if (sqlite_probe(interp, &sqlite3_ObjProc) != TCL_OK) {
 		return TCL_ERROR;
 	}
 
