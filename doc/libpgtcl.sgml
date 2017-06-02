@@ -333,7 +333,7 @@ load libpgtcl[info sharedlibextension]
    <para>
     If you want to use the <function>pg_sqlite</function> bridge, you must
     still explicitly <literal>"package require sqlite3"</literal> before executing
-    any <literal>sqlite3</sqlite3> commands.
+    any <literal>sqlite3</literal> commands.
    </para>
 
 </sect1>
