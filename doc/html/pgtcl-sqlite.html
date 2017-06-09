@@ -60,10 +60,9 @@ pg_sqlite&nbsp;--&nbsp;implements a bridge between PostgreSQL and Sqlite3 using 
 </div>
 <div class="REFSECT1"><a name="AEN2197" id="AEN2197"></a>
 <h2>Commands</h2>
-<p>read_tabsep</p>
-<pre class="SYNOPSIS">    pg_sqlite <code class="PARAMETER">sqlite_db</code> read_tabsep
-        ?<span class="OPTIONAL">-row <code class="PARAMETER">single_tab_separated_row</code></span>?
-        ?<span class="OPTIONAL">-file <code class="PARAMETER">file_handle</code></span>?
+<p><tt class="COMMAND">import_postgres_result</tt></p>
+<pre class="SYNOPSIS">    pg_sqlite <code class="PARAMETER">sqlite_db</code> import_postgres_result <code class="PARAMETER">handle</code>
+        ?<span class="OPTIONAL">-rowbyrow</span>?
         ?<span class="OPTIONAL">-sql <code class="PARAMETER">target_sql</code></span>?
         ?<span class="OPTIONAL">-create <code class="PARAMETER">new_table</code></span>?
         ?<span class="OPTIONAL">-into <code class="PARAMETER">table</code></span>?
@@ -75,28 +74,28 @@ pg_sqlite&nbsp;--&nbsp;implements a bridge between PostgreSQL and Sqlite3 using 
         ?<span class="OPTIONAL">-sep <code class="PARAMETER">separator</code></span>?
         ?<span class="OPTIONAL">-null <code class="PARAMETER">null_string</code></span>?
    </pre>
-<p>Read a previously opened file into an sqlite3 table.</p>
+<p>Import the result of a PostgreSQL request into an sqlite3 table.</p>
 <div class="VARIABLELIST">
 <dl>
-<dt>-row <code class="PARAMETER">single_tab_separated_row</code></dt>
+<dt><code class="PARAMETER">handle</code></dt>
 <dd>
-<p>An already read tab-separated line.</p>
+<p>A database or result handle. Normally, you would call <code class="FUNCTION">pg_exec</code> and pass the result handle to pg_sqlite here. If you are using row_by_row mode, though, you use pg_sendquery and pass the PostgreSQL database handle here.</p>
 </dd>
-<dt>-file <code class="PARAMETER">file_handle</code></dt>
+<dt>-rowbyrow</dt>
 <dd>
-<p>An open file consistion of tab-separated rows.</p>
+<p>Perform the request using row-by-row mode. This injects the data to sqlite directly without making an internal copy, but the result may be incomplete or inconsistent if an error occurs during the request.</p>
 </dd>
 <dt>-sep <code class="PARAMETER">separator</code></dt>
 <dd>
-<p>String to use to indicate a null value. Default is to treat all strings literally.</p>
-</dd>
-<dt>-null <code class="PARAMETER">separator</code></dt>
-<dd>
 <p>String to use to separate columns. Default is "\t" (tab).</p>
+</dd>
+<dt>-null <code class="PARAMETER">null_string</code></dt>
+<dd>
+<p>String to use to indicate a null value. Default is to treat all strings literally.</p>
 </dd>
 <dt>-sql <code class="PARAMETER">target_sql</code></dt>
 <dd>
-<p>An INSERT statement , sitable to be compiled into a prepared statement to be applied to each row. For example "INSERT INTO newtable (id, name, value) VALUES (?,?,?)"</p>
+<p>An INSERT statement, suitable to be compiled into a prepared statement to be applied to each row. For example "INSERT INTO newtable (id, name, value) VALUES (?,?,?)"</p>
 </dd>
 <dt>-create <code class="PARAMETER">new_table</code></dt>
 <dd>
@@ -128,12 +127,138 @@ pg_sqlite&nbsp;--&nbsp;implements a bridge between PostgreSQL and Sqlite3 using 
 </dd>
 </dl>
 </div>
+<p><tt class="COMMAND">read_tabsep</tt></p>
+<pre class="SYNOPSIS">    pg_sqlite <code class="PARAMETER">sqlite_db</code> read_tabsep
+        ?<span class="OPTIONAL">-row <code class="PARAMETER">single_tab_separated_row</code></span>?
+        ?<span class="OPTIONAL">-file <code class="PARAMETER">file_handle</code></span>?
+        ?<span class="OPTIONAL">-sql <code class="PARAMETER">target_sql</code></span>?
+        ?<span class="OPTIONAL">-create <code class="PARAMETER">new_table</code></span>?
+        ?<span class="OPTIONAL">-into <code class="PARAMETER">table</code></span>?
+        ?<span class="OPTIONAL">-replace</span>?
+        ?<span class="OPTIONAL">-as <code class="PARAMETER">name_type_list</code></span>?
+        ?<span class="OPTIONAL">-types <code class="PARAMETER">type_list</code></span>?
+        ?<span class="OPTIONAL">-names <code class="PARAMETER">name_list</code></span>?
+        ?<span class="OPTIONAL">-pkey <code class="PARAMETER">primary_key</code></span>?
+        ?<span class="OPTIONAL">-sep <code class="PARAMETER">separator</code></span>?
+        ?<span class="OPTIONAL">-null <code class="PARAMETER">null_string</code></span>?
+   </pre>
+<p>Read a previously opened file into an sqlite3 table.</p>
+<div class="VARIABLELIST">
+<dl>
+<dt>-row <code class="PARAMETER">single_tab_separated_row</code></dt>
+<dd>
+<p>An already read tab-separated line.</p>
+</dd>
+<dt>-file <code class="PARAMETER">file_handle</code></dt>
+<dd>
+<p>An open file consistion of tab-separated rows.</p>
+</dd>
+<dt>-sep <code class="PARAMETER">separator</code></dt>
+<dd>
+<p>String to use to separate columns. Default is "\t" (tab).</p>
+</dd>
+<dt>-null <code class="PARAMETER">null_string</code></dt>
+<dd>
+<p>String to use to indicate a null value. Default is to treat all strings literally.</p>
+</dd>
+<dt>-sql <code class="PARAMETER">target_sql</code></dt>
+<dd>
+<p>An INSERT statement, suitable to be compiled into a prepared statement to be applied to each row. For example "INSERT INTO newtable (id, name, value) VALUES (?,?,?)"</p>
+</dd>
+<dt>-create <code class="PARAMETER">new_table</code></dt>
+<dd>
+<p>A table to be created in sqlite. The names and types of columns, and the primary key, must be provided.</p>
+</dd>
+<dt>-into <code class="PARAMETER">table</code></dt>
+<dd>
+<p>An existing sqlite table to insert the data. The names of the columns must be provided, if the type can not be inferred it will be assumed to be "text".</p>
+</dd>
+<dt>-replace</dt>
+<dd>
+<p>When performing the insert on an existing or newly create table, use "INSERT OR REPLACE" semantics. Not compatible with "-sql".</p>
+</dd>
+<dt>-as <code class="PARAMETER">name-type-list</code></dt>
+<dd>
+<p>A list of alternating column names and types.</p>
+</dd>
+<dt>-types <code class="PARAMETER">type-list</code></dt>
+<dd>
+<p>A list of column types.</p>
+</dd>
+<dt>-names <code class="PARAMETER">name-list</code></dt>
+<dd>
+<p>A list of column names.</p>
+</dd>
+<dt>-pkey <code class="PARAMETER">primary_key</code></dt>
+<dd>
+<p>With -create, indicate which column is to be used as the primary key. To-do, make this a list for multi-column keys.</p>
+</dd>
+</dl>
 </div>
-<div class="REFSECT1"><a name="AEN2286" id="AEN2286"></a>
+<p><tt class="COMMAND">read_tabsep_keylist</tt></p>
+<pre class="SYNOPSIS">    pg_sqlite <code class="PARAMETER">sqlite_db</code> read_tabsep_keylist
+        ?<span class="OPTIONAL">-row <code class="PARAMETER">single_tab_separated_row</code></span>?
+        ?<span class="OPTIONAL">-file <code class="PARAMETER">file_handle</code></span>?
+        ?<span class="OPTIONAL">-create <code class="PARAMETER">new_table</code></span>?
+        ?<span class="OPTIONAL">-into <code class="PARAMETER">table</code></span>?
+        ?<span class="OPTIONAL">-replace</span>?
+        ?<span class="OPTIONAL">-as <code class="PARAMETER">name_type_list</code></span>?
+        ?<span class="OPTIONAL">-names <code class="PARAMETER">name_list</code></span>?
+        ?<span class="OPTIONAL">-pkey <code class="PARAMETER">primary_key</code></span>?
+        ?<span class="OPTIONAL">-sep <code class="PARAMETER">separator</code></span>?
+        ?<span class="OPTIONAL">-null <code class="PARAMETER">null_string</code></span>?
+   </pre>
+<p>Read a previously opened file containing alternating key-value columns into an sqlite3 table.</p>
+<div class="VARIABLELIST">
+<dl>
+<dt>-row <code class="PARAMETER">single_tab_separated_row</code></dt>
+<dd>
+<p>An already read tab-separated key-value list line.</p>
+</dd>
+<dt>-file <code class="PARAMETER">file_handle</code></dt>
+<dd>
+<p>An open file consistion of tab-separated key-value list rows.</p>
+</dd>
+<dt>-sep <code class="PARAMETER">separator</code></dt>
+<dd>
+<p>String to use to separate columns. Default is "\t" (tab).</p>
+</dd>
+<dt>-null <code class="PARAMETER">null_string</code></dt>
+<dd>
+<p>String to use to indicate a null value. Default is to treat all strings literally.</p>
+</dd>
+<dt>-create <code class="PARAMETER">new_table</code></dt>
+<dd>
+<p>A table to be created in sqlite. The names and types of columns, and the primary key, must be provided.</p>
+</dd>
+<dt>-into <code class="PARAMETER">table</code></dt>
+<dd>
+<p>An existing sqlite table to insert the data. The names of the columns must be provided, if the type can not be inferred it will be assumed to be "text".</p>
+</dd>
+<dt>-replace</dt>
+<dd>
+<p>When performing the insert on an existing or newly create table, use "INSERT OR REPLACE" semantics. Not compatible with "-sql".</p>
+</dd>
+<dt>-as <code class="PARAMETER">name-type-list</code></dt>
+<dd>
+<p>A list of alternating column names and types.</p>
+</dd>
+<dt>-names <code class="PARAMETER">name-list</code></dt>
+<dd>
+<p>A list of column names.</p>
+</dd>
+<dt>-pkey <code class="PARAMETER">primary_key</code></dt>
+<dd>
+<p>With -create, indicate which column is to be used as the primary key. To-do, make this a list for multi-column keys.</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="REFSECT1"><a name="AEN2447" id="AEN2447"></a>
 <h2>Return Value</h2>
 <p>Number of rows imported or exported.</p>
 </div>
-<div class="REFSECT1"><a name="AEN2289" id="AEN2289"></a>
+<div class="REFSECT1"><a name="AEN2450" id="AEN2450"></a>
 <h2>See Also</h2>
 <p><span class="PRODUCTNAME">Sqlite 3</span></p>
 </div>

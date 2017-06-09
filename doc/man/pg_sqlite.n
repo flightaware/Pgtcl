@@ -153,6 +153,55 @@ A list of column names.
 .TP 
 -pkey \*(T<primary_key\*(T>
 With -create, indicate which column is to be used as the primary key. To-do, make this a list for multi-column keys.
+.PP
+\fBread_tabsep_keylist\fR
+.nf
+
+    pg_sqlite \*(T<sqlite_db\*(T> read_tabsep_keylist
+	[\-row \*(T<single_tab_separated_row\*(T>]
+	[\-file \*(T<file_handle\*(T>]
+	[\-create \*(T<new_table\*(T>]
+	[\-into \*(T<table\*(T>]
+	[\-replace]
+	[\-as \*(T<name_type_list\*(T>]
+	[\-names \*(T<name_list\*(T>]
+	[\-pkey \*(T<primary_key\*(T>]
+	[\-sep \*(T<separator\*(T>]
+	[\-null \*(T<null_string\*(T>]
+   
+.fi
+.PP
+Read a previously opened file containing alternating key-value columns into an sqlite3 table.
+.TP 
+-row \*(T<single_tab_separated_row\*(T>
+An already read tab-separated key-value list line.
+.TP 
+-file \*(T<file_handle\*(T>
+An open file consistion of tab-separated key-value list rows.
+.TP 
+-sep \*(T<separator\*(T>
+String to use to separate columns. Default is "\et" (tab).
+.TP 
+-null \*(T<null_string\*(T>
+String to use to indicate a null value. Default is to treat all strings literally.
+.TP 
+-create \*(T<new_table\*(T>
+A table to be created in sqlite. The names and types of columns, and the primary key, must be provided.
+.TP 
+-into \*(T<table\*(T>
+An existing sqlite table to insert the data. The names of the columns must be provided, if the type can not be inferred it will be assumed to be "text".
+.TP 
+-replace
+When performing the insert on an existing or newly create table, use "INSERT OR REPLACE" semantics. Not compatible with "-sql".
+.TP 
+-as \*(T<name\-type\-list\*(T>
+A list of alternating column names and types.
+.TP 
+-names \*(T<name\-list\*(T>
+A list of column names.
+.TP 
+-pkey \*(T<primary_key\*(T>
+With -create, indicate which column is to be used as the primary key. To-do, make this a list for multi-column keys.
 .SH "RETURN VALUE"
 Number of rows imported or exported.
 .SH "SEE ALSO"
