@@ -1,0 +1,42 @@
+.\" -*- coding: us-ascii -*-
+.if \n(.g .ds T< \\FC
+.if \n(.g .ds T> \\F[\n[.fam]]
+.de URL
+\\$2 \(la\\$1\(ra\\$3
+..
+.if \n(.g .mso www.tmac
+.TH pg_sqlite n "June 2017" "" "PostgreSQL Tcl Interface Documentation"
+.SH NAME
+pg_quote \- implements a bridge between PostgreSQL and Sqlite3 using the Pgtcl and sqlite3 packages. 
+.SH SYNOPSIS
+.nf
+
+pg_sqlite \*(T<sqlite_db\*(T> \*(T<command\*(T> [args]
+.fi
+.SH DESCRIPTION
+\*(T<\fBpg_sqlite\fR\*(T> can import the results of a Postgres SQL query
+(previously made via \*(T<\fBpg_exec\fR\*(T>)
+directly into an sqlite3 table, export the results of an Sqlite SQL query into
+a Postgres table (via \*(T<write_tabsep\*(T>), or import TSV files directly into sqlite3.
+.PP
+The commands currently implemented are import_postgres_result, read_tabsep, write_tabsep, and read_tabsep_keylist.
+.PP
+TODO: document the full commands.
+.SH ARGUMENTS
+.TP 
+\*(T<sqlite_db\*(T>
+An Sqlite3 database handle previously created via the \*(T<sqlite3\*(T> command.
+.TP 
+\*(T<command\*(T>
+The command, one of
+\*(T<import_postgres_result\*(T>,
+\*(T<read_tabsep\*(T>,
+\*(T<write_tabsep\*(T>, or
+\*(T<read_tabsep_keylist\*(T>,
+.TP 
+\*(T<args\*(T>
+Command-specific arguments.
+.SH "RETURN VALUE"
+Number of rows imported or exported.
+.SH "SEE ALSO"
+Sqlite 3
