@@ -35,8 +35,68 @@ The command, one of
 \*(T<args\*(T>
 Command-specific arguments.
 .SH COMMANDS
-read_tabsep
+\fBimport_postgres_result\fR
+.nf
 
+    pg_sqlite \*(T<sqlite_db\*(T> import_postgres_result \*(T<handle\*(T>
+	[\-rowbyrow]
+	[\-sql \*(T<target_sql\*(T>]
+	[\-create \*(T<new_table\*(T>]
+	[\-into \*(T<table\*(T>]
+	[\-replace]
+	[\-as \*(T<name_type_list\*(T>]
+	[\-types \*(T<type_list\*(T>]
+	[\-names \*(T<name_list\*(T>]
+	[\-pkey \*(T<primary_key\*(T>]
+	[\-sep \*(T<separator\*(T>]
+	[\-null \*(T<null_string\*(T>]
+   
+.fi
+.PP
+Import the result of a PostgreSQL request into an sqlite3 table.
+.TP 
+\*(T<handle\*(T>
+A database or result handle. Normally, you would call \*(T<\fBpg_exec\fR\*(T> and pass the result
+handle to pg_sqlite here. If you are using row_by_row mode, though, you use pg_sendquery and pass the
+PostgreSQL database handle here.
+.TP 
+-rowbyrow
+Perform the request using row-by-row mode. This injects the data to sqlite directly without making
+an internal copy, but the result may be incomplete or inconsistent if an error occurs during the
+request.
+.TP 
+-sep \*(T<separator\*(T>
+String to use to separate columns. Default is "\et" (tab).
+.TP 
+-null \*(T<null_string\*(T>
+String to use to indicate a null value. Default is to treat all strings literally.
+.TP 
+-sql \*(T<target_sql\*(T>
+An INSERT statement, suitable to be compiled into a prepared statement to be applied to each row.
+For example "INSERT INTO newtable (id, name, value) VALUES (?,?,?)"
+.TP 
+-create \*(T<new_table\*(T>
+A table to be created in sqlite. The names and types of columns, and the primary key, must be provided.
+.TP 
+-into \*(T<table\*(T>
+An existing sqlite table to insert the data. The names of the columns must be provided, if the type can not be inferred it will be assumed to be "text".
+.TP 
+-replace
+When performing the insert on an existing or newly create table, use "INSERT OR REPLACE" semantics. Not compatible with "-sql".
+.TP 
+-as \*(T<name\-type\-list\*(T>
+A list of alternating column names and types.
+.TP 
+-types \*(T<type\-list\*(T>
+A list of column types.
+.TP 
+-names \*(T<name\-list\*(T>
+A list of column names.
+.TP 
+-pkey \*(T<primary_key\*(T>
+With -create, indicate which column is to be used as the primary key. To-do, make this a list for multi-column keys.
+.PP
+\fBread_tabsep\fR
 .nf
 
     pg_sqlite \*(T<sqlite_db\*(T> read_tabsep
@@ -64,13 +124,13 @@ An already read tab-separated line.
 An open file consistion of tab-separated rows.
 .TP 
 -sep \*(T<separator\*(T>
-String to use to indicate a null value. Default is to treat all strings literally.
-.TP 
--null \*(T<separator\*(T>
 String to use to separate columns. Default is "\et" (tab).
 .TP 
+-null \*(T<null_string\*(T>
+String to use to indicate a null value. Default is to treat all strings literally.
+.TP 
 -sql \*(T<target_sql\*(T>
-An INSERT statement , sitable to be compiled into a prepared statement to be applied to each row.
+An INSERT statement, suitable to be compiled into a prepared statement to be applied to each row.
 For example "INSERT INTO newtable (id, name, value) VALUES (?,?,?)"
 .TP 
 -create \*(T<new_table\*(T>

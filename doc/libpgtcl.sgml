@@ -3737,7 +3737,144 @@ pg_sqlite <parameter>sqlite_db</parameter> <parameter>command</parameter> <optio
   <title>Commands</title>
 
   <para>
-   read_tabsep
+   <command>import_postgres_result</command>
+
+   <synopsis>
+    pg_sqlite <parameter>sqlite_db</parameter> import_postgres_result <parameter>handle</parameter>
+	<optional role="tcl">-rowbyrow</optional>
+	<optional role="tcl">-sql <parameter>target_sql</parameter></optional>
+	<optional role="tcl">-create <parameter>new_table</parameter></optional>
+	<optional role="tcl">-into <parameter>table</parameter></optional>
+	<optional role="tcl">-replace</optional>
+	<optional role="tcl">-as <parameter>name_type_list</parameter></optional>
+	<optional role="tcl">-types <parameter>type_list</parameter></optional>
+	<optional role="tcl">-names <parameter>name_list</parameter></optional>
+	<optional role="tcl">-pkey <parameter>primary_key</parameter></optional>
+	<optional role="tcl">-sep <parameter>separator</parameter></optional>
+	<optional role="tcl">-null <parameter>null_string</parameter></optional>
+   </synopsis>
+   </para>
+
+   <para>Import the result of a PostgreSQL request into an sqlite3 table.</para>
+
+  <variablelist>
+   <varlistentry>
+    <term><parameter>handle</parameter></term>
+    <listitem>
+     <para>
+	A database or result handle. Normally, you would call <function>pg_exec</function> and pass the result
+	handle to pg_sqlite here. If you are using row_by_row mode, though, you use pg_sendquery and pass the
+	PostgreSQL database handle here.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-rowbyrow</term>
+    <listitem>
+     <para>
+	Perform the request using row-by-row mode. This injects the data to sqlite directly without making
+	an internal copy, but the result may be incomplete or inconsistent if an error occurs during the
+	request.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-sep <parameter>separator</parameter></term>
+    <listitem>
+     <para>
+	String to use to separate columns. Default is "\t" (tab).
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-null <parameter>null_string</parameter></term>
+    <listitem>
+     <para>
+	String to use to indicate a null value. Default is to treat all strings literally.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-sql <parameter>target_sql</parameter></term>
+    <listitem>
+     <para>
+      An INSERT statement, suitable to be compiled into a prepared statement to be applied to each row.
+      For example "INSERT INTO newtable (id, name, value) VALUES (?,?,?)"
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-create <parameter>new_table</parameter></term>
+    <listitem>
+     <para>
+      A table to be created in sqlite. The names and types of columns, and the primary key, must be provided.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-into <parameter>table</parameter></term>
+    <listitem>
+     <para>
+      An existing sqlite table to insert the data. The names of the columns must be provided, if the type can not be inferred it will be assumed to be "text".
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-replace</term>
+    <listitem>
+     <para>
+      When performing the insert on an existing or newly create table, use "INSERT OR REPLACE" semantics. Not compatible with "-sql".
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-as <parameter>name-type-list</parameter></term>
+    <listitem>
+     <para>
+      A list of alternating column names and types.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-types <parameter>type-list</parameter></term>
+    <listitem>
+     <para>
+      A list of column types.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-names <parameter>name-list</parameter></term>
+    <listitem>
+     <para>
+      A list of column names.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-pkey <parameter>primary_key</parameter></term>
+    <listitem>
+     <para>
+      With -create, indicate which column is to be used as the primary key. To-do, make this a list for multi-column keys.
+     </para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+
+
+  <para>
+   <command>read_tabsep</command>
 
    <synopsis>
     pg_sqlite <parameter>sqlite_db</parameter> read_tabsep
@@ -3781,16 +3918,16 @@ pg_sqlite <parameter>sqlite_db</parameter> <parameter>command</parameter> <optio
     <term>-sep <parameter>separator</parameter></term>
     <listitem>
      <para>
-	String to use to indicate a null value. Default is to treat all strings literally.
+	String to use to separate columns. Default is "\t" (tab).
      </para>
     </listitem>
    </varlistentry>
 
    <varlistentry>
-    <term>-null <parameter>separator</parameter></term>
+    <term>-null <parameter>null_string</parameter></term>
     <listitem>
      <para>
-	String to use to separate columns. Default is "\t" (tab).
+	String to use to indicate a null value. Default is to treat all strings literally.
      </para>
     </listitem>
    </varlistentry>
@@ -3799,7 +3936,7 @@ pg_sqlite <parameter>sqlite_db</parameter> <parameter>command</parameter> <optio
     <term>-sql <parameter>target_sql</parameter></term>
     <listitem>
      <para>
-      An INSERT statement , sitable to be compiled into a prepared statement to be applied to each row.
+      An INSERT statement, suitable to be compiled into a prepared statement to be applied to each row.
       For example "INSERT INTO newtable (id, name, value) VALUES (?,?,?)"
      </para>
     </listitem>
