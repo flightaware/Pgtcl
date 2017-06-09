@@ -127,6 +127,30 @@ pg_sqlite&nbsp;--&nbsp;implements a bridge between PostgreSQL and Sqlite3 using 
 </dd>
 </dl>
 </div>
+<p><tt class="COMMAND">write_tabsep</tt></p>
+<pre class="SYNOPSIS">    pg_sqlite <code class="PARAMETER">sqlite_db</code> write_tabsep <code class="PARAMETER">handle</code> <code class="PARAMETER">sql</code>
+        ?<span class="OPTIONAL"><code class="PARAMETER">sql</code></span>?
+        ?<span class="OPTIONAL">-sep <code class="PARAMETER">separator</code></span>?
+        ?<span class="OPTIONAL">-null <code class="PARAMETER">null_string</code></span>?
+   </pre>
+<p>Write the results of the provided <code class="PARAMETER">sql</code> to a file handle</p>
+<p>This command may be used to export sqlite3 data to postgres. You issue a <tt class="COMMAND">COPY FROM STDIN ... FORMAT text</tt> command, then use <tt class="COMMAND">pg_sqlite write_tabsep ...</tt> to write the data directly to the Postgresql handle, followed by writing the terminator line to the same handle. See the PostgreSQL documentation on the "COPY" command for more details.</p>
+<div class="VARIABLELIST">
+<dl>
+<dt><code class="PARAMETER">handle</code></dt>
+<dd>
+<p>File handle.</p>
+</dd>
+<dt>-sep <code class="PARAMETER">separator</code></dt>
+<dd>
+<p>String to use to separate columns. Default is "\t" (tab).</p>
+</dd>
+<dt>-null <code class="PARAMETER">null_string</code></dt>
+<dd>
+<p>String to use to indicate a null value. Default is to treat all strings literally.</p>
+</dd>
+</dl>
+</div>
 <p><tt class="COMMAND">read_tabsep</tt></p>
 <pre class="SYNOPSIS">    pg_sqlite <code class="PARAMETER">sqlite_db</code> read_tabsep
         ?<span class="OPTIONAL">-row <code class="PARAMETER">single_tab_separated_row</code></span>?
@@ -254,11 +278,11 @@ pg_sqlite&nbsp;--&nbsp;implements a bridge between PostgreSQL and Sqlite3 using 
 </dl>
 </div>
 </div>
-<div class="REFSECT1"><a name="AEN2447" id="AEN2447"></a>
+<div class="REFSECT1"><a name="AEN2480" id="AEN2480"></a>
 <h2>Return Value</h2>
 <p>Number of rows imported or exported.</p>
 </div>
-<div class="REFSECT1"><a name="AEN2450" id="AEN2450"></a>
+<div class="REFSECT1"><a name="AEN2483" id="AEN2483"></a>
 <h2>See Also</h2>
 <p><span class="PRODUCTNAME">Sqlite 3</span></p>
 </div>

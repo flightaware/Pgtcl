@@ -96,6 +96,29 @@ A list of column names.
 -pkey \*(T<primary_key\*(T>
 With -create, indicate which column is to be used as the primary key. To-do, make this a list for multi-column keys.
 .PP
+\fBwrite_tabsep\fR
+.nf
+
+    pg_sqlite \*(T<sqlite_db\*(T> write_tabsep \*(T<handle\*(T> \*(T<sql\*(T>
+	[\*(T<sql\*(T>]
+	[\-sep \*(T<separator\*(T>]
+	[\-null \*(T<null_string\*(T>]
+   
+.fi
+.PP
+Write the results of the provided \*(T<sql\*(T> to a file handle
+.PP
+This command may be used to export sqlite3 data to postgres. You issue a \fBCOPY FROM STDIN ... FORMAT text\fR command, then use \fBpg_sqlite write_tabsep ...\fR to write the data directly to the Postgresql handle, followed by writing the terminator line to the same handle. See the PostgreSQL documentation on the "COPY" command for more details.
+.TP 
+\*(T<handle\*(T>
+File handle.
+.TP 
+-sep \*(T<separator\*(T>
+String to use to separate columns. Default is "\et" (tab).
+.TP 
+-null \*(T<null_string\*(T>
+String to use to indicate a null value. Default is to treat all strings literally.
+.PP
 \fBread_tabsep\fR
 .nf
 

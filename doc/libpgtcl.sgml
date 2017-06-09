@@ -3873,6 +3873,54 @@ pg_sqlite <parameter>sqlite_db</parameter> <parameter>command</parameter> <optio
   </variablelist>
 
   <para>
+   <command>write_tabsep</command>
+
+   <synopsis>
+    pg_sqlite <parameter>sqlite_db</parameter> write_tabsep <parameter>handle</parameter> <parameter>sql</parameter>
+	<optional role="tcl"><parameter>sql</parameter></optional>
+	<optional role="tcl">-sep <parameter>separator</parameter></optional>
+	<optional role="tcl">-null <parameter>null_string</parameter></optional>
+   </synopsis>
+   </para>
+
+   <para>Write the results of the provided <parameter>sql</parameter> to a file handle</para>
+
+     <para>
+	This command may be used to export sqlite3 data to postgres. You issue a <command>COPY FROM STDIN ... FORMAT text</command> command, then use <command>pg_sqlite write_tabsep ...</command> to write the data directly to the Postgresql handle, followed by writing the terminator line to the same handle. See the PostgreSQL documentation on the "COPY" command for more details.
+     </para>
+
+  <variablelist>
+   <varlistentry>
+    <term><parameter>handle</parameter></term>
+    <listitem>
+     <para>
+	File handle.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-sep <parameter>separator</parameter></term>
+    <listitem>
+     <para>
+	String to use to separate columns. Default is "\t" (tab).
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-null <parameter>null_string</parameter></term>
+    <listitem>
+     <para>
+	String to use to indicate a null value. Default is to treat all strings literally.
+     </para>
+    </listitem>
+   </varlistentry>
+
+  </variablelist>
+
+
+  <para>
    <command>read_tabsep</command>
 
    <synopsis>
