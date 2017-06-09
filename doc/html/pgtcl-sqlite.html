@@ -1,0 +1,156 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="HTML Tidy for HTML5 for FreeBSD version 5.2.0">
+<title>pg_sqlite</title>
+<meta name="GENERATOR" content="Modular DocBook HTML Stylesheet Version 1.79">
+<link rev="MADE" href="mailto:pgsql-docs@postgresql.org">
+<link rel="HOME" title="PostgreSQL Tcl Interface Documentation" href="index.html">
+<link rel="UP" title="pgtcl Command Reference" href="libpgtcl-ref.html">
+<link rel="PREVIOUS" title="pg_lo_export" href="pgtcl-pgloexport.html">
+<link rel="NEXT" title="Tcl Namespace Support" href="pgtcl-tclnamespace.html">
+<link rel="STYLESHEET" type="text/css" href="stylesheet.css">
+</head>
+<body class="REFENTRY">
+<div class="NAVHEADER">
+<table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<th colspan="5" align="center" valign="bottom">PostgreSQL Tcl Interface Documentation</th>
+</tr>
+<tr>
+<td width="10%" align="left" valign="top"><a href="pgtcl-pgloexport.html" accesskey="P">Prev</a></td>
+<td width="10%" align="left" valign="top"><a href="pgtcl-pgloexport.html">Fast Backward</a></td>
+<td width="60%" align="center" valign="bottom"></td>
+<td width="10%" align="right" valign="top"><a href="libpgtcl.html">Fast Forward</a></td>
+<td width="10%" align="right" valign="top"><a href="pgtcl-tclnamespace.html" accesskey="N">Next</a></td>
+</tr>
+</table>
+<hr align="left" width="100%"></div>
+<h1><a name="PGTCL-SQLITE" id="PGTCL-SQLITE"></a>pg_sqlite</h1>
+<div class="REFNAMEDIV"><a name="AEN2157" id="AEN2157"></a>
+<h2>Name</h2>
+pg_sqlite&nbsp;--&nbsp;implements a bridge between PostgreSQL and Sqlite3 using the Pgtcl and sqlite3 packages. <a name="IX-PGTCL-SQLITE2-2" id="IX-PGTCL-SQLITE2-2"></a></div>
+<div class="REFSYNOPSISDIV"><a name="AEN2162" id="AEN2162"></a>
+<h2>Synopsis</h2>
+<pre class="SYNOPSIS">pg_sqlite <code class="PARAMETER">sqlite_db</code> <code class="PARAMETER">command</code> [<span class="OPTIONAL">args</span>]</pre></div>
+<div class="REFSECT1"><a name="AEN2167" id="AEN2167"></a>
+<h2>Description</h2>
+<p><code class="FUNCTION">pg_sqlite</code> can import the results of a Postgres SQL query (previously made via <code class="FUNCTION">pg_exec</code>) directly into an sqlite3 table, export the results of an Sqlite SQL query into a Postgres table (via <tt class="LITERAL">write_tabsep</tt>), or import TSV files directly into sqlite3.</p>
+<p>The commands currently implemented are import_postgres_result, read_tabsep, write_tabsep, and read_tabsep_keylist.</p>
+</div>
+<div class="REFSECT1"><a name="AEN2174" id="AEN2174"></a>
+<h2>Arguments</h2>
+<div class="VARIABLELIST">
+<dl>
+<dt><code class="PARAMETER">sqlite_db</code></dt>
+<dd>
+<p>An Sqlite3 database handle previously created via the <tt class="LITERAL">sqlite3</tt> command.</p>
+</dd>
+<dt><code class="PARAMETER">command</code></dt>
+<dd>
+<p>The command, one of <tt class="LITERAL">import_postgres_result</tt>, <tt class="LITERAL">read_tabsep</tt>, <tt class="LITERAL">write_tabsep</tt>, or <tt class="LITERAL">read_tabsep_keylist</tt>,</p>
+</dd>
+<dt><code class="PARAMETER">args</code></dt>
+<dd>
+<p>Command-specific arguments.</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="REFSECT1"><a name="AEN2197" id="AEN2197"></a>
+<h2>Commands</h2>
+<p>read_tabsep</p>
+<pre class="SYNOPSIS">    pg_sqlite <code class="PARAMETER">sqlite_db</code> read_tabsep
+        ?<span class="OPTIONAL">-row <code class="PARAMETER">single_tab_separated_row</code></span>?
+        ?<span class="OPTIONAL">-file <code class="PARAMETER">file_handle</code></span>?
+        ?<span class="OPTIONAL">-sql <code class="PARAMETER">target_sql</code></span>?
+        ?<span class="OPTIONAL">-create <code class="PARAMETER">new_table</code></span>?
+        ?<span class="OPTIONAL">-into <code class="PARAMETER">table</code></span>?
+        ?<span class="OPTIONAL">-replace</span>?
+        ?<span class="OPTIONAL">-as <code class="PARAMETER">name_type_list</code></span>?
+        ?<span class="OPTIONAL">-types <code class="PARAMETER">type_list</code></span>?
+        ?<span class="OPTIONAL">-names <code class="PARAMETER">name_list</code></span>?
+        ?<span class="OPTIONAL">-pkey <code class="PARAMETER">primary_key</code></span>?
+        ?<span class="OPTIONAL">-sep <code class="PARAMETER">separator</code></span>?
+        ?<span class="OPTIONAL">-null <code class="PARAMETER">null_string</code></span>?
+   </pre>
+<p>Read a previously opened file into an sqlite3 table.</p>
+<div class="VARIABLELIST">
+<dl>
+<dt>-row <code class="PARAMETER">single_tab_separated_row</code></dt>
+<dd>
+<p>An already read tab-separated line.</p>
+</dd>
+<dt>-file <code class="PARAMETER">file_handle</code></dt>
+<dd>
+<p>An open file consistion of tab-separated rows.</p>
+</dd>
+<dt>-sep <code class="PARAMETER">separator</code></dt>
+<dd>
+<p>String to use to indicate a null value. Default is to treat all strings literally.</p>
+</dd>
+<dt>-null <code class="PARAMETER">separator</code></dt>
+<dd>
+<p>String to use to separate columns. Default is "\t" (tab).</p>
+</dd>
+<dt>-sql <code class="PARAMETER">target_sql</code></dt>
+<dd>
+<p>An INSERT statement , sitable to be compiled into a prepared statement to be applied to each row. For example "INSERT INTO newtable (id, name, value) VALUES (?,?,?)"</p>
+</dd>
+<dt>-create <code class="PARAMETER">new_table</code></dt>
+<dd>
+<p>A table to be created in sqlite. The names and types of columns, and the primary key, must be provided.</p>
+</dd>
+<dt>-into <code class="PARAMETER">table</code></dt>
+<dd>
+<p>An existing sqlite table to insert the data. The names of the columns must be provided, if the type can not be inferred it will be assumed to be "text".</p>
+</dd>
+<dt>-replace</dt>
+<dd>
+<p>When performing the insert on an existing or newly create table, use "INSERT OR REPLACE" semantics. Not compatible with "-sql".</p>
+</dd>
+<dt>-as <code class="PARAMETER">name-type-list</code></dt>
+<dd>
+<p>A list of alternating column names and types.</p>
+</dd>
+<dt>-types <code class="PARAMETER">type-list</code></dt>
+<dd>
+<p>A list of column types.</p>
+</dd>
+<dt>-names <code class="PARAMETER">name-list</code></dt>
+<dd>
+<p>A list of column names.</p>
+</dd>
+<dt>-pkey <code class="PARAMETER">primary_key</code></dt>
+<dd>
+<p>With -create, indicate which column is to be used as the primary key. To-do, make this a list for multi-column keys.</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="REFSECT1"><a name="AEN2286" id="AEN2286"></a>
+<h2>Return Value</h2>
+<p>Number of rows imported or exported.</p>
+</div>
+<div class="REFSECT1"><a name="AEN2289" id="AEN2289"></a>
+<h2>See Also</h2>
+<p><span class="PRODUCTNAME">Sqlite 3</span></p>
+</div>
+<div class="NAVFOOTER">
+<hr align="left" width="100%">
+<table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td width="33%" align="left" valign="top"><a href="pgtcl-pgloexport.html" accesskey="P">Prev</a></td>
+<td width="34%" align="center" valign="top"><a href="index.html" accesskey="H">Home</a></td>
+<td width="33%" align="right" valign="top"><a href="pgtcl-tclnamespace.html" accesskey="N">Next</a></td>
+</tr>
+<tr>
+<td width="33%" align="left" valign="top">pg_lo_export</td>
+<td width="34%" align="center" valign="top"><a href="libpgtcl-ref.html" accesskey="U">Up</a></td>
+<td width="33%" align="right" valign="top">Tcl Namespace Support</td>
+</tr>
+</table>
+</div>
+</body>
+</html>

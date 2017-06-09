@@ -3668,7 +3668,7 @@ pg_lo_export <parameter>conn</parameter> <parameter>loid</parameter> <parameter>
  </refmeta>
 
  <refnamediv>
-  <refname>pg_quote</refname>
+  <refname>pg_sqlite</refname>
   <refpurpose>implements a bridge between PostgreSQL and Sqlite3 using the Pgtcl and sqlite3 packages.
  </refpurpose>
   <indexterm ID="IX-PGTCL-SQLITE2-2"><primary>pg_sqlite</primary></indexterm>
@@ -3691,10 +3691,6 @@ pg_sqlite <parameter>sqlite_db</parameter> <parameter>command</parameter> <optio
   </para>
   <para>
    The commands currently implemented are import_postgres_result, read_tabsep, write_tabsep, and read_tabsep_keylist.
-  </para>
-
-  <para>
-TODO: document the full commands.
   </para>
  </refsect1>
 
@@ -3737,6 +3733,145 @@ TODO: document the full commands.
   </variablelist>
  </refsect1>
 
+ <refsect1>
+  <title>Commands</title>
+
+  <para>
+   read_tabsep
+
+   <synopsis>
+    pg_sqlite <parameter>sqlite_db</parameter> read_tabsep
+	<optional role="tcl">-row <parameter>single_tab_separated_row</parameter></optional>
+	<optional role="tcl">-file <parameter>file_handle</parameter></optional>
+	<optional role="tcl">-sql <parameter>target_sql</parameter></optional>
+	<optional role="tcl">-create <parameter>new_table</parameter></optional>
+	<optional role="tcl">-into <parameter>table</parameter></optional>
+	<optional role="tcl">-replace</optional>
+	<optional role="tcl">-as <parameter>name_type_list</parameter></optional>
+	<optional role="tcl">-types <parameter>type_list</parameter></optional>
+	<optional role="tcl">-names <parameter>name_list</parameter></optional>
+	<optional role="tcl">-pkey <parameter>primary_key</parameter></optional>
+	<optional role="tcl">-sep <parameter>separator</parameter></optional>
+	<optional role="tcl">-null <parameter>null_string</parameter></optional>
+   </synopsis>
+   </para>
+
+   <para>Read a previously opened file into an sqlite3 table.</para>
+
+  <variablelist>
+   <varlistentry>
+    <term>-row <parameter>single_tab_separated_row</parameter></term>
+    <listitem>
+     <para>
+      An already read tab-separated line.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-file <parameter>file_handle</parameter></term>
+    <listitem>
+     <para>
+      An open file consistion of tab-separated rows.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-sep <parameter>separator</parameter></term>
+    <listitem>
+     <para>
+	String to use to indicate a null value. Default is to treat all strings literally.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-null <parameter>separator</parameter></term>
+    <listitem>
+     <para>
+	String to use to separate columns. Default is "\t" (tab).
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-sql <parameter>target_sql</parameter></term>
+    <listitem>
+     <para>
+      An INSERT statement , sitable to be compiled into a prepared statement to be applied to each row.
+      For example "INSERT INTO newtable (id, name, value) VALUES (?,?,?)"
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-create <parameter>new_table</parameter></term>
+    <listitem>
+     <para>
+      A table to be created in sqlite. The names and types of columns, and the primary key, must be provided.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-into <parameter>table</parameter></term>
+    <listitem>
+     <para>
+      An existing sqlite table to insert the data. The names of the columns must be provided, if the type can not be inferred it will be assumed to be "text".
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-replace</term>
+    <listitem>
+     <para>
+      When performing the insert on an existing or newly create table, use "INSERT OR REPLACE" semantics. Not compatible with "-sql".
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-as <parameter>name-type-list</parameter></term>
+    <listitem>
+     <para>
+      A list of alternating column names and types.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-types <parameter>type-list</parameter></term>
+    <listitem>
+     <para>
+      A list of column types.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-names <parameter>name-list</parameter></term>
+    <listitem>
+     <para>
+      A list of column names.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-pkey <parameter>primary_key</parameter></term>
+    <listitem>
+     <para>
+      With -create, indicate which column is to be used as the primary key. To-do, make this a list for multi-column keys.
+     </para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+
+
+
+ </refsect1>
  <refsect1>
   <title>Return Value</title>
 

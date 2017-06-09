@@ -7,7 +7,7 @@
 .if \n(.g .mso www.tmac
 .TH pg_sqlite n "June 2017" "" "PostgreSQL Tcl Interface Documentation"
 .SH NAME
-pg_quote \- implements a bridge between PostgreSQL and Sqlite3 using the Pgtcl and sqlite3 packages. 
+pg_sqlite \- implements a bridge between PostgreSQL and Sqlite3 using the Pgtcl and sqlite3 packages. 
 .SH SYNOPSIS
 .nf
 
@@ -20,8 +20,6 @@ directly into an sqlite3 table, export the results of an Sqlite SQL query into
 a Postgres table (via \*(T<write_tabsep\*(T>), or import TSV files directly into sqlite3.
 .PP
 The commands currently implemented are import_postgres_result, read_tabsep, write_tabsep, and read_tabsep_keylist.
-.PP
-TODO: document the full commands.
 .SH ARGUMENTS
 .TP 
 \*(T<sqlite_db\*(T>
@@ -36,6 +34,65 @@ The command, one of
 .TP 
 \*(T<args\*(T>
 Command-specific arguments.
+.SH COMMANDS
+read_tabsep
+
+.nf
+
+    pg_sqlite \*(T<sqlite_db\*(T> read_tabsep
+	[\-row \*(T<single_tab_separated_row\*(T>]
+	[\-file \*(T<file_handle\*(T>]
+	[\-sql \*(T<target_sql\*(T>]
+	[\-create \*(T<new_table\*(T>]
+	[\-into \*(T<table\*(T>]
+	[\-replace]
+	[\-as \*(T<name_type_list\*(T>]
+	[\-types \*(T<type_list\*(T>]
+	[\-names \*(T<name_list\*(T>]
+	[\-pkey \*(T<primary_key\*(T>]
+	[\-sep \*(T<separator\*(T>]
+	[\-null \*(T<null_string\*(T>]
+   
+.fi
+.PP
+Read a previously opened file into an sqlite3 table.
+.TP 
+-row \*(T<single_tab_separated_row\*(T>
+An already read tab-separated line.
+.TP 
+-file \*(T<file_handle\*(T>
+An open file consistion of tab-separated rows.
+.TP 
+-sep \*(T<separator\*(T>
+String to use to indicate a null value. Default is to treat all strings literally.
+.TP 
+-null \*(T<separator\*(T>
+String to use to separate columns. Default is "\et" (tab).
+.TP 
+-sql \*(T<target_sql\*(T>
+An INSERT statement , sitable to be compiled into a prepared statement to be applied to each row.
+For example "INSERT INTO newtable (id, name, value) VALUES (?,?,?)"
+.TP 
+-create \*(T<new_table\*(T>
+A table to be created in sqlite. The names and types of columns, and the primary key, must be provided.
+.TP 
+-into \*(T<table\*(T>
+An existing sqlite table to insert the data. The names of the columns must be provided, if the type can not be inferred it will be assumed to be "text".
+.TP 
+-replace
+When performing the insert on an existing or newly create table, use "INSERT OR REPLACE" semantics. Not compatible with "-sql".
+.TP 
+-as \*(T<name\-type\-list\*(T>
+A list of alternating column names and types.
+.TP 
+-types \*(T<type\-list\*(T>
+A list of column types.
+.TP 
+-names \*(T<name\-list\*(T>
+A list of column names.
+.TP 
+-pkey \*(T<primary_key\*(T>
+With -create, indicate which column is to be used as the primary key. To-do, make this a list for multi-column keys.
 .SH "RETURN VALUE"
 Number of rows imported or exported.
 .SH "SEE ALSO"
