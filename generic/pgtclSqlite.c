@@ -478,7 +478,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
         sqlite_commandName = Tcl_GetString(objv[1]);
 
         if (!Tcl_GetCommandInfo(interp, sqlite_commandName, &sqlite_commandInfo)) {
-                Tcl_AppendResult(interp, sqlite_commandName, " is not a command", (char *)NULL);
+                Tcl_AppendResult(interp, sqlite_commandName, " is not an sqlite3 handle", (char *)NULL);
                 return TCL_ERROR;
         }
 
@@ -487,7 +487,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 	}
 
 	if (sqlite3_ObjProc != sqlite_commandInfo.objProc) {
-		Tcl_AppendResult(interp, sqlite_commandName, " is not an sqlite3 handle", (char *)NULL);
+		Tcl_AppendResult(interp, "command ", sqlite_commandName, " is not an sqlite3 handle", (char *)NULL);
 		return TCL_ERROR;
 	}
 
@@ -840,7 +840,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			Tcl_Channel tabsepChannel = NULL;
 			int channelMode;
 			char *row = NULL;
-			Tcl_Obj *unknownObj;
+			Tcl_Obj *unknownObj = NULL;
 
 			if(cmdIndex == CMD_READ_KEYVAL)
 				unknownObj = Tcl_NewObj();
