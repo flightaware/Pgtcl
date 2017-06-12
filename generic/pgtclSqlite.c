@@ -65,6 +65,8 @@ struct {
 	char *name;
 	enum mappedTypes type;
 } mappedTypes[] = {
+	{"integer",      PG_SQLITE_INT},
+	{"real",         PG_SQLITE_DOUBLE},
 	{"int",          PG_SQLITE_INT},
 	{"double",       PG_SQLITE_DOUBLE},
 	{"text",         PG_SQLITE_TEXT},
