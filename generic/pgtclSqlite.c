@@ -73,7 +73,7 @@ struct {
 	{NULL,           PG_SQLITE_NOTYPE}
 };
 
-char *typenames[sizeof mappedTypes / sizeof *mappedTypes];
+char *typenames[sizeof mappedTypes / sizeof *mappedTypes] = { NULL };
 
 int
 Pg_sqlite_mapTypes(Tcl_Interp *interp, Tcl_Obj *list, int start, int stride, enum mappedTypes **arrayPtr, int *lengthPtr)
@@ -83,6 +83,16 @@ Pg_sqlite_mapTypes(Tcl_Interp *interp, Tcl_Obj *list, int start, int stride, enu
 	enum mappedTypes  *array;
 	int                i;
 	int                col;
+
+	if (typenames[0] == NULL) {
+		int t;
+
+		for(t = 0; mappedTypes[t].name; t++) {
+			if (typenames[mappedTypes[t].type] == NULL) {
+				typenames[mappedTypes[t].type] = mappedTypes[t].name;
+			}
+		}
+	}
 
 	if(Tcl_ListObjGetElements(interp, list, &objc, &objv) != TCL_OK)
 		return TCL_ERROR;
@@ -100,7 +110,6 @@ Pg_sqlite_mapTypes(Tcl_Interp *interp, Tcl_Obj *list, int start, int stride, enu
 
 		for(t = 0; mappedTypes[t].name; t++) {
 			if(strcmp(typeName, mappedTypes[t].name) == 0) {
-				typenames[mappedTypes[t].type] = mappedTypes[t].name;
 				array[col] = mappedTypes[t].type;
 				break;
 			}
