@@ -518,9 +518,9 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 		incoming[CMD_IMPORT_POSTGRES_RESULT] = 1;
 		incoming[CMD_READ_TABSEP] = 1;
 		incoming[CMD_READ_KEYVAL] = 1;
-		argerr[CMD_READ_TABSEP] = "?-row tabsep_row? ?-file file_handle? ?-sql sqlite_sql? ?-create new_table? ?-into table? ?-as name-type-list? ?-types type-list? ?-names name-list? ?-pkey primary_key? ?-sep sepstring? ?-null nullstring? ?-replace?";
-		argerr[CMD_IMPORT_POSTGRES_RESULT] = "handle ?-sql sqlite_sql? ?-create new_table? ?-into table? ?-as name-type-list? ?-types type-list? ?-names name-list? ?-rowbyrow? ?-pkey primary_key? ?-null nullstring? ?-replace?";
-		argerr[CMD_READ_KEYVAL] = "?-row tabsep_row? ?-file file_handle? ?-create new_table? ?-into table? ?-as name-type-list? ?-names name-list? ?-pkey primary_key? ?-sep sepstring? ?-unknown colname? ?-replace?";
+		argerr[CMD_READ_TABSEP] = "?-row tabsep_row? ?-file file_handle? ?-sql sqlite_sql? ?-create new_table? ?-into table? ?-as name-type-list? ?-types type-list? ?-names name-list? ?-pkey primary_key? ?-sep sepstring? ?-null nullstring? ?-replace? ?-poll_interval count?";
+		argerr[CMD_IMPORT_POSTGRES_RESULT] = "handle ?-sql sqlite_sql? ?-create new_table? ?-into table? ?-as name-type-list? ?-types type-list? ?-names name-list? ?-rowbyrow? ?-pkey primary_key? ?-null nullstring? ?-replace? ?-poll_interval count?";
+		argerr[CMD_READ_KEYVAL] = "?-row tabsep_row? ?-file file_handle? ?-create new_table? ?-into table? ?-as name-type-list? ?-names name-list? ?-pkey primary_key? ?-sep sepstring? ?-unknown colname? ?-replace? ?-poll_interval count?";
 	}
 
 	// common variables
@@ -553,6 +553,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 	char              *unknownKey = NULL;
 	int		   createTable = 0;
 	int		   replaceTable = 0;
+	int                pollInterval = 0;
 
 	// common code
 	if(incoming[cmdIndex]) {
@@ -612,6 +613,14 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 				rowbyrow = 1;
 			} else if (strcmp(optName, "-replace") == 0) {
 				replaceTable = 1;
+			} else if (strcmp(optName, "-poll_interval") == 0) {
+				if (Tcl_GetIntFromObj(interp, objv[optIndex], &pollInterval) == TCL_ERROR) {
+					Tcl_AppendResult(interp, " in argumant to '-poll_interval'");
+					return TCL_ERROR;
+				}
+				if(pollInterval <= 0) // Or should this be an error?
+					pollInterval = 0;
+				optIndex++;
 			} else {
 				goto common_wrong_num_args;
 			}
@@ -758,7 +767,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 
 			if(objc < optIndex) {
 			  write_wrong_num_args:
-				Tcl_WrongNumArgs(interp, 3, objv, "handle sql ?-null nullstring? ?-sep sepstring?");
+				Tcl_WrongNumArgs(interp, 3, objv, "handle sql ?-null nullstring? ?-sep sepstring? ?-poll_interval row-count?");
 				return TCL_ERROR;
 			}
 
@@ -774,6 +783,14 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 					optIndex++;
 				} else if (strcmp(optName, "-sep") == 0) {
 					sepString = Tcl_GetString(objv[optIndex]);
+					optIndex++;
+				} else if (strcmp(optName, "-poll_interval") == 0) {
+					if (Tcl_GetIntFromObj(interp, objv[optIndex], &pollInterval) == TCL_ERROR) {
+						Tcl_AppendResult(interp, " in argumant to '-poll_interval'");
+						return TCL_ERROR;
+					}
+					if(pollInterval <= 0) // Or should this be an error?
+						pollInterval = 0;
 					optIndex++;
 				} else
 					goto write_wrong_num_args;
@@ -818,6 +835,9 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 					goto write_tabsep_cleanup_and_exit;
 				}
 				totalTuples++;
+				if(pollInterval && (totalTuples % pollInterval) == 0) {
+					Tcl_DoOneEvent(0);
+				}
 			}
 			if(sqliteStatus != SQLITE_DONE) {
 				Tcl_AppendResult(interp, sqlite3_errmsg(sqlite_db), (char *)NULL);
@@ -924,6 +944,9 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 				sqlite3_clear_bindings(statement);
 
 				totalTuples++;
+				if(pollInterval && (totalTuples % pollInterval) == 0) {
+					Tcl_DoOneEvent(0);
+				}
 
 				if(tabsepFile) {
 					if((returnCode = Pg_sqlite_gets(interp, tabsepChannel, &row)) == TCL_BREAK)
@@ -1020,6 +1043,9 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 					sqlite3_clear_bindings(statement);
 
 					totalTuples++;
+					if(pollInterval && (totalTuples % pollInterval) == 0) {
+						Tcl_DoOneEvent(0);
+					}
 				}
 
 				if(rowbyrow) {
