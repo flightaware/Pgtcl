@@ -79,10 +79,10 @@ Pg_sqlite_commit(Tcl_Interp *interp, sqlite3 *sqlite_db)
 int
 Pg_sqlite_recommit(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sql, sqlite3_stmt **statement_ptr)
 {
-	if(*statement_ptr) {
-		sqlite3_finalize(*statement_ptr);
-		*statement_ptr = NULL;
-	}
+//	if(*statement_ptr) {
+//		sqlite3_finalize(*statement_ptr);
+//		*statement_ptr = NULL;
+//	}
 
 	if(Pg_sqlite_commit(interp, sqlite_db) != TCL_OK)
 		return TCL_ERROR;
@@ -90,7 +90,8 @@ Pg_sqlite_recommit(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sql, sqlite3_st
 	if(Pg_sqlite_begin(interp, sqlite_db) != TCL_OK)
 		return TCL_ERROR;
 
-	return Pg_sqlite_prepare(interp, sqlite_db, sql, statement_ptr);
+//	return Pg_sqlite_prepare(interp, sqlite_db, sql, statement_ptr);
+	return TCL_OK;
 }
 
 int Pg_sqlite_execObj(Tcl_Interp *interp, sqlite3 *sqlite_db, Tcl_Obj *obj)
