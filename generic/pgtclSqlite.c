@@ -6,6 +6,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include <tcl.h>
+
 #include "pgtclCmds.h"
 #include "pgtclId.h"
 
@@ -252,11 +254,13 @@ Pg_sqlite_generate(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sqliteTable, Tc
 {
 	Tcl_Obj **objv;
 	int       objc;
+	Tcl_Obj **keyv = NULL;
+	int       keyc = 0;
 	Tcl_Obj  *create = Tcl_NewObj();
 	Tcl_Obj  *sql = Tcl_NewObj();
 	Tcl_Obj  *values = Tcl_NewObj();
 	int       i;
-	int       primaryKeyIndex = 0;
+	int       primaryKeyIndex = -1;
 	int       stride;
 
 	if(nameTypeList) {
@@ -277,15 +281,20 @@ Pg_sqlite_generate(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sqliteTable, Tc
 	}
 
 	if(newTable && primaryKey) {
-		char *keyName = Tcl_GetString(primaryKey);
-		for(i = 0; i < objc; i += stride)
-			if(strcmp(keyName, Tcl_GetString(objv[i])) == 0)
-				break;
-		if(i >= objc) {
-			Tcl_AppendResult(interp, "Primary key not found in list", (char *)NULL);
+		if(Tcl_ListObjGetElements(interp, primaryKey, &keyc, &keyv) != TCL_OK)
 			return NULL;
+
+		if(keyc == 1) {
+			char *keyName = Tcl_GetString(keyv[0]);
+			for(i = 0; i < objc; i += stride)
+				if(strcmp(keyName, Tcl_GetString(objv[i])) == 0)
+					break;
+			if(i >= objc) {
+				Tcl_AppendResult(interp, "Primary key not found in list", (char *)NULL);
+				return NULL;
+			}
+			primaryKeyIndex = i/stride;
 		}
-		primaryKeyIndex = i/stride;
 	}
 
 	if (newTable)
@@ -334,6 +343,19 @@ Pg_sqlite_generate(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sqliteTable, Tc
 		}
 		Tcl_AppendStringsToObj(sql, ", ", unknownKey, (char *)NULL);
 		Tcl_AppendToObj(values, ",?", -1);
+	}
+
+	if(newTable && keyc > 1) {
+		int i;
+		Tcl_AppendToObj(create, ",\n\tPRIMARY KEY(", -1);
+
+		for(i = 0; i < keyc; i++) {
+			if(i)
+				Tcl_AppendToObj(create, ", ", -1);
+			Tcl_AppendObjToObj(create, keyv[i]);
+		}
+
+		Tcl_AppendToObj(create, ")", -1);
 	}
 
 	if(newTable) Tcl_AppendToObj(create, "\n);", -1);
