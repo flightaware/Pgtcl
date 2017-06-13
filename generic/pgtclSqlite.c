@@ -49,6 +49,53 @@ Pg_sqlite_prepare(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sql, sqlite3_stm
 	return TCL_OK;
 }
 
+int
+Pg_sqlite_begin(Tcl_Interp *interp, sqlite3 *sqlite_db)
+{
+	char *errMsg;
+	if(sqlite3_exec(sqlite_db, "begin;", NULL, NULL, &errMsg) != SQLITE_OK) {
+                Tcl_AppendResult(interp, errMsg, " when beginning a transaction", (char *)NULL);
+                return TCL_ERROR;
+        }
+	return TCL_OK;
+}
+
+int
+Pg_sqlite_commit(Tcl_Interp *interp, sqlite3 *sqlite_db)
+{
+	char *errMsg;
+	if(sqlite3_exec(sqlite_db, "commit;", NULL, NULL, &errMsg) != SQLITE_OK) {
+                Tcl_AppendResult(interp, errMsg, " when comitting a transaction", (char *)NULL);
+                return TCL_ERROR;
+        }
+	return TCL_OK;
+}
+
+//
+// Finalize a statement, commit, and prepare it again
+//
+int
+Pg_sqlite_recommit(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sql, sqlite3_stmt **statement_ptr)
+{
+	if(*statement_ptr) {
+		sqlite3_finalize(*statement_ptr);
+		*statement_ptr = NULL;
+	}
+
+	if(Pg_sqlite_commit(interp, sqlite_db) != TCL_OK)
+		return TCL_ERROR;
+
+	if(sqlite3_wal_checkpoint_v2 (sqlite_db, NULL, SQLITE_CHECKPOINT_PASSIVE, NULL, NULL) != SQLITE_OK) {
+                Tcl_AppendResult(interp, sqlite3_errmsg(sqlite_db), (char *)NULL);
+                return TCL_ERROR;
+	}
+
+	if(Pg_sqlite_begin(interp, sqlite_db) != TCL_OK)
+		return TCL_ERROR;
+
+	return Pg_sqlite_prepare(interp, sqlite_db, sql, statement_ptr);
+}
+
 int Pg_sqlite_execObj(Tcl_Interp *interp, sqlite3 *sqlite_db, Tcl_Obj *obj)
 {
 	sqlite3_stmt *statement = NULL;
@@ -579,6 +626,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 	int		   createTable = 0;
 	int		   replaceTable = 0;
 	int                pollInterval = 0;
+	int		   recommit = 0;
 
 	// common code
 	if(incoming[cmdIndex]) {
@@ -638,6 +686,8 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 				rowbyrow = 1;
 			} else if (strcmp(optName, "-replace") == 0) {
 				replaceTable = 1;
+			} else if (strcmp(optName, "-recommit") == 0) {
+				recommit = 1;
 			} else if (strcmp(optName, "-poll_interval") == 0) {
 				if (Tcl_GetIntFromObj(interp, objv[optIndex], &pollInterval) == TCL_ERROR) {
 					Tcl_AppendResult(interp, " in argumant to '-poll_interval'");
@@ -649,6 +699,10 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			} else {
 				goto common_wrong_num_args;
 			}
+		}
+
+		if(recommit && !pollInterval) {
+			pollInterval = 10000;
 		}
 
 		if (cmdIndex == CMD_READ_TABSEP || cmdIndex == CMD_READ_KEYVAL) {
@@ -839,6 +893,12 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			totalTuples = 0;
 
 			returnCode = TCL_ERROR;
+
+			if(recommit) {
+				if(Pg_sqlite_begin(interp, sqlite_db) == TCL_ERROR)
+					goto write_tabsep_cleanup_and_exit;
+			}
+
 			while (SQLITE_ROW == (sqliteStatus = sqlite3_step(statement))) {
 				int i;
 				for(i = 0; i < nColumns; i++) {
@@ -859,6 +919,10 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 				}
 				totalTuples++;
 				if(pollInterval && (totalTuples % pollInterval) == 0) {
+					if(recommit) {
+						if(Pg_sqlite_recommit(interp, sqlite_db, sqliteCode, &statement) != TCL_OK)
+							goto write_tabsep_cleanup_and_exit;
+					}
 					Tcl_DoOneEvent(0);
 				}
 			}
@@ -868,6 +932,11 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			}
 			returnCode = TCL_OK;
 		  write_tabsep_cleanup_and_exit:
+
+			if(recommit) {
+				if(Pg_sqlite_commit(interp, sqlite_db) != TCL_OK)
+					returnCode = TCL_ERROR;
+			}
 
 			if(statement)
 				sqlite3_finalize(statement);
@@ -909,6 +978,13 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 				}
 			} else {
 				row = tabsepRow;
+			}
+
+			if(recommit) {
+				if(Pg_sqlite_begin(interp, sqlite_db) == TCL_ERROR) {
+					returnCode = TCL_ERROR;
+					goto read_tabsep_cleanup_and_exit;
+				}
 			}
 
 			while(row) {
@@ -968,6 +1044,12 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 
 				totalTuples++;
 				if(pollInterval && (totalTuples % pollInterval) == 0) {
+					if(recommit) {
+						if(Pg_sqlite_recommit(interp, sqlite_db, sqliteCode, &statement) != TCL_OK) {
+							returnCode = TCL_ERROR;
+							goto read_tabsep_cleanup_and_exit;
+						}
+					}
 					Tcl_DoOneEvent(0);
 				}
 
@@ -980,6 +1062,11 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			}
 
 		  read_tabsep_cleanup_and_exit:
+
+			if(recommit) {
+				if(Pg_sqlite_commit(interp, sqlite_db) != TCL_OK)
+					returnCode = TCL_ERROR;
+			}
 
 			if(statement)
 				sqlite3_finalize(statement);
@@ -1031,6 +1118,13 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 				goto import_cleanup_and_exit;
 			}
 
+			if(recommit) {
+				if(Pg_sqlite_begin(interp, sqlite_db) == TCL_ERROR) {
+					returnCode = TCL_ERROR;
+					goto import_loop_end;
+				}
+			}
+
 			while(result) {
 				status = PQresultStatus(result);
 
@@ -1067,6 +1161,12 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 
 					totalTuples++;
 					if(pollInterval && (totalTuples % pollInterval) == 0) {
+						if(recommit) {
+							if(Pg_sqlite_recommit(interp, sqlite_db, sqliteCode, &statement) != TCL_OK) {
+								returnCode = TCL_ERROR;
+								goto import_loop_end;
+							}
+						}
 						Tcl_DoOneEvent(0);
 					}
 				}
@@ -1089,6 +1189,11 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			}
 
 		  import_cleanup_and_exit:
+
+			if(recommit) {
+				if(Pg_sqlite_commit(interp, sqlite_db) != TCL_OK)
+					returnCode = TCL_ERROR;
+			}
 
 			if(statement)
 				sqlite3_finalize(statement);
