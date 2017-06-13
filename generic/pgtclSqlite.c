@@ -87,11 +87,6 @@ Pg_sqlite_recommit(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sql, sqlite3_st
 	if(Pg_sqlite_commit(interp, sqlite_db) != TCL_OK)
 		return TCL_ERROR;
 
-	if(sqlite3_wal_checkpoint_v2 (sqlite_db, NULL, SQLITE_CHECKPOINT_PASSIVE, NULL, NULL) != SQLITE_OK) {
-                Tcl_AppendResult(interp, sqlite3_errmsg(sqlite_db), (char *)NULL);
-                return TCL_ERROR;
-	}
-
 	if(Pg_sqlite_begin(interp, sqlite_db) != TCL_OK)
 		return TCL_ERROR;
 
