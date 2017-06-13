@@ -31,6 +31,24 @@ struct SqliteDb {
   // other stuff we don't look at, but probably should maybe use to validate...
 };
 
+//
+// Prepare a statement, and finalize if first if it's already prepared
+//
+int
+Pg_sqlite_prepare(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sql, sqlite3_stmt **statement_ptr)
+{
+	if(*statement_ptr) {
+		sqlite3_finalize(*statement_ptr);
+		*statement_ptr = NULL;
+	}
+
+	if(sqlite3_prepare_v2(sqlite_db, sql, -1, statement_ptr, NULL) != SQLITE_OK) {
+		Tcl_AppendResult(interp, sqlite3_errmsg(sqlite_db), (char *)NULL);
+		return TCL_ERROR;
+	}
+	return TCL_OK;
+}
+
 int Pg_sqlite_execObj(Tcl_Interp *interp, sqlite3 *sqlite_db, Tcl_Obj *obj)
 {
 	sqlite3_stmt *statement = NULL;
@@ -38,8 +56,7 @@ int Pg_sqlite_execObj(Tcl_Interp *interp, sqlite3 *sqlite_db, Tcl_Obj *obj)
 //fprintf(stderr, "DEBUG Pg_sqlite_execObj(Tcl_Interp *interp, sqlite3 *sqlite_db, Tcl_Obj *obj);\n");
 //fprintf(stderr, "DEBUG obj = {%s};\n", Tcl_GetString(obj));
 
-	if(sqlite3_prepare_v2(sqlite_db, Tcl_GetString(obj), -1, &statement, NULL) != SQLITE_OK) {
-		Tcl_AppendResult(interp, sqlite3_errmsg(sqlite_db), (char *)NULL);
+	if(Pg_sqlite_prepare(interp, sqlite_db, Tcl_GetString(obj), &statement) != TCL_OK) {
 		statement = NULL; // probably redundant
 		result = TCL_ERROR;
 	} else if(sqlite3_step(statement) != SQLITE_DONE) {
@@ -548,7 +565,6 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 	char             **columnNames = NULL;
 	int                nColumns = 0;
 	int                column;
-	int                prepStatus;
 	PGconn            *conn = NULL;
 	PGresult          *result = NULL;
 	ExecStatusType     status;
@@ -731,9 +747,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			return TCL_ERROR;
 		}
 
-		prepStatus = sqlite3_prepare_v2(sqlite_db, sqliteCode, -1, &statement, NULL);
-		if(prepStatus != SQLITE_OK) {
-			Tcl_AppendResult(interp, sqlite3_errmsg(sqlite_db), (char *)NULL);
+		if(Pg_sqlite_prepare(interp, sqlite_db, sqliteCode, &statement) != TCL_OK) {
 			if (columnNames)
 				ckfree(columnNames);
 			if(columnTypes)
@@ -806,6 +820,8 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			}
 
 			channelName = Tcl_GetString(objv[3]);
+			sqliteCode = Tcl_GetString(objv[4]);
+
 			channel = Tcl_GetChannel(interp, channelName, &channelMode);
 			if(!channel) {
 				Tcl_AppendResult(interp, Tcl_ErrnoMsg(Tcl_GetErrno()), " converting ", channelName, (char *)NULL);
@@ -816,11 +832,9 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 				return TCL_ERROR;
 			}
 
-			prepStatus = sqlite3_prepare_v2(sqlite_db, Tcl_GetString(objv[4]), -1, &statement, NULL);
-			if(prepStatus != SQLITE_OK) {
-				Tcl_AppendResult(interp, sqlite3_errmsg(sqlite_db), (char *)NULL);
+			if(Pg_sqlite_prepare(interp, sqlite_db, sqliteCode, &statement) != TCL_OK)
 				return TCL_ERROR;
-			}
+
 			nColumns = sqlite3_column_count(statement);
 			totalTuples = 0;
 
