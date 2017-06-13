@@ -3752,6 +3752,7 @@ pg_sqlite <parameter>sqlite_db</parameter> <parameter>command</parameter> <optio
 	<optional role="tcl">-pkey <parameter>primary_key</parameter></optional>
 	<optional role="tcl">-sep <parameter>separator</parameter></optional>
 	<optional role="tcl">-null <parameter>null_string</parameter></optional>
+	<optional role="tcl">-poll_interval <parameter>rows</parameter></optional>
    </synopsis>
    </para>
 
@@ -3866,10 +3867,22 @@ pg_sqlite <parameter>sqlite_db</parameter> <parameter>command</parameter> <optio
     <term>-pkey <parameter>primary_key</parameter></term>
     <listitem>
      <para>
-      With -create, indicate which column is to be used as the primary key. To-do, make this a list for multi-column keys.
+	A list containing key names and optional sorting to indicate primary key where needed. For example
+	<command>-pkey {{clock ASC} {sequence ASC}}</command>.
      </para>
     </listitem>
    </varlistentry>
+
+   <varlistentry>
+    <term>-poll_interval <parameter>count</parameter></term>
+    <listitem>
+     <para>
+	Call DoOneEvent() every <parameter>count</parameter> rows to keep the event loop alive
+	during long transactions.
+     </para>
+    </listitem>
+   </varlistentry>
+
   </variablelist>
 
   <para>
@@ -3880,6 +3893,7 @@ pg_sqlite <parameter>sqlite_db</parameter> <parameter>command</parameter> <optio
 	<optional role="tcl"><parameter>sql</parameter></optional>
 	<optional role="tcl">-sep <parameter>separator</parameter></optional>
 	<optional role="tcl">-null <parameter>null_string</parameter></optional>
+	<optional role="tcl">-poll_interval <parameter>rows</parameter></optional>
    </synopsis>
    </para>
 
@@ -3917,6 +3931,16 @@ pg_sqlite <parameter>sqlite_db</parameter> <parameter>command</parameter> <optio
     </listitem>
    </varlistentry>
 
+   <varlistentry>
+    <term>-poll_interval <parameter>count</parameter></term>
+    <listitem>
+     <para>
+	Call DoOneEvent() every <parameter>count</parameter> rows to keep the event loop alive
+	during long transactions.
+     </para>
+    </listitem>
+   </varlistentry>
+
   </variablelist>
 
 
@@ -3937,6 +3961,7 @@ pg_sqlite <parameter>sqlite_db</parameter> <parameter>command</parameter> <optio
 	<optional role="tcl">-pkey <parameter>primary_key</parameter></optional>
 	<optional role="tcl">-sep <parameter>separator</parameter></optional>
 	<optional role="tcl">-null <parameter>null_string</parameter></optional>
+	<optional role="tcl">-poll_interval <parameter>rows</parameter></optional>
    </synopsis>
    </para>
 
@@ -4047,12 +4072,23 @@ pg_sqlite <parameter>sqlite_db</parameter> <parameter>command</parameter> <optio
     <term>-pkey <parameter>primary_key</parameter></term>
     <listitem>
      <para>
-      With -create, indicate which column is to be used as the primary key. To-do, make this a list for multi-column keys.
+	A list containing key names and optional sorting to indicate primary key where needed. For example
+	<command>-pkey {{clock ASC} {sequence ASC}}</command>.
      </para>
     </listitem>
    </varlistentry>
-  </variablelist>
 
+   <varlistentry>
+    <term>-poll_interval <parameter>count</parameter></term>
+    <listitem>
+     <para>
+	Call DoOneEvent() every <parameter>count</parameter> rows to keep the event loop alive
+	during long transactions.
+     </para>
+    </listitem>
+   </varlistentry>
+
+  </variablelist>
 
   <para>
    <command>read_tabsep_keylist</command>
@@ -4069,6 +4105,7 @@ pg_sqlite <parameter>sqlite_db</parameter> <parameter>command</parameter> <optio
 	<optional role="tcl">-pkey <parameter>primary_key</parameter></optional>
 	<optional role="tcl">-sep <parameter>separator</parameter></optional>
 	<optional role="tcl">-null <parameter>null_string</parameter></optional>
+	<optional role="tcl">-poll_interval <parameter>rows</parameter></optional>
    </synopsis>
    </para>
 
@@ -4160,10 +4197,22 @@ pg_sqlite <parameter>sqlite_db</parameter> <parameter>command</parameter> <optio
     <term>-pkey <parameter>primary_key</parameter></term>
     <listitem>
      <para>
-      With -create, indicate which column is to be used as the primary key. To-do, make this a list for multi-column keys.
+	A list containing key names and optional sorting to indicate primary key where needed. For example
+	<command>-pkey {{clock ASC} {sequence ASC}}</command>.
      </para>
     </listitem>
    </varlistentry>
+
+   <varlistentry>
+    <term>-poll_interval <parameter>count</parameter></term>
+    <listitem>
+     <para>
+	Call DoOneEvent() every <parameter>count</parameter> rows to keep the event loop alive
+	during long transactions.
+     </para>
+    </listitem>
+   </varlistentry>
+
   </variablelist>
 
  </refsect1>

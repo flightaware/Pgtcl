@@ -50,6 +50,7 @@ Command-specific arguments.
 	[\-pkey \*(T<primary_key\*(T>]
 	[\-sep \*(T<separator\*(T>]
 	[\-null \*(T<null_string\*(T>]
+	[\-poll_interval \*(T<rows\*(T>]
    
 .fi
 .PP
@@ -94,7 +95,12 @@ A list of column types.
 A list of column names.
 .TP 
 -pkey \*(T<primary_key\*(T>
-With -create, indicate which column is to be used as the primary key. To-do, make this a list for multi-column keys.
+A list containing key names and optional sorting to indicate primary key where needed. For example
+\fB-pkey {{clock ASC} {sequence ASC}}\fR.
+.TP 
+-poll_interval \*(T<count\*(T>
+Call DoOneEvent() every \*(T<count\*(T> rows to keep the event loop alive
+during long transactions.
 .PP
 \fBwrite_tabsep\fR
 .nf
@@ -103,6 +109,7 @@ With -create, indicate which column is to be used as the primary key. To-do, mak
 	[\*(T<sql\*(T>]
 	[\-sep \*(T<separator\*(T>]
 	[\-null \*(T<null_string\*(T>]
+	[\-poll_interval \*(T<rows\*(T>]
    
 .fi
 .PP
@@ -118,6 +125,10 @@ String to use to separate columns. Default is "\et" (tab).
 .TP 
 -null \*(T<null_string\*(T>
 String to use to indicate a null value. Default is to treat all strings literally.
+.TP 
+-poll_interval \*(T<count\*(T>
+Call DoOneEvent() every \*(T<count\*(T> rows to keep the event loop alive
+during long transactions.
 .PP
 \fBread_tabsep\fR
 .nf
@@ -135,6 +146,7 @@ String to use to indicate a null value. Default is to treat all strings literall
 	[\-pkey \*(T<primary_key\*(T>]
 	[\-sep \*(T<separator\*(T>]
 	[\-null \*(T<null_string\*(T>]
+	[\-poll_interval \*(T<rows\*(T>]
    
 .fi
 .PP
@@ -175,7 +187,12 @@ A list of column types.
 A list of column names.
 .TP 
 -pkey \*(T<primary_key\*(T>
-With -create, indicate which column is to be used as the primary key. To-do, make this a list for multi-column keys.
+A list containing key names and optional sorting to indicate primary key where needed. For example
+\fB-pkey {{clock ASC} {sequence ASC}}\fR.
+.TP 
+-poll_interval \*(T<count\*(T>
+Call DoOneEvent() every \*(T<count\*(T> rows to keep the event loop alive
+during long transactions.
 .PP
 \fBread_tabsep_keylist\fR
 .nf
@@ -191,6 +208,7 @@ With -create, indicate which column is to be used as the primary key. To-do, mak
 	[\-pkey \*(T<primary_key\*(T>]
 	[\-sep \*(T<separator\*(T>]
 	[\-null \*(T<null_string\*(T>]
+	[\-poll_interval \*(T<rows\*(T>]
    
 .fi
 .PP
@@ -224,7 +242,12 @@ A list of alternating column names and types.
 A list of column names.
 .TP 
 -pkey \*(T<primary_key\*(T>
-With -create, indicate which column is to be used as the primary key. To-do, make this a list for multi-column keys.
+A list containing key names and optional sorting to indicate primary key where needed. For example
+\fB-pkey {{clock ASC} {sequence ASC}}\fR.
+.TP 
+-poll_interval \*(T<count\*(T>
+Call DoOneEvent() every \*(T<count\*(T> rows to keep the event loop alive
+during long transactions.
 .SH "RETURN VALUE"
 Number of rows imported or exported.
 .SH "SEE ALSO"

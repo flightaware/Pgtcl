@@ -73,6 +73,7 @@ pg_sqlite&nbsp;--&nbsp;implements a bridge between PostgreSQL and Sqlite3 using 
         ?<span class="OPTIONAL">-pkey <code class="PARAMETER">primary_key</code></span>?
         ?<span class="OPTIONAL">-sep <code class="PARAMETER">separator</code></span>?
         ?<span class="OPTIONAL">-null <code class="PARAMETER">null_string</code></span>?
+        ?<span class="OPTIONAL">-poll_interval <code class="PARAMETER">rows</code></span>?
    </pre>
 <p>Import the result of a PostgreSQL request into an sqlite3 table.</p>
 <div class="VARIABLELIST">
@@ -123,7 +124,11 @@ pg_sqlite&nbsp;--&nbsp;implements a bridge between PostgreSQL and Sqlite3 using 
 </dd>
 <dt>-pkey <code class="PARAMETER">primary_key</code></dt>
 <dd>
-<p>With -create, indicate which column is to be used as the primary key. To-do, make this a list for multi-column keys.</p>
+<p>A list containing key names and optional sorting to indicate primary key where needed. For example <tt class="COMMAND">-pkey {{clock ASC} {sequence ASC}}</tt>.</p>
+</dd>
+<dt>-poll_interval <code class="PARAMETER">count</code></dt>
+<dd>
+<p>Call DoOneEvent() every <code class="PARAMETER">count</code> rows to keep the event loop alive during long transactions.</p>
 </dd>
 </dl>
 </div>
@@ -132,6 +137,7 @@ pg_sqlite&nbsp;--&nbsp;implements a bridge between PostgreSQL and Sqlite3 using 
         ?<span class="OPTIONAL"><code class="PARAMETER">sql</code></span>?
         ?<span class="OPTIONAL">-sep <code class="PARAMETER">separator</code></span>?
         ?<span class="OPTIONAL">-null <code class="PARAMETER">null_string</code></span>?
+        ?<span class="OPTIONAL">-poll_interval <code class="PARAMETER">rows</code></span>?
    </pre>
 <p>Write the results of the provided <code class="PARAMETER">sql</code> to a file handle</p>
 <p>This command may be used to export sqlite3 data to postgres. You issue a <tt class="COMMAND">COPY FROM STDIN ... FORMAT text</tt> command, then use <tt class="COMMAND">pg_sqlite write_tabsep ...</tt> to write the data directly to the Postgresql handle, followed by writing the terminator line to the same handle. See the PostgreSQL documentation on the "COPY" command for more details.</p>
@@ -149,6 +155,10 @@ pg_sqlite&nbsp;--&nbsp;implements a bridge between PostgreSQL and Sqlite3 using 
 <dd>
 <p>String to use to indicate a null value. Default is to treat all strings literally.</p>
 </dd>
+<dt>-poll_interval <code class="PARAMETER">count</code></dt>
+<dd>
+<p>Call DoOneEvent() every <code class="PARAMETER">count</code> rows to keep the event loop alive during long transactions.</p>
+</dd>
 </dl>
 </div>
 <p><tt class="COMMAND">read_tabsep</tt></p>
@@ -165,6 +175,7 @@ pg_sqlite&nbsp;--&nbsp;implements a bridge between PostgreSQL and Sqlite3 using 
         ?<span class="OPTIONAL">-pkey <code class="PARAMETER">primary_key</code></span>?
         ?<span class="OPTIONAL">-sep <code class="PARAMETER">separator</code></span>?
         ?<span class="OPTIONAL">-null <code class="PARAMETER">null_string</code></span>?
+        ?<span class="OPTIONAL">-poll_interval <code class="PARAMETER">rows</code></span>?
    </pre>
 <p>Read a previously opened file into an sqlite3 table.</p>
 <div class="VARIABLELIST">
@@ -215,7 +226,11 @@ pg_sqlite&nbsp;--&nbsp;implements a bridge between PostgreSQL and Sqlite3 using 
 </dd>
 <dt>-pkey <code class="PARAMETER">primary_key</code></dt>
 <dd>
-<p>With -create, indicate which column is to be used as the primary key. To-do, make this a list for multi-column keys.</p>
+<p>A list containing key names and optional sorting to indicate primary key where needed. For example <tt class="COMMAND">-pkey {{clock ASC} {sequence ASC}}</tt>.</p>
+</dd>
+<dt>-poll_interval <code class="PARAMETER">count</code></dt>
+<dd>
+<p>Call DoOneEvent() every <code class="PARAMETER">count</code> rows to keep the event loop alive during long transactions.</p>
 </dd>
 </dl>
 </div>
@@ -231,6 +246,7 @@ pg_sqlite&nbsp;--&nbsp;implements a bridge between PostgreSQL and Sqlite3 using 
         ?<span class="OPTIONAL">-pkey <code class="PARAMETER">primary_key</code></span>?
         ?<span class="OPTIONAL">-sep <code class="PARAMETER">separator</code></span>?
         ?<span class="OPTIONAL">-null <code class="PARAMETER">null_string</code></span>?
+        ?<span class="OPTIONAL">-poll_interval <code class="PARAMETER">rows</code></span>?
    </pre>
 <p>Read a previously opened file containing alternating key-value columns into an sqlite3 table.</p>
 <div class="VARIABLELIST">
@@ -273,16 +289,20 @@ pg_sqlite&nbsp;--&nbsp;implements a bridge between PostgreSQL and Sqlite3 using 
 </dd>
 <dt>-pkey <code class="PARAMETER">primary_key</code></dt>
 <dd>
-<p>With -create, indicate which column is to be used as the primary key. To-do, make this a list for multi-column keys.</p>
+<p>A list containing key names and optional sorting to indicate primary key where needed. For example <tt class="COMMAND">-pkey {{clock ASC} {sequence ASC}}</tt>.</p>
+</dd>
+<dt>-poll_interval <code class="PARAMETER">count</code></dt>
+<dd>
+<p>Call DoOneEvent() every <code class="PARAMETER">count</code> rows to keep the event loop alive during long transactions.</p>
 </dd>
 </dl>
 </div>
 </div>
-<div class="REFSECT1"><a name="AEN2480" id="AEN2480"></a>
+<div class="REFSECT1"><a name="AEN2515" id="AEN2515"></a>
 <h2>Return Value</h2>
 <p>Number of rows imported or exported.</p>
 </div>
-<div class="REFSECT1"><a name="AEN2483" id="AEN2483"></a>
+<div class="REFSECT1"><a name="AEN2518" id="AEN2518"></a>
 <h2>See Also</h2>
 <p><span class="PRODUCTNAME">Sqlite 3</span></p>
 </div>
