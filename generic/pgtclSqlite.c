@@ -251,21 +251,23 @@ Pg_sqlite_bindValue(sqlite3 *sqlite_db, sqlite3_stmt *statement, int column, cha
 // Generate statement to query the target DB to see if the row is already there. Returns SQL and fills in the indexes
 // of the primary keys in the name list.
 //
-char *Pg_sqlite_generate_check(Tcl_Interp *interp, char *tableName, Tcl_Obj *nameList, Tcl_Obj *nameTypeList, Tcl_Obj *primaryKey, int **primaryKeyIndexPtr)
+int
+Pg_sqlite_generate_check(Tcl_Interp *interp, sqlite3 *sqlite_db, char *tableName, Tcl_Obj *nameList, Tcl_Obj *nameTypeList, Tcl_Obj *primaryKey, sqlite3_stmt **statementPtr, int **primaryKeyIndexPtr)
 {
-	Tcl_Obj **objv;
-	int       objc;
-	Tcl_Obj **keyv;
-	int       keyc;
-	int      *primaryKeyIndex = NULL;
-	char    **primaryKeyNames = NULL;
-	Tcl_Obj  *sql = Tcl_NewObj();
-	Tcl_Obj  *where = Tcl_NewObj();
-	Tcl_Obj  *select = Tcl_NewObj();
-	int       stride;
-	int       i;
-	int       k;
-	char     *result = NULL;
+	Tcl_Obj     **objv;
+	int           objc;
+	Tcl_Obj     **keyv;
+	int           keyc;
+	int          *primaryKeyIndex = NULL;
+	char        **primaryKeyNames = NULL;
+	Tcl_Obj      *sql = Tcl_NewObj();
+	Tcl_Obj      *where = Tcl_NewObj();
+	Tcl_Obj      *select = Tcl_NewObj();
+	int           stride;
+	int           i;
+	int           k;
+	int           result = TCL_ERROR;
+	sqlite3_stmt *statement = NULL;
 
 	if(nameTypeList) {
 		if(Tcl_ListObjGetElements(interp, nameTypeList, &objc, &objv) != TCL_OK)
@@ -343,7 +345,14 @@ char *Pg_sqlite_generate_check(Tcl_Interp *interp, char *tableName, Tcl_Obj *nam
 
 	// combine select list and where clause into statement, and turn it into a string
 	Tcl_AppendStringsToObj(sql, " FROM ", tableName, " WHERE (", Tcl_GetString(where), ");", (char *)NULL);
-	result = Tcl_GetString(sql);
+
+	// create statement
+	if(sqlite3_prepare_v2(sqlite_db, Tcl_GetString(sql), -1, &statement, NULL) != SQLITE_OK)
+		Tcl_AppendResult(interp, sqlite3_errmsg(sqlite_db), (char *)NULL);
+		goto cleanup_and_exit;
+	}
+
+	result = TCL_OK;
 
   cleanup_and_exit:
 	// discard key names
@@ -356,10 +365,18 @@ char *Pg_sqlite_generate_check(Tcl_Interp *interp, char *tableName, Tcl_Obj *nam
 
 	// save or discard primary key indexes.
 	if(primaryKeyIndex) {
-		if(result)
+		if(result == TCL_OK)
 			*primaryKeyIndexPtr = primaryKeyIndex;
 		else
 			ckfree(primaryKeyIndex);
+	}
+
+	// save or discard statement
+	if(statement) {
+		if(result == TCL_OK)
+			*statementPtr = statement;
+		else
+			sqlite3_finalize(statement);
 	}
 
 	return result;
