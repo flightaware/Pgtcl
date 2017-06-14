@@ -371,9 +371,15 @@ Pg_sqlite_generateCheck(Tcl_Interp *interp, sqlite3 *sqlite_db, char *tableName,
 // Return TCL_ERROR if there is an error.
 //
 int
-Pg_sqlite_execute_check(Tcl_Interp *interp, sqlite3 *sqlite_db, sqlite3_stmt *statement, int *primaryKeyIndex, enum mappedTypes *columnTypes, char **row, int count)
+Pg_sqlite_executeCheck(Tcl_Interp *interp, sqlite3 *sqlite_db, sqlite3_stmt *statement, int *primaryKeyIndex, enum mappedTypes *columnTypes, char **row, int count)
 {
 	int i;
+
+	// Check for nulls, if there's nulls we know we can't skip it
+	for(i = 0; i < count; i++) {
+		if(!row[i])
+			return TCL_OK;
+	}
 
 	// Do this before work so we don't have to remember to do it afterwards.
 	sqlite3_reset(statement);
@@ -1244,6 +1250,16 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 						returnCode = TCL_ERROR;
 						break;
 					}
+					if(checkRow) {
+						int check = Pg_sqlite_executeCheck(interp, sqlite_db, checkStatement, primaryKeyIndex, columnTypes, columns, nColumns);
+						if(check == TCL_ERROR) {
+							returnCode = TCL_ERROR;
+							break;
+						}
+						if (check == TCL_CONTINUE) {
+							continue;
+						}
+					}
 				}
 
 				for(column = 0; column < nColumns; column++) {
@@ -1375,17 +1391,37 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 				nTuples = PQntuples(result);
 
 				for (tupleIndex = 0; tupleIndex < nTuples; tupleIndex++) {
+					char **columns = (char **)ckalloc(nColumns * (sizeof *columns));
 					for(column = 0; column < nColumns; column++) {
-						char *value = PQgetvalue(result, tupleIndex, column);
-						if(nullString && strcmp(value, nullString) == 0)
+						columns[column] = PQgetvalue(result, tupleIndex, column);
+						if(nullString && strcmp(columns[column], nullString) == 0)
+							columns[column] = NULL;
+					}
+					if(checkRow) {
+						int check = Pg_sqlite_executeCheck(interp, sqlite_db, checkStatement, primaryKeyIndex, columnTypes, columns, nColumns);
+						if(check == TCL_ERROR) {
+							returnCode = TCL_ERROR;
+							ckfree(columns);
+							goto import_loop_end;
+						}
+						if (check == TCL_CONTINUE) {
+							ckfree(columns);
+							continue;
+						}
+					}
+					for(column = 0; column < nColumns; column++) {
+						if (!columns[column])
 							continue;
 
 						int type = columnTypes ? columnTypes[column] : PG_SQLITE_TEXT;
-						if (Pg_sqlite_bindValue(sqlite_db, statement, column, value, type, &errorMessage) != TCL_OK) {
+						if (Pg_sqlite_bindValue(sqlite_db, statement, column, columns[column], type, &errorMessage) != TCL_OK) {
 							returnCode = TCL_ERROR;
+							ckfree(columns);
 							goto import_loop_end;
 						}
 					}
+					ckfree(columns);
+					columns = NULL;
 
 					if (sqlite3_step(statement) != SQLITE_DONE) {
 						errorMessage = sqlite3_errmsg(sqlite_db);
