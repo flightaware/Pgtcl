@@ -403,8 +403,9 @@ Pg_sqlite_executeCheck(Tcl_Interp *interp, sqlite3 *sqlite_db, sqlite3_stmt *sta
 		case SQLITE_ROW: {
 			for(i = 0; i < count; i++) {
 				char *value = (char *)sqlite3_column_text(statement, i);
-				if(strcmp(row[i], value) == 0)
+				if(strcmp(row[i], value) != 0) {
 					return TCL_OK;
+				}
 			}
 			return TCL_CONTINUE;
 		}
@@ -1256,7 +1257,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 							break;
 						}
 						if (check == TCL_CONTINUE) {
-							continue;
+							goto next_row;
 						}
 					}
 				}
@@ -1304,6 +1305,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 					Tcl_DoOneEvent(0);
 				}
 
+			  next_row:
 				if(tabsepFile) {
 					if((returnCode = Pg_sqlite_gets(interp, tabsepChannel, &row)) == TCL_BREAK)
 						returnCode = TCL_OK;
@@ -1335,7 +1337,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 
 				if(dropTable) {
 					if(Pg_sqlite_dropTable(interp, sqlite_db, dropTable) != TCL_OK)
-						Tcl_AppendResult(interp, " while handling error", (char *)NULL);
+						Tcl_AppendResult(interp, " while dropping table", (char *)NULL);
 				}
 
 				return TCL_ERROR;
