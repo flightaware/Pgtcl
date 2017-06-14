@@ -260,7 +260,6 @@ Pg_sqlite_generateCheck(Tcl_Interp *interp, sqlite3 *sqlite_db, char *tableName,
 	char        **primaryKeyNames = NULL;
 	Tcl_Obj      *sql = Tcl_NewObj();
 	Tcl_Obj      *where = Tcl_NewObj();
-	Tcl_Obj      *select = Tcl_NewObj();
 	int           i;
 	int           k;
 	int           result = TCL_ERROR;
@@ -298,7 +297,7 @@ Pg_sqlite_generateCheck(Tcl_Interp *interp, sqlite3 *sqlite_db, char *tableName,
 		// add to the select clause
 		if(i != 0)
 			Tcl_AppendStringsToObj(sql, ", ", (char *)NULL);
-		Tcl_AppendStringsToObj(select, column, (char *)NULL);
+		Tcl_AppendStringsToObj(sql, column, (char *)NULL);
 
 		// look in primary key list
 		for(k = 0; k < keyc; k++) {
@@ -952,11 +951,11 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 					goto early_error_exit;
 				}
 			}
-		} else if(nameTypeList) {
-			if(cmdIndex == CMD_READ_KEYVAL) {
-				if(Pg_sqlite_getNames(interp, nameTypeList, 2, &columnNames, &nColumns) != TCL_OK) {
-					goto early_error_exit;
-				}
+		}
+
+		if(!columnNames && nameTypeList) {
+			if(Pg_sqlite_getNames(interp, nameTypeList, 2, &columnNames, &nColumns) != TCL_OK) {
+				goto early_error_exit;
 			}
 		}
 
