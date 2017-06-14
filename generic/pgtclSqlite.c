@@ -252,10 +252,8 @@ Pg_sqlite_bindValue(sqlite3 *sqlite_db, sqlite3_stmt *statement, int column, cha
 // of the primary keys in the name list.
 //
 int
-Pg_sqlite_generate_check(Tcl_Interp *interp, sqlite3 *sqlite_db, char *tableName, Tcl_Obj *nameList, Tcl_Obj *nameTypeList, Tcl_Obj *primaryKey, sqlite3_stmt **statementPtr, int **primaryKeyIndexPtr)
+Pg_sqlite_generateCheck(Tcl_Interp *interp, sqlite3 *sqlite_db, char *tableName, char **columnNames, int nColumns, Tcl_Obj *primaryKey, sqlite3_stmt **statementPtr, int **primaryKeyIndexPtr)
 {
-	Tcl_Obj     **objv;
-	int           objc;
 	Tcl_Obj     **keyv;
 	int           keyc;
 	int          *primaryKeyIndex = NULL;
@@ -263,28 +261,10 @@ Pg_sqlite_generate_check(Tcl_Interp *interp, sqlite3 *sqlite_db, char *tableName
 	Tcl_Obj      *sql = Tcl_NewObj();
 	Tcl_Obj      *where = Tcl_NewObj();
 	Tcl_Obj      *select = Tcl_NewObj();
-	int           stride;
 	int           i;
 	int           k;
 	int           result = TCL_ERROR;
 	sqlite3_stmt *statement = NULL;
-
-	if(nameTypeList) {
-		if(Tcl_ListObjGetElements(interp, nameTypeList, &objc, &objv) != TCL_OK)
-			goto cleanup_and_exit;
-
-		if(objc & 1) {
-			Tcl_AppendResult(interp, "List must have an even number of elements", (char *)NULL);
-			goto cleanup_and_exit;
-		}
-
-		stride = 2;
-	} else {
-		if(Tcl_ListObjGetElements(interp, nameList, &objc, &objv) != TCL_OK)
-			goto cleanup_and_exit;
-
-		stride = 1;
-	}
 
 	if(Tcl_ListObjGetElements(interp, primaryKey, &keyc, &keyv) != TCL_OK)
 		goto cleanup_and_exit;
@@ -313,8 +293,8 @@ Pg_sqlite_generate_check(Tcl_Interp *interp, sqlite3 *sqlite_db, char *tableName
 	}
 
 	Tcl_AppendStringsToObj(sql, "SELECT ", (char *)NULL);
-	for(i = 0; i < objc; i+= stride) {
-		char *column = Tcl_GetString(objv[i]);
+	for(i = 0; i < nColumns; i++) {
+		char *column = columnNames[i];
 		// add to the select clause
 		if(i != 0)
 			Tcl_AppendStringsToObj(sql, ", ", (char *)NULL);
@@ -797,9 +777,9 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 		incoming[CMD_IMPORT_POSTGRES_RESULT] = 1;
 		incoming[CMD_READ_TABSEP] = 1;
 		incoming[CMD_READ_KEYVAL] = 1;
-		argerr[CMD_READ_TABSEP] = "?-row tabsep_row? ?-file file_handle? ?-sql sqlite_sql? ?-create new_table? ?-into table? ?-as name-type-list? ?-types type-list? ?-names name-list? ?-pkey primary_key? ?-sep sepstring? ?-null nullstring? ?-replace? ?-poll_interval count?";
-		argerr[CMD_IMPORT_POSTGRES_RESULT] = "handle ?-sql sqlite_sql? ?-create new_table? ?-into table? ?-as name-type-list? ?-types type-list? ?-names name-list? ?-rowbyrow? ?-pkey primary_key? ?-null nullstring? ?-replace? ?-poll_interval count?";
-		argerr[CMD_READ_KEYVAL] = "?-row tabsep_row? ?-file file_handle? ?-create new_table? ?-into table? ?-as name-type-list? ?-names name-list? ?-pkey primary_key? ?-sep sepstring? ?-unknown colname? ?-replace? ?-poll_interval count?";
+		argerr[CMD_READ_TABSEP] = "?-row tabsep_row? ?-file file_handle? ?-sql sqlite_sql? ?-create new_table? ?-into table? ?-as name-type-list? ?-types type-list? ?-names name-list? ?-pkey primary_key? ?-sep sepstring? ?-null nullstring? ?-replace? ?-poll_interval count? ?-check?";
+		argerr[CMD_IMPORT_POSTGRES_RESULT] = "handle ?-sql sqlite_sql? ?-create new_table? ?-into table? ?-as name-type-list? ?-types type-list? ?-names name-list? ?-rowbyrow? ?-pkey primary_key? ?-null nullstring? ?-replace? ?-poll_interval count? ?-check?";
+		argerr[CMD_READ_KEYVAL] = "?-row tabsep_row? ?-file file_handle? ?-create new_table? ?-into table? ?-as name-type-list? ?-names name-list? ?-pkey primary_key? ?-sep sepstring? ?-unknown colname? ?-replace? ?-poll_interval count? ?-check?";
 	}
 
 	// common variables
@@ -830,9 +810,12 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 	char              *nullString = NULL;
 	char              *unknownKey = NULL;
 	int		   createTable = 0;
-	int		   replaceTable = 0;
+	int		   replaceRows = 0;
 	int                pollInterval = 0;
 	int		   recommitInterval = 0;
+	int		   checkRow = 0;
+	sqlite3_stmt      *checkStatement = NULL;
+	int		  *primaryKeyIndex = NULL;
 
 	// common code
 	if(incoming[cmdIndex]) {
@@ -890,8 +873,10 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 				optIndex++;
 			} else if (cmdIndex == CMD_IMPORT_POSTGRES_RESULT && strcmp(optName, "-rowbyrow") == 0) {
 				rowbyrow = 1;
+			} else if (strcmp(optName, "-check") == 0) {
+				checkRow = 1;
 			} else if (strcmp(optName, "-replace") == 0) {
-				replaceTable = 1;
+				replaceRows = 1;
 			} else if (strcmp(optName, "-recommit") == 0) {
 				if (Tcl_GetIntFromObj(interp, objv[optIndex], &recommitInterval) == TCL_ERROR) {
 					Tcl_AppendResult(interp, " in argumant to '-poll_interval'");
@@ -947,23 +932,24 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 		if(nameList) {
 			if(cmdIndex == CMD_READ_KEYVAL) {
 				if(Pg_sqlite_getNames(interp, nameList, 1, &columnNames, &nColumns) != TCL_OK) {
+				  early_error_exit:
+					if(dropTable)
+						Pg_sqlite_dropTable(interp, sqlite_db, dropTable);
+					if (columnNames)
+						ckfree(columnNames);
 					if (columnTypes)
 						ckfree(columnTypes);
 					return TCL_ERROR;
 				}
 			} else if(!nColumns)  {
 				if(Tcl_ListObjLength(interp, nameList, &nColumns) != TCL_OK) {
-					if (columnTypes)
-						ckfree(columnTypes);
-					return TCL_ERROR;
+					goto early_error_exit;
 				}
 			}
 		} else if(nameTypeList) {
 			if(cmdIndex == CMD_READ_KEYVAL) {
 				if(Pg_sqlite_getNames(interp, nameTypeList, 2, &columnNames, &nColumns) != TCL_OK) {
-					if (columnTypes)
-						ckfree(columnTypes);
-					return TCL_ERROR;
+					goto early_error_exit;
 				}
 			}
 		}
@@ -974,20 +960,25 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 					return TCL_ERROR;
 			} else if(!nameList) {
 				Tcl_AppendResult(interp, "No template (-as) provided for -into", (char *)NULL);
-				if (columnNames)
-					ckfree(columnNames);
-				if (columnTypes)
-					ckfree(columnTypes);
-				return TCL_ERROR;
+				goto early_error_exit;
 			}
 
-			sqliteCode = Pg_sqlite_generate(interp, sqlite_db, sqliteTable, nameList, nameTypeList, primaryKey, unknownKey, createTable, replaceTable);
+			sqliteCode = Pg_sqlite_generate(interp, sqlite_db, sqliteTable, nameList, nameTypeList, primaryKey, unknownKey, createTable, replaceRows);
 			if (!sqliteCode) {
-				if (columnTypes)
-					ckfree(columnTypes);
-				return TCL_ERROR;
+				goto early_error_exit;
 			}
 			if(createTable) dropTable = sqliteTable;
+		}
+
+		if(checkRow) {
+			if(!columnNames || !columnTypes || !primaryKey || !sqliteTable) {
+				Tcl_AppendResult(interp, "-check requires primary key, column names, and column types", (char *)NULL);
+				goto early_error_exit;
+			}
+
+			if(Pg_sqlite_generateCheck(interp, sqlite_db, sqliteTable, columnNames, nColumns, primaryKey, &checkStatement, &primaryKeyIndex) != TCL_OK) {
+				goto early_error_exit;
+			}
 		}
 
 		// Last try hack to guess columns
@@ -1002,23 +993,12 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 
 		if(!nColumns) {
 			Tcl_AppendResult(interp, "Can't determine row length from provided arguments", (char *)NULL);
-			if (columnNames)
-				ckfree(columnNames);
-			if (columnTypes)
-				ckfree(columnTypes);
-			return TCL_ERROR;
+			goto early_error_exit;
 		}
 
 		if(Pg_sqlite_prepare(interp, sqlite_db, sqliteCode, &statement) != TCL_OK) {
-			if (columnNames)
-				ckfree(columnNames);
-			if(columnTypes)
-				ckfree(columnTypes);
-			if(dropTable)
-				Pg_sqlite_dropTable(interp, sqlite_db, dropTable);
-			return TCL_ERROR;
+			goto early_error_exit;
 		}
-
 	}
 
 	switch (cmdIndex) {
