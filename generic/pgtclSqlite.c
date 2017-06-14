@@ -347,8 +347,7 @@ Pg_sqlite_generate_check(Tcl_Interp *interp, sqlite3 *sqlite_db, char *tableName
 	Tcl_AppendStringsToObj(sql, " FROM ", tableName, " WHERE (", Tcl_GetString(where), ");", (char *)NULL);
 
 	// create statement
-	if(sqlite3_prepare_v2(sqlite_db, Tcl_GetString(sql), -1, &statement, NULL) != SQLITE_OK) {
-		Tcl_AppendResult(interp, sqlite3_errmsg(sqlite_db), (char *)NULL);
+	if(Pg_sqlite_prepare(interp, sqlite_db, Tcl_GetString(sql), &statement) != TCL_OK) {
 		goto cleanup_and_exit;
 	}
 
@@ -385,14 +384,53 @@ Pg_sqlite_generate_check(Tcl_Interp *interp, sqlite3 *sqlite_db, char *tableName
 //
 // Execute prepared statement from Pg_sqlite_generate_check, pulling the primary keys from the already parsed row.
 //
-// Return true if 
+// Return TCL_CONTINUE if 
 //    (a) there is a row already existing, and
 //    (b) all values in the parsed row match the values retreived from the db
+// Return TCL_OK if the there is no row or it doesn't match.
+// Return TCL_ERROR if there is an error.
 //
 int
-Pg_sqlite_execute_check(Tcl_Interp *interp, sqlite3 *sqlite_db, sqlite3_stmt *statement, int *primaryKeyIndex, char **row)
+Pg_sqlite_execute_check(Tcl_Interp *interp, sqlite3 *sqlite_db, sqlite3_stmt *statement, int *primaryKeyIndex, enum mappedTypes *columnTypes, char **row, int count)
 {
-	return 0; // stub
+	int i;
+
+	// Do this before work so we don't have to remember to do it afterwards.
+	sqlite3_reset(statement);
+	sqlite3_clear_bindings(statement);
+
+	for(i = 0; ; i++) {
+		int   col = primaryKeyIndex[i];
+		if(col == -1)
+			break;
+
+		char            *value = row[col];
+		enum mappedTypes type = columnTypes[col];
+		const char      *errorMessage;
+
+		if (Pg_sqlite_bindValue(sqlite_db, statement, i, value, type, &errorMessage) != TCL_OK) {
+			Tcl_AppendResult(interp, errorMessage, (char *)NULL);
+			return TCL_ERROR;
+		}
+	}
+
+	switch (sqlite3_step(statement)) {
+		case SQLITE_ROW: {
+			for(i = 0; i < count; i++) {
+				char *value = (char *)sqlite3_column_text(statement, i);
+				if(strcmp(row[i], value) == 0)
+					return TCL_OK;
+			}
+			return TCL_CONTINUE;
+		}
+		case SQLITE_DONE: {
+			return TCL_OK;
+		}
+		default: {
+			Tcl_AppendResult(interp, sqlite3_errmsg(sqlite_db), (char *)NULL);
+			return TCL_ERROR;
+		}
+	}
 }
 
 char *
