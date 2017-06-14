@@ -245,6 +245,137 @@ Pg_sqlite_bindValue(sqlite3 *sqlite_db, sqlite3_stmt *statement, int column, cha
 	return TCL_ERROR;
 }
 
+//
+// Generate statement to query the target DB to see if the row is already there. Returns SQL and fills in the indexes
+// of the primary keys in the name list.
+//
+char *Pg_sqlite_generate_check(Tcl_Interp *interp, char *tableName, Tcl_Obj *nameList, Tcl_Obj *nameTypeList, Tcl_Obj *primaryKey, int **primaryKeyIndexPtr)
+{
+	Tcl_Obj **objv;
+	int       objc;
+	Tcl_Obj **keyv;
+	int       keyc;
+	int      *primaryKeyIndex = NULL;
+	char    **primaryKeyNames = NULL;
+	Tcl_Obj  *sql = Tcl_NewObj();
+	Tcl_Obj  *where = Tcl_NewObj();
+	Tcl_Obj  *select = Tcl_NewObj();
+	int       stride;
+	int       i;
+	int       k;
+	char     *result = NULL;
+
+	if(nameTypeList) {
+		if(Tcl_ListObjGetElements(interp, nameTypeList, &objc, &objv) != TCL_OK)
+			return NULL;
+
+		if(objc & 1) {
+			Tcl_AppendResult(interp, "List must have an even number of elements", (char *)NULL);
+			return NULL;
+		}
+
+		stride = 2;
+	} else {
+		if(Tcl_ListObjGetElements(interp, nameList, &objc, &objv) != TCL_OK)
+			return NULL;
+
+		stride = 1;
+	}
+
+	if(Tcl_ListObjGetElements(interp, primaryKey, &keyc, &keyv) != TCL_OK)
+		return NULL;
+
+	primaryKeyNames = (char **)ckalloc(keyc * (sizeof *primaryKeyNames));
+	for(k = 0; k < keyc; k++) {
+		char *column = Tcl_GetString(keyv[k]);
+		char *space = strchr(column, ' ');
+		if(space) {
+			primaryKeyNames[k] = ckalloc(space - column + 1);
+			*space = 0;
+			strcpy(primaryKeyNames[k], column);
+			*space = ' ';
+		} else {
+			primaryKeyNames[k] = ckalloc(strlen(column) + 1);
+			strcpy(primaryKeyNames[k], column);
+		}
+		if(k != 0)
+			Tcl_AppendStringsToObj(where, ", ", (char *)NULL);
+		Tcl_AppendStringsToObj(where, primaryKeyNames[k], " = ?", (char *)NULL);
+	}
+
+	primaryKeyIndex = ckalloc((keyc + 1) * (sizeof *primaryKeyIndex));
+	for(k = 0; k < keyc+1; k++) {
+		primaryKeyIndex[k] = -1;
+	}
+
+	Tcl_AppendStringsToObj(sql, "SELECT ", (char *)NULL);
+	for(i = 0; i < objc; i+= stride) {
+		char *column = Tcl_GetString(objv[i]);
+		// add to the select clause
+		if(i != 0)
+			Tcl_AppendStringsToObj(sql, ", ", (char *)NULL);
+		Tcl_AppendStringsToObj(select, column, (char *)NULL);
+
+		// look in primary key list
+		for(k = 0; k < keyc; k++) {
+			if(strcmp(column, primaryKeyNames[k]) == 0)
+				break;
+		}
+
+		// if it's a primary key
+		if(k < keyc) {
+			// remember where it was in the column list
+			primaryKeyIndex[k] = i;
+		}
+	}
+
+	// if there's any unused primary keys that's an error
+	for(k = 0; k < keyc; k++) {
+		if(primaryKeyIndex[k] == -1)
+			break;
+	}
+	if(k < keyc) {
+		Tcl_AppendResult(interp, "Primary keys names must all be in the column list", (char *)NULL);
+		goto cleanup_and_exit;
+	}
+
+	// combine select list and where clause into statement, and turn it into a string
+	Tcl_AppendStringsToObj(sql, " FROM ", tableName, " WHERE (", Tcl_GetString(where), ");", (char *)NULL);
+	result = Tcl_GetString(sql);
+
+  cleanup_and_exit:
+	// discard key names
+	if(primaryKeyNames) {
+		for(k = 0; k < keyc; k++) {
+			ckfree(primaryKeyNames[k]);
+		}
+		ckfree(primaryKeyNames);
+	}
+
+	// save or discard primary key indexes.
+	if(primaryKeyIndex) {
+		if(result)
+			*primaryKeyIndexPtr = primaryKeyIndex;
+		else
+			ckfree(primaryKeyIndex);
+	}
+
+	return result;
+}
+
+//
+// Execute prepared statement from Pg_sqlite_generate_check, pulling the primary keys from the already parsed row.
+//
+// Return true if 
+//    (a) there is a row already existing, and
+//    (b) all values in the parsed row match the values retreived from the db
+//
+int
+Pg_sqlite_execute_check(Tcl_Interp *interp, sqlite3 *sqlite_db, sqlite3_stmt *statement, int *primaryKeyIndex, char **row)
+{
+	return 0; // stub
+}
+
 char *
 Pg_sqlite_generate(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sqliteTable, Tcl_Obj *nameList, Tcl_Obj *nameTypeList, Tcl_Obj *primaryKey, char *unknownKey, int newTable, int replacing)
 {
