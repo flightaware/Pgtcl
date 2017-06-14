@@ -17,6 +17,8 @@
 #     define CONST84
 #endif
 
+#define LAPPEND_STRING(i, o, s) Tcl_ListObjAppendElement((i), (o), Tcl_NewStringObj((s), -1));
+
 // From tclsqlite.c, part 1 of the hack, sqlite3 conveniently guarantees that the first element in
 // the userdata for an sqlite proc is the sqlite3 database.
 /*
@@ -656,8 +658,8 @@ Pg_sqlite_split_keyval(Tcl_Interp *interp, char *row, char ***columnsPtr, int nC
 		if(col < nColumns)
 			columns[col] = val;
 		else {
-			Tcl_ListObjAppendElement(interp, unknownObj, Tcl_NewStringObj(key, -1));
-			Tcl_ListObjAppendElement(interp, unknownObj, Tcl_NewStringObj(val, -1));
+			LAPPEND_STRING(interp, unknownObj, key);
+			LAPPEND_STRING(interp, unknownObj, val);
 		}
 
 		val = nextVal;
@@ -684,13 +686,13 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 	Tcl_ObjCmdProc     *sqlite3_ObjProc = NULL;
 
 	static CONST84 char *subCommands[] = {
-		"filename", "import_postgres_result", "write_tabsep", "read_tabsep", "read_tabsep_keylist",
+		"info", "import_postgres_result", "write_tabsep", "read_tabsep", "read_tabsep_keylist",
 		(char *)NULL
 	};
 
 	enum subCommands
 	{
-		CMD_FILENAME, CMD_IMPORT_POSTGRES_RESULT, CMD_WRITE_TABSEP, CMD_READ_TABSEP, CMD_READ_KEYVAL,
+		CMD_INFO, CMD_IMPORT_POSTGRES_RESULT, CMD_WRITE_TABSEP, CMD_READ_TABSEP, CMD_READ_KEYVAL,
 		NUM_COMMANDS
 	};
 
@@ -965,22 +967,70 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 	}
 
 	switch (cmdIndex) {
-		case CMD_FILENAME: {
-			char       *sqlite_dbname;
-			const char *sqlite_filename;
+		case CMD_INFO: {
+			char       *dbName = NULL;
+			Tcl_Obj    *infoList = Tcl_NewObj();
+			int         doFilename = 0;
+			int	    doBusy = 0;
 
-			if(objc == 3) {
-				sqlite_dbname = "main";
-			} else if (objc == 4) {
-				sqlite_dbname = Tcl_GetString(objv[3]);
-			} else {
-				Tcl_WrongNumArgs(interp, 3, objv, "?dbname?");
+			optIndex = 3;
+
+			if(objc < optIndex) {
+			  info_wrong_num_args:
+				Tcl_WrongNumArgs(interp, 3, objv, "?-busy? ?-filename? ?-db dbname?");
 				return TCL_ERROR;
 			}
 
-			sqlite_filename = sqlite3_db_filename(sqlite_db, sqlite_dbname);
+			while (optIndex < objc) {
+				char *optName = Tcl_GetString(objv[optIndex]);
+				optIndex++;
+				if (optName[0] != '-') {
+					goto info_wrong_num_args;
+				}
 
-			Tcl_AppendResult(interp, sqlite_filename, (char *)NULL);
+				if (strcmp(optName, "-db") == 0) {
+					dbName = Tcl_GetString(objv[optIndex]);
+					optIndex++;
+				} else if (strcmp(optName, "-busy") == 0) {
+					doBusy = 1;
+				} else if (strcmp(optName, "-filename") == 0) {
+					doFilename = 1;
+				} else
+					goto info_wrong_num_args;
+			}
+
+			// no args, do everything
+			if(!doFilename && !doBusy) {
+				doFilename = 1;
+				doBusy = 1;
+			}
+
+			if(doFilename) {
+				if(!dbName)
+					dbName = "main";
+				LAPPEND_STRING(interp, infoList, "filename");
+				LAPPEND_STRING(interp, infoList, sqlite3_db_filename(sqlite_db, dbName));
+			}
+
+			if(doBusy) {
+				sqlite3_stmt *pStmt = NULL;
+				Tcl_Obj      *busyList = NULL;
+
+				for(pStmt=sqlite3_next_stmt(sqlite_db, pStmt); pStmt; pStmt=sqlite3_next_stmt(sqlite_db, pStmt)){
+					if( sqlite3_stmt_busy(pStmt) ){
+						if(!busyList)
+							busyList = Tcl_NewObj();
+						LAPPEND_STRING(interp, busyList, sqlite3_sql(pStmt));
+					}
+				}
+
+				if(busyList) {
+					LAPPEND_STRING(interp, infoList, "busy");
+					Tcl_ListObjAppendElement(interp, infoList, busyList);
+				}
+			}
+
+			Tcl_SetObjResult(interp, infoList);
 			break;
 		}
 
@@ -989,6 +1039,9 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			const char *channelName = NULL;
 			int channelMode;
 			int sqliteStatus;
+
+			channelName = Tcl_GetString(objv[3]);
+			sqliteCode = Tcl_GetString(objv[4]);
 
 			optIndex = 5;
 			nullString = "";
@@ -1023,9 +1076,6 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 				} else
 					goto write_wrong_num_args;
 			}
-
-			channelName = Tcl_GetString(objv[3]);
-			sqliteCode = Tcl_GetString(objv[4]);
 
 			channel = Tcl_GetChannel(interp, channelName, &channelMode);
 			if(!channel) {
