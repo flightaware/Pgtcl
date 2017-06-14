@@ -271,23 +271,23 @@ Pg_sqlite_generate_check(Tcl_Interp *interp, sqlite3 *sqlite_db, char *tableName
 
 	if(nameTypeList) {
 		if(Tcl_ListObjGetElements(interp, nameTypeList, &objc, &objv) != TCL_OK)
-			return NULL;
+			goto cleanup_and_exit;
 
 		if(objc & 1) {
 			Tcl_AppendResult(interp, "List must have an even number of elements", (char *)NULL);
-			return NULL;
+			goto cleanup_and_exit;
 		}
 
 		stride = 2;
 	} else {
 		if(Tcl_ListObjGetElements(interp, nameList, &objc, &objv) != TCL_OK)
-			return NULL;
+			goto cleanup_and_exit;
 
 		stride = 1;
 	}
 
 	if(Tcl_ListObjGetElements(interp, primaryKey, &keyc, &keyv) != TCL_OK)
-		return NULL;
+		goto cleanup_and_exit;
 
 	primaryKeyNames = (char **)ckalloc(keyc * (sizeof *primaryKeyNames));
 	for(k = 0; k < keyc; k++) {
@@ -347,7 +347,7 @@ Pg_sqlite_generate_check(Tcl_Interp *interp, sqlite3 *sqlite_db, char *tableName
 	Tcl_AppendStringsToObj(sql, " FROM ", tableName, " WHERE (", Tcl_GetString(where), ");", (char *)NULL);
 
 	// create statement
-	if(sqlite3_prepare_v2(sqlite_db, Tcl_GetString(sql), -1, &statement, NULL) != SQLITE_OK)
+	if(sqlite3_prepare_v2(sqlite_db, Tcl_GetString(sql), -1, &statement, NULL) != SQLITE_OK) {
 		Tcl_AppendResult(interp, sqlite3_errmsg(sqlite_db), (char *)NULL);
 		goto cleanup_and_exit;
 	}
