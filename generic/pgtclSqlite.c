@@ -935,7 +935,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 				replaceRows = 1;
 			} else if (strcmp(optName, "-recommit") == 0) {
 				if (Tcl_GetIntFromObj(interp, objv[optIndex], &recommitInterval) == TCL_ERROR) {
-					Tcl_AppendResult(interp, " in argumant to '-poll_interval'");
+					Tcl_AppendResult(interp, " in argument to '-recommit'", (char *)NULL);
 					return TCL_ERROR;
 				}
 				if(pollInterval <= 0) // Or should this be an error?
@@ -943,7 +943,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 				optIndex++;
 			} else if (strcmp(optName, "-poll_interval") == 0) {
 				if (Tcl_GetIntFromObj(interp, objv[optIndex], &pollInterval) == TCL_ERROR) {
-					Tcl_AppendResult(interp, " in argumant to '-poll_interval'");
+					Tcl_AppendResult(interp, " in argument to '-poll_interval'", (char *)NULL);
 					return TCL_ERROR;
 				}
 				if(pollInterval <= 0) // Or should this be an error?
@@ -1158,7 +1158,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 					optIndex++;
 				} else if (strcmp(optName, "-poll_interval") == 0) {
 					if (Tcl_GetIntFromObj(interp, objv[optIndex], &pollInterval) == TCL_ERROR) {
-						Tcl_AppendResult(interp, " in argumant to '-poll_interval'");
+						Tcl_AppendResult(interp, " in argument to '-poll_interval'", (char *)NULL);
 						return TCL_ERROR;
 					}
 					if(pollInterval <= 0) // Or should this be an error?
