@@ -3713,6 +3713,7 @@ pg_sqlite <parameter>sqlite_db</parameter> <parameter>command</parameter> <optio
     <listitem>
      <para>
       The command, one of
+	<literal>info</literal>,
 	<literal>import_postgres_result</literal>,
 	<literal>read_tabsep</literal>,
 	<literal>write_tabsep</literal>, or
@@ -3737,6 +3738,50 @@ pg_sqlite <parameter>sqlite_db</parameter> <parameter>command</parameter> <optio
   <title>Commands</title>
 
   <para>
+   <command>info</command>
+
+   <synopsis>
+    pg_sqlite <parameter>sqlite_db</parameter> info
+	<optional role="tcl">-busy</optional>
+	<optional role="tcl">-filename</optional>
+	<optional role="tcl">-db <parameter>database_name</parameter></optional>
+   </synopsis>
+   </para>
+
+   <para>Request information from an SQLITE database connection. Returns a key-value list containing the values requested if available. With no arguments, all available info is returned.</para>
+
+  <variablelist>
+
+   <varlistentry>
+    <term>-filename</term>
+    <listitem>
+     <para>
+	Request the filename associated with a database.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-db <parameter>database</parameter></term>
+    <listitem>
+     <para>
+	For the -filename option, specify the database name (default "main").
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-busy</term>
+    <listitem>
+     <para>
+	Request a list of prepared commands that are currently busy.
+     </para>
+    </listitem>
+   </varlistentry>
+
+  <variablelist>
+
+  <para>
    <command>import_postgres_result</command>
 
    <synopsis>
@@ -3753,6 +3798,8 @@ pg_sqlite <parameter>sqlite_db</parameter> <parameter>command</parameter> <optio
 	<optional role="tcl">-sep <parameter>separator</parameter></optional>
 	<optional role="tcl">-null <parameter>null_string</parameter></optional>
 	<optional role="tcl">-poll_interval <parameter>rows</parameter></optional>
+	<optional role="tcl">-recommit <parameter>rows</parameter></optional>
+	<optional role="tcl">-check</optional>
    </synopsis>
    </para>
 
@@ -3883,6 +3930,25 @@ pg_sqlite <parameter>sqlite_db</parameter> <parameter>command</parameter> <optio
     </listitem>
    </varlistentry>
 
+   <varlistentry>
+    <term>-recommit <parameter>count</parameter></term>
+    <listitem>
+     <para>
+	Chunk the operation in transactions, with one transaction every <parameter>count</parameter> rows.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-check</term>
+    <listitem>
+     <para>
+	Check (via a SELECT) whether the exact row is already present, and skip inserting the row if so. This
+	avoids bloating the WAL log during large re-loads of databases, at soem performance cost.
+     </para>
+    </listitem>
+   </varlistentry>
+
   </variablelist>
 
   <para>
@@ -3962,6 +4028,8 @@ pg_sqlite <parameter>sqlite_db</parameter> <parameter>command</parameter> <optio
 	<optional role="tcl">-sep <parameter>separator</parameter></optional>
 	<optional role="tcl">-null <parameter>null_string</parameter></optional>
 	<optional role="tcl">-poll_interval <parameter>rows</parameter></optional>
+	<optional role="tcl">-recommit <parameter>rows</parameter></optional>
+	<optional role="tcl">-check</optional>
    </synopsis>
    </para>
 
@@ -4088,6 +4156,24 @@ pg_sqlite <parameter>sqlite_db</parameter> <parameter>command</parameter> <optio
     </listitem>
    </varlistentry>
 
+   <varlistentry>
+    <term>-recommit <parameter>count</parameter></term>
+    <listitem>
+     <para>
+	Chunk the operation in transactions, with one transaction every <parameter>count</parameter> rows.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-check</term>
+    <listitem>
+     <para>
+	Check (via a SELECT) whether the exact row is already present, and skip inserting the row if so. This
+	avoids bloating the WAL log during large re-loads of databases, at soem performance cost.
+     </para>
+    </listitem>
+   </varlistentry>
   </variablelist>
 
   <para>
@@ -4106,6 +4192,7 @@ pg_sqlite <parameter>sqlite_db</parameter> <parameter>command</parameter> <optio
 	<optional role="tcl">-sep <parameter>separator</parameter></optional>
 	<optional role="tcl">-null <parameter>null_string</parameter></optional>
 	<optional role="tcl">-poll_interval <parameter>rows</parameter></optional>
+	<optional role="tcl">-recommit <parameter>rows</parameter></optional>
    </synopsis>
    </para>
 
@@ -4209,6 +4296,15 @@ pg_sqlite <parameter>sqlite_db</parameter> <parameter>command</parameter> <optio
      <para>
 	Call DoOneEvent() every <parameter>count</parameter> rows to keep the event loop alive
 	during long transactions.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-recommit <parameter>count</parameter></term>
+    <listitem>
+     <para>
+	Chunk the operation in transactions, with one transaction every <parameter>count</parameter> rows.
      </para>
     </listitem>
    </varlistentry>
