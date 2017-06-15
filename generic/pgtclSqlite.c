@@ -140,6 +140,26 @@ struct {
 	{NULL,           PG_SQLITE_NOTYPE}
 };
 
+char *Pg_sqlite_typename(enum mappedTypes type)
+{
+	static char *typenames[PG_SQLITE_NOTYPE * sizeof (char *)] = { NULL };
+
+	if (type < 0 || type >= PG_SQLITE_NOTYPE)
+		return NULL;
+
+	if (typenames[0] == NULL) {
+		int t;
+
+		for(t = 0; mappedTypes[t].name; t++) {
+			if (typenames[mappedTypes[t].type] == NULL) {
+				typenames[mappedTypes[t].type] = mappedTypes[t].name;
+			}
+		}
+	}
+
+	return typenames[type];
+}
+
 int
 Pg_sqlite_mapTypes(Tcl_Interp *interp, Tcl_Obj *list, int start, int stride, enum mappedTypes **arrayPtr, int *lengthPtr)
 {
