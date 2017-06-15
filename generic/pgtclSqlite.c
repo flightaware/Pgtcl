@@ -231,7 +231,6 @@ Pg_sqlite_bindValue(sqlite3 *sqlite_db, sqlite3_stmt *statement, int column, cha
 			int i = 0;
 
 			// skip 'quotes'
-			i = 0;
 			if(value[i] == '\'') i++;
 
 			switch (value[i]) {
