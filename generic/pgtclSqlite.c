@@ -387,7 +387,7 @@ Pg_sqlite_generateCheck(Tcl_Interp *interp, sqlite3 *sqlite_db, char *tableName,
 //
 // Execute prepared statement from Pg_sqlite_generate_check, pulling the primary keys from the already parsed row.
 //
-// Return TCL_CONTINUE if 
+// Return TCL_CONTINUE if
 //    (a) there is a row already existing, and
 //    (b) all values in the parsed row match the values retreived from the db
 // Return TCL_OK if the there is no row or it doesn't match.
@@ -427,8 +427,18 @@ Pg_sqlite_executeCheck(Tcl_Interp *interp, sqlite3 *sqlite_db, sqlite3_stmt *sta
 		case SQLITE_ROW: {
 			for(i = 0; i < count; i++) {
 				char *value = (char *)sqlite3_column_text(statement, i);
-				if(strcmp(row[i], value) != 0) {
-					return TCL_OK;
+				if(columnTypes[i] == PG_SQLITE_BOOL) {
+					int boolval = atoi(row[i]);
+					if (row[i][0] == 'y' || row[i][0] == 't' ||
+					    (row[i][0] == '\'' && (row[i][1] == 'y' || row[i][1] == 't')))
+						boolval = 1;
+					if (boolval != atoi(value)) {
+						return TCL_OK;
+					}
+				} else {
+					if(strcmp(row[i], value) != 0) {
+						return TCL_OK;
+					}
 				}
 			}
 			return TCL_CONTINUE;
