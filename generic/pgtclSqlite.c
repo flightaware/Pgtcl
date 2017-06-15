@@ -142,7 +142,7 @@ struct {
 
 char *Pg_sqlite_typename(enum mappedTypes type)
 {
-	static char *typenames[PG_SQLITE_NOTYPE * sizeof (char *)] = { NULL };
+	static char *typenames[PG_SQLITE_NOTYPE] = { NULL };
 
 	if (type < 0 || type >= PG_SQLITE_NOTYPE)
 		return NULL;
