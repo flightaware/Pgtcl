@@ -423,10 +423,14 @@ Pg_sqlite_executeCheck(Tcl_Interp *interp, sqlite3 *sqlite_db, sqlite3_stmt *sta
 				char *value = (char *)sqlite3_column_text(statement, i);
 				if(!value) {
 					// NULL matches NULL for duplicate check.
-					if (row[i]) return TCL_OK;
+					if (row[i]) {
+						return TCL_OK;
+					}
 				} else {
 					// NULL doesn't match any non-null for duplicate check.
-					if (!row[i]) return TCL_OK;
+					if (!row[i]) {
+						return TCL_OK;
+					}
 					// Special handling for boolean because sqlite doesn't actually do boolean
 					if(columnTypes[i] == PG_SQLITE_BOOL) {
 						int boolval = atoi(row[i]);
@@ -657,7 +661,7 @@ Pg_sqlite_gets(Tcl_Interp *interp, Tcl_Channel chan, char **linePtr)
 }
 
 int
-Pg_sqlite_split_tabsep(char *row, char ***columnsPtr, int nColumns, char *sepStr, const char **errorMessagePtr)
+Pg_sqlite_split_tabsep(char *row, char ***columnsPtr, int nColumns, char *sepStr, char *nullStr, const char **errorMessagePtr)
 {
 	int i;
 	char *col;
@@ -670,12 +674,15 @@ Pg_sqlite_split_tabsep(char *row, char ***columnsPtr, int nColumns, char *sepStr
 	i = 0;
 	while(col && i < nColumns) {
 		nextCol = strstr(col, sepStr);
-		columns[i++] = col;
+		columns[i] = col;
 		if(nextCol) {
 			*nextCol = 0;
 			nextCol += sepLen;
 		}
+		if (nullStr && strcmp(columns[i], nullStr) == 0)
+			columns[i] = NULL;
 		col = nextCol;
+		i++;
 	}
 	if (col) {
 		*errorMessagePtr = "Too many columns in row";
@@ -1282,7 +1289,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 						break;
 					}
 				} else {
-					if (Pg_sqlite_split_tabsep(row, &columns, nColumns, sepString, &errorMessage) != TCL_OK) {
+					if (Pg_sqlite_split_tabsep(row, &columns, nColumns, sepString, nullString, &errorMessage) != TCL_OK) {
 						returnCode = TCL_ERROR;
 						break;
 					}
@@ -1301,8 +1308,6 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 				for(column = 0; column < nColumns; column++) {
 					char *value = columns[column];
 					if(!value)
-						continue;
-					if(nullString && strcmp(value, nullString) == 0)
 						continue;
 
 					int type = columnTypes ? columnTypes[column] : PG_SQLITE_TEXT;
