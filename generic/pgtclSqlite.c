@@ -398,12 +398,6 @@ Pg_sqlite_executeCheck(Tcl_Interp *interp, sqlite3 *sqlite_db, sqlite3_stmt *sta
 {
 	int i;
 
-	// Check for nulls, if there's nulls we know we can't skip it
-	for(i = 0; i < count; i++) {
-		if(!row[i])
-			return TCL_OK;
-	}
-
 	// Do this before work so we don't have to remember to do it afterwards.
 	sqlite3_reset(statement);
 	sqlite3_clear_bindings(statement);
@@ -427,17 +421,25 @@ Pg_sqlite_executeCheck(Tcl_Interp *interp, sqlite3 *sqlite_db, sqlite3_stmt *sta
 		case SQLITE_ROW: {
 			for(i = 0; i < count; i++) {
 				char *value = (char *)sqlite3_column_text(statement, i);
-				if(columnTypes[i] == PG_SQLITE_BOOL) {
-					int boolval = atoi(row[i]);
-					if (row[i][0] == 'y' || row[i][0] == 't' ||
-					    (row[i][0] == '\'' && (row[i][1] == 'y' || row[i][1] == 't')))
-						boolval = 1;
-					if (boolval != atoi(value)) {
-						return TCL_OK;
-					}
+				if(!value) {
+					// NULL matches NULL for duplicate check.
+					if (row[i]) return TCL_OK;
 				} else {
-					if(strcmp(row[i], value) != 0) {
-						return TCL_OK;
+					// NULL doesn't match any non-null for duplicate check.
+					if (!row[i]) return TCL_OK;
+					// Special handling for boolean because sqlite doesn't actually do boolean
+					if(columnTypes[i] == PG_SQLITE_BOOL) {
+						int boolval = atoi(row[i]);
+						if (row[i][0] == 'y' || row[i][0] == 't' ||
+						    (row[i][0] == '\'' && (row[i][1] == 'y' || row[i][1] == 't')))
+							boolval = 1;
+						if (boolval != atoi(value)) {
+							return TCL_OK;
+						}
+					} else {
+						if(strcmp(row[i], value) != 0) {
+							return TCL_OK;
+						}
 					}
 				}
 			}
