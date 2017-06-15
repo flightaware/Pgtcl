@@ -122,6 +122,7 @@ enum mappedTypes {
 	PG_SQLITE_INT,
 	PG_SQLITE_DOUBLE,
 	PG_SQLITE_TEXT,
+	PG_SQLITE_BOOL,
 	PG_SQLITE_NOTYPE
 };
 
@@ -131,8 +132,10 @@ struct {
 } mappedTypes[] = {
 	{"integer",      PG_SQLITE_INT},
 	{"real",         PG_SQLITE_DOUBLE},
+	{"boolean",      PG_SQLITE_BOOL},
 	{"int",          PG_SQLITE_INT},
 	{"double",       PG_SQLITE_DOUBLE},
+	{"bool",         PG_SQLITE_BOOL},
 	{"text",         PG_SQLITE_TEXT},
 	{NULL,           PG_SQLITE_NOTYPE}
 };
@@ -223,6 +226,27 @@ int
 Pg_sqlite_bindValue(sqlite3 *sqlite_db, sqlite3_stmt *statement, int column, char *value, enum mappedTypes type, const char **errorMessagePtr)
 {
 	switch(type) {
+		case PG_SQLITE_BOOL: {
+			int ival;
+			int i = 0;
+
+			// skip 'quotes'
+			i = 0;
+			if(value[i] == '\'') i++;
+
+			switch (value[i]) {
+				case 't': case 'y': { ival = 1; break; }
+				case 'f': case 'n': { ival = 0; break; }
+				default: {
+					// assume it's an integer
+					ival = atoi(value);
+					break;
+				}
+			}
+			if (sqlite3_bind_int(statement, column+1, ival) == SQLITE_OK)
+				return TCL_OK;
+			break;
+		}
 		case PG_SQLITE_INT: {
 			if (sqlite3_bind_int(statement, column+1, atoi(value)) == SQLITE_OK)
 				return TCL_OK;
@@ -1294,6 +1318,9 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 				sqlite3_reset(statement);
 				sqlite3_clear_bindings(statement);
 
+				// Once we've imported any data, we'll keep the table.
+				dropTable = NULL;
+
 				totalTuples++;
 				if(recommitInterval && (totalTuples % recommitInterval) == 0) {
 					if(Pg_sqlite_recommit(interp, sqlite_db, sqliteCode, &statement) != TCL_OK) {
@@ -1394,9 +1421,13 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 				for (tupleIndex = 0; tupleIndex < nTuples; tupleIndex++) {
 					char **columns = (char **)ckalloc(nColumns * (sizeof *columns));
 					for(column = 0; column < nColumns; column++) {
-						columns[column] = PQgetvalue(result, tupleIndex, column);
-						if(nullString && strcmp(columns[column], nullString) == 0)
+						if(PQgetisnull(result, tupleIndex, column))
 							columns[column] = NULL;
+						else {
+							columns[column] = PQgetvalue(result, tupleIndex, column);
+							if(nullString && strcmp(columns[column], nullString) == 0)
+								columns[column] = NULL;
+						}
 					}
 					if(checkRow) {
 						int check = Pg_sqlite_executeCheck(interp, sqlite_db, checkStatement, primaryKeyIndex, columnTypes, columns, nColumns);
@@ -1431,6 +1462,9 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 					}
 					sqlite3_reset(statement);
 					sqlite3_clear_bindings(statement);
+
+					// Once we've imported any data, we'll keep the table.
+					dropTable = NULL;
 
 					totalTuples++;
 					if(recommitInterval && (totalTuples % recommitInterval) == 0) {
