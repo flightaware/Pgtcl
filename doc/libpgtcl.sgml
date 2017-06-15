@@ -3779,7 +3779,7 @@ pg_sqlite <parameter>sqlite_db</parameter> <parameter>command</parameter> <optio
     </listitem>
    </varlistentry>
 
-  <variablelist>
+  </variablelist>
 
   <para>
    <command>import_postgres_result</command>
