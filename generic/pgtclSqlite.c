@@ -404,23 +404,17 @@ int
 Pg_sqlite_executeCheck(Tcl_Interp *interp, sqlite3 *sqlite_db, sqlite3_stmt *statement, int *primaryKeyIndex, enum mappedTypes *columnTypes, char **row, int count)
 {
 	int i;
+	int status = TCL_ERROR;
+	int col;
 
-	// Do this before work so we don't have to remember to do it afterwards.
-	sqlite3_reset(statement);
-	sqlite3_clear_bindings(statement);
-
-	for(i = 0; ; i++) {
-		int   col = primaryKeyIndex[i];
-		if(col == -1)
-			break;
-
-		char            *value = row[col];
-		enum mappedTypes type = columnTypes[col];
-		const char      *errorMessage;
+	for(i = 0; -1 != (col = primaryKeyIndex[i]); i++) {
+		char             *value = row[col];
+		enum mappedTypes  type = columnTypes[col];
+		const char       *errorMessage;
 
 		if (Pg_sqlite_bindValue(sqlite_db, statement, i, value, type, &errorMessage) != TCL_OK) {
 			Tcl_AppendResult(interp, errorMessage, (char *)NULL);
-			return TCL_ERROR;
+			goto cleanup_and_exit;
 		}
 	}
 
@@ -431,12 +425,14 @@ Pg_sqlite_executeCheck(Tcl_Interp *interp, sqlite3 *sqlite_db, sqlite3_stmt *sta
 				if(!value) {
 					// NULL matches NULL for duplicate check.
 					if (row[i]) {
-						return TCL_OK;
+						status = TCL_OK;
+						goto cleanup_and_exit;
 					}
 				} else {
 					// NULL doesn't match any non-null for duplicate check.
 					if (!row[i]) {
-						return TCL_OK;
+						status = TCL_OK;
+						goto cleanup_and_exit;
 					}
 					// Special handling for boolean because sqlite doesn't actually do boolean
 					if(columnTypes[i] == PG_SQLITE_BOOL) {
@@ -445,25 +441,34 @@ Pg_sqlite_executeCheck(Tcl_Interp *interp, sqlite3 *sqlite_db, sqlite3_stmt *sta
 						    (row[i][0] == '\'' && (row[i][1] == 'y' || row[i][1] == 't')))
 							boolval = 1;
 						if (boolval != atoi(value)) {
-							return TCL_OK;
+							status = TCL_OK;
+							goto cleanup_and_exit;
 						}
 					} else {
 						if(strcmp(row[i], value) != 0) {
-							return TCL_OK;
+							status = TCL_OK;
+							goto cleanup_and_exit;
 						}
 					}
 				}
 			}
-			return TCL_CONTINUE;
+			status = TCL_CONTINUE;
+			goto cleanup_and_exit;
 		}
 		case SQLITE_DONE: {
-			return TCL_OK;
+			status = TCL_OK;
+			goto cleanup_and_exit;
 		}
 		default: {
 			Tcl_AppendResult(interp, sqlite3_errmsg(sqlite_db), (char *)NULL);
-			return TCL_ERROR;
+			goto cleanup_and_exit;
 		}
 	}
+
+  cleanup_and_exit:
+	sqlite3_reset(statement);
+	sqlite3_clear_bindings(statement);
+	return status;
 }
 
 char *
@@ -1225,13 +1230,20 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			returnCode = TCL_OK;
 		  write_tabsep_cleanup_and_exit:
 
+			if(statement) {
+				sqlite3_finalize(statement);
+				statement = NULL;
+			}
+
+			if(checkStatement) {
+				sqlite3_finalize(checkStatement);
+				checkStatement = NULL;
+			}
+
 			if(recommitInterval) {
 				if(Pg_sqlite_commit(interp, sqlite_db) != TCL_OK)
 					returnCode = TCL_ERROR;
 			}
-
-			if(statement)
-				sqlite3_finalize(statement);
 
 			if(returnCode == TCL_ERROR)
 				return TCL_ERROR;
@@ -1367,13 +1379,20 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 
 		  read_tabsep_cleanup_and_exit:
 
+			if(statement) {
+				sqlite3_finalize(statement);
+				statement = NULL;
+			}
+
+			if(checkStatement) {
+				sqlite3_finalize(checkStatement);
+				checkStatement = NULL;
+			}
+
 			if(recommitInterval) {
 				if(Pg_sqlite_commit(interp, sqlite_db) != TCL_OK)
 					returnCode = TCL_ERROR;
 			}
-
-			if(statement)
-				sqlite3_finalize(statement);
 
 			if(columnTypes)
 				ckfree(columnTypes);
@@ -1521,13 +1540,20 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 
 		  import_cleanup_and_exit:
 
+			if(statement) {
+				sqlite3_finalize(statement);
+				statement = NULL;
+			}
+
+			if(checkStatement) {
+				sqlite3_finalize(checkStatement);
+				checkStatement = NULL;
+			}
+
 			if(recommitInterval) {
 				if(Pg_sqlite_commit(interp, sqlite_db) != TCL_OK)
 					returnCode = TCL_ERROR;
 			}
-
-			if(statement)
-				sqlite3_finalize(statement);
 
 			if(columnTypes)
 				ckfree(columnTypes);
