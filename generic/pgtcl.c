@@ -19,7 +19,9 @@
 #include "libpgtcl.h"
 #include "pgtclCmds.h"
 #include "pgtclId.h"
+#ifdef HAVE_SQLITE3
 #include "pgtclSqlite.h"
+#endif
 
 #ifdef WIN32
 #include <c.h>
