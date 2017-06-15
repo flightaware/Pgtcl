@@ -27,6 +27,7 @@ An Sqlite3 database handle previously created via the \*(T<sqlite3\*(T> command.
 .TP 
 \*(T<command\*(T>
 The command, one of
+\*(T<info\*(T>,
 \*(T<import_postgres_result\*(T>,
 \*(T<read_tabsep\*(T>,
 \*(T<write_tabsep\*(T>, or
@@ -35,6 +36,27 @@ The command, one of
 \*(T<args\*(T>
 Command-specific arguments.
 .SH COMMANDS
+\fBinfo\fR
+.nf
+
+    pg_sqlite \*(T<sqlite_db\*(T> info
+	[\-busy]
+	[\-filename]
+	[\-db \*(T<database_name\*(T>]
+   
+.fi
+.PP
+Request information from an SQLITE database connection. Returns a key-value list containing the values requested if available. With no arguments, all available info is returned.
+.TP 
+-filename
+Request the filename associated with a database.
+.TP 
+-db \*(T<database\*(T>
+For the -filename option, specify the database name (default "main").
+.TP 
+-busy
+Request a list of prepared commands that are currently busy.
+.PP
 \fBimport_postgres_result\fR
 .nf
 
@@ -51,6 +73,8 @@ Command-specific arguments.
 	[\-sep \*(T<separator\*(T>]
 	[\-null \*(T<null_string\*(T>]
 	[\-poll_interval \*(T<rows\*(T>]
+	[\-recommit \*(T<rows\*(T>]
+	[\-check]
    
 .fi
 .PP
@@ -101,6 +125,13 @@ A list containing key names and optional sorting to indicate primary key where n
 -poll_interval \*(T<count\*(T>
 Call DoOneEvent() every \*(T<count\*(T> rows to keep the event loop alive
 during long transactions.
+.TP 
+-recommit \*(T<count\*(T>
+Chunk the operation in transactions, with one transaction every \*(T<count\*(T> rows.
+.TP 
+-check
+Check (via a SELECT) whether the exact row is already present, and skip inserting the row if so. This
+avoids bloating the WAL log during large re-loads of databases, at soem performance cost.
 .PP
 \fBwrite_tabsep\fR
 .nf
@@ -147,6 +178,8 @@ during long transactions.
 	[\-sep \*(T<separator\*(T>]
 	[\-null \*(T<null_string\*(T>]
 	[\-poll_interval \*(T<rows\*(T>]
+	[\-recommit \*(T<rows\*(T>]
+	[\-check]
    
 .fi
 .PP
@@ -193,6 +226,13 @@ A list containing key names and optional sorting to indicate primary key where n
 -poll_interval \*(T<count\*(T>
 Call DoOneEvent() every \*(T<count\*(T> rows to keep the event loop alive
 during long transactions.
+.TP 
+-recommit \*(T<count\*(T>
+Chunk the operation in transactions, with one transaction every \*(T<count\*(T> rows.
+.TP 
+-check
+Check (via a SELECT) whether the exact row is already present, and skip inserting the row if so. This
+avoids bloating the WAL log during large re-loads of databases, at soem performance cost.
 .PP
 \fBread_tabsep_keylist\fR
 .nf
@@ -209,6 +249,7 @@ during long transactions.
 	[\-sep \*(T<separator\*(T>]
 	[\-null \*(T<null_string\*(T>]
 	[\-poll_interval \*(T<rows\*(T>]
+	[\-recommit \*(T<rows\*(T>]
    
 .fi
 .PP
@@ -248,6 +289,9 @@ A list containing key names and optional sorting to indicate primary key where n
 -poll_interval \*(T<count\*(T>
 Call DoOneEvent() every \*(T<count\*(T> rows to keep the event loop alive
 during long transactions.
+.TP 
+-recommit \*(T<count\*(T>
+Chunk the operation in transactions, with one transaction every \*(T<count\*(T> rows.
 .SH "RETURN VALUE"
 Number of rows imported or exported.
 .SH "SEE ALSO"
