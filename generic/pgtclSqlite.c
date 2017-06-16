@@ -421,34 +421,68 @@ Pg_sqlite_executeCheck(Tcl_Interp *interp, sqlite3 *sqlite_db, sqlite3_stmt *sta
 	switch (sqlite3_step(statement)) {
 		case SQLITE_ROW: {
 			for(i = 0; i < count; i++) {
-				char *value = (char *)sqlite3_column_text(statement, i);
-				if(!value) {
-					// NULL matches NULL for duplicate check.
-					if (row[i]) {
-						status = TCL_OK;
-						goto cleanup_and_exit;
-					}
-				} else {
-					// NULL doesn't match any non-null for duplicate check.
-					if (!row[i]) {
-						status = TCL_OK;
-						goto cleanup_and_exit;
-					}
-					// Special handling for boolean because sqlite doesn't actually do boolean
-					if(columnTypes[i] == PG_SQLITE_BOOL) {
+				// NULL CHECKING
+				int colType = sqlite3_column_type(statement, i);
+				// Both null, matches, continue to next row
+				if(colType == SQLITE_NULL && !row[i]) { continue; }
+				// sqlite null, check not null, no match, return
+				if(colType == SQLITE_NULL && row[i]) {
+					status = TCL_OK;
+					goto cleanup_and_exit;
+				}
+				// sqlite has value, check is null, no match, return
+				if(colType != SQLITE_NULL && !row[i]) {
+					status = TCL_OK;
+					goto cleanup_and_exit;
+				}
+
+				// Compare columns
+				switch (columnTypes[i]) {
+					case PG_SQLITE_BOOL: {
+						int ival = sqlite3_column_int(statement, i);
 						int boolval = atoi(row[i]);
 						if (row[i][0] == 'y' || row[i][0] == 't' ||
 						    (row[i][0] == '\'' && (row[i][1] == 'y' || row[i][1] == 't')))
 							boolval = 1;
-						if (boolval != atoi(value)) {
+						if (boolval != ival) {
 							status = TCL_OK;
 							goto cleanup_and_exit;
 						}
-					} else {
+						break;
+					}
+					case PG_SQLITE_TEXT: {
+						char *sval = (char *)sqlite3_column_text(statement, i);
+						if(strcmp(row[i], sval) != 0) {
+							status = TCL_OK;
+							goto cleanup_and_exit;
+						}
+						break;
+					}
+					case PG_SQLITE_INT: {
+						int ival = sqlite3_column_int(statement, i);
+						int rval = atoi(row[i]);
+						if(ival != rval) {
+							status = TCL_OK;
+							goto cleanup_and_exit;
+						}
+						break;
+					}
+					case PG_SQLITE_DOUBLE: {
+						double dval = sqlite3_column_double(statement, i);
+						double rval = atof(row[i]);
+						if(dval != rval) {
+							status = TCL_OK;
+							goto cleanup_and_exit;
+						}
+						break;
+					}
+					default: { // otherwise unhandled type, maybe should be an error?
+						char *value = (char *)sqlite3_column_text(statement, i);
 						if(strcmp(row[i], value) != 0) {
 							status = TCL_OK;
 							goto cleanup_and_exit;
 						}
+						break;
 					}
 				}
 			}
