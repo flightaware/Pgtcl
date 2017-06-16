@@ -230,27 +230,39 @@ Pg_sqlite_getNames(Tcl_Interp *interp, Tcl_Obj *list, int stride, char ***arrayP
 	return TCL_OK;
 }
 
+// PostgreSQL documentation, possible values for the boolean type:
+// Valid literal values for the "true" state are: TRUE 't' 'true' 'y' 'yes' 'on' '1'
+// For the "false" state, the following values can be used: FALSE 'f' 'false' 'n' 'no' 'off' '0'
+// boolean values are output using the letters t and f.
+// Handle all possible cases
+int
+Pg_sqlite_toBool(char *value)
+{
+	int i = 0;
+
+	// skip 'quotes'
+	if(value[i] == '\'') i++;
+
+	switch (value[i]) {
+		case 'O': case 'o': {
+			if (value[i+1] == 'N' || value[i+1] == 'n') { return 1; }
+			return 0;
+		}
+		case 'T': case 't': case 'y': { return 1; }
+		case 'F': case 'f': case 'n': { return 0; }
+		default: {
+			// assume it's an integer
+			return atoi(value);
+		}
+	}
+}
+
 int
 Pg_sqlite_bindValue(sqlite3 *sqlite_db, sqlite3_stmt *statement, int column, char *value, enum mappedTypes type, const char **errorMessagePtr)
 {
 	switch(type) {
 		case PG_SQLITE_BOOL: {
-			int ival;
-			int i = 0;
-
-			// skip 'quotes'
-			if(value[i] == '\'') i++;
-
-			switch (value[i]) {
-				case 't': case 'y': { ival = 1; break; }
-				case 'f': case 'n': { ival = 0; break; }
-				default: {
-					// assume it's an integer
-					ival = atoi(value);
-					break;
-				}
-			}
-			if (sqlite3_bind_int(statement, column+1, ival) == SQLITE_OK)
+			if (sqlite3_bind_int(statement, column+1, Pg_sqlite_toBool(value)) == SQLITE_OK)
 				return TCL_OK;
 			break;
 		}
@@ -440,11 +452,7 @@ Pg_sqlite_executeCheck(Tcl_Interp *interp, sqlite3 *sqlite_db, sqlite3_stmt *sta
 				switch (columnTypes[i]) {
 					case PG_SQLITE_BOOL: {
 						int ival = sqlite3_column_int(statement, i);
-						int boolval = atoi(row[i]);
-						if (row[i][0] == 'y' || row[i][0] == 't' ||
-						    (row[i][0] == '\'' && (row[i][1] == 'y' || row[i][1] == 't')))
-							boolval = 1;
-						if (boolval != ival) {
+						if (Pg_sqlite_toBool(row[i]) != ival) {
 							status = TCL_OK;
 							goto cleanup_and_exit;
 						}
