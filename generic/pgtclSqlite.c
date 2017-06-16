@@ -243,13 +243,13 @@ Pg_sqlite_toBool(char *value)
 	// skip 'quotes'
 	if(value[i] == '\'') i++;
 
-	switch (value[i]) {
-		case 'O': case 'o': {
-			if (value[i+1] == 'N' || value[i+1] == 'n') { return 1; }
+	switch (tolower(value[i])) {
+		case 'o': {
+			if (tolower(value[i+1]) == 'n') { return 1; }
 			return 0;
 		}
-		case 'T': case 't': case 'y': { return 1; }
-		case 'F': case 'f': case 'n': { return 0; }
+		case 't': case 'y': { return 1; }
+		case 'f': case 'n': { return 0; }
 		default: {
 			// assume it's an integer
 			return atoi(value);
