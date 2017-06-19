@@ -3944,7 +3944,7 @@ pg_sqlite <parameter>sqlite_db</parameter> <parameter>command</parameter> <optio
     <listitem>
      <para>
 	Check (via a SELECT) whether the exact row is already present, and skip inserting the row if so. This
-	avoids bloating the WAL log during large re-loads of databases, at soem performance cost.
+	avoids bloating the WAL log during large re-loads of databases, at some performance cost.
      </para>
     </listitem>
    </varlistentry>
@@ -4170,7 +4170,7 @@ pg_sqlite <parameter>sqlite_db</parameter> <parameter>command</parameter> <optio
     <listitem>
      <para>
 	Check (via a SELECT) whether the exact row is already present, and skip inserting the row if so. This
-	avoids bloating the WAL log during large re-loads of databases, at soem performance cost.
+	avoids bloating the WAL log during large re-loads of databases, at some performance cost.
      </para>
     </listitem>
    </varlistentry>
