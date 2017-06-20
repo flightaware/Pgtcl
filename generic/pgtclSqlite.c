@@ -100,8 +100,6 @@ int Pg_sqlite_execObj(Tcl_Interp *interp, sqlite3 *sqlite_db, Tcl_Obj *obj)
 {
 	sqlite3_stmt *statement = NULL;
 	int           result = TCL_OK;
-//fprintf(stderr, "DEBUG Pg_sqlite_execObj(Tcl_Interp *interp, sqlite3 *sqlite_db, Tcl_Obj *obj);\n");
-//fprintf(stderr, "DEBUG obj = {%s};\n", Tcl_GetString(obj));
 
 	if(Pg_sqlite_prepare(interp, sqlite_db, Tcl_GetString(obj), &statement) != TCL_OK) {
 		statement = NULL; // probably redundant
@@ -117,7 +115,8 @@ int Pg_sqlite_execObj(Tcl_Interp *interp, sqlite3 *sqlite_db, Tcl_Obj *obj)
 	return result;
 }
 
-
+// We don't use the internal Sqlite3 types because we may need to do some special handling for types mapped from
+// PostgreSQL. For example, PostgreSQL booleans present as strings, but Sqlite3 booleans are integer 0 or 1.
 enum mappedTypes {
 	PG_SQLITE_INT,
 	PG_SQLITE_DOUBLE,
@@ -140,6 +139,7 @@ struct {
 	{NULL,           PG_SQLITE_NOTYPE}
 };
 
+// Reverse mapping primarily for debugging. Map to the first (canonical) name for a type.
 char *Pg_sqlite_typename(enum mappedTypes type)
 {
 	static char *typenames[PG_SQLITE_NOTYPE] = { NULL };
@@ -160,6 +160,8 @@ char *Pg_sqlite_typename(enum mappedTypes type)
 	return typenames[type];
 }
 
+// Step through a list and produce an array of the types in the list. Since the list may be a list of types
+// or a list of names and types, we take a start index and stride to describe the list.
 int
 Pg_sqlite_mapTypes(Tcl_Interp *interp, Tcl_Obj *list, int start, int stride, enum mappedTypes **arrayPtr, int *lengthPtr)
 {
@@ -202,6 +204,8 @@ Pg_sqlite_mapTypes(Tcl_Interp *interp, Tcl_Obj *list, int start, int stride, enu
 	return TCL_OK;
 }
 
+// Step through a list and produce an array of the names in the list. Since the list may be a list of types
+// or a list of names and types, we take a stride to describe the list.
 int
 Pg_sqlite_getNames(Tcl_Interp *interp, Tcl_Obj *list, int stride, char ***arrayPtr, int *lengthPtr)
 {
@@ -244,19 +248,24 @@ Pg_sqlite_toBool(char *value)
 	if(value[i] == '\'') i++;
 
 	switch (tolower(value[i])) {
+		// off and on
 		case 'o': {
 			if (tolower(value[i+1]) == 'n') { return 1; }
 			return 0;
 		}
+
+		// true and false
 		case 't': case 'y': { return 1; }
 		case 'f': case 'n': { return 0; }
+
+		// otherwise assume it's an integer
 		default: {
-			// assume it's an integer
 			return atoi(value);
 		}
 	}
 }
 
+// Bind a single value to an Sqlite3 prepared statement, using our internal types.
 int
 Pg_sqlite_bindValue(sqlite3 *sqlite_db, sqlite3_stmt *statement, int column, char *value, enum mappedTypes type, const char **errorMessagePtr)
 {
@@ -291,7 +300,7 @@ Pg_sqlite_bindValue(sqlite3 *sqlite_db, sqlite3_stmt *statement, int column, cha
 }
 
 //
-// Generate statement to query the target DB to see if the row is already there. Returns SQL and fills in the indexes
+// Generate statement to query the target DB to see if the row is already there. Returns success and fills in the indexes
 // of the primary keys in the name list.
 //
 int
@@ -513,6 +522,12 @@ Pg_sqlite_executeCheck(Tcl_Interp *interp, sqlite3 *sqlite_db, sqlite3_stmt *sta
 	return status;
 }
 
+// Generate SQL to *insert* a row into Sqlite3. Also create the table if required.
+//
+// Pulls the names from either a name list or a name-type list. Only one need be provided. If it's creating
+// the table and no types are provided, it punts and assumes text.
+//
+// TODO: Add type list argument, or get rid of the whole separate -names and -types options.
 char *
 Pg_sqlite_generate(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sqliteTable, Tcl_Obj *nameList, Tcl_Obj *nameTypeList, Tcl_Obj *primaryKey, char *unknownKey, int newTable, int replacing)
 {
@@ -636,6 +651,7 @@ Pg_sqlite_generate(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sqliteTable, Tc
 	return Tcl_GetString(sql);
 }
 
+// Drop table
 int
 Pg_sqlite_dropTable(Tcl_Interp *interp, sqlite3 *sqlite_db, char *dropTable)
 {
@@ -696,6 +712,7 @@ sqlite_probe(Tcl_Interp *interp, Tcl_ObjCmdProc **procPtr)
 	return TCL_OK;
 }
 
+// Error/end-of-file handling wrapped around Tcl_GetsObj
 int
 Pg_sqlite_gets(Tcl_Interp *interp, Tcl_Channel chan, char **linePtr)
 {
@@ -714,6 +731,7 @@ Pg_sqlite_gets(Tcl_Interp *interp, Tcl_Channel chan, char **linePtr)
 	return TCL_OK;
 }
 
+// Split a string up into an array of named columns. Modifies the input string.
 int
 Pg_sqlite_split_tabsep(char *row, char ***columnsPtr, int nColumns, char *sepStr, char *nullStr, const char **errorMessagePtr)
 {
@@ -754,6 +772,10 @@ Pg_sqlite_split_tabsep(char *row, char ***columnsPtr, int nColumns, char *sepStr
 	return returnCode;
 }
 
+// Split a string up into a key-val list, and populate a column list with the values pulled in from the list. This
+// modifies the original string.
+//
+// TODO, add nullStr option and code to remove value from list.
 int
 Pg_sqlite_split_keyval(Tcl_Interp *interp, char *row, char ***columnsPtr, int nColumns, char *sepStr, char **names, Tcl_Obj *unknownObj)
 {
@@ -813,6 +835,7 @@ Pg_sqlite_split_keyval(Tcl_Interp *interp, char *row, char ***columnsPtr, int nC
 	return returnCode;
 }
 
+// Main routine, extract the sqlite handle, parse the ensemble command, and run the subcommand.
 int
 Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
