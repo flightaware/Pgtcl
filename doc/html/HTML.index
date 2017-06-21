@@ -23,7 +23,7 @@ TITLE PostgreSQL Tcl Interface Documentation
 PRIMARY Tcl
 /INDEXTERM
 INDEXTERM libpgtcl.html#PGTCL-OVERVIEW
-INDEXPOINT libpgtcl.html#AEN236
+INDEXPOINT libpgtcl.html#AEN242
 TITLE Overview
 significance NORMAL
 PRIMARY large    object
@@ -36,26 +36,26 @@ significance NORMAL
 id IX-PGTCL-PGCONNECT-2
 PRIMARY pg_connect
 /INDEXTERM
-INDEXTERM pgtcl-pgconnect.html#AEN327
-INDEXPOINT pgtcl-pgconnect.html#AEN355
+INDEXTERM pgtcl-pgconnect.html#AEN341
+INDEXPOINT pgtcl-pgconnect.html#AEN369
 TITLE Arguments
 significance NORMAL
 PRIMARY host name
 /INDEXTERM
-INDEXTERM pgtcl-pgconnect.html#AEN327
-INDEXPOINT pgtcl-pgconnect.html#AEN358
+INDEXTERM pgtcl-pgconnect.html#AEN341
+INDEXPOINT pgtcl-pgconnect.html#AEN372
 TITLE Arguments
 significance NORMAL
 PRIMARY Unix domain 	  socket
 /INDEXTERM
-INDEXTERM pgtcl-pgconnect.html#AEN327
-INDEXPOINT pgtcl-pgconnect.html#AEN391
+INDEXTERM pgtcl-pgconnect.html#AEN341
+INDEXPOINT pgtcl-pgconnect.html#AEN405
 TITLE Arguments
 significance NORMAL
 PRIMARY port
 /INDEXTERM
-INDEXTERM pgtcl-pgconnect.html#AEN327
-INDEXPOINT pgtcl-pgconnect.html#AEN447
+INDEXTERM pgtcl-pgconnect.html#AEN341
+INDEXPOINT pgtcl-pgconnect.html#AEN461
 TITLE Arguments
 significance NORMAL
 PRIMARY SSL
@@ -124,8 +124,8 @@ significance NORMAL
 id IX-PGTCL-PGLISTEN-2
 PRIMARY pg_listen
 /INDEXTERM
-INDEXTERM pgtcl-pglisten.html#AEN1228
-INDEXPOINT pgtcl-pglisten.html#AEN1239
+INDEXTERM pgtcl-pglisten.html#AEN1242
+INDEXPOINT pgtcl-pglisten.html#AEN1253
 TITLE Description
 significance NORMAL
 PRIMARY NOTIFY
@@ -291,4 +291,11 @@ TITLE pg_lo_export
 significance NORMAL
 id IX-PGTCL-PGLOEXPORT-2
 PRIMARY pg_lo_export
+/INDEXTERM
+INDEXTERM pgtcl-pgsqlite.html
+INDEXPOINT pgtcl-pgsqlite.html#IX-PGTCL-SQLITE2-2
+TITLE pg_sqlite
+significance NORMAL
+id IX-PGTCL-SQLITE2-2
+PRIMARY pg_sqlite
 /INDEXTERM

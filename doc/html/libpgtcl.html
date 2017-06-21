@@ -69,6 +69,7 @@
 <dt><a href="pgtcl-pglounlink.html">pg_lo_unlink</a>&nbsp;--&nbsp;delete a large object</dt>
 <dt><a href="pgtcl-pgloimport.html">pg_lo_import</a>&nbsp;--&nbsp;import a large object from a file</dt>
 <dt><a href="pgtcl-pgloexport.html">pg_lo_export</a>&nbsp;--&nbsp;export a large object to a file</dt>
+<dt><a href="pgtcl-pgsqlite.html">pg_sqlite</a>&nbsp;--&nbsp;implements a bridge between PostgreSQL and Sqlite3 using the Pgtcl and sqlite3 packages.</dt>
 </dl>
 </dd>
 <dt>1.4. <a href="pgtcl-tclnamespace.html">Tcl Namespace Support</a></dt>
@@ -260,10 +261,16 @@
 <td><code class="FUNCTION">pg::lo_export</code></td>
 <td>export a large object to a file</td>
 </tr>
+<tr>
+<td><code class="FUNCTION">pg_sqlite</code></td>
+<td><code class="FUNCTION">pg::sqlite</code></td>
+<td>bridge between pgtcl and the Tcl sqlite package (when compiled with sqlite bridge)</td>
+</tr>
 </tbody>
 </table>
 </div>
-<p>The <code class="FUNCTION">pg_lo_*</code> commands are interfaces to the large object features of <span class="PRODUCTNAME">PostgreSQL</span>.<a name="AEN236" id="AEN236"></a> The functions are designed to mimic the analogous file system functions in the standard Unix file system interface. The <code class="FUNCTION">pg_lo_*</code> commands should be used within a <tt class="COMMAND">BEGIN</tt>/<tt class="COMMAND">COMMIT</tt> transaction block because the descriptor returned by <code class="FUNCTION">pg_lo_open</code> is only valid for the current transaction. <code class="FUNCTION">pg_lo_import</code> and <code class="FUNCTION">pg_lo_export</code> <span class="emphasis"><i class="EMPHASIS">must</i></span> be used in a <tt class="COMMAND">BEGIN</tt>/<tt class="COMMAND">COMMIT</tt> transaction block.</p>
+<p>The <code class="FUNCTION">pg_lo_*</code> commands are interfaces to the large object features of <span class="PRODUCTNAME">PostgreSQL</span>.<a name="AEN242" id="AEN242"></a> The functions are designed to mimic the analogous file system functions in the standard Unix file system interface. The <code class="FUNCTION">pg_lo_*</code> commands should be used within a <tt class="COMMAND">BEGIN</tt>/<tt class="COMMAND">COMMIT</tt> transaction block because the descriptor returned by <code class="FUNCTION">pg_lo_open</code> is only valid for the current transaction. <code class="FUNCTION">pg_lo_import</code> and <code class="FUNCTION">pg_lo_export</code> <span class="emphasis"><i class="EMPHASIS">must</i></span> be used in a <tt class="COMMAND">BEGIN</tt>/<tt class="COMMAND">COMMIT</tt> transaction block.</p>
+<p>The <code class="FUNCTION">pg_sqlite</code> command is only included if <span class="PRODUCTNAME">Sqlite 3</span> is installed. It can be disabled at compile time with <tt class="LITERAL">"./configure --without-sqlite3"</tt>.</p>
 </div>
 </div>
 <div class="NAVFOOTER">

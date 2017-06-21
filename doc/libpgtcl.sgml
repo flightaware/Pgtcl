@@ -3662,7 +3662,7 @@ pg_lo_export <parameter>conn</parameter> <parameter>loid</parameter> <parameter>
  </refsect1>
 </refentry>
 
-<refentry ID="PGTCL-SQLITE">
+<refentry ID="PGTCL-PGSQLITE">
  <refmeta>
   <refentrytitle>pg_sqlite</refentrytitle>
  </refmeta>
