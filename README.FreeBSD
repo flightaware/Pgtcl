@@ -1,0 +1,12 @@
+#
+#
+# You should have install tcl and postgresql*-client from
+#  ports or packages.
+#
+# Then run autoconf and configure in this directory, like this:
+
+autoreconf
+./configure --with-tcl=/usr/local/lib/tcl8.6 --mandir=/usr/local/man 
+
+# Add "--enable-symbols" if you want debugging.
+
