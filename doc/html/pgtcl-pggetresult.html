@@ -28,19 +28,19 @@
 </table>
 <hr align="left" width="100%"></div>
 <h1><a name="PGTCL-PGGETRESULT" id="PGTCL-PGGETRESULT"></a>pg_getresult</h1>
-<div class="REFNAMEDIV"><a name="AEN1410" id="AEN1410"></a>
+<div class="REFNAMEDIV"><a name="AEN1424" id="AEN1424"></a>
 <h2>Name</h2>
 pg_getresult&nbsp;--&nbsp;process asychronous results<a name="IX-PGTCL-PGGETRESULT-2" id="IX-PGTCL-PGGETRESULT-2"></a></div>
-<div class="REFSYNOPSISDIV"><a name="AEN1415" id="AEN1415"></a>
+<div class="REFSYNOPSISDIV"><a name="AEN1429" id="AEN1429"></a>
 <h2>Synopsis</h2>
 <pre class="SYNOPSIS">pg_getresult <code class="PARAMETER">conn</code></pre></div>
-<div class="REFSECT1"><a name="AEN1418" id="AEN1418"></a>
+<div class="REFSECT1"><a name="AEN1432" id="AEN1432"></a>
 <h2>Description</h2>
 <p><code class="FUNCTION">pg_getresult</code> checks to see if any commands issued by <code class="FUNCTION">pg_sendquery</code> have completed.</p>
 <p>This will return the same sort of result handle that <code class="FUNCTION">pg_exec</code> returns.</p>
 <p>If there is no query currently being processed or all of the results have been obtained, <code class="FUNCTION">pg_getresult</code> returns nothing.</p>
 </div>
-<div class="REFSECT1"><a name="AEN1427" id="AEN1427"></a>
+<div class="REFSECT1"><a name="AEN1441" id="AEN1441"></a>
 <h2>Arguments</h2>
 <div class="VARIABLELIST">
 <dl>
@@ -51,7 +51,7 @@ pg_getresult&nbsp;--&nbsp;process asychronous results<a name="IX-PGTCL-PGGETRESU
 </dl>
 </div>
 </div>
-<div class="REFSECT1"><a name="AEN1435" id="AEN1435"></a>
+<div class="REFSECT1"><a name="AEN1449" id="AEN1449"></a>
 <h2>Return Value</h2>
 <p>If a query result is available, a command result object is returned. This handle can be passed to <code class="FUNCTION">pg_result</code> to obtain the results of the command.</p>
 <p>If there is no query currently being processed or all of the results have been obtained, <code class="FUNCTION">pg_getresult</code> returns nothing.</p>

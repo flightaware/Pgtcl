@@ -28,13 +28,13 @@
 </table>
 <hr align="left" width="100%"></div>
 <h1><a name="PGTCL-PGEXECUTE" id="PGTCL-PGEXECUTE"></a>pg_execute</h1>
-<div class="REFNAMEDIV"><a name="AEN1112" id="AEN1112"></a>
+<div class="REFNAMEDIV"><a name="AEN1126" id="AEN1126"></a>
 <h2>Name</h2>
 pg_execute&nbsp;--&nbsp;send a query and optionally loop over the results<a name="IX-PGTCL-PGEXECUTE-2" id="IX-PGTCL-PGEXECUTE-2"></a></div>
-<div class="REFSYNOPSISDIV"><a name="AEN1117" id="AEN1117"></a>
+<div class="REFSYNOPSISDIV"><a name="AEN1131" id="AEN1131"></a>
 <h2>Synopsis</h2>
 <pre class="SYNOPSIS">pg_execute ?<span class="OPTIONAL">-array <code class="PARAMETER">arrayVar</code></span>? ?<span class="OPTIONAL">-oid <code class="PARAMETER">oidVar</code></span>? <code class="PARAMETER">conn</code> <code class="PARAMETER">commandString</code> ?<span class="OPTIONAL"><code class="PARAMETER">procedure</code></span>?</pre></div>
-<div class="REFSECT1"><a name="AEN1127" id="AEN1127"></a>
+<div class="REFSECT1"><a name="AEN1141" id="AEN1141"></a>
 <h2>Description</h2>
 <p><code class="FUNCTION">pg_execute</code> submits a command to the <span class="PRODUCTNAME">PostgreSQL</span> server.</p>
 <p>If the command is not a <tt class="COMMAND">SELECT</tt> statement, the number of rows affected by the command is returned. If the command is an <tt class="COMMAND">INSERT</tt> statement and a single row is inserted, the OID of the inserted row is stored in the variable <code class="PARAMETER">oidVar</code> if the optional <code class="PARAMETER">-oid</code> argument is supplied.</p>
@@ -43,7 +43,7 @@ pg_execute&nbsp;--&nbsp;send a query and optionally loop over the results<a name
 <p><code class="FUNCTION">pg_execute</code> is a newer function which provides a superset of the features of <code class="FUNCTION">pg_select</code> and can replace <code class="FUNCTION">pg_exec</code> in many cases where access to the result handle is not needed.</p>
 <p>For server-handled errors, <code class="FUNCTION">pg_execute</code> will throw a Tcl error and return a two-element list. The first element is an error code, such as <tt class="LITERAL">PGRES_FATAL_ERROR</tt>, and the second element is the server error text. For more serious errors, such as failure to communicate with the server, <code class="FUNCTION">pg_execute</code> will throw a Tcl error and return just the error message text.</p>
 </div>
-<div class="REFSECT1"><a name="AEN1158" id="AEN1158"></a>
+<div class="REFSECT1"><a name="AEN1172" id="AEN1172"></a>
 <h2>Arguments</h2>
 <div class="VARIABLELIST">
 <dl>
@@ -70,11 +70,11 @@ pg_execute&nbsp;--&nbsp;send a query and optionally loop over the results<a name
 </dl>
 </div>
 </div>
-<div class="REFSECT1"><a name="AEN1192" id="AEN1192"></a>
+<div class="REFSECT1"><a name="AEN1206" id="AEN1206"></a>
 <h2>Return Value</h2>
 <p>The number of rows affected or returned by the command.</p>
 </div>
-<div class="REFSECT1"><a name="AEN1195" id="AEN1195"></a>
+<div class="REFSECT1"><a name="AEN1209" id="AEN1209"></a>
 <h2>Examples</h2>
 <p>In the following examples, error checking with <tt class="LITERAL">catch</tt> has been omitted for clarity.</p>
 <p>Insert a row and save the OID in <code class="VARNAME">result_oid</code>:</p>

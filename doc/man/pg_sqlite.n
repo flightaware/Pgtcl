@@ -131,7 +131,7 @@ Chunk the operation in transactions, with one transaction every \*(T<count\*(T> 
 .TP 
 -check
 Check (via a SELECT) whether the exact row is already present, and skip inserting the row if so. This
-avoids bloating the WAL log during large re-loads of databases, at soem performance cost.
+avoids bloating the WAL log during large re-loads of databases, at some performance cost.
 .PP
 \fBwrite_tabsep\fR
 .nf
@@ -232,7 +232,7 @@ Chunk the operation in transactions, with one transaction every \*(T<count\*(T> 
 .TP 
 -check
 Check (via a SELECT) whether the exact row is already present, and skip inserting the row if so. This
-avoids bloating the WAL log during large re-loads of databases, at soem performance cost.
+avoids bloating the WAL log during large re-loads of databases, at some performance cost.
 .PP
 \fBread_tabsep_keylist\fR
 .nf

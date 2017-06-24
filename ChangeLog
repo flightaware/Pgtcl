@@ -1,3 +1,10 @@
+2017-06-21 Peter da Silva
+    * Integrate sqlite bridge with "pg_sqlite" command.
+
+    * Documentation updates for 2.2.x
+
+    * Update version to 2.2.0
+
 2017-04-25 Peter da Silva
     * Update minor version to 2.1.1
 
