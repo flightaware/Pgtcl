@@ -144,7 +144,7 @@ char *Pg_sqlite_typename(enum mappedTypes type)
 {
 	static char *typenames[PG_SQLITE_NOTYPE] = { NULL };
 
-	if (type < 0 || type >= PG_SQLITE_NOTYPE)
+	if (type >= PG_SQLITE_NOTYPE)
 		return NULL;
 
 	if (typenames[0] == NULL) {
@@ -1251,7 +1251,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 				Tcl_AppendResult(interp, Tcl_ErrnoMsg(Tcl_GetErrno()), " converting ", channelName, (char *)NULL);
 				return TCL_ERROR;
 			}
-			if (!channelMode && TCL_WRITABLE) {
+			if (!(channelMode & TCL_WRITABLE)) {
 				Tcl_AppendResult (interp, "Channel ", channelName, " is not writable", (char *)NULL);
 				return TCL_ERROR;
 			}
@@ -1343,7 +1343,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 					returnCode = TCL_ERROR;
 					goto read_tabsep_cleanup_and_exit;
 				}
-				if (!channelMode && TCL_READABLE) {
+				if (!(channelMode & TCL_READABLE)) {
 					Tcl_AppendResult (interp, "File in -from argument must be readable", (char *)NULL);
 					returnCode = TCL_ERROR;
 					goto read_tabsep_cleanup_and_exit;
