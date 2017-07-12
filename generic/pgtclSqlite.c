@@ -1652,3 +1652,102 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 	return TCL_OK;
 }
 
+int Pg_sqlite_getKeyIndices(Tcl_Interp *interp, Tcl_Obj *pKeyList, char **colNames, int nColumns, int **indexPtr)
+{
+}
+
+// Importer for deltaflood stream into sqlite
+int
+Pg_sqlite_import(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+{
+        sqlite3 *sqlite_db;
+	int      optIndex = 2;
+	int      nTables = 0;
+
+	struct table {
+		char             *tableName;
+		char            **colNames;
+		int               nColumns;
+		enum mappedTypes *colTypes;
+		int              *pKeyIndex;
+		char             *checkSQL;
+		char             *deleteSQL;
+		char             *replaceSQL;
+		char             *insertSQL;
+		int               unknownColumn;
+	} *tables, *optTable;
+
+        if (objc <= optIndex) {
+	  common_wrong_num_args:
+                Tcl_WrongNumArgs(interp, 1, objv, "sqlite_handle ?args?");
+                return TCL_ERROR;
+        }
+
+	if(Pg_sqlite_getDB(interp, Tcl_GetString(objv[1]), &sqlite_db) != TCL_OK) {
+		return TCL_ERROR;
+	}
+
+	// The maximum number of tables must be less than objc/2, because each "-table name" sequence
+	// takes up 2 options. This is super conservative.
+	tables = (struct table *)ckalloc((sizeof *tables) * (objc/2));
+
+	while(optIndex < objc) {
+		char *optName = Tcl_GetString(objv[optIndex]);
+		optIndex++;
+		if (optName[0] != '-') {
+			goto common_wrong_num_args;
+		}
+
+		if (strcmp(optName, "-table") == 0) {
+			if(optIndex < objc) {
+				Tcl_AppendResult(interp, "No name provided for -table", (char *)NULL);
+				goto cleanup_and_exit;
+			}
+			struct table *optTable = &tables[nTables++];
+			optTable->tableName = Tcl_GetString(objv[optIndex++]);
+		} else if(strcmp(optName, "-as") == 0) {
+			if(optIndex < objc) {
+				Tcl_AppendResult(interp, "No types provided for -as", (char *)NULL);
+				goto cleanup_and_exit;
+			}
+			if(optTable->colNames) {
+				Tcl_AppendResult(interp, "types already provided for ", optTable->tableName, (char *)NULL);
+				goto cleanup_and_exit;
+			}
+
+			Tcl_Obj *nameTypeList = objv[optIndex++];
+
+			if(Pg_sqlite_getNames(interp, nameTypeList, 2, &optTable->colNames, &optTable->nColumns) != TCL_OK) {
+				goto early_error_exit;
+			}
+			if (Pg_sqlite_mapTypes(interp, nameTypeList, 1, 2, &optTable->colTypes, &optTable->nColumns) != TCL_OK) {
+				goto early_error_exit;
+			}
+		} else if(strcmp(optName, "-pkey") == 0) {
+			if(optIndex < objc) {
+				Tcl_AppendResult(interp, "No key provided for -pkey", (char *)NULL);
+				goto cleanup_and_exit;
+			}
+			if(optTable->pKeyIndex) {
+				Tcl_AppendResult(interp, "Primary key already provided for ", optTable->tableName, (char *)NULL);
+				goto cleanup_and_exit;
+			}
+
+			Tcl_Obj *pKeyList = objv[optIndex++];
+
+			if(Pg_sqlite_getKeyIndices(interp, pKeyList, optTable->colNames, optTable->nColumns, &optTable->pKeyIndex) != TCL_OK) {
+				goto early_error_exit;
+			}
+		} else if(strcmp(optName, "-ignore") == 0) {
+			// TODO
+		} else if(strcmp(optName, "-selector") == 0) {
+			// TODO
+		} else if(strcmp(optName, "-map") == 0) {
+			// TODO
+		} else if(strcmp(optName, "-default") == 0) {
+			// TODO
+		} else if(strcmp(optName, "-action") == 0) {
+			// TODO
+		}
+	}
+}
