@@ -1704,14 +1704,14 @@ Pg_sqlite_import(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *C
 		}
 
 		if (strcmp(optName, "-table") == 0) {
-			if(optIndex < objc) {
+			if(optIndex >= objc) {
 				Tcl_AppendResult(interp, "No name provided for -table", (char *)NULL);
 				goto cleanup_and_exit;
 			}
 			struct table *optTable = &tables[nTables++];
 			optTable->tableName = Tcl_GetString(objv[optIndex++]);
 		} else if(strcmp(optName, "-as") == 0) {
-			if(optIndex < objc) {
+			if(optIndex >= objc) {
 				Tcl_AppendResult(interp, "No types provided for -as", (char *)NULL);
 				goto cleanup_and_exit;
 			}
@@ -1729,7 +1729,7 @@ Pg_sqlite_import(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *C
 				goto early_error_exit;
 			}
 		} else if(strcmp(optName, "-pkey") == 0) {
-			if(optIndex < objc) {
+			if(optIndex >= objc) {
 				Tcl_AppendResult(interp, "No key provided for -pkey", (char *)NULL);
 				goto cleanup_and_exit;
 			}
