@@ -1710,6 +1710,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 
 int Pg_sqlite_getKeyIndices(Tcl_Interp *interp, Tcl_Obj *pKeyList, char **colNames, int nColumns, int **indexPtr)
 {
+	return TCL_ERROR;
 }
 
 // Importer for deltaflood stream into sqlite
@@ -1719,11 +1720,13 @@ Pg_sqlite_import(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *C
         sqlite3 *sqlite_db;
 	int      optIndex = 2;
 	int      nTables = 0;
-	char   **ignoreList = NULL;
-	char    *selector = NULL;
-	char   **mapList = NULL;
+	Tcl_Obj *ignoreList = NULL;
+	Tcl_Obj *mapList = NULL;
 	char    *defaultTable = NULL;
+	char    *selector = NULL;
 	char    *action = NULL;
+	int      result = TCL_ERROR; // Assume the worst
+	int      i;
 
 	struct table {
 		char             *tableName;
@@ -1736,7 +1739,7 @@ Pg_sqlite_import(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *C
 		char             *replaceSQL;
 		char             *insertSQL;
 		int               unknownColumn;
-	} *tables, *optTable;
+	} *tables = NULL, *optTable = NULL;
 
         if (objc <= optIndex) {
 	  common_wrong_num_args:
@@ -1767,6 +1770,10 @@ Pg_sqlite_import(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *C
 			struct table *optTable = &tables[nTables++];
 			optTable->tableName = Tcl_GetString(objv[optIndex++]);
 		} else if(strcmp(optName, "-as") == 0) {
+			if(!optTable) {
+				Tcl_AppendResult(interp, "No table specified for -as", (char *)NULL);
+				goto cleanup_and_exit;
+			}
 			if(optIndex >= objc) {
 				Tcl_AppendResult(interp, "No types provided for -as", (char *)NULL);
 				goto cleanup_and_exit;
@@ -1779,12 +1786,16 @@ Pg_sqlite_import(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *C
 			Tcl_Obj *nameTypeList = objv[optIndex++];
 
 			if(Pg_sqlite_getNames(interp, nameTypeList, 2, &optTable->colNames, &optTable->nColumns) != TCL_OK) {
-				goto early_error_exit;
+				goto cleanup_and_exit;
 			}
 			if (Pg_sqlite_mapTypes(interp, nameTypeList, 1, 2, &optTable->colTypes, &optTable->nColumns) != TCL_OK) {
-				goto early_error_exit;
+				goto cleanup_and_exit;
 			}
 		} else if(strcmp(optName, "-pkey") == 0) {
+			if(!optTable) {
+				Tcl_AppendResult(interp, "No table specified for -pkey", (char *)NULL);
+				goto cleanup_and_exit;
+			}
 			if(optIndex >= objc) {
 				Tcl_AppendResult(interp, "No key provided for -pkey", (char *)NULL);
 				goto cleanup_and_exit;
@@ -1797,21 +1808,51 @@ Pg_sqlite_import(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *C
 			Tcl_Obj *pKeyList = objv[optIndex++];
 
 			if(Pg_sqlite_getKeyIndices(interp, pKeyList, optTable->colNames, optTable->nColumns, &optTable->pKeyIndex) != TCL_OK) {
-				goto early_error_exit;
+				goto cleanup_and_exit;
 			}
 		} else if(strcmp(optName, "-ignore") == 0) {
-			// TODO
-		} else if(strcmp(optName, "-selector") == 0) {
-			// TODO
+			if(optIndex >= objc) {
+				Tcl_AppendResult(interp, "No list provided for -ignore", (char *)NULL);
+				goto cleanup_and_exit;
+			}
+			ignoreList = objv[optIndex++];
 		} else if(strcmp(optName, "-map") == 0) {
-			// TODO
-		} else if(strcmp(optName, "-default") == 0) {
-			// TODO
+			if(optIndex >= objc) {
+				Tcl_AppendResult(interp, "No list provided for -map", (char *)NULL);
+				goto cleanup_and_exit;
+			}
+			mapList = objv[optIndex++];
+		} else if(strcmp(optName, "-selector") == 0) {
+			if(optIndex >= objc) {
+				Tcl_AppendResult(interp, "No column provided for -selector", (char *)NULL);
+				goto cleanup_and_exit;
+			}
+			selector = Tcl_GetString(objv[optIndex++]);
 		} else if(strcmp(optName, "-action") == 0) {
-			// TODO
+			if(optIndex >= objc) {
+				Tcl_AppendResult(interp, "No column provided for -action", (char *)NULL);
+				goto cleanup_and_exit;
+			}
+			action = Tcl_GetString(objv[optIndex++]);
+		} else if(strcmp(optName, "-default") == 0) {
+			if(optIndex >= objc) {
+				Tcl_AppendResult(interp, "No table provided for -default", (char *)NULL);
+				goto cleanup_and_exit;
+			}
+			defaultTable = Tcl_GetString(objv[optIndex++]);
 		}
 	}
 
 	if(selector == NULL) selector = "_table";
 	if(action == NULL) action = "_action";
+	result = TCL_OK;
+
+  cleanup_and_exit:
+	for(i = 0; i < nTables; i++) {
+		if(tables[i].colNames) ckfree(tables[i].colNames);
+		if(tables[i].colTypes) ckfree(tables[i].colTypes);
+		if(tables[i].pKeyIndex) ckfree(tables[i].pKeyIndex);
+	}
+
+	return result;
 }
