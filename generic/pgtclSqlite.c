@@ -969,40 +969,88 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			}
 
 			if (cmdIndex != CMD_READ_KEYVAL && strcmp(optName, "-types") == 0) {
+				if(optIndex >= objc) {
+					Tcl_AppendResult(interp, "No list provided for -types", (char *)NULL);
+					return TCL_ERROR;
+				}
 				typeList = objv[optIndex];
 				optIndex++;
 			} else if (strcmp(optName, "-names") == 0) {
+				if(optIndex >= objc) {
+					Tcl_AppendResult(interp, "No list provided for -names", (char *)NULL);
+					return TCL_ERROR;
+				}
 				nameList = objv[optIndex];
 				optIndex++;
 			} else if (strcmp(optName, "-as") == 0) {
+				if(optIndex >= objc) {
+					Tcl_AppendResult(interp, "No list provided for -as", (char *)NULL);
+					return TCL_ERROR;
+				}
 				nameTypeList = objv[optIndex];
 				optIndex++;
 			} else if (strcmp(optName, "-pkey") == 0) {
+				if(optIndex >= objc) {
+					Tcl_AppendResult(interp, "No list provided for -pkey", (char *)NULL);
+					return TCL_ERROR;
+				}
 				primaryKey = objv[optIndex];
 				optIndex++;
 			} else if (cmdIndex != CMD_IMPORT_POSTGRES_RESULT && strcmp(optName, "-sep") == 0) {
+				if(optIndex >= objc) {
+					Tcl_AppendResult(interp, "No string provided for -sep", (char *)NULL);
+					return TCL_ERROR;
+				}
 				sepString = Tcl_GetString(objv[optIndex]);
 				optIndex++;
 			} else if (cmdIndex != CMD_READ_KEYVAL && strcmp(optName, "-null") == 0) {
+				if(optIndex >= objc) {
+					Tcl_AppendResult(interp, "No string provided for -null", (char *)NULL);
+					return TCL_ERROR;
+				}
 				nullString = Tcl_GetString(objv[optIndex]);
 				optIndex++;
 			} else if (cmdIndex == CMD_READ_KEYVAL && strcmp(optName, "-unknown") == 0) {
+				if(optIndex >= objc) {
+					Tcl_AppendResult(interp, "No column provided for -unknown", (char *)NULL);
+					return TCL_ERROR;
+				}
 				unknownKey = Tcl_GetString(objv[optIndex]);
 				optIndex++;
 			} else if (cmdIndex != CMD_READ_KEYVAL && strcmp(optName, "-sql") == 0) {
+				if(optIndex >= objc) {
+					Tcl_AppendResult(interp, "No code provided for -sql", (char *)NULL);
+					return TCL_ERROR;
+				}
 				sqliteCode = Tcl_GetString(objv[optIndex]);
 				optIndex++;
 			} else if (strcmp(optName, "-create") == 0) {
+				if(optIndex >= objc) {
+					Tcl_AppendResult(interp, "No table provided for -create", (char *)NULL);
+					return TCL_ERROR;
+				}
 				sqliteTable = Tcl_GetString(objv[optIndex]);
 				createTable = 1;
 				optIndex++;
 			} else if (strcmp(optName, "-into") == 0) {
+				if(optIndex >= objc) {
+					Tcl_AppendResult(interp, "No table provided for -into", (char *)NULL);
+					return TCL_ERROR;
+				}
 				sqliteTable = Tcl_GetString(objv[optIndex]);
 				optIndex++;
 			} else if (cmdIndex != CMD_IMPORT_POSTGRES_RESULT && strcmp(optName, "-row") == 0) {
+				if(optIndex >= objc) {
+					Tcl_AppendResult(interp, "No string provided for -row", (char *)NULL);
+					return TCL_ERROR;
+				}
 				tabsepRow = Tcl_GetString(objv[optIndex]);
 				optIndex++;
 			} else if (cmdIndex != CMD_IMPORT_POSTGRES_RESULT && strcmp(optName, "-file") == 0) {
+				if(optIndex >= objc) {
+					Tcl_AppendResult(interp, "No name provided for -file", (char *)NULL);
+					return TCL_ERROR;
+				}
 				tabsepFile = Tcl_GetString(objv[optIndex]);
 				optIndex++;
 			} else if (cmdIndex == CMD_IMPORT_POSTGRES_RESULT && strcmp(optName, "-rowbyrow") == 0) {
@@ -1012,6 +1060,10 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			} else if (strcmp(optName, "-replace") == 0) {
 				replaceRows = 1;
 			} else if (strcmp(optName, "-recommit") == 0) {
+				if(optIndex >= objc) {
+					Tcl_AppendResult(interp, "No value provided for -recommit", (char *)NULL);
+					return TCL_ERROR;
+				}
 				if (Tcl_GetIntFromObj(interp, objv[optIndex], &recommitInterval) == TCL_ERROR) {
 					Tcl_AppendResult(interp, " in argument to '-recommit'", (char *)NULL);
 					return TCL_ERROR;
@@ -1020,6 +1072,10 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 					pollInterval = 0;
 				optIndex++;
 			} else if (strcmp(optName, "-poll_interval") == 0) {
+				if(optIndex >= objc) {
+					Tcl_AppendResult(interp, "No value provided for -poll_interval", (char *)NULL);
+					return TCL_ERROR;
+				}
 				if (Tcl_GetIntFromObj(interp, objv[optIndex], &pollInterval) == TCL_ERROR) {
 					Tcl_AppendResult(interp, " in argument to '-poll_interval'", (char *)NULL);
 					return TCL_ERROR;
