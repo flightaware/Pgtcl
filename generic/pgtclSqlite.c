@@ -1663,6 +1663,11 @@ Pg_sqlite_import(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *C
         sqlite3 *sqlite_db;
 	int      optIndex = 2;
 	int      nTables = 0;
+	char   **ignoreList = NULL;
+	char    *selector = NULL;
+	char   **mapList = NULL;
+	char    *defaultTable = NULL;
+	char    *action = NULL;
 
 	struct table {
 		char             *tableName;
@@ -1750,4 +1755,7 @@ Pg_sqlite_import(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *C
 			// TODO
 		}
 	}
+
+	if(selector == NULL) selector = "_table";
+	if(action == NULL) action = "_action";
 }
