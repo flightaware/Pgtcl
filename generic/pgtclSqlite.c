@@ -1861,7 +1861,43 @@ Pg_sqlite_import(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *C
 
 	if(selector == NULL) selector = "_table";
 	if(action == NULL) action = "_action";
-	// Verify rest of args
+	if(nTables == 0) {
+		Tcl_AppendResult(interp, "Must provide at least one -table", (char *)NULL);
+		goto cleanup_and_exit;
+	}
+	if(ignoreList == NULL) {
+		ignore = (char **)ckalloc(4 * (sizeof *ignore));
+		ignore[0] = "_action";
+		ignore[1] = "_oid";
+		ignore[2] = "_xid";
+		ignore[3] = "_lsn";
+	} else {
+		Tcl_Obj **iv;
+		int     **ic;
+
+		if(Tcl_ListObjGetElements(interp, ignoreList, &ic, &iv) != TCL_OK)
+			goto cleanup_and_exit;
+
+		ignore = (char **)ckalloc(ic * (sizeof *ignore));
+		for(i = 0; i < ic; i++)
+			ignore[i] = Tcl_GetString(iv[i]);
+	}
+	if(mapList) {
+		Tcl_Obj **mv;
+		int     **mc;
+
+		if(Tcl_ListObjGetElements(interp, mapList, &ic, &iv) != TCL_OK)
+			goto cleanup_and_exit;
+
+		if(ic & 1) {
+			Tcl_AppendResult(interp, "Map list must have an even number of arguments", (char *)NULL);
+			goto cleanup_and_exit;
+		}
+
+		map = (char **)ckalloc(mc * (sizeof *map));
+		for(i = 0; i < mc; i++)
+			map[i] = Tcl_GetString(mv[i]);
+	}
 
 	// Complete setting up the table array
 	for(i = 0; i < nTables; i++) {
@@ -1881,6 +1917,9 @@ Pg_sqlite_import(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *C
 	}
 
   cleanup_and_exit:
+	if(ignore) ckfree(ignore);
+	if(map) ckfree(map);
+
 	for(i = 0; i < nTables; i++) {
 		if(tables[i].colNames) ckfree(tables[i].colNames);
 		if(tables[i].colTypes) ckfree(tables[i].colTypes);
