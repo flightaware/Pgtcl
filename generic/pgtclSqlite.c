@@ -304,7 +304,7 @@ Pg_sqlite_bindValue(sqlite3 *sqlite_db, sqlite3_stmt *statement, int column, cha
 // of the primary keys in the name list.
 //
 int
-Pg_sqlite_generateCheck(Tcl_Interp *interp, sqlite3 *sqlite_db, char *tableName, char **columnNames, int nColumns, Tcl_Obj *primaryKey, sqlite3_stmt **statementPtr, int **primaryKeyIndexPtr)
+Pg_sqlite_generateCheck(Tcl_Interp *interp, sqlite3 *sqlite_db, char *tableName, char **columnNames, int nColumns, Tcl_Obj *primaryKey, sqlite3_stmt **statementPtr, int **primaryKeyIndexPtr, int *primaryKeyLengthPtr)
 {
 	Tcl_Obj     **keyv;
 	int           keyc;
@@ -395,9 +395,12 @@ Pg_sqlite_generateCheck(Tcl_Interp *interp, sqlite3 *sqlite_db, char *tableName,
 
 	// save or discard primary key indexes.
 	if(primaryKeyIndex) {
-		if(result == TCL_OK)
-			*primaryKeyIndexPtr = primaryKeyIndex;
-		else
+		if(result == TCL_OK) {
+			if(primaryKeyIndexPtr)
+				*primaryKeyIndexPtr = primaryKeyIndex;
+			if(primaryKeyLengthPtr)
+				*primaryKeyLengthPtr = keyc;
+		} else
 			ckfree(primaryKeyIndex);
 	}
 
@@ -1166,7 +1169,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 				goto early_error_exit;
 			}
 
-			if(Pg_sqlite_generateCheck(interp, sqlite_db, sqliteTable, columnNames, nColumns, primaryKey, &checkStatement, &primaryKeyIndex) != TCL_OK) {
+			if(Pg_sqlite_generateCheck(interp, sqlite_db, sqliteTable, columnNames, nColumns, primaryKey, &checkStatement, &primaryKeyIndex, NULL) != TCL_OK) {
 				goto early_error_exit;
 			}
 		}
@@ -1708,7 +1711,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 	return TCL_OK;
 }
 
-int Pg_sqlite_getKeyIndices(Tcl_Interp *interp, Tcl_Obj *pKeyList, char **colNames, int nColumns, int **indexPtr)
+int Pg_sqlite_getKeyIndices(Tcl_Interp *interp, Tcl_Obj *pKeyList, char **colNames, int nColumns, int **indexPtr, int *lengthPtr)
 {
 	return TCL_ERROR;
 }
@@ -1722,6 +1725,8 @@ Pg_sqlite_import(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *C
 	int          nTables = 0;
 	Tcl_Obj     *ignoreList = NULL;
 	Tcl_Obj     *mapList = NULL;
+	char       **ignore = NULL;
+	char       **map = NULL;
 	char        *defaultTable = NULL;
 	char        *selector = NULL;
 	char        *action = NULL;
@@ -1736,11 +1741,13 @@ Pg_sqlite_import(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *C
 		char            **colNames;
 		int               nColumns;
 		enum mappedTypes *colTypes;
+		Tcl_Obj          *pKeyList;
 		int              *pKeyIndex;
 		char             *checkSQL;
 		char             *deleteSQL;
 		char             *replaceSQL;
 		char             *insertSQL;
+		Tcl_Obj          *unknownColumnObj;
 		int               unknownColumn;
 	} *tables = NULL, *optTable = NULL;
 
@@ -1820,12 +1827,21 @@ Pg_sqlite_import(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *C
 				Tcl_AppendResult(interp, "Primary key already provided for ", optTable->tableName, (char *)NULL);
 				goto cleanup_and_exit;
 			}
-
-			Tcl_Obj *pKeyList = objv[optIndex++];
-
-			if(Pg_sqlite_getKeyIndices(interp, pKeyList, optTable->colNames, optTable->nColumns, &optTable->pKeyIndex) != TCL_OK) {
+			optTable->pKeyList = objv[optIndex++];
+		} else if(strcmp(optName, "-unknown") == 0) {
+			if(!optTable) {
+				Tcl_AppendResult(interp, "No table specified for -unknown", (char *)NULL);
 				goto cleanup_and_exit;
 			}
+			if(optIndex >= objc) {
+				Tcl_AppendResult(interp, "No key provided for -unknown", (char *)NULL);
+				goto cleanup_and_exit;
+			}
+			if(optTable->unknownColumnObj) {
+				Tcl_AppendResult(interp, "Unknown column already provided for ", optTable->tableName, (char *)NULL);
+				goto cleanup_and_exit;
+			}
+			optTable->unknownColumnObj = objv[optIndex++];
 		} else if(strcmp(optName, "-ignore") == 0) {
 			if(optIndex >= objc) {
 				Tcl_AppendResult(interp, "No list provided for -ignore", (char *)NULL);
@@ -1873,7 +1889,7 @@ Pg_sqlite_import(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *C
 		ignore[3] = "_lsn";
 	} else {
 		Tcl_Obj **iv;
-		int     **ic;
+		int     ic;
 
 		if(Tcl_ListObjGetElements(interp, ignoreList, &ic, &iv) != TCL_OK)
 			goto cleanup_and_exit;
@@ -1884,12 +1900,12 @@ Pg_sqlite_import(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *C
 	}
 	if(mapList) {
 		Tcl_Obj **mv;
-		int     **mc;
+		int     mc;
 
-		if(Tcl_ListObjGetElements(interp, mapList, &ic, &iv) != TCL_OK)
+		if(Tcl_ListObjGetElements(interp, mapList, &mc, &mv) != TCL_OK)
 			goto cleanup_and_exit;
 
-		if(ic & 1) {
+		if(mc & 1) {
 			Tcl_AppendResult(interp, "Map list must have an even number of arguments", (char *)NULL);
 			goto cleanup_and_exit;
 		}
@@ -1901,7 +1917,37 @@ Pg_sqlite_import(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *C
 
 	// Complete setting up the table array
 	for(i = 0; i < nTables; i++) {
+		struct table *t = &tables[i];
+
 		// verify table is complete
+		if(t->pKeyList == NULL) {
+			Tcl_AppendResult(interp, "Table ", t->tableName, " is missing primary key", (char *)NULL);
+			goto cleanup_and_exit;
+		}
+		if(t->colNames == NULL || t->colTypes == NULL) {
+			Tcl_AppendResult(interp, "Table ", t->tableName, " is missing columns", (char *) NULL);
+			goto cleanup_and_exit;
+		}
+		// parse primary key (do this here so we don't care about order
+		if(Pg_sqlite_getKeyIndices(interp, t->pKeyList, t->colNames, t->nColumns, &t->pKeyIndex, NULL) != TCL_OK) {
+			goto cleanup_and_exit;
+		}
+		// parse unknown column if present
+		if(t->unknownColumnObj) {
+			int *tmpIndex;
+			int  tmpLength;
+			if(Pg_sqlite_getKeyIndices(interp, t->unknownColumnObj, t->colNames, t->nColumns, &tmpIndex, &tmpLength) != TCL_OK) {
+				goto cleanup_and_exit;
+			}
+			if(tmpLength != 1) {
+				Tcl_AppendResult(interp, "Only one unknown column allowed for ", t->tableName, (char *)NULL);
+				ckfree(tmpIndex);
+				goto cleanup_and_exit;
+			}
+			t->unknownColumn = tmpIndex[0];
+			ckfree(tmpIndex);
+		}
+
 		// generate sql fragments for insert/delete/update
 	}
 
@@ -1925,6 +1971,7 @@ Pg_sqlite_import(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *C
 		if(tables[i].colTypes) ckfree(tables[i].colTypes);
 		if(tables[i].pKeyIndex) ckfree(tables[i].pKeyIndex);
 	}
+	ckfree(tables);
 
 	return result;
 }
