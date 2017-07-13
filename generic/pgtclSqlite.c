@@ -775,6 +775,42 @@ Pg_sqlite_split_tabsep(char *row, char ***columnsPtr, int nColumns, char *sepStr
 	return returnCode;
 }
 
+// Split a string up into a list. Modifies the input string.
+int
+Pg_sqlite_splitToList(Tcl_Interp *interp, char *str, Tcl_Obj **listPtr, char *sepStr)
+{
+	char *nextStr;
+	int returnCode = TCL_OK;
+	int sepLen;
+
+	if(!sepStr)
+		sepStr = "\t";
+	sepLen = strlen(sepStr);
+
+	if(!*listPtr)
+		*listPtr = Tcl_NewObj();
+
+	while(str) {
+		char tmp;
+		nextStr = strstr(str, sepStr);
+		if(nextStr) {
+			tmp = *nextStr;
+			*nextStr = '\0';
+		}
+		returnCode = LAPPEND_STRING(interp, *listPtr, str);
+		if(nextStr) {
+			*nextStr = tmp;
+			nextStr += sepLen;
+		}
+		if(returnCode != TCL_OK)
+			break;
+	
+		str = nextStr;
+	}
+
+	return TCL_OK;
+}
+
 // Split a string up into a key-val list, and populate a column list with the values pulled in from the list. This
 // modifies the original string.
 //
@@ -1953,13 +1989,22 @@ Pg_sqlite_import(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *C
 
 	// for each line read, parse it into the table
 	while(1) {
-		char *rawLine = NULL;
+		char     *rawLine = NULL;
+		Tcl_Obj  *list = NULL;
+		Tcl_Obj **objv = NULL;
+		int       objc;
+
 		if((result = Pg_sqlite_gets(interp, channel, &rawLine)) != TCL_OK) {
 			if (result == TCL_BREAK)
 				result = TCL_OK;
 			break;
 		}
 		// parse rawLine
+		if((result = Pg_sqlite_splitToList(interp, rawLine, &list, NULL)) != TCL_OK)
+			break;
+		if((result = Tcl_ListObjGetElements(interp, list, &objc, &objv)) != TCL_OK)
+			break;
+		// look for action, table, etc...
 	}
 
   cleanup_and_exit:
