@@ -1717,16 +1717,19 @@ int Pg_sqlite_getKeyIndices(Tcl_Interp *interp, Tcl_Obj *pKeyList, char **colNam
 int
 Pg_sqlite_import(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
-        sqlite3 *sqlite_db;
-	int      optIndex = 2;
-	int      nTables = 0;
-	Tcl_Obj *ignoreList = NULL;
-	Tcl_Obj *mapList = NULL;
-	char    *defaultTable = NULL;
-	char    *selector = NULL;
-	char    *action = NULL;
-	int      result = TCL_ERROR; // Assume the worst
-	int      i;
+        sqlite3     *sqlite_db;
+	int          optIndex = 3;
+	int          nTables = 0;
+	Tcl_Obj     *ignoreList = NULL;
+	Tcl_Obj     *mapList = NULL;
+	char        *defaultTable = NULL;
+	char        *selector = NULL;
+	char        *action = NULL;
+	int          result = TCL_ERROR; // Assume the worst
+	int          i;
+	char        *handle;
+	Tcl_Channel  channel;
+	int          channelMode;
 
 	struct table {
 		char             *tableName;
@@ -1743,11 +1746,24 @@ Pg_sqlite_import(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *C
 
         if (objc <= optIndex) {
 	  common_wrong_num_args:
-                Tcl_WrongNumArgs(interp, 1, objv, "sqlite_handle ?args?");
+                Tcl_WrongNumArgs(interp, 1, objv, "sqlite_handle stream ?args?");
                 return TCL_ERROR;
         }
 
 	if(Pg_sqlite_getDB(interp, Tcl_GetString(objv[1]), &sqlite_db) != TCL_OK) {
+		return TCL_ERROR;
+	}
+
+	handle = Tcl_GetString(objv[2]);
+	channel = Tcl_GetChannel(interp, handle, &channelMode);
+
+	if(!channel) {
+		Tcl_AppendResult(interp, Tcl_ErrnoMsg(Tcl_GetErrno()), " for ", handle, (char *)NULL);
+		return TCL_ERROR;
+	}
+
+	if (!(channelMode & TCL_READABLE)) {
+		Tcl_AppendResult (interp, "Stream ", handle, " is not readable", (char *)NULL);
 		return TCL_ERROR;
 	}
 
@@ -1845,7 +1861,24 @@ Pg_sqlite_import(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *C
 
 	if(selector == NULL) selector = "_table";
 	if(action == NULL) action = "_action";
-	result = TCL_OK;
+	// Verify rest of args
+
+	// Complete setting up the table array
+	for(i = 0; i < nTables; i++) {
+		// verify table is complete
+		// generate sql fragments for insert/delete/update
+	}
+
+	// for each line read, parse it into the table
+	while(1) {
+		char *rawLine = NULL;
+		if((result = Pg_sqlite_gets(interp, channel, &rawLine)) != TCL_OK) {
+			if (result == TCL_BREAK)
+				result = TCL_OK;
+			break;
+		}
+		// parse rawLine
+	}
 
   cleanup_and_exit:
 	for(i = 0; i < nTables; i++) {
