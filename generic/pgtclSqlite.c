@@ -19,11 +19,7 @@
 
 #define LAPPEND_STRING(i, o, s) Tcl_ListObjAppendElement((i), (o), Tcl_NewStringObj((s), -1));
 
-#define ACTION_UNKNOWN -1
-#define ACTION_INSERT 1
-#define ACTION_DELETE 2
-#define ACTION_REPLACE 3
-#define ACTION_UPDATE 4
+enum actions { ACTION_UNKNOWN, ACTION_INSERT, ACTION_DELETE, ACTION_REPLACE, ACTION_UPDATE };
 
 // From tclsqlite.c, part 1 of the hack, sqlite3 conveniently guarantees that the first element in
 // the userdata for an sqlite proc is the sqlite3 database.
@@ -1787,12 +1783,9 @@ Pg_sqlite_import(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *C
 		enum mappedTypes *colTypes;
 		Tcl_Obj          *pKeyList;
 		int              *pKeyIndex;
-		char             *checkSQL;
-		char             *deleteSQL;
-		char             *replaceSQL;
-		char             *insertSQL;
 		Tcl_Obj          *unknownColumnObj;
 		int               unknownColumn;
+		char            **stashedKey; // replace actions stash the primarykey values here
 	} *tables = NULL, *optTable = NULL, *defTable = NULL;
 
         if (objc <= optIndex) {
@@ -2024,7 +2017,7 @@ Pg_sqlite_import(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *C
 		}
 		// look for action, table, etc...
 		struct table *destTable = NULL;
-		int action = ACTION_UNKNOWN;
+		enum actions action = ACTION_UNKNOWN;
 		for (i = 0; i < objc; i+=2) {
 			char *colname = Tcl_GetString(objv[i]);
 			int j;
@@ -2067,6 +2060,29 @@ Pg_sqlite_import(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *C
 					objv[i] = NULL;
 				}
 			}
+		}
+		char **columns = NULL;
+		int nColumns;
+		if(Pg_sqlite_keyvalToColumns(interp, objv, objc, &columns, &nColumns) != TCL_OK) {
+			goto cleanup_and_exit;
+		}
+		
+		switch(action) {
+			case ACTION_UNKNOWN:
+				Pg_sqlite_upsert(interp, sqlite_db, destTable, columns, nColumns);
+				break;
+			case ACTION_INSERT:
+				Pg_sqlite_insert(interp, sqlite_db, destTable, columns, nColumns);
+				break;
+			case ACTION_DELETE:
+				Pg_sqlite_delete(interp, sqlite_db, destTable, columns, nColumns);
+				break;
+			case ACTION_REPLACE:
+				Pg_sqlite_stashKey(interp, sqlite_db, destTable, columns, nColumns);
+				break;
+			case ACTION_UPDATE:
+				Pg_sqlite_replace(interp, sqlite_db, destTable, columns, nColumns);
+				break;
 		}
 	}
 
