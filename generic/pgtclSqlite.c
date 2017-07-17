@@ -1749,7 +1749,56 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 	return TCL_OK;
 }
 
+struct table {
+	char             *tableName;
+	char            **colNames;
+	int               nColumns;
+	enum mappedTypes *colTypes;
+	Tcl_Obj          *pKeyList;
+	int              *pKeyIndex;
+	Tcl_Obj          *unknownColumnObj;
+	int               unknownColumn;
+	char            **stashKey; // replace actions stash the primarykey values here
+};
+
+// TODO STUB
 int Pg_sqlite_getKeyIndices(Tcl_Interp *interp, Tcl_Obj *pKeyList, char **colNames, int nColumns, int **indexPtr, int *lengthPtr)
+{
+	return TCL_ERROR;
+}
+
+// TODO STUB
+int Pg_sqlite_keyvalToColumns(struct Tcl_Interp *interp, Tcl_Obj **objv, int objc, struct table *table, char ***columnsPtr, int *nColumnsPtr)
+{
+	return TCL_ERROR;
+}
+
+// TODO STUB
+int Pg_sqlite_upsert(Tcl_Interp *interp, sqlite3 *sqlite_db, struct table *destTable, char **columns, int nColumns)
+{
+	return TCL_ERROR;
+}
+
+// TODO STUB
+int Pg_sqlite_insert(Tcl_Interp *interp, sqlite3 *sqlite_db, struct table *destTable, char **columns, int nColumns)
+{
+	return TCL_ERROR;
+}
+
+// TODO STUB
+int Pg_sqlite_delete(Tcl_Interp *interp, sqlite3 *sqlite_db, struct table *destTable, char **columns, int nColumns)
+{
+	return TCL_ERROR;
+}
+
+// TODO STUB
+int Pg_sqlite_stashKey(Tcl_Interp *interp, sqlite3 *sqlite_db, struct table *destTable, char **columns, int nColumns)
+{
+	return TCL_ERROR;
+}
+
+// TODO STUB
+int Pg_sqlite_replace(Tcl_Interp *interp, sqlite3 *sqlite_db, struct table *destTable, char **columns, int nColumns)
 {
 	return TCL_ERROR;
 }
@@ -1775,18 +1824,7 @@ Pg_sqlite_import(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *C
 	char        *handle;
 	Tcl_Channel  channel;
 	int          channelMode;
-
-	struct table {
-		char             *tableName;
-		char            **colNames;
-		int               nColumns;
-		enum mappedTypes *colTypes;
-		Tcl_Obj          *pKeyList;
-		int              *pKeyIndex;
-		Tcl_Obj          *unknownColumnObj;
-		int               unknownColumn;
-		char            **stashKey; // replace actions stash the primarykey values here
-	} *tables = NULL, *optTable = NULL, *defTable = NULL;
+	struct table  *tables = NULL, *optTable = NULL, *defTable = NULL;
 
         if (objc <= optIndex) {
 	  common_wrong_num_args:
@@ -2066,6 +2104,7 @@ Pg_sqlite_import(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *C
 		if(Pg_sqlite_keyvalToColumns(interp, objv, objc, destTable, &columns, &nColumns) != TCL_OK) {
 			goto cleanup_and_exit;
 		}
+
 		
 		switch(action) {
 			case ACTION_UNKNOWN:
