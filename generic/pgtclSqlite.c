@@ -1785,7 +1785,7 @@ Pg_sqlite_import(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *C
 		int              *pKeyIndex;
 		Tcl_Obj          *unknownColumnObj;
 		int               unknownColumn;
-		char            **stashedKey; // replace actions stash the primarykey values here
+		char            **stashKey; // replace actions stash the primarykey values here
 	} *tables = NULL, *optTable = NULL, *defTable = NULL;
 
         if (objc <= optIndex) {
@@ -2063,7 +2063,7 @@ Pg_sqlite_import(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *C
 		}
 		char **columns = NULL;
 		int nColumns;
-		if(Pg_sqlite_keyvalToColumns(interp, objv, objc, &columns, &nColumns) != TCL_OK) {
+		if(Pg_sqlite_keyvalToColumns(interp, objv, objc, destTable, &columns, &nColumns) != TCL_OK) {
 			goto cleanup_and_exit;
 		}
 		
@@ -2094,6 +2094,7 @@ Pg_sqlite_import(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *C
 		if(tables[i].colNames) ckfree(tables[i].colNames);
 		if(tables[i].colTypes) ckfree(tables[i].colTypes);
 		if(tables[i].pKeyIndex) ckfree(tables[i].pKeyIndex);
+		if(tables[i].stashKey) ckfree(tables[i].stashKey);
 	}
 	ckfree(tables);
 
