@@ -19,6 +19,12 @@
 
 #define LAPPEND_STRING(i, o, s) Tcl_ListObjAppendElement((i), (o), Tcl_NewStringObj((s), -1));
 
+#define ACTION_UNKNOWN -1
+#define ACTION_INSERT 1
+#define ACTION_DELETE 2
+#define ACTION_REPLACE 3
+#define ACTION_UPDATE 4
+
 // From tclsqlite.c, part 1 of the hack, sqlite3 conveniently guarantees that the first element in
 // the userdata for an sqlite proc is the sqlite3 database.
 /*
@@ -775,7 +781,7 @@ Pg_sqlite_split_tabsep(char *row, char ***columnsPtr, int nColumns, char *sepStr
 	return returnCode;
 }
 
-// Split a string up into a list. Modifies the input string.
+// Split a string up into a list. Temporarily modifies the input string.
 int
 Pg_sqlite_splitToList(Tcl_Interp *interp, char *str, Tcl_Obj **listPtr, char *sepStr)
 {
@@ -1762,10 +1768,12 @@ Pg_sqlite_import(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *C
 	Tcl_Obj     *ignoreList = NULL;
 	Tcl_Obj     *mapList = NULL;
 	char       **ignore = NULL;
+	int          ignoreLength = 0;
 	char       **map = NULL;
-	char        *defaultTable = NULL;
-	char        *selector = NULL;
-	char        *action = NULL;
+	int          mapLength = 0;
+	char        *defTableName = NULL;
+	char        *selColumn = NULL;
+	char        *actColumn = NULL;
 	int          result = TCL_ERROR; // Assume the worst
 	int          i;
 	char        *handle;
@@ -1785,7 +1793,7 @@ Pg_sqlite_import(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *C
 		char             *insertSQL;
 		Tcl_Obj          *unknownColumnObj;
 		int               unknownColumn;
-	} *tables = NULL, *optTable = NULL;
+	} *tables = NULL, *optTable = NULL, *defTable = NULL;
 
         if (objc <= optIndex) {
 	  common_wrong_num_args:
@@ -1895,59 +1903,60 @@ Pg_sqlite_import(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *C
 				Tcl_AppendResult(interp, "No column provided for -selector", (char *)NULL);
 				goto cleanup_and_exit;
 			}
-			selector = Tcl_GetString(objv[optIndex++]);
+			selColumn = Tcl_GetString(objv[optIndex++]);
 		} else if(strcmp(optName, "-action") == 0) {
 			if(optIndex >= objc) {
 				Tcl_AppendResult(interp, "No column provided for -action", (char *)NULL);
 				goto cleanup_and_exit;
 			}
-			action = Tcl_GetString(objv[optIndex++]);
+			actColumn = Tcl_GetString(objv[optIndex++]);
 		} else if(strcmp(optName, "-default") == 0) {
 			if(optIndex >= objc) {
 				Tcl_AppendResult(interp, "No table provided for -default", (char *)NULL);
 				goto cleanup_and_exit;
 			}
-			defaultTable = Tcl_GetString(objv[optIndex++]);
+			defTableName = Tcl_GetString(objv[optIndex++]);
 		}
 	}
 
-	if(selector == NULL) selector = "_table";
-	if(action == NULL) action = "_action";
+	if(selColumn == NULL) selColumn = "_table";
+	if(actColumn == NULL) actColumn = "_action";
 	if(nTables == 0) {
 		Tcl_AppendResult(interp, "Must provide at least one -table", (char *)NULL);
 		goto cleanup_and_exit;
 	}
 	if(ignoreList == NULL) {
-		ignore = (char **)ckalloc(4 * (sizeof *ignore));
+		ignoreLength = 5;
+		ignore = (char **)ckalloc(ignoreLength * (sizeof *ignore));
 		ignore[0] = "_action";
 		ignore[1] = "_oid";
 		ignore[2] = "_xid";
 		ignore[3] = "_lsn";
+		ignore[4] = "_table";
 	} else {
 		Tcl_Obj **iv;
-		int     ic;
 
-		if(Tcl_ListObjGetElements(interp, ignoreList, &ic, &iv) != TCL_OK)
+		if(Tcl_ListObjGetElements(interp, ignoreList, &ignoreLength, &iv) != TCL_OK)
 			goto cleanup_and_exit;
 
-		ignore = (char **)ckalloc(ic * (sizeof *ignore));
-		for(i = 0; i < ic; i++)
+		ignore = (char **)ckalloc(ignoreLength * (sizeof *ignore));
+		for(i = 0; i < ignoreLength; i++)
 			ignore[i] = Tcl_GetString(iv[i]);
 	}
 	if(mapList) {
 		Tcl_Obj **mv;
-		int     mc;
+		int     mapLength;
 
-		if(Tcl_ListObjGetElements(interp, mapList, &mc, &mv) != TCL_OK)
+		if(Tcl_ListObjGetElements(interp, mapList, &mapLength, &mv) != TCL_OK)
 			goto cleanup_and_exit;
 
-		if(mc & 1) {
+		if(mapLength & 1) {
 			Tcl_AppendResult(interp, "Map list must have an even number of arguments", (char *)NULL);
 			goto cleanup_and_exit;
 		}
 
-		map = (char **)ckalloc(mc * (sizeof *map));
-		for(i = 0; i < mc; i++)
+		map = (char **)ckalloc(mapLength * (sizeof *map));
+		for(i = 0; i < mapLength; i++)
 			map[i] = Tcl_GetString(mv[i]);
 	}
 
@@ -1984,6 +1993,11 @@ Pg_sqlite_import(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *C
 			ckfree(tmpIndex);
 		}
 
+		if(defTableName && strcmp(t->tableName, defTableName) == 0) {
+			defTable = t;
+			defTableName = NULL;
+		}
+
 		// generate sql fragments for insert/delete/update
 	}
 
@@ -2004,7 +2018,56 @@ Pg_sqlite_import(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *C
 			break;
 		if((result = Tcl_ListObjGetElements(interp, list, &objc, &objv)) != TCL_OK)
 			break;
+		if(objc & 1) {
+			Tcl_AppendResult(interp, "Row must have an even number of elements", (char *)NULL);
+			goto cleanup_and_exit;
+		}
 		// look for action, table, etc...
+		struct table *destTable = NULL;
+		int action = ACTION_UNKNOWN;
+		for (i = 0; i < objc; i+=2) {
+			char *colname = Tcl_GetString(objv[i]);
+			int j;
+			if(strcmp(colname, selColumn) == 0) {
+				char *tableName = Tcl_GetString(objv[i+1]);
+				int t;
+				if(map) {
+					int m;
+					for(m = 0; m < mapLength; m+=2) {
+						if(strcmp(tableName, map[m]) == 0) {
+							tableName = map[m+1];
+							break;
+						}
+					}
+				}
+				for(t = 0; t < nTables; t++) {
+					if(strcmp(tables[t].tableName, tableName) == 0) {
+						destTable = &tables[t];
+						break;
+					}
+				}
+				if(!destTable && defTable)
+					destTable = defTable;
+				// Error if table not found?
+			} else if(strcmp(colname, actColumn) == 0) {
+				char *actionName = Tcl_GetString(objv[i+1]);
+				if(strcmp(actionName, "insert") == 0) {
+					action = ACTION_INSERT;
+				} else if(strcmp(actionName, "delete") == 0) {
+					action = ACTION_DELETE;
+				} else if(strcmp(actionName, "replace") == 0) {
+					action = ACTION_REPLACE;
+				} else if(strcmp(actionName, "update") == 0) {
+					action = ACTION_UPDATE;
+				}
+				// error if action not found?
+			}
+			for(j = 0; j < ignoreLength; j++) {
+				if(strcmp(ignore[j], colname) == 0) {
+					objv[i] = NULL;
+				}
+			}
+		}
 	}
 
   cleanup_and_exit:
