@@ -159,7 +159,7 @@ AC_ARG_WITH([sqlite3],
 AS_IF([test "x$with_sqlite3" != "xno"],
 	[AC_CHECK_LIB([sqlite3], [main],
 		[TEA_ADD_LIBS([-lsqlite3])
-		 TEA_ADD_SOURCES([pgtclSqlite.c])
+		 TEA_ADD_SOURCES([pgtclSqlite.c tokenize.c])
 		 AC_DEFINE([HAVE_SQLITE3], [1], [Define if you have sqlite3])
 		],
 		[if test "x$with_sqlite3" != "xcheck"; then
