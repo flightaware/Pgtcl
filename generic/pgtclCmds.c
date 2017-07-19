@@ -21,6 +21,7 @@
 #include "pgtclCmds.h"
 #include "pgtclId.h"
 #include "libpq/libpq-fs.h"		/* large-object interface */
+#include "tokenize.h"
 
 #ifndef CONST84
 #     define CONST84
