@@ -702,6 +702,7 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	char		*paramArrayName = NULL;
 	int              nParams;
 	int              index;
+	int              useVariables = 0;
 
 	enum             positionalArgs {EXEC_ARG_CONN, EXEC_ARG_SQL, EXEC_ARGS};
 	int              nextPositionalArg = EXEC_ARG_CONN;
@@ -712,6 +713,8 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		if(strcmp(arg, "-paramarray") == 0) {
 		    index++;
 		    paramArrayName = Tcl_GetString(objv[index]);
+		} else if(strcmp(arg, "-variables") == 0) {
+		    useVariables = 1;
 		} else {
 		    goto wrong_args;
 		}
@@ -728,11 +731,11 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		}
 	    }
 	}
-	
+
 	if (nextPositionalArg != EXEC_ARGS)
 	{
 	    wrong_args:
-		Tcl_WrongNumArgs(interp, 1, objv, "?-paramarray var? connection queryString ?parm...?");
+		Tcl_WrongNumArgs(interp, 1, objv, "?-variables? ?-paramarray var? connection queryString ?parm...?");
 		return TCL_ERROR;
 	}
 
@@ -757,7 +760,16 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	/* objc must be 3 or greater at this point */
 	nParams = objc - index;
 
-	if (paramArrayName) {
+	if (useVariables) {
+		if(paramArrayName || nParams) {
+			Tcl_SetResult(interp, "-variables can not be used with positional or named parameters", TCL_STATIC);
+			return TCL_ERROR;
+		}
+		if (handle_substitutions(interp, execString, &newExecString, &paramValues, &nParams, 1) != TCL_OK) {
+			return TCL_ERROR;
+		}
+		execString = newExecString;
+	} else if (paramArrayName) {
 	    // Can't combine positional params and -paramarray
 	    if (nParams) {
 		Tcl_SetResult(interp, "Can't use both positional and named parameters", TCL_STATIC);
@@ -782,14 +794,17 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	 * will not accept more than one SQL statement per call, while
 	 * PQexec will.  by checking and using PQexec when no parameters
 	 * are included, we maintain compatibility for code that doesn't
-	 * use params and might have had multiple statements in a single 
+	 * use params and might have had multiple statements in a single
 	 * request */
 	if (nParams == 0) {
 	    result = PQexec(conn, execString);
 	} else {
 	    result = PQexecParams(conn, execString, nParams, NULL, paramValues, NULL, NULL, 0);
 	    ckfree ((void *)paramValues);
-	    if(newExecString) ckfree(newExecString);
+	    if(newExecString) {
+		ckfree(newExecString);
+		newExecString = NULL;
+	    }
 	}
 
 	connid->sql_count++;

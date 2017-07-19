@@ -13,7 +13,7 @@ TK_REM, TK_RP, TK_RSHIFT, TK_SEMI, TK_SLASH, TK_SPACE, TK_STAR, TK_STRING, TK_TC
 };
 
 int Pg_sqlite3GetToken(const char *z, enum sqltoken *tokenType);
-int handle_substitutions(Tcl_Interp *interp, char *sql, char **newSqlPtr, const char ***replacementArrayPtr, int *replacementArrayLengthPtr);
+int handle_substitutions(Tcl_Interp *interp, const char *sql, char **newSqlPtr, const char ***replacementArrayPtr, int *replacementArrayLengthPtr, int hardError);
 
 #define sqlite3Isdigit(x) isdigit(x)
 #define sqlite3Isspace(x) isspace(x)

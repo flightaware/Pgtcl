@@ -407,14 +407,14 @@ int Pg_sqlite3GetToken(const char *z, enum sqltoken *tokenType){
   return i;
 }
 
-int handle_substitutions(Tcl_Interp *interp, char *sql, char **newSqlPtr, const char ***replacementArrayPtr, int *replacementArrayLengthPtr)
+int handle_substitutions(Tcl_Interp *interp, const char *sql, char **newSqlPtr, const char ***replacementArrayPtr, int *replacementArrayLengthPtr, int hardError)
 {
 	char *newSql = ckalloc(strlen(sql)+1);
 	// Worst possible case? the sql is nothing but ":varname" and they're all one character names. This
 	// will still be big enough.
 	const char **replacementArray = ckalloc((strlen(sql)/2) * (sizeof *replacementArray));
 
-	char *p;
+	const char *p;
 	char *q;
 	int len;
 	enum sqltoken tk;
@@ -427,7 +427,7 @@ int handle_substitutions(Tcl_Interp *interp, char *sql, char **newSqlPtr, const 
 		len = Pg_sqlite3GetToken(p, &tk);
 		switch (tk) {
 			case TK_SQLVAR: {
-				if(nextVarIndex) {
+				if(hardError || nextVarIndex) {
 					Tcl_SetResult(interp, "Can't combine Tcl and Postgres substitutions", TCL_STATIC);
 					result = TCL_ERROR;
 				} else {
@@ -436,11 +436,15 @@ int handle_substitutions(Tcl_Interp *interp, char *sql, char **newSqlPtr, const 
 				goto cleanup_and_exit;
 			}
 			case TK_TCLVAR: {
-				int saved = p[len];
+				char *nameBuf = ckalloc(len);
 				const char *val = NULL;
-				p[len] = 0;
-				val = Tcl_GetVar(interp, &p[1], 0);
-				p[len] = saved;
+				int i;
+
+				for(i = 0; i <= len; i++)
+					nameBuf[i] = p[i+1];
+				nameBuf[i] = 0;
+				val = Tcl_GetVar(interp, nameBuf, 0);
+				ckfree(nameBuf);
 				p += len;
 
 				replacementArray[nextVarIndex] = val;
@@ -459,20 +463,16 @@ int handle_substitutions(Tcl_Interp *interp, char *sql, char **newSqlPtr, const 
 			}
 		}
 	}
+	*q = 0;
 
   cleanup_and_exit:
 	if(result == TCL_OK) {
 		*newSqlPtr = newSql;
-		*q = 0;
 		*replacementArrayPtr = replacementArray;
 		*replacementArrayLengthPtr = nextVarIndex;
 	} else {
-		int i;
 		ckfree(newSql);
-		for(i = 0; i < nextVarIndex; i++)
-			if(replacementArray[i])
-				ckfree(replacementArray[i]);
-		ckfree (replacementArray);
+		ckfree(replacementArray);
 	}
 	return result;
 }
