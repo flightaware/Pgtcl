@@ -4,6 +4,7 @@
 ** An tokenizer for SQL
 */
 #include <ctype.h>
+#include <tcl.h>
 
 enum sqltoken {
 TK_BITAND, TK_BITNOT, TK_BITOR, TK_BLOB, TK_COMMA, TK_CONCAT, TK_DOT, TK_EQ, TK_FLOAT, TK_GE,
@@ -12,6 +13,7 @@ TK_REM, TK_RP, TK_RSHIFT, TK_SEMI, TK_SLASH, TK_SPACE, TK_STAR, TK_STRING, TK_TC
 };
 
 int Pg_sqlite3GetToken(const char *z, enum sqltoken *tokenType);
+int handle_substitutions(Tcl_Interp *interp, char *sql, char **newSqlPtr, const char ***replacementArrayPtr, int *replacementArrayLengthPtr);
 
 #define sqlite3Isdigit(x) isdigit(x)
 #define sqlite3Isspace(x) isspace(x)
