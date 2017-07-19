@@ -17,6 +17,8 @@
 */
 #include "tokenize.h"
 #include <stdlib.h>
+#include <tcl.h>
+#include <string.h>
 
 /* Character classes for tokenizing
 **
@@ -147,9 +149,9 @@ static const unsigned char sqlite3CtypeMap[256] = {
 ** Return the length (in bytes) of the token that begins at z[0]. 
 ** Store the token type in *tokenType before returning.
 */
-int Pg_sqlite3GetToken(const unsigned char *z, int *tokenType){
+int Pg_sqlite3GetToken(const char *z, enum sqltoken *tokenType){
   int i, c;
-  switch( aiClass[*z] ){  /* Switch on the character-class of the first byte
+  switch( totoken(*z) ){  /* Switch on the character-class of the first byte
                           ** of the token. See the comment on the CC_ defines
                           ** above. */
     case CC_SPACE: {
@@ -364,7 +366,7 @@ int Pg_sqlite3GetToken(const unsigned char *z, int *tokenType){
       return i;
     }
     case CC_KYWD: {
-      for(i=1; aiClass[z[i]]<=CC_KYWD; i++){}
+      for(i=1; totoken(z[i])<=CC_KYWD; i++){}
       if( IdChar(z[i]) ){
         /* This token started out using characters that can appear in keywords,
         ** but z[i] is a character not allowed within keywords, so this must
@@ -373,7 +375,7 @@ int Pg_sqlite3GetToken(const unsigned char *z, int *tokenType){
         break;
       }
       *tokenType = TK_ID;
-      return keywordCode((char*)z, i, tokenType);
+      return i; // was keywordCode((char*)z, i, tokenType);
     }
     case CC_X: {
 #ifndef SQLITE_OMIT_BLOB_LITERAL
@@ -403,5 +405,75 @@ int Pg_sqlite3GetToken(const unsigned char *z, int *tokenType){
   while( IdChar(z[i]) ){ i++; }
   *tokenType = TK_ID;
   return i;
+}
+
+int handle_substitutions(Tcl_Interp *interp, char *sql, char **newSqlPtr, const char ***replacementArrayPtr, int *replacementArrayLengthPtr)
+{
+	char *newSql = ckalloc(strlen(sql)+1);
+	// Worst possible case? the sql is nothing but ":varname" and they're all one character names. This
+	// will still be big enough.
+	const char **replacementArray = ckalloc((strlen(sql)/2) * (sizeof *replacementArray));
+
+	char *p;
+	char *q;
+	int len;
+	enum sqltoken tk;
+	int nextVarIndex = 0;
+	int result = TCL_OK;
+
+	p = sql;
+	q = newSql;
+	while(*p) {
+		len = Pg_sqlite3GetToken(p, &tk);
+		switch (tk) {
+			case TK_SQLVAR: {
+				if(nextVarIndex) {
+					Tcl_SetResult(interp, "Can't combine Tcl and Postgres substitutions", TCL_STATIC);
+					result = TCL_ERROR;
+				} else {
+					result = TCL_CONTINUE;
+				}
+				goto cleanup_and_exit;
+			}
+			case TK_TCLVAR: {
+				int saved = p[len];
+				const char *val = NULL;
+				p[len] = 0;
+				val = Tcl_GetVar(interp, &p[1], 0);
+				p[len] = saved;
+				p += len;
+
+				replacementArray[nextVarIndex] = val;
+				*q++ = '?';
+
+				nextVarIndex++;
+				break;
+			}
+			case TK_ILLEGAL:
+			default: {
+				while(len > 0) {
+					*q++ = *p++;
+					len--;
+				}
+				break;
+			}
+		}
+	}
+
+  cleanup_and_exit:
+	if(result == TCL_OK) {
+		*newSqlPtr = newSql;
+		*q = 0;
+		*replacementArrayPtr = replacementArray;
+		*replacementArrayLengthPtr = nextVarIndex;
+	} else {
+		int i;
+		ckfree(newSql);
+		for(i = 0; i < nextVarIndex; i++)
+			if(replacementArray[i])
+				ckfree(replacementArray[i]);
+		ckfree (replacementArray);
+	}
+	return result;
 }
 
