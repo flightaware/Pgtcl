@@ -38,7 +38,7 @@ static int count_parameters(Tcl_Interp *interp, const char *queryString,
 
 static int expand_parameters(Tcl_Interp *interp, const char *queryString,
 				    int nParams, char *paramArrayName,
-				    const char **newQueryStringPtr, const char ***paramValuesPtr);
+				    char **newQueryStringPtr, const char ***paramValuesPtr);
 
 static void build_param_array(Tcl_Interp *interp, int nParams, Tcl_Obj *CONST objv[], const char ***paramValuesPtr);
 
@@ -697,7 +697,7 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	PGresult        *result;
 	CONST84 char    *connString = NULL;
 	const char      *execString = NULL;
-	const char      *newExecString = NULL;
+	char            *newExecString = NULL;
 	const char     **paramValues = NULL;
 	char		*paramArrayName = NULL;
 	int              nParams;
@@ -2678,7 +2678,7 @@ static int count_parameters(Tcl_Interp *interp, const char *queryString, int *nP
  If not, does not modify the arguments.
  */
 static int expand_parameters(Tcl_Interp *interp, const char *queryString, int nParams, char *paramArrayName,
-				const char **newQueryStringPtr, const char ***paramValuesPtr)
+				char **newQueryStringPtr, const char ***paramValuesPtr)
 {
 	// Allocating space for parameter IDs up to 100,000 (5 characters)
 	char        *newQueryString = (char *)ckalloc(strlen(queryString) + 5 * nParams);
@@ -2843,7 +2843,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	Tcl_Obj     *columnListObj  = NULL;
 	Tcl_Obj    **columnNameObjs = NULL;
 	const char **paramValues    = NULL;
-	const char  *newQueryString = NULL;
+	char        *newQueryString = NULL;
 	Tcl_Obj     *paramListObj   = NULL;
 
 	enum         positionalArgs {SELECT_ARG_CONN, SELECT_ARG_QUERY, SELECT_ARG_VAR, SELECT_ARG_PROC, SELECT_ARGS};
@@ -3399,7 +3399,7 @@ Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
         int              status;
 	CONST84 char    *connString = NULL;
 	const char      *execString = NULL;
-	const char      *newExecString = NULL;
+	char            *newExecString = NULL;
 	const char     **paramValues = NULL;
 	char		*paramArrayName = NULL;
 	int              nParams;
