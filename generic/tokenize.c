@@ -440,17 +440,18 @@ int handle_substitutions(Tcl_Interp *interp, const char *sql, char **newSqlPtr, 
 				const char *val = NULL;
 				int i;
 
-				for(i = 0; i <= len; i++)
-					nameBuf[i] = p[i+1];
-				nameBuf[i] = 0;
+				for(i = 1; i < len; i++)
+					nameBuf[i-1] = p[i];
+				nameBuf[i-1] = 0;
 				val = Tcl_GetVar(interp, nameBuf, 0);
 				ckfree(nameBuf);
 				p += len;
 
 				replacementArray[nextVarIndex] = val;
-				*q++ = '?';
-
+				sprintf(q, "$%d", nextVarIndex+1); //1 indexed
+				while(*q) q++;
 				nextVarIndex++;
+
 				break;
 			}
 			case TK_ILLEGAL:
