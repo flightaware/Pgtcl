@@ -939,7 +939,7 @@ pg_conndefaults
 
  <refsynopsisdiv>
 <synopsis>
-pg_exec <optional><parameter>-paramarray</parameter> arrayVar</optional> <optional><parameter>-variables</optional></parameter> <parameter>conn</parameter> <parameter>commandString</parameter> <optional role="tcl"><parameter>args</parameter></optional>
+pg_exec <optional><parameter>-paramarray</parameter> arrayVar</optional> <optional><parameter>-variables</parameter></optional> <parameter>conn</parameter> <parameter>commandString</parameter> <optional role="tcl"><parameter>args</parameter></optional>
 </synopsis>
  </refsynopsisdiv>
 
@@ -1601,7 +1601,7 @@ pg_result <parameter>resultHandle</parameter> <parameter>resultOption</parameter
 
  <refsynopsisdiv>
 <synopsis>
-pg_select <optional role="tcl"><parameter>-rowbyrow</parameter></optional> <optional role="tcl"><parameter>-nodotfields</parameter></optional> <optional role="tcl"><parameter>-withoutnulls</parameter></optional> <optional role="tcl"><parameter>-paramarray var</parameter></optional> <optional><parameter>-variables</optional></parameter> <optional role="tcl"><parameter>-params</parameter> paramList</optional> <parameter>conn</parameter> <parameter>commandString</parameter> <parameter>arrayVar</parameter> <parameter>procedure</parameter>
+pg_select <optional role="tcl"><parameter>-rowbyrow</parameter></optional> <optional role="tcl"><parameter>-nodotfields</parameter></optional> <optional role="tcl"><parameter>-withoutnulls</parameter></optional> <optional role="tcl"><parameter>-paramarray var</parameter></optional> <optional><parameter>-variables</parameter></optional> <optional role="tcl"><parameter>-params</parameter> paramList</optional> <parameter>conn</parameter> <parameter>commandString</parameter> <parameter>arrayVar</parameter> <parameter>procedure</parameter>
 </synopsis>
  </refsynopsisdiv>
 
@@ -2182,7 +2182,7 @@ pg_on_connection_loss <parameter>conn</parameter> <optional role="tcl"><paramete
 
  <refsynopsisdiv>
 <synopsis>
-pg_sendquery <optional><parameter>-paramarray</parameter> <optional><parameter>-variables</optional></parameter> arrayVar</optional> <parameter>conn</parameter> <parameter>commandString</parameter> <optional role="tcl"><parameter>args</parameter></optional>
+pg_sendquery <optional><parameter>-paramarray</parameter> <optional><parameter>-variables</parameter></optional> arrayVar</optional> <parameter>conn</parameter> <parameter>commandString</parameter> <optional role="tcl"><parameter>args</parameter></optional>
 </synopsis>
  </refsynopsisdiv>
 
