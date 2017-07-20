@@ -939,7 +939,7 @@ pg_conndefaults
 
  <refsynopsisdiv>
 <synopsis>
-pg_exec <optional><parameter>-paramarray</parameter> arrayVar</optional> <parameter>conn</parameter> <parameter>commandString</parameter> <optional role="tcl"><parameter>args</parameter></optional>
+pg_exec <optional><parameter>-paramarray</parameter> arrayVar</optional> <optional><parameter>-variables</optional></parameter> <parameter>conn</parameter> <parameter>commandString</parameter> <optional role="tcl"><parameter>args</parameter></optional>
 </synopsis>
  </refsynopsisdiv>
 
@@ -958,6 +958,7 @@ pg_exec <optional><parameter>-paramarray</parameter> arrayVar</optional> <parame
    succeeded!  An error message returned by the server will be
    processed as a command result with failure status, not by
    generating a Tcl error in <function>pg_exec</function>.
+   Check for {[pg_result $result -status] == PGRES_COMMAND_OK}.
   </para>
 
   <para>
@@ -966,6 +967,12 @@ pg_exec <optional><parameter>-paramarray</parameter> arrayVar</optional> <parame
    then NULL is substituted (similarly to the way an array created by -withoutnulls is generated).
    Each such name must occur in a location where a value or field name could appear. See pg_select for more info.
   </para>
+
+  <para>
+   If the <optional>-variables</optional> flag is provided, then embedded Tcl variables are passed as parameters. Variables can be flagged with ':' or '$' and array references and namespaces are supported. Complex variable names can usually be embedded with ${nasty-name-here} though no attempt at duplicating Tcl brace-escaping is made.
+   If the variable does not exist, then NULL is substituted.
+  </para>
+
  </refsect1>
 
  <refsect1>
@@ -1575,7 +1582,7 @@ pg_result <parameter>resultHandle</parameter> <parameter>resultOption</parameter
 
  <refsynopsisdiv>
 <synopsis>
-pg_select <optional role="tcl"><parameter>-rowbyrow</parameter></optional> <optional role="tcl"><parameter>-nodotfields</parameter></optional> <optional role="tcl"><parameter>-withoutnulls</parameter></optional> <optional role="tcl"><parameter>-paramarray var</parameter></optional> <optional role="tcl"><parameter>-params</parameter> paramList</optional> <parameter>conn</parameter> <parameter>commandString</parameter> <parameter>arrayVar</parameter> <parameter>procedure</parameter>
+pg_select <optional role="tcl"><parameter>-rowbyrow</parameter></optional> <optional role="tcl"><parameter>-nodotfields</parameter></optional> <optional role="tcl"><parameter>-withoutnulls</parameter></optional> <optional role="tcl"><parameter>-paramarray var</parameter></optional> <optional><parameter>-variables</optional></parameter> <optional role="tcl"><parameter>-params</parameter> paramList</optional> <parameter>conn</parameter> <parameter>commandString</parameter> <parameter>arrayVar</parameter> <parameter>procedure</parameter>
 </synopsis>
  </refsynopsisdiv>
 
@@ -1641,6 +1648,11 @@ pg_select <optional role="tcl"><parameter>-rowbyrow</parameter></optional> <opti
    each back-quote delimited name with the corresponding entry from the named array. If the array does not contain the named element,
    then NULL is substituted (similarly to the way an array created by -withoutnulls is generated).
    Each such name must occur in a location where a value or field name could appear.
+  </para>
+
+  <para>
+   If the <optional>-variables</optional> flag is provided, then embedded Tcl variables are passed as parameters. Variables can be flagged with ':' or '$' and array references and namespaces are supported. Complex variable names can usually be embedded with ${nasty-name-here} though no attempt at duplicating Tcl brace-escaping is made.
+   If the variable does not exist, then NULL is substituted.
   </para>
 
   <para>
@@ -2124,7 +2136,7 @@ pg_on_connection_loss <parameter>conn</parameter> <optional role="tcl"><paramete
 
  <refsynopsisdiv>
 <synopsis>
-pg_sendquery <optional><parameter>-paramarray</parameter> arrayVar</optional> <parameter>conn</parameter> <parameter>commandString</parameter> <optional role="tcl"><parameter>args</parameter></optional>
+pg_sendquery <optional><parameter>-paramarray</parameter> <optional><parameter>-variables</optional></parameter> arrayVar</optional> <parameter>conn</parameter> <parameter>commandString</parameter> <optional role="tcl"><parameter>args</parameter></optional>
 </synopsis>
  </refsynopsisdiv>
 
@@ -2151,6 +2163,14 @@ pg_sendquery <optional><parameter>-paramarray</parameter> arrayVar</optional> <p
    then NULL is substituted (similarly to the way an array created by -withoutnulls is generated).
    Each such name must occur in a location where a value or field name could appear. See pg_select for more info.
   </para>
+
+  <para>
+   If the <optional>-variables</optional> flag is provided, then embedded Tcl variables are passed as parameters. Variables can be flagged with ':' or '$' and array references and namespaces are supported. Complex variable names can usually be embedded with ${nasty-name-here} though no attempt at duplicating Tcl brace-escaping is made.
+   If the variable does not exist,
+   then NULL is substituted.
+   Each such name must occur in a location where a value or field name could appear. See pg_select for more info.
+  </para>
+
  </refsect1>
 
  <refsect1>
