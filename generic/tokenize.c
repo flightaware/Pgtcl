@@ -348,6 +348,11 @@ int Pg_sqlite3GetToken(const char *z, enum sqltoken *tokenType){
     } // otherwise treat it as an alphanumeric variable, FALLTHROUGH
 // END change PDS 20Jul2017
     case CC_VARALPHA: {
+// special case of "::" which is a cast in PostgreSQL
+      if (z[0]==':' && z[1]==':') {
+	*tokenType = TK_CAST;
+	return 2;
+      }
       int n = 0;
       *tokenType = TK_TCLVAR;
       for(i=1; (c=z[i])!=0; i++){
