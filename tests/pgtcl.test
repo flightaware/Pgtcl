@@ -727,6 +727,34 @@ test pgtcl-6.3 {using pg_exec with named params} -body {
 
 } -result [list pg_aggregate pg_aggregate_fnoid_index pg_am pg_am_name_index pg_am_oid_index]
 
+#
+#
+#
+test pgtcl-6.4 {using pg_exec with embedded variables} -body {
+
+    unset -nocomplain res
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+
+    set pattern "pg_%"
+    set limit 5
+
+    set res [$conn exec -variables {SELECT relname
+                           FROM Pg_class
+                          WHERE relname LIKE $pattern
+                       ORDER BY relname
+                          LIMIT $limit}]
+
+    set results [pg::result $res -list]
+
+    pg_result $res -clear
+
+    pg_disconnect $conn
+
+    lsort $results
+
+} -result [list pg_aggregate pg_aggregate_fnoid_index pg_am pg_am_name_index pg_am_oid_index]
+
 
 
 #
@@ -835,6 +863,34 @@ test pgtcl-7.4 {using pg_select with named parameters} -body {
 
     llength $names
  
+} -result 5
+
+#
+#
+#
+test pgtcl-7.5 {using pg_select with embedded variables} -body {
+
+    unset -nocomplain res
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+
+    set names {}
+
+    set pattern "pg_%"
+    set limit 5
+
+    $conn select -variables "SELECT relname FROM Pg_class WHERE relname like :pattern LIMIT :limit" resultArr {
+        set headers $resultArr(.headers)
+        set numcols $resultArr(.numcols)
+        set tupno $resultArr(.tupno)
+
+        lappend names $resultArr(relname)
+    }
+
+    rename $conn {}
+
+    llength $names
+
 } -result 5
 
 
