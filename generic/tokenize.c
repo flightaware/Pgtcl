@@ -32,9 +32,9 @@
 #define CC_KYWD       1    /* Alphabetics or '_'.  Usable in a keyword */
 #define CC_ID         2    /* unicode characters usable in IDs */
 #define CC_DIGIT      3    /* Digits */
-#define CC_DOLLAR     4    /* '$' (returns TK_SQLVAR) */
+#define CC_DOLLAR     4    /* '$' (returns TK_TCLVAR unless numeric var "name") */
 #define CC_VARALPHA   5    /* '@', '#', ':'.  Alphabetic SQL variables (returns TK_TCLVAR) */
-#define CC_VARNUM     6    /* '?'.  Numeric SQL variables */
+#define CC_VARNUM     6    /* '?'.  Numeric SQL variables (returns TK_SQLVAR) */
 #define CC_SPACE      7    /* Space characters */
 #define CC_QUOTE      8    /* '"', '\'', or '`'.  String literals, quoted ids */
 #define CC_QUOTE2     9    /* '['.   [...] style quoted ids */
@@ -337,7 +337,16 @@ int Pg_sqlite3GetToken(const char *z, enum sqltoken *tokenType){
       for(i=1; sqlite3Isdigit(z[i]); i++){}
       return i;
     }
-    case CC_DOLLAR:
+// BEGIN change PDS 20Jul2017
+// treat $NNN the same as ? because that's how PostgreSQL expects positional variables
+    case CC_DOLLAR: {
+      for(i=1; isdigit(z[i]); i++);
+      if(i > 1) { // $NNN is an SQL variable
+	*tokenType = TK_SQLVAR;
+	return i;
+      }
+    } // otherwise treat it as an alphanumeric variable, FALLTHROUGH
+// END change PDS 20Jul2017
     case CC_VARALPHA: {
       int n = 0;
       *tokenType = TK_TCLVAR;
