@@ -768,7 +768,14 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		if (handle_substitutions(interp, execString, &newExecString, &paramValues, &nParams, 1) != TCL_OK) {
 			return TCL_ERROR;
 		}
-		execString = newExecString;
+		if(nParams)
+			execString = newExecString;
+		else { // No variables being substituted, fall back to simple code path
+			ckfree(newExecString);
+			newExecString = NULL;
+			ckfree(paramValues);
+			paramValues = NULL;
+		}
 	} else if (paramArrayName) {
 	    // Can't combine positional params and -paramarray
 	    if (nParams) {
@@ -2845,6 +2852,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	const char **paramValues    = NULL;
 	char        *newQueryString = NULL;
 	Tcl_Obj     *paramListObj   = NULL;
+	int          useVariables = 0;
 
 	enum         positionalArgs {SELECT_ARG_CONN, SELECT_ARG_QUERY, SELECT_ARG_VAR, SELECT_ARG_PROC, SELECT_ARGS};
 	int          nextPositionalArg = SELECT_ARG_CONN;
@@ -2858,16 +2866,19 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	            rowByRow = 1;
 		} else if (strcmp(arg, "-nodotfields") == 0) {
 	            noDotFields = 1;
+		} else if(strcmp(arg, "-variables") == 0) {
+		    if(paramListObj || paramArrayName)
+			goto parameter_conflict;
+		    useVariables = 1;
 		} else if (strcmp(arg, "-paramarray") == 0) {
-		    if(paramListObj) {
-			Tcl_SetResult(interp, "Can't have both -paramarray and -params", TCL_STATIC);
-			return TCL_ERROR;
-		    }
+		    if(paramListObj || useVariables)
+			goto parameter_conflict;
 		    index++;
 		    paramArrayName = Tcl_GetString(objv[index]);
 		} else if (strcmp(arg, "-params") == 0) {
-		    if(paramArrayName) {
-			Tcl_SetResult(interp, "Can't have both -paramarray and -params", TCL_STATIC);
+		    if(paramArrayName || useVariables) {
+		      parameter_conflict:
+			Tcl_SetResult(interp, "Can't combine multiple parameter flags (-variables, -paramarray, -params)", TCL_STATIC);
 			return TCL_ERROR;
 		    }
 		    index++;
@@ -2902,6 +2913,20 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	if (index < objc || nextPositionalArg != SELECT_ARGS) {
 		Tcl_WrongNumArgs(interp, 1, objv, "?-nodotfields? ?-rowbyrow? ?-withoutnulls? ?-paramarray var? ?-params list? connection queryString var proc");
 		return TCL_ERROR;
+	}
+
+	if (useVariables) {
+		if (handle_substitutions(interp, queryString, &newQueryString, &paramValues, &nParams, 1) != TCL_OK) {
+			return TCL_ERROR;
+		}
+		if(nParams)
+			queryString = newQueryString;
+		else { // No variables being substituted, fall back to simple code path
+			ckfree(newQueryString);
+			newQueryString = NULL;
+			ckfree(paramValues);
+			paramValues = NULL;
+		}
 	}
 
 	if(paramListObj) {
@@ -3404,6 +3429,7 @@ Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
 	char		*paramArrayName = NULL;
 	int              nParams;
 	int              index;
+	int              useVariables = 0;
 
 	enum             positionalArgs {SENDQUERY_ARG_CONN, SENDQUERY_ARG_SQL, SENDQUERY_ARGS};
 	int              nextPositionalArg = SENDQUERY_ARG_CONN;
@@ -3414,6 +3440,8 @@ Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
 		if(strcmp(arg, "-paramarray") == 0) {
 		    index++;
 		    paramArrayName = Tcl_GetString(objv[index]);
+		} else if(strcmp(arg, "-variables") == 0) {
+		    useVariables = 1;
 		} else {
 		    goto wrong_args;
 		}
@@ -3459,7 +3487,23 @@ Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
 	/* objc must be 3 or greater at this point */
 	nParams = objc - index;
 
-	if (paramArrayName) {
+	if (useVariables) {
+		if(paramArrayName || nParams) {
+			Tcl_SetResult(interp, "-variables can not be used with positional or named parameters", TCL_STATIC);
+			return TCL_ERROR;
+		}
+		if (handle_substitutions(interp, execString, &newExecString, &paramValues, &nParams, 1) != TCL_OK) {
+			return TCL_ERROR;
+		}
+		if(nParams)
+			execString = newExecString;
+		else { // No variables being substituted, fall back to simple code path
+			ckfree(newExecString);
+			newExecString = NULL;
+			ckfree(paramValues);
+			paramValues = NULL;
+		}
+	} else if (paramArrayName) {
 	    // Can't combine positional params and -paramarray
 	    if (nParams) {
 		Tcl_SetResult(interp, "Can't use both positional and named parameters", TCL_STATIC);
