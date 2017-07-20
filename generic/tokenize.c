@@ -355,6 +355,16 @@ int Pg_sqlite3GetToken(const char *z, enum sqltoken *tokenType){
       }
       int n = 0;
       *tokenType = TK_TCLVAR;
+      if(z[1] == '{') { // Handle ${...}
+	i = 1;
+	while((c=z[i])!=0 && c != '}')
+	  i++;
+	if(c == 0) { // nonterminated {...}
+	  *tokenType = TK_ILLEGAL; // punt, let SQL error out
+	  return 1;
+	}
+	return i+1;
+      }
       for(i=1; (c=z[i])!=0; i++){
         if( IdChar(c) ){
           n++;
@@ -453,10 +463,18 @@ int handle_substitutions(Tcl_Interp *interp, const char *sql, char **newSqlPtr, 
 				char *nameBuf = ckalloc(len);
 				const char *val = NULL;
 				int i;
+				int skip = 1;
+				int trunc = 0;
 
-				for(i = 1; i < len; i++)
-					nameBuf[i-1] = p[i];
-				nameBuf[i-1] = 0;
+				// if ${...} then skip '${' and truncate '}'
+				if(p[1] == '{') {
+					skip = 2;
+					trunc = 1;
+				}
+
+				for(i = skip; i < len; i++)
+					nameBuf[i-skip] = p[i];
+				nameBuf[i-skip-trunc] = 0;
 				val = Tcl_GetVar(interp, nameBuf, 0);
 				ckfree(nameBuf);
 				p += len;
