@@ -28,13 +28,13 @@
 </table>
 <hr align="left" width="100%"></div>
 <h1><a name="PGTCL-PGSELECT" id="PGTCL-PGSELECT"></a>pg_select</h1>
-<div class="REFNAMEDIV"><a name="AEN1018" id="AEN1018"></a>
+<div class="REFNAMEDIV"><a name="AEN1028" id="AEN1028"></a>
 <h2>Name</h2>
 pg_select&nbsp;--&nbsp;loop over the result of a query<a name="IX-PGTCL-PGSELECT-2" id="IX-PGTCL-PGSELECT-2"></a></div>
-<div class="REFSYNOPSISDIV"><a name="AEN1023" id="AEN1023"></a>
+<div class="REFSYNOPSISDIV"><a name="AEN1033" id="AEN1033"></a>
 <h2>Synopsis</h2>
 <pre class="SYNOPSIS">pg_select ?<span class="OPTIONAL"><code class="PARAMETER">-rowbyrow</code></span>? ?<span class="OPTIONAL"><code class="PARAMETER">-nodotfields</code></span>? ?<span class="OPTIONAL"><code class="PARAMETER">-withoutnulls</code></span>? ?<span class="OPTIONAL"><code class="PARAMETER">-paramarray var</code></span>? ?<span class="OPTIONAL"><code class="PARAMETER">-params</code> paramList</span>? <code class="PARAMETER">conn</code> <code class="PARAMETER">commandString</code> <code class="PARAMETER">arrayVar</code> <code class="PARAMETER">procedure</code></pre></div>
-<div class="REFSECT1"><a name="AEN1039" id="AEN1039"></a>
+<div class="REFSECT1"><a name="AEN1049" id="AEN1049"></a>
 <h2>Description</h2>
 <p><code class="FUNCTION">pg_select</code> submits a query (<tt class="COMMAND">SELECT</tt> statement) to the <span class="PRODUCTNAME">PostgreSQL</span> server and executes a given chunk of code for each row in the result. The <code class="PARAMETER">commandString</code> must be a <tt class="COMMAND">SELECT</tt> statement; anything else returns an error. The <code class="PARAMETER">arrayVar</code> variable is an array name used in the loop. For each row, <code class="PARAMETER">arrayVar</code> is filled in with the row values, using the column names as the array indices. Then the <code class="PARAMETER">procedure</code> is executed.</p>
 <p>In addition to the column values, the following special entries are made in the array (unless the [<span class="OPTIONAL">-nodotfields</span>] flag is provided):</p>
@@ -58,10 +58,22 @@ pg_select&nbsp;--&nbsp;loop over the result of a query<a name="IX-PGTCL-PGSELECT
 <p>If the [<span class="OPTIONAL">-paramarray</span>] flag is provided, then a substitution is performed on the query, securely replacing each back-quote delimited name with the corresponding entry from the named array. If the array does not contain the named element, then NULL is substituted (similarly to the way an array created by -withoutnulls is generated). Each such name must occur in a location where a value or field name could appear.</p>
 <p>Notes: This substitution is performed by generating a positional parameter list and calling PQExecParams with a modified query containing $1, $2, ... where the original `names` appeared. This is a straight substitution, so if this mechanism is used the back-quote character (`) can not appear elsewhere in the query, even in a quoted string. There are a maximum of 99,999 names.</p>
 </div>
-<div class="REFSECT1"><a name="AEN1073" id="AEN1073"></a>
+<div class="REFSECT1"><a name="AEN1083" id="AEN1083"></a>
 <h2>Arguments</h2>
 <div class="VARIABLELIST">
 <dl>
+<dt>[<span class="OPTIONAL">-params list</span>]</dt>
+<dd>
+<p>Perform parameter substitution using PQexecParams or PQSendQueryParams.</p>
+</dd>
+<dt>[<span class="OPTIONAL">-paramarray arrayname</span>]</dt>
+<dd>
+<p>Perform parameter substitution via `quoted` elements of the array using PQexecParams or PQSendQueryParams.</p>
+</dd>
+<dt>[<span class="OPTIONAL">-variables</span>]</dt>
+<dd>
+<p>Substitute Tcl variables found in the SQL string using PQexecParams or PQSendQueryParams.</p>
+</dd>
 <dt>[<span class="OPTIONAL">-rowbyrow</span>]</dt>
 <dd>
 <p>Perform the select in row-by-row mode. This means that the code block is called immediately results become available, rather than waiting for the query to complete.</p>
@@ -93,11 +105,11 @@ pg_select&nbsp;--&nbsp;loop over the result of a query<a name="IX-PGTCL-PGSELECT
 </dl>
 </div>
 </div>
-<div class="REFSECT1"><a name="AEN1111" id="AEN1111"></a>
+<div class="REFSECT1"><a name="AEN1136" id="AEN1136"></a>
 <h2>Return Value</h2>
 <p>None</p>
 </div>
-<div class="REFSECT1"><a name="AEN1114" id="AEN1114"></a>
+<div class="REFSECT1"><a name="AEN1139" id="AEN1139"></a>
 <h2>Examples</h2>
 <p>This examples assumes that the table <code class="CLASSNAME">table1</code> has columns <tt class="STRUCTFIELD">control</tt> and <tt class="STRUCTFIELD">name</tt> (and perhaps others):</p>
 <pre class="PROGRAMLISTING">pg_select $pgconn "SELECT * FROM table1;" array {

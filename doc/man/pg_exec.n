@@ -5,7 +5,7 @@
 \\$2 \(la\\$1\(ra\\$3
 ..
 .if \n(.g .mso www.tmac
-.TH pg_exec n "June 2017" "" "PostgreSQL Tcl Interface Documentation"
+.TH pg_exec n "July 2017" "" "PostgreSQL Tcl Interface Documentation"
 .SH NAME
 pg_exec \- send a command to the server
 .SH SYNOPSIS
@@ -29,6 +29,12 @@ each back-quote delimited name with the corresponding entry from the named array
 then NULL is substituted (similarly to the way an array created by -withoutnulls is generated).
 Each such name must occur in a location where a value or field name could appear. See pg_select for more info.
 .SH ARGUMENTS
+.TP 
+[-paramarray arrayname]
+Perform parameter substitution via `quoted` elements of the array using PQexecParams or PQSendQueryParams.
+.TP 
+[-variables]
+Substitute Tcl variables found in the SQL string using PQexecParams or PQSendQueryParams.
 .TP 
 \*(T<conn\*(T>
 The handle of the connection on which to execute the command.

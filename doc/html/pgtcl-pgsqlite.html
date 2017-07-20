@@ -28,18 +28,18 @@
 </table>
 <hr align="left" width="100%"></div>
 <h1><a name="PGTCL-PGSQLITE" id="PGTCL-PGSQLITE"></a>pg_sqlite</h1>
-<div class="REFNAMEDIV"><a name="AEN2157" id="AEN2157"></a>
+<div class="REFNAMEDIV"><a name="AEN2192" id="AEN2192"></a>
 <h2>Name</h2>
 pg_sqlite&nbsp;--&nbsp;implements a bridge between PostgreSQL and Sqlite3 using the Pgtcl and sqlite3 packages. <a name="IX-PGTCL-SQLITE2-2" id="IX-PGTCL-SQLITE2-2"></a></div>
-<div class="REFSYNOPSISDIV"><a name="AEN2162" id="AEN2162"></a>
+<div class="REFSYNOPSISDIV"><a name="AEN2197" id="AEN2197"></a>
 <h2>Synopsis</h2>
 <pre class="SYNOPSIS">pg_sqlite <code class="PARAMETER">sqlite_db</code> <code class="PARAMETER">command</code> [<span class="OPTIONAL">args</span>]</pre></div>
-<div class="REFSECT1"><a name="AEN2167" id="AEN2167"></a>
+<div class="REFSECT1"><a name="AEN2202" id="AEN2202"></a>
 <h2>Description</h2>
 <p><code class="FUNCTION">pg_sqlite</code> can import the results of a Postgres SQL query (previously made via <code class="FUNCTION">pg_exec</code>) directly into an sqlite3 table, export the results of an Sqlite SQL query into a Postgres table (via <tt class="LITERAL">write_tabsep</tt>), or import TSV files directly into sqlite3.</p>
 <p>The commands currently implemented are import_postgres_result, read_tabsep, write_tabsep, and read_tabsep_keylist.</p>
 </div>
-<div class="REFSECT1"><a name="AEN2174" id="AEN2174"></a>
+<div class="REFSECT1"><a name="AEN2209" id="AEN2209"></a>
 <h2>Arguments</h2>
 <div class="VARIABLELIST">
 <dl>
@@ -58,7 +58,7 @@ pg_sqlite&nbsp;--&nbsp;implements a bridge between PostgreSQL and Sqlite3 using 
 </dl>
 </div>
 </div>
-<div class="REFSECT1"><a name="AEN2198" id="AEN2198"></a>
+<div class="REFSECT1"><a name="AEN2233" id="AEN2233"></a>
 <h2>Commands</h2>
 <p><tt class="COMMAND">info</tt></p>
 <pre class="SYNOPSIS">    pg_sqlite <code class="PARAMETER">sqlite_db</code> info
@@ -346,11 +346,11 @@ pg_sqlite&nbsp;--&nbsp;implements a bridge between PostgreSQL and Sqlite3 using 
 </dl>
 </div>
 </div>
-<div class="REFSECT1"><a name="AEN2573" id="AEN2573"></a>
+<div class="REFSECT1"><a name="AEN2608" id="AEN2608"></a>
 <h2>Return Value</h2>
 <p>Number of rows imported or exported.</p>
 </div>
-<div class="REFSECT1"><a name="AEN2576" id="AEN2576"></a>
+<div class="REFSECT1"><a name="AEN2611" id="AEN2611"></a>
 <h2>See Also</h2>
 <p><span class="PRODUCTNAME">Sqlite 3</span></p>
 </div>

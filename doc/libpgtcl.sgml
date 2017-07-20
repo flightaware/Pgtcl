@@ -979,6 +979,25 @@ pg_exec <optional><parameter>-paramarray</parameter> arrayVar</optional> <option
   <title>Arguments</title>
 
   <variablelist>
+
+   <varlistentry>
+    <term><optional>-paramarray arrayname</optional></term>
+    <listitem>
+     <para>
+      Perform parameter substitution via `quoted` elements of the array using PQexecParams or PQSendQueryParams.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><optional>-variables</optional></term>
+    <listitem>
+     <para>
+      Substitute Tcl variables found in the SQL string using PQexecParams or PQSendQueryParams.
+     </para>
+    </listitem>
+   </varlistentry>
+
    <varlistentry>
     <term><parameter>conn</parameter></term>
     <listitem>
@@ -1668,6 +1687,33 @@ pg_select <optional role="tcl"><parameter>-rowbyrow</parameter></optional> <opti
   <variablelist>
 
    <varlistentry>
+    <term><optional>-params list</optional></term>
+    <listitem>
+     <para>
+      Perform parameter substitution using PQexecParams or PQSendQueryParams.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><optional>-paramarray arrayname</optional></term>
+    <listitem>
+     <para>
+      Perform parameter substitution via `quoted` elements of the array using PQexecParams or PQSendQueryParams.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><optional>-variables</optional></term>
+    <listitem>
+     <para>
+      Substitute Tcl variables found in the SQL string using PQexecParams or PQSendQueryParams.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
     <term><optional>-rowbyrow</optional></term>
     <listitem>
      <para>
@@ -2177,6 +2223,24 @@ pg_sendquery <optional><parameter>-paramarray</parameter> <optional><parameter>-
   <title>Arguments</title>
 
   <variablelist>
+   <varlistentry>
+    <term><optional>-paramarray arrayname</optional></term>
+    <listitem>
+     <para>
+      Perform parameter substitution via `quoted` elements of the array using PQexecParams or PQSendQueryParams.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><optional>-variables</optional></term>
+    <listitem>
+     <para>
+      Substitute Tcl variables found in the SQL string using PQexecParams or PQSendQueryParams.
+     </para>
+    </listitem>
+   </varlistentry>
+
    <varlistentry>
     <term><parameter>conn</parameter></term>
     <listitem>

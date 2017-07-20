@@ -44,6 +44,14 @@ pg_exec&nbsp;--&nbsp;send a command to the server<a name="IX-PGTCL-PGEXEC-2" id=
 <h2>Arguments</h2>
 <div class="VARIABLELIST">
 <dl>
+<dt>[<span class="OPTIONAL">-paramarray arrayname</span>]</dt>
+<dd>
+<p>Perform parameter substitution via `quoted` elements of the array using PQexecParams or PQSendQueryParams.</p>
+</dd>
+<dt>[<span class="OPTIONAL">-variables</span>]</dt>
+<dd>
+<p>Substitute Tcl variables found in the SQL string using PQexecParams or PQSendQueryParams.</p>
+</dd>
 <dt><code class="PARAMETER">conn</code></dt>
 <dd>
 <p>The handle of the connection on which to execute the command.</p>
@@ -59,11 +67,11 @@ pg_exec&nbsp;--&nbsp;send a command to the server<a name="IX-PGTCL-PGEXEC-2" id=
 </dl>
 </div>
 </div>
-<div class="REFSECT1"><a name="AEN702" id="AEN702"></a>
+<div class="REFSECT1"><a name="AEN712" id="AEN712"></a>
 <h2>Return Value</h2>
 <p>A result handle. A Tcl error will be returned if <span class="APPLICATION">pgtcl</span> was unable to obtain a server response. Otherwise, a command result object is created and a handle for it is returned. This handle can be passed to <code class="FUNCTION">pg_result</code> to obtain the results of the command.</p>
 </div>
-<div class="REFSECT1"><a name="AEN707" id="AEN707"></a>
+<div class="REFSECT1"><a name="AEN717" id="AEN717"></a>
 <h2>Example</h2>
 <pre class="PROGRAMLISTING">pg_exec $conn {select * from table1 where id = $1 and user = $2} $id $user</pre></div>
 <div class="NAVFOOTER">
