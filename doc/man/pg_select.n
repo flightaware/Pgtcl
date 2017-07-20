@@ -5,7 +5,7 @@
 \\$2 \(la\\$1\(ra\\$3
 ..
 .if \n(.g .mso www.tmac
-.TH pg_select n "June 2017" "" "PostgreSQL Tcl Interface Documentation"
+.TH pg_select n "July 2017" "" "PostgreSQL Tcl Interface Documentation"
 .SH NAME
 pg_select \- loop over the result of a query
 .SH SYNOPSIS
@@ -51,6 +51,15 @@ Notes: This substitution is performed by generating a positional parameter list 
 $1, $2, ... where the original `names` appeared. This is a straight substitution, so if this mechanism is used the back-quote
 character (`) can not appear elsewhere in the query, even in a quoted string. There are a maximum of 99,999 names.
 .SH ARGUMENTS
+.TP 
+[-params list]
+Perform parameter substitution using PQexecParams or PQSendQueryParams.
+.TP 
+[-paramarray arrayname]
+Perform parameter substitution via `quoted` elements of the array using PQexecParams or PQSendQueryParams.
+.TP 
+[-variables]
+Substitute Tcl variables found in the SQL string using PQexecParams or PQSendQueryParams.
 .TP 
 [-rowbyrow]
 Perform the select in row-by-row mode. This means that the code block is called immediately results

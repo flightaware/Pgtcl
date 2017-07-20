@@ -28,13 +28,13 @@
 </table>
 <hr align="left" width="100%"></div>
 <h1><a name="PGTCL-PGESCAPE-STRING" id="PGTCL-PGESCAPE-STRING"></a>pg_escape_string</h1>
-<div class="REFNAMEDIV"><a name="AEN1625" id="AEN1625"></a>
+<div class="REFNAMEDIV"><a name="AEN1660" id="AEN1660"></a>
 <h2>Name</h2>
 pg_escape_string&nbsp;--&nbsp;escapes a string for inclusion into SQL statements. This is the same as pg_quote. It was added for consistency. <a name="IX-PGTCL-PGESCAPE-STRING-2" id="IX-PGTCL-PGESCAPE-STRING-2"></a></div>
-<div class="REFSYNOPSISDIV"><a name="AEN1630" id="AEN1630"></a>
+<div class="REFSYNOPSISDIV"><a name="AEN1665" id="AEN1665"></a>
 <h2>Synopsis</h2>
 <pre class="SYNOPSIS">pg_escape_string <code class="PARAMETER">string</code></pre></div>
-<div class="REFSECT1"><a name="AEN1633" id="AEN1633"></a>
+<div class="REFSECT1"><a name="AEN1668" id="AEN1668"></a>
 <h2>Description</h2>
 <p><code class="FUNCTION">pg_escape_string</code> quotes a string and escapes single quotes and backslashes within the string, making it safe for inclusion into SQL statements.</p>
 <p>If you're doing something like</p>
@@ -43,7 +43,7 @@ pg_escape_string&nbsp;--&nbsp;escapes a string for inclusion into SQL statements
 <pre class="PROGRAMLISTING">    pg_exec $conn "insert into foo values ([pg_escape_string $name]);" </pre>
 <p>...will make sure that any special characters that occur in name, such as single quote or backslash, will be properly quoted.</p>
 </div>
-<div class="REFSECT1"><a name="AEN1643" id="AEN1643"></a>
+<div class="REFSECT1"><a name="AEN1678" id="AEN1678"></a>
 <h2>Arguments</h2>
 <div class="VARIABLELIST">
 <dl>
@@ -54,11 +54,11 @@ pg_escape_string&nbsp;--&nbsp;escapes a string for inclusion into SQL statements
 </dl>
 </div>
 </div>
-<div class="REFSECT1"><a name="AEN1651" id="AEN1651"></a>
+<div class="REFSECT1"><a name="AEN1686" id="AEN1686"></a>
 <h2>Return Value</h2>
 <p>Returns the string, escaped for inclusion into SQL queries. Note that it adds a set of single quotes around the outside of the string as well.</p>
 </div>
-<div class="REFSECT1"><a name="AEN1654" id="AEN1654"></a>
+<div class="REFSECT1"><a name="AEN1689" id="AEN1689"></a>
 <h2>See Also</h2>
 <p>In most cases, with recent versions of SQL, it is better to use the native parameter insertion capabilities of the SQL server and protocol. If you are using a version of PostgreSQL more recent then 7.4, consider the optional parameter arguments to pg_exec and pg_sendquery, and the paramarray option to pg_exec, pg_sendquery, and pg_select.</p>
 </div>
