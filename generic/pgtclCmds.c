@@ -2787,7 +2787,7 @@ error_return:
  send a select query string to the backend connection
 
  syntax:
- pg_select ?-nodotfields? ?-withoutnulls? ?-paramarray var? ?-params list? connection query var proc
+ pg_select ?-nodotfields? ?-withoutnulls? ?-variables? ?-paramarray var? ?-params list? connection query var proc
 
  The query must be a select statement
 
@@ -2884,7 +2884,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		    index++;
 		    paramListObj = objv[index];
 		} else {
-			Tcl_SetObjResult(interp, Tcl_NewStringObj ("-arg argument isn't one of \"-nodotfields\", \"-paramarray\", \"-params\", \"-rowbyrow\", or \"-withoutnulls\"", -1));
+			Tcl_SetObjResult(interp, Tcl_NewStringObj ("-arg argument isn't one of \"-nodotfields\", \"-variables\", \"-paramarray\", \"-params\", \"-rowbyrow\", or \"-withoutnulls\"", -1));
 			return TCL_ERROR;
 		}
 	    } else {
@@ -2911,7 +2911,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	}
 	
 	if (index < objc || nextPositionalArg != SELECT_ARGS) {
-		Tcl_WrongNumArgs(interp, 1, objv, "?-nodotfields? ?-rowbyrow? ?-withoutnulls? ?-paramarray var? ?-params list? connection queryString var proc");
+		Tcl_WrongNumArgs(interp, 1, objv, "?-nodotfields? ?-rowbyrow? ?-withoutnulls? ?-variables? ?-paramarray var? ?-params list? connection queryString var proc");
 		return TCL_ERROR;
 	}
 
@@ -3462,7 +3462,7 @@ Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
 	if (nextPositionalArg != SENDQUERY_ARGS || connString == NULL || execString == NULL)
 	{
 	    wrong_args:
-		Tcl_WrongNumArgs(interp, 1, objv, "?-paramarray var? connection queryString ?parm...?");
+		Tcl_WrongNumArgs(interp, 1, objv, "?-variables? ?-paramarray var? connection queryString ?parm...?");
 		return TCL_ERROR;
 	}
 
