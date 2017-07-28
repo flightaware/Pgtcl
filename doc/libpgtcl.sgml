@@ -969,7 +969,7 @@ pg_exec <optional><parameter>-paramarray</parameter> arrayVar</optional> <option
   </para>
 
   <para>
-   If the <optional>-variables</optional> flag is provided, then embedded Tcl variables are passed as parameters. Variables can be flagged with ':' or '$' and array references and namespaces are supported. Complex variable names can usually be embedded with ${nasty-name-here} though no attempt at duplicating Tcl brace-escaping is made.
+   If the <optional>-variables</optional> flag is provided, then embedded Tcl variables are passed as parameters. Variables can be flagged with ':' and array references and namespaces are supported. Complex variable names can usually be embedded with :{nasty-name-here} though no attempt at duplicating Tcl brace-escaping is made.
    If the variable does not exist, then NULL is substituted.
   </para>
 
@@ -1670,7 +1670,7 @@ pg_select <optional role="tcl"><parameter>-rowbyrow</parameter></optional> <opti
   </para>
 
   <para>
-   If the <optional>-variables</optional> flag is provided, then embedded Tcl variables are passed as parameters. Variables can be flagged with ':' or '$' and array references and namespaces are supported. Complex variable names can usually be embedded with ${nasty-name-here} though no attempt at duplicating Tcl brace-escaping is made.
+   If the <optional>-variables</optional> flag is provided, then embedded Tcl variables are passed as parameters. Variables can be flagged with ':' and array references and namespaces are supported. Complex variable names can usually be embedded with :{nasty-name-here} though no attempt at duplicating Tcl brace-escaping is made.
    If the variable does not exist, then NULL is substituted.
   </para>
 
@@ -2211,7 +2211,7 @@ pg_sendquery <optional><parameter>-paramarray</parameter> <optional><parameter>-
   </para>
 
   <para>
-   If the <optional>-variables</optional> flag is provided, then embedded Tcl variables are passed as parameters. Variables can be flagged with ':' or '$' and array references and namespaces are supported. Complex variable names can usually be embedded with ${nasty-name-here} though no attempt at duplicating Tcl brace-escaping is made.
+   If the <optional>-variables</optional> flag is provided, then embedded Tcl variables are passed as parameters. Variables can be flagged with ':' and array references and namespaces are supported. Complex variable names can usually be embedded with :{nasty-name-here} though no attempt at duplicating Tcl brace-escaping is made.
    If the variable does not exist,
    then NULL is substituted.
    Each such name must occur in a location where a value or field name could appear. See pg_select for more info.

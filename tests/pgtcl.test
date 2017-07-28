@@ -741,9 +741,9 @@ test pgtcl-6.4 {using pg_exec with embedded variables} -body {
 
     set res [$conn exec -variables {SELECT relname
                            FROM Pg_class
-                          WHERE relname LIKE $pattern
+                          WHERE relname LIKE :pattern
                        ORDER BY relname
-                          LIMIT $limit}]
+                          LIMIT :limit}]
 
     set results [pg::result $res -list]
 

@@ -342,16 +342,39 @@ int Pg_sqlite3GetToken(const char *z, enum sqltoken *tokenType){
       for(i=1; sqlite3Isdigit(z[i]); i++){}
       return i;
     }
-// BEGIN change PDS 20Jul2017
-// treat $NNN the same as ? because that's how PostgreSQL expects positional variables
+// BEGIN change PDS Jul 2017
     case CC_DOLLAR: {
+      // treat $NNN the same as ? because that's how PostgreSQL expects positional variables
       for(i=1; isdigit(z[i]); i++);
       if(i > 1) { // $NNN is an SQL variable
 	*tokenType = TK_SQLVAR;
 	return i;
       }
-    } // otherwise treat it as an alphanumeric variable, FALLTHROUGH
-// END change PDS 20Jul2017
+      // otherwise it's a dollar-quoted string (PostgreSQL special)
+      *tokenType = TK_STRING;
+      for(i = 1; z[i] && z[i] != '$'; i++);
+      if(!z[i]) {
+	*tokenType = TK_ILLEGAL;
+	return i;
+      }
+      // len includes both leading and trailing $ signs
+      int len = ++i;
+      while(z[i]) {
+	if(z[i] == '$') {
+	  // compare &z[i] with '$token$'
+	  if(strncmp(z, &z[i], len) == 0)
+	    break;
+	}
+	i++;
+      }
+      if(z[i]) {
+	i += len; // skip over end token
+      } else {
+	*tokenType = TK_ILLEGAL; // nonterminated string is illegal
+      }
+      return i;
+    }
+// END change PDS Jul 2017
     case CC_VARALPHA: {
 // special case of "::" which is a cast in PostgreSQL
       if (z[0]==':' && z[1]==':') {
