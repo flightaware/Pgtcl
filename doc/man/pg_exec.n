@@ -30,7 +30,7 @@ each back-quote delimited name with the corresponding entry from the named array
 then NULL is substituted (similarly to the way an array created by -withoutnulls is generated).
 Each such name must occur in a location where a value or field name could appear. See pg_select for more info.
 .PP
-If the [-variables] flag is provided, then embedded Tcl variables are passed as parameters. Variables can be flagged with ':' or '$' and array references and namespaces are supported. Complex variable names can usually be embedded with ${nasty-name-here} though no attempt at duplicating Tcl brace-escaping is made.
+If the [-variables] flag is provided, then embedded Tcl variables are passed as parameters. Variables can be flagged with ':' and array references and namespaces are supported. Complex variable names can usually be embedded with :{nasty-name-here} though no attempt at duplicating Tcl brace-escaping is made.
 If the variable does not exist, then NULL is substituted.
 .SH ARGUMENTS
 .TP 
