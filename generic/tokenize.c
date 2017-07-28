@@ -33,7 +33,7 @@
 #define CC_ID         2    /* unicode characters usable in IDs */
 #define CC_DIGIT      3    /* Digits */
 #define CC_DOLLAR     4    /* '$' (returns TK_TCLVAR unless numeric var "name") */
-#define CC_VARALPHA   5    /* '@', '#', ':'.  Alphabetic SQL variables (returns TK_TCLVAR) */
+#define CC_VARALPHA   5    /* '@', ':'.  Alphabetic SQL variables (returns TK_TCLVAR) */
 #define CC_VARNUM     6    /* '?'.  Numeric SQL variables (returns TK_SQLVAR) */
 #define CC_SPACE      7    /* Space characters */
 #define CC_QUOTE      8    /* '"', '\'', or '`'.  String literals, quoted ids */
@@ -55,18 +55,19 @@
 #define CC_AND       24    /* '&' */
 #define CC_TILDA     25    /* '~' */
 #define CC_DOT       26    /* '.' */
-#define CC_ILLEGAL   27    /* Illegal character */
+#define CC_HASH      28    /* '#' added 20170726 PDS */
+#define CC_ILLEGAL   99    /* Illegal character */
 
 static const unsigned char aiClass[] = {
 /*         x0  x1  x2  x3  x4  x5  x6  x7  x8  x9  xa  xb  xc  xd  xe  xf */
-/* 0x */   27, 27, 27, 27, 27, 27, 27, 27, 27,  7,  7, 27,  7,  7, 27, 27,
-/* 1x */   27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
-/* 2x */    7, 15,  8,  5,  4, 22, 24,  8, 17, 18, 21, 20, 23, 11, 26, 16,
+/* 0x */   99, 99, 99, 99, 99, 99, 99, 99, 99,  7,  7, 99,  7,  7, 99, 99,
+/* 1x */   99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99,
+/* 2x */    7, 15,  8, 28,  4, 22, 24,  8, 17, 18, 21, 20, 23, 11, 26, 16,
 /* 3x */    3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  5, 19, 12, 14, 13,  6,
 /* 4x */    5,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
-/* 5x */    1,  1,  1,  1,  1,  1,  1,  1,  0,  1,  1,  9, 27, 27, 27,  1,
+/* 5x */    1,  1,  1,  1,  1,  1,  1,  1,  0,  1,  1,  9, 99, 99, 99,  1,
 /* 6x */    8,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
-/* 7x */    1,  1,  1,  1,  1,  1,  1,  1,  0,  1,  1, 27, 10, 27, 25, 27,
+/* 7x */    1,  1,  1,  1,  1,  1,  1,  1,  0,  1,  1, 99, 10, 99, 25, 99,
 /* 8x */    2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
 /* 9x */    2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
 /* Ax */    2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
@@ -186,6 +187,10 @@ int Pg_sqlite3GetToken(const char *z, enum sqltoken *tokenType){
     }
     case CC_STAR: {
       *tokenType = TK_STAR;
+      return 1;
+    }
+    case CC_HASH: {
+      *tokenType = TK_HASH;
       return 1;
     }
     case CC_SLASH: {
@@ -421,6 +426,7 @@ int Pg_sqlite3GetToken(const char *z, enum sqltoken *tokenType){
       i = 1;
       break;
     }
+    case CC_ILLEGAL:
     default: {
       *tokenType = TK_ILLEGAL;
       return 1;
