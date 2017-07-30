@@ -73,7 +73,7 @@ proc gen_insert_from_array {tableName arrayName} {
 # gen_sql_update_from_array - return a sql update statement based on the
 #   contents of an array and a list of key fields
 #
-proc gen_update_from_array {tableName arrayName keyFields} {
+proc gen_update_from_array {tableName arrayName keyFields {nullableColumns ""}} {
     upvar $arrayName array
 
     set result "update $tableName set "
@@ -84,6 +84,12 @@ proc gen_update_from_array {tableName arrayName keyFields} {
 	    continue
 	}
 	append result "$element = [pg_quote $array($element)], "
+    }
+
+    foreach element $nullableColumns {
+	if {![info exists array($element)]} {
+	    append result "$element = NULL, "
+	}
     }
     set result "[string range $result 0 end-2] where ("
 
@@ -274,3 +280,4 @@ proc res_dont_care {res} {
 
 }
 
+# vim: set ts=8 sw=4 sts=4 noet :
