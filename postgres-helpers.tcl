@@ -14,7 +14,7 @@
 # Copyright (C) 2004 Superconnect, Ltd.
 #  Berkeley copyright as above.
 #
-# Copyright (C) 2005-2015 FlightAware, LLC
+# Copyright (C) 2005-2017 FlightAware, LLC
 #  Berkeley copyright as above.
 #
 
@@ -22,7 +22,7 @@
 # postgres interface stuff
 #
 
-package provide sc_postgres 1.2
+package provide sc_postgres 1.3
 
 package require Tclx
 package require Pgtcl
