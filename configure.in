@@ -141,7 +141,7 @@ AC_SUBST(PG_LIB_DIR)
 # and PKG_TCL_SOURCES.
 #-----------------------------------------------------------------------
 
-TEA_ADD_SOURCES([pgtcl.c pgtclCmds.c pgtclId.c])
+TEA_ADD_SOURCES([pgtcl.c pgtclCmds.c pgtclId.c tokenize.c])
 TEA_ADD_HEADERS([])
 TEA_ADD_INCLUDES([])
 TEA_ADD_LIBS([])
@@ -159,7 +159,7 @@ AC_ARG_WITH([sqlite3],
 AS_IF([test "x$with_sqlite3" != "xno"],
 	[AC_CHECK_LIB([sqlite3], [main],
 		[TEA_ADD_LIBS([-lsqlite3])
-		 TEA_ADD_SOURCES([pgtclSqlite.c tokenize.c])
+		 TEA_ADD_SOURCES([pgtclSqlite.c])
 		 AC_DEFINE([HAVE_SQLITE3], [1], [Define if you have sqlite3])
 		],
 		[if test "x$with_sqlite3" != "xcheck"; then

@@ -5439,7 +5439,7 @@ LIBS=$SAVE_LIBS
 #-----------------------------------------------------------------------
 
 
-    vars="pgtcl.c pgtclCmds.c pgtclId.c"
+    vars="pgtcl.c pgtclCmds.c pgtclId.c tokenize.c"
     for i in $vars; do
 	case $i in
 	    \$*)
@@ -5597,7 +5597,7 @@ if test "x$ac_cv_lib_sqlite3_main" = xyes; then :
 
 
 
-    vars="pgtclSqlite.c tokenize.c"
+    vars="pgtclSqlite.c"
     for i in $vars; do
 	case $i in
 	    \$*)

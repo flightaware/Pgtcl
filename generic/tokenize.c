@@ -138,11 +138,6 @@ static const unsigned char sqlite3CtypeMap[256] = {
 ** For ASCII, any character with the high-order bit set is
 ** allowed in an identifier.  For 7-bit characters, 
 ** sqlite3IsIdChar[X] must be 1.
-**
-** Ticket #1066.  the SQL standard does not allow '$' in the
-** middle of identifiers.  But many SQL implementations do. 
-** SQLite will allow '$' in identifiers for compatibility.
-** But the feature is undocumented.
 */
 #define IdChar(C)  ((sqlite3CtypeMap[(unsigned char)C]&0x46)!=0)
 
