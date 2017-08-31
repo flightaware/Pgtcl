@@ -42,6 +42,8 @@ static int expand_parameters(Tcl_Interp *interp, const char *queryString,
 
 static void build_param_array(Tcl_Interp *interp, int nParams, Tcl_Obj *CONST objv[], const char ***paramValuesPtr);
 
+static void report_connection_error(Tcl_Interp *interp, PGconn *conn);
+
 #ifdef TCL_ARRAYS
 
 #define ISOCTAL(c)		(((c) >= '0') && ((c) <= '7'))
@@ -836,8 +838,27 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	else
 	{
 	    /* error occurred during the query */
-	    Tcl_SetObjResult(interp, Tcl_NewStringObj(PQerrorMessage(conn), -1));
+	    report_connection_error(interp, conn);
 	    return TCL_ERROR;
+	}
+}
+
+/**********************************
+ * report_connection_error
+ Generate a proper Tcl errorCode and return error meaage from an error during a request
+ */
+static void report_connection_error(Tcl_Interp *interp, PGconn *conn)
+{
+	char *errString = PQerrorMessage(conn);
+
+	if(errString[0] != '\0') {
+		char *nl = strchr(errString, '\n');
+		if(nl) *nl = '\0';
+		Tcl_SetErrorCode(interp, "POSTGRESQL", "REQUEST_FAILED", errString, (char *)NULL);
+		if(nl) *nl = '\n';
+		Tcl_SetResult(interp, errString, TCL_VOLATILE);
+	} else {
+		Tcl_SetResult(interp, "Unknown error from Exec or SendQuery", TCL_STATIC);
 	}
 }
 
@@ -929,7 +950,7 @@ Pg_exec_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 	else
 	{
 		/* error occurred during the query */
-		Tcl_SetObjResult(interp, Tcl_NewStringObj(PQerrorMessage(conn), -1));
+		report_connection_error(interp, conn);
 		return TCL_ERROR;
 	}
 }
@@ -1888,7 +1909,7 @@ Pg_execute(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 	 */
 	if (result == NULL)
 	{
-            Tcl_SetObjResult(interp, Tcl_NewStringObj(PQerrorMessage(conn), -1));
+		report_connection_error(interp, conn);
 
 		return TCL_ERROR;
 	}
@@ -2976,16 +2997,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 		if(status == 0) {
 			/* error occurred sending the query */
-			char *errString = PQerrorMessage(conn);
-			if(errString[0] != '\0') {
-				char *nl = strchr(errString, '\n');
-				if(nl) *nl = '\0';
-				Tcl_SetErrorCode(interp, "POSTGRESQL", "PQSENDQUERY_FAILED", errString, (char *)NULL);
-				if(nl) *nl = '\n';
-				Tcl_SetResult(interp, errString, TCL_VOLATILE);
-			} else {
-				Tcl_SetResult(interp, "Unknown error from PQsendQuery", TCL_VOLATILE);
-			}
+			report_connection_error(interp, conn);
 			goto cleanup_params_and_return_error;
 		}
 
@@ -3006,16 +3018,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 		if (result == 0) {
 			/* error occurred sending the query */
-			char *errString = PQerrorMessage(conn);
-			if(errString[0] != '\0') {
-				char *nl = strchr(errString, '\n');
-				if(nl) *nl = '\0';
-				Tcl_SetErrorCode(interp, "POSTGRESQL", "PQEXEC_FAILED", errString, (char *)NULL);
-				if(nl) *nl = '\n';
-				Tcl_SetResult(interp, errString, TCL_VOLATILE);
-			} else {
-				Tcl_SetResult(interp, "Unknown error from PQexec", TCL_VOLATILE);
-			}
+			report_connection_error(interp, conn);
 			goto cleanup_params_and_return_error;
 		}
 	}
@@ -3375,7 +3378,7 @@ Pg_listen(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				Tcl_DeleteHashEntry(entry);
 				ckfree(callback);
 				ckfree(caserelname);
-				Tcl_SetResult(interp, PQerrorMessage(conn), TCL_VOLATILE);
+				report_connection_error(interp, conn);
 				return TCL_ERROR;
 			}
 			PQclear(result);
@@ -3419,7 +3422,7 @@ Pg_listen(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				/* Error occurred during the execution of command */
 				PQclear(result);
 				ckfree(caserelname);
-				Tcl_SetResult(interp, PQerrorMessage(conn), TCL_VOLATILE);
+				report_connection_error(interp, conn);
 				return TCL_ERROR;
 			}
 			PQclear(result);
@@ -3566,7 +3569,7 @@ Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
 	else
 	{
 	    /* error occurred during the query */
-	    Tcl_SetObjResult(interp, Tcl_NewStringObj(PQerrorMessage(conn), -1));
+	    report_connection_error(interp, conn);
 	    return TCL_ERROR;
 	}
 }
@@ -3656,7 +3659,7 @@ Pg_sendquery_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *C
 	else
 	{
 		/* error occurred during the query */
-		Tcl_SetObjResult(interp, Tcl_NewStringObj(PQerrorMessage(conn), -1));
+		report_connection_error(interp, conn);
 		return TCL_ERROR;
 	}
 }
@@ -5128,7 +5131,7 @@ Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
     else if ((result == NULL) && (iResult == 0))
     {
 	/* error occurred during the query */
-	Tcl_SetObjResult(interp, Tcl_NewStringObj(PQerrorMessage(conn), -1));
+	report_connection_error(interp, conn);
 	return TCL_ERROR;
     }
 
