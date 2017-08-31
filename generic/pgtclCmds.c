@@ -2976,7 +2976,16 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 		if(status == 0) {
 			/* error occurred sending the query */
-			Tcl_SetResult(interp, PQerrorMessage(conn), TCL_VOLATILE);
+			char *errString = PQerrorMessage(conn);
+			if(errString[0] != '\0') {
+				char *nl = strchr(errString, '\n');
+				if(nl) *nl = '\0';
+				Tcl_SetErrorCode(interp, "POSTGRESQL", "PQSENDQUERY_FAILED", errString, (char *)NULL);
+				if(nl) *nl = '\n';
+				Tcl_SetResult(interp, errString, TCL_VOLATILE);
+			} else {
+				Tcl_SetResult(interp, "Unknown error from PQsendQuery", TCL_VOLATILE);
+			}
 			goto cleanup_params_and_return_error;
 		}
 
@@ -2997,7 +3006,16 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 		if (result == 0) {
 			/* error occurred sending the query */
-			Tcl_SetResult(interp, PQerrorMessage(conn), TCL_VOLATILE);
+			char *errString = PQerrorMessage(conn);
+			if(errString[0] != '\0') {
+				char *nl = strchr(errString, '\n');
+				if(nl) *nl = '\0';
+				Tcl_SetErrorCode(interp, "POSTGRESQL", "PQEXEC_FAILED", errString, (char *)NULL);
+				if(nl) *nl = '\n';
+				Tcl_SetResult(interp, errString, TCL_VOLATILE);
+			} else {
+				Tcl_SetResult(interp, "Unknown error from PQexec", TCL_VOLATILE);
+			}
 			goto cleanup_params_and_return_error;
 		}
 	}
@@ -3031,10 +3049,17 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 			/* NB FIX there isn't necessarily an error here,
 			 * meaning we can get an empty string */
 			char *errString = PQresultErrorMessage(result);
+			char *errStatus = PQresStatus (resultStatus);
 
 			if (*errString == '\0')
 			{
-				errString = PQresStatus (resultStatus);
+				errString = errStatus;
+				Tcl_SetErrorCode(interp, "POSTGRESQL", errStatus, (char *)NULL);
+			} else {
+				char *nl = strchr(errString, '\n');
+				if(nl) *nl = '\0';
+				Tcl_SetErrorCode(interp, "POSTGRESQL", errStatus, errString, (char *)NULL);
+				if(nl) *nl = '\n';
 			}
 
 			Tcl_SetResult(interp, errString, TCL_VOLATILE);
