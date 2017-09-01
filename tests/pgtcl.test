@@ -969,7 +969,7 @@ test pgtcl-9.1 {dbinfo version} -body {
     lappend res [string equal $val $val2]
     ::pg::disconnect $conn
 
-    lappend res [regexp {(7|8|9)0([0-9])0([0-9])} $val]
+    lappend res [regexp {(7|8|9)0([0-9])[01]([0-9])} $val]
 
 } -result [list 1 1]
 
