@@ -755,7 +755,22 @@ test pgtcl-6.4 {using pg_exec with embedded variables} -body {
 
 } -result [list pg_aggregate pg_aggregate_fnoid_index pg_am pg_am_name_index pg_am_oid_index]
 
+#
+#
+#
+test pgtcl-6.5 {pg_select error code} -body {
+    unset -nocomplain res
 
+    set conn [pg::connect -connlist [array get ::conninfo]]
+
+    catch {$conn select "SELECT * FROM UNKNOWN_TABLE_GLARGH;" _ {break}}
+
+    set res $::errorCode
+
+    pg_disconnect $conn
+
+    set res
+} -result {POSTGRESQL PGRES_FATAL_ERROR {ERROR:  relation "unknown_table_glargh" does not exist}}
 
 #
 #
