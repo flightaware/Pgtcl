@@ -276,7 +276,12 @@ Pg_sqlite_bindValue(sqlite3 *sqlite_db, sqlite3_stmt *statement, int column, cha
 			break;
 		}
 		case PG_SQLITE_INT: {
-			if (sqlite3_bind_int(statement, column+1, atoi(value)) == SQLITE_OK)
+			int ival = atoi(value);
+			if(ival == 0) {
+				// It might be a boolean column mapped to an integer column
+				ival = Pg_sqlite_toBool(value);
+			}
+			if (sqlite3_bind_int(statement, column+1, ival) == SQLITE_OK)
 				return TCL_OK;
 			break;
 		}
