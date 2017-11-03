@@ -3825,7 +3825,7 @@ pg_sqlite <parameter>sqlite_db</parameter> <parameter>command</parameter> <optio
    <command>info</command>
 
    <synopsis>
-    pg_sqlite <parameter>sqlite_db</parameter> info
+    <function>pg_sqlite</function> <parameter>sqlite_db</parameter> info
 	<optional role="tcl">-busy</optional>
 	<optional role="tcl">-filename</optional>
 	<optional role="tcl">-db <parameter>database_name</parameter></optional>
@@ -3869,7 +3869,7 @@ pg_sqlite <parameter>sqlite_db</parameter> <parameter>command</parameter> <optio
    <command>import_postgres_result</command>
 
    <synopsis>
-    pg_sqlite <parameter>sqlite_db</parameter> import_postgres_result <parameter>handle</parameter>
+    <function>pg_sqlite</function> <parameter>sqlite_db</parameter> import_postgres_result <parameter>handle</parameter>
 	<optional role="tcl">-rowbyrow</optional>
 	<optional role="tcl">-sql <parameter>target_sql</parameter></optional>
 	<optional role="tcl">-create <parameter>new_table</parameter></optional>
@@ -3895,7 +3895,7 @@ pg_sqlite <parameter>sqlite_db</parameter> <parameter>command</parameter> <optio
     <listitem>
      <para>
 	A database or result handle. Normally, you would call <function>pg_exec</function> and pass the result
-	handle to pg_sqlite here. If you are using row_by_row mode, though, you use pg_sendquery and pass the
+	handle to <function>pg_sqlite</function> here. If you are using row_by_row mode, though, you use pg_sendquery and pass the
 	PostgreSQL database handle here.
      </para>
     </listitem>
@@ -3971,7 +3971,7 @@ pg_sqlite <parameter>sqlite_db</parameter> <parameter>command</parameter> <optio
     <term>-as <parameter>name-type-list</parameter></term>
     <listitem>
      <para>
-      A list of alternating column names and types.
+      A list of alternating column names and types. See note on types.
      </para>
     </listitem>
    </varlistentry>
@@ -3980,7 +3980,7 @@ pg_sqlite <parameter>sqlite_db</parameter> <parameter>command</parameter> <optio
     <term>-types <parameter>type-list</parameter></term>
     <listitem>
      <para>
-      A list of column types.
+      A list of column types. See note on types.
      </para>
     </listitem>
    </varlistentry>
@@ -4039,7 +4039,7 @@ pg_sqlite <parameter>sqlite_db</parameter> <parameter>command</parameter> <optio
    <command>write_tabsep</command>
 
    <synopsis>
-    pg_sqlite <parameter>sqlite_db</parameter> write_tabsep <parameter>handle</parameter> <parameter>sql</parameter>
+    <function>pg_sqlite</function> <parameter>sqlite_db</parameter> write_tabsep <parameter>handle</parameter> <parameter>sql</parameter>
 	<optional role="tcl"><parameter>sql</parameter></optional>
 	<optional role="tcl">-sep <parameter>separator</parameter></optional>
 	<optional role="tcl">-null <parameter>null_string</parameter></optional>
@@ -4098,7 +4098,7 @@ pg_sqlite <parameter>sqlite_db</parameter> <parameter>command</parameter> <optio
    <command>read_tabsep</command>
 
    <synopsis>
-    pg_sqlite <parameter>sqlite_db</parameter> read_tabsep
+    <function>pg_sqlite</function> <parameter>sqlite_db</parameter> read_tabsep
 	<optional role="tcl">-row <parameter>single_tab_separated_row</parameter></optional>
 	<optional role="tcl">-file <parameter>file_handle</parameter></optional>
 	<optional role="tcl">-sql <parameter>target_sql</parameter></optional>
@@ -4197,7 +4197,7 @@ pg_sqlite <parameter>sqlite_db</parameter> <parameter>command</parameter> <optio
     <term>-as <parameter>name-type-list</parameter></term>
     <listitem>
      <para>
-      A list of alternating column names and types.
+      A list of alternating column names and types. See note on types.
      </para>
     </listitem>
    </varlistentry>
@@ -4206,7 +4206,7 @@ pg_sqlite <parameter>sqlite_db</parameter> <parameter>command</parameter> <optio
     <term>-types <parameter>type-list</parameter></term>
     <listitem>
      <para>
-      A list of column types.
+      A list of column types. See note on types.
      </para>
     </listitem>
    </varlistentry>
@@ -4264,7 +4264,7 @@ pg_sqlite <parameter>sqlite_db</parameter> <parameter>command</parameter> <optio
    <command>read_tabsep_keylist</command>
 
    <synopsis>
-    pg_sqlite <parameter>sqlite_db</parameter> read_tabsep_keylist
+    <function>pg_sqlite</function> <parameter>sqlite_db</parameter> read_tabsep_keylist
 	<optional role="tcl">-row <parameter>single_tab_separated_row</parameter></optional>
 	<optional role="tcl">-file <parameter>file_handle</parameter></optional>
 	<optional role="tcl">-create <parameter>new_table</parameter></optional>
@@ -4350,7 +4350,7 @@ pg_sqlite <parameter>sqlite_db</parameter> <parameter>command</parameter> <optio
     <term>-as <parameter>name-type-list</parameter></term>
     <listitem>
      <para>
-      A list of alternating column names and types.
+      A list of alternating column names and types. See note on types.
      </para>
     </listitem>
    </varlistentry>
@@ -4396,6 +4396,17 @@ pg_sqlite <parameter>sqlite_db</parameter> <parameter>command</parameter> <optio
   </variablelist>
 
  </refsect1>
+
+ <refsect1>
+  <title>Types</title>
+  <para>
+   <emphasis>A note on types:</emphasis> <function>pg_sqlite</function> supports four types: <literal>integer</literal> (or int), <literal>boolean</literal> (or bool), <literal>double</literal> (or real), and <literal>text</literal>. <literal>Integer</literal>, <literal>double</literal>, and <literal>text</literal> match both sqlite and postgresql types. <literal>Boolean</literal> is an integer type in sqlite, and boolean in postgresql, and converts postgresql boolean values (such as 'yes', 'no', 'true', or 'false') to integer 1 and 0.
+  </para>
+  <para>
+   In addition, <function>pg_sqlite</function> will accept PostgreSQL boolean values for the integer type. This may be made conditional on a "strict" mode in the future.
+  </para>
+ </refsect1>
+
  <refsect1>
   <title>Return Value</title>
 
