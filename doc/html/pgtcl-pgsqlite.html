@@ -61,7 +61,7 @@ pg_sqlite&nbsp;--&nbsp;implements a bridge between PostgreSQL and Sqlite3 using 
 <div class="REFSECT1"><a name="AEN2245" id="AEN2245"></a>
 <h2>Commands</h2>
 <p><tt class="COMMAND">info</tt></p>
-<pre class="SYNOPSIS">    pg_sqlite <code class="PARAMETER">sqlite_db</code> info
+<pre class="SYNOPSIS">    <code class="FUNCTION">pg_sqlite</code> <code class="PARAMETER">sqlite_db</code> info
         ?<span class="OPTIONAL">-busy</span>?
         ?<span class="OPTIONAL">-filename</span>?
         ?<span class="OPTIONAL">-db <code class="PARAMETER">database_name</code></span>?
@@ -84,7 +84,7 @@ pg_sqlite&nbsp;--&nbsp;implements a bridge between PostgreSQL and Sqlite3 using 
 </dl>
 </div>
 <p><tt class="COMMAND">import_postgres_result</tt></p>
-<pre class="SYNOPSIS">    pg_sqlite <code class="PARAMETER">sqlite_db</code> import_postgres_result <code class="PARAMETER">handle</code>
+<pre class="SYNOPSIS">    <code class="FUNCTION">pg_sqlite</code> <code class="PARAMETER">sqlite_db</code> import_postgres_result <code class="PARAMETER">handle</code>
         ?<span class="OPTIONAL">-rowbyrow</span>?
         ?<span class="OPTIONAL">-sql <code class="PARAMETER">target_sql</code></span>?
         ?<span class="OPTIONAL">-create <code class="PARAMETER">new_table</code></span>?
@@ -105,7 +105,7 @@ pg_sqlite&nbsp;--&nbsp;implements a bridge between PostgreSQL and Sqlite3 using 
 <dl>
 <dt><code class="PARAMETER">handle</code></dt>
 <dd>
-<p>A database or result handle. Normally, you would call <code class="FUNCTION">pg_exec</code> and pass the result handle to pg_sqlite here. If you are using row_by_row mode, though, you use pg_sendquery and pass the PostgreSQL database handle here.</p>
+<p>A database or result handle. Normally, you would call <code class="FUNCTION">pg_exec</code> and pass the result handle to <code class="FUNCTION">pg_sqlite</code> here. If you are using row_by_row mode, though, you use pg_sendquery and pass the PostgreSQL database handle here.</p>
 </dd>
 <dt>-rowbyrow</dt>
 <dd>
@@ -137,11 +137,11 @@ pg_sqlite&nbsp;--&nbsp;implements a bridge between PostgreSQL and Sqlite3 using 
 </dd>
 <dt>-as <code class="PARAMETER">name-type-list</code></dt>
 <dd>
-<p>A list of alternating column names and types.</p>
+<p>A list of alternating column names and types. See note on types.</p>
 </dd>
 <dt>-types <code class="PARAMETER">type-list</code></dt>
 <dd>
-<p>A list of column types.</p>
+<p>A list of column types. See note on types.</p>
 </dd>
 <dt>-names <code class="PARAMETER">name-list</code></dt>
 <dd>
@@ -166,7 +166,7 @@ pg_sqlite&nbsp;--&nbsp;implements a bridge between PostgreSQL and Sqlite3 using 
 </dl>
 </div>
 <p><tt class="COMMAND">write_tabsep</tt></p>
-<pre class="SYNOPSIS">    pg_sqlite <code class="PARAMETER">sqlite_db</code> write_tabsep <code class="PARAMETER">handle</code> <code class="PARAMETER">sql</code>
+<pre class="SYNOPSIS">    <code class="FUNCTION">pg_sqlite</code> <code class="PARAMETER">sqlite_db</code> write_tabsep <code class="PARAMETER">handle</code> <code class="PARAMETER">sql</code>
         ?<span class="OPTIONAL"><code class="PARAMETER">sql</code></span>?
         ?<span class="OPTIONAL">-sep <code class="PARAMETER">separator</code></span>?
         ?<span class="OPTIONAL">-null <code class="PARAMETER">null_string</code></span>?
@@ -195,7 +195,7 @@ pg_sqlite&nbsp;--&nbsp;implements a bridge between PostgreSQL and Sqlite3 using 
 </dl>
 </div>
 <p><tt class="COMMAND">read_tabsep</tt></p>
-<pre class="SYNOPSIS">    pg_sqlite <code class="PARAMETER">sqlite_db</code> read_tabsep
+<pre class="SYNOPSIS">    <code class="FUNCTION">pg_sqlite</code> <code class="PARAMETER">sqlite_db</code> read_tabsep
         ?<span class="OPTIONAL">-row <code class="PARAMETER">single_tab_separated_row</code></span>?
         ?<span class="OPTIONAL">-file <code class="PARAMETER">file_handle</code></span>?
         ?<span class="OPTIONAL">-sql <code class="PARAMETER">target_sql</code></span>?
@@ -249,11 +249,11 @@ pg_sqlite&nbsp;--&nbsp;implements a bridge between PostgreSQL and Sqlite3 using 
 </dd>
 <dt>-as <code class="PARAMETER">name-type-list</code></dt>
 <dd>
-<p>A list of alternating column names and types.</p>
+<p>A list of alternating column names and types. See note on types.</p>
 </dd>
 <dt>-types <code class="PARAMETER">type-list</code></dt>
 <dd>
-<p>A list of column types.</p>
+<p>A list of column types. See note on types.</p>
 </dd>
 <dt>-names <code class="PARAMETER">name-list</code></dt>
 <dd>
@@ -278,7 +278,7 @@ pg_sqlite&nbsp;--&nbsp;implements a bridge between PostgreSQL and Sqlite3 using 
 </dl>
 </div>
 <p><tt class="COMMAND">read_tabsep_keylist</tt></p>
-<pre class="SYNOPSIS">    pg_sqlite <code class="PARAMETER">sqlite_db</code> read_tabsep_keylist
+<pre class="SYNOPSIS">    <code class="FUNCTION">pg_sqlite</code> <code class="PARAMETER">sqlite_db</code> read_tabsep_keylist
         ?<span class="OPTIONAL">-row <code class="PARAMETER">single_tab_separated_row</code></span>?
         ?<span class="OPTIONAL">-file <code class="PARAMETER">file_handle</code></span>?
         ?<span class="OPTIONAL">-create <code class="PARAMETER">new_table</code></span>?
@@ -325,7 +325,7 @@ pg_sqlite&nbsp;--&nbsp;implements a bridge between PostgreSQL and Sqlite3 using 
 </dd>
 <dt>-as <code class="PARAMETER">name-type-list</code></dt>
 <dd>
-<p>A list of alternating column names and types.</p>
+<p>A list of alternating column names and types. See note on types.</p>
 </dd>
 <dt>-names <code class="PARAMETER">name-list</code></dt>
 <dd>
@@ -346,11 +346,16 @@ pg_sqlite&nbsp;--&nbsp;implements a bridge between PostgreSQL and Sqlite3 using 
 </dl>
 </div>
 </div>
-<div class="REFSECT1"><a name="AEN2620" id="AEN2620"></a>
+<div class="REFSECT1"><a name="AEN2626" id="AEN2626"></a>
+<h2>Types</h2>
+<p><span class="emphasis"><i class="EMPHASIS">A note on types:</i></span> <code class="FUNCTION">pg_sqlite</code> supports four types: <tt class="LITERAL">integer</tt> (or int), <tt class="LITERAL">boolean</tt> (or bool), <tt class="LITERAL">double</tt> (or real), and <tt class="LITERAL">text</tt>. <tt class="LITERAL">Integer</tt>, <tt class="LITERAL">double</tt>, and <tt class="LITERAL">text</tt> match both sqlite and postgresql types. <tt class="LITERAL">Boolean</tt> is an integer type in sqlite, and boolean in postgresql, and converts postgresql boolean values (such as 'yes', 'no', 'true', or 'false') to integer 1 and 0.</p>
+<p>In addition, <code class="FUNCTION">pg_sqlite</code> will accept PostgreSQL boolean values for the integer type. This may be made conditional on a "strict" mode in the future.</p>
+</div>
+<div class="REFSECT1"><a name="AEN2641" id="AEN2641"></a>
 <h2>Return Value</h2>
 <p>Number of rows imported or exported.</p>
 </div>
-<div class="REFSECT1"><a name="AEN2623" id="AEN2623"></a>
+<div class="REFSECT1"><a name="AEN2644" id="AEN2644"></a>
 <h2>See Also</h2>
 <p><span class="PRODUCTNAME">Sqlite 3</span></p>
 </div>

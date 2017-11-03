@@ -5,7 +5,7 @@
 \\$2 \(la\\$1\(ra\\$3
 ..
 .if \n(.g .mso www.tmac
-.TH pg_disconnect n "July 2017" "" "PostgreSQL Tcl Interface Documentation"
+.TH pg_disconnect n "November 2017" "" "PostgreSQL Tcl Interface Documentation"
 .SH NAME
 pg_disconnect \- close a connection to the server
 .SH SYNOPSIS

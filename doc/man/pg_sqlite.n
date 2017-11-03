@@ -5,7 +5,7 @@
 \\$2 \(la\\$1\(ra\\$3
 ..
 .if \n(.g .mso www.tmac
-.TH pg_sqlite n "July 2017" "" "PostgreSQL Tcl Interface Documentation"
+.TH pg_sqlite n "November 2017" "" "PostgreSQL Tcl Interface Documentation"
 .SH NAME
 pg_sqlite \- implements a bridge between PostgreSQL and Sqlite3 using the Pgtcl and sqlite3 packages. 
 .SH SYNOPSIS
@@ -39,7 +39,7 @@ Command-specific arguments.
 \fBinfo\fR
 .nf
 
-    pg_sqlite \*(T<sqlite_db\*(T> info
+    \*(T<\fBpg_sqlite\fR\*(T> \*(T<sqlite_db\*(T> info
 	[\-busy]
 	[\-filename]
 	[\-db \*(T<database_name\*(T>]
@@ -60,7 +60,7 @@ Request a list of prepared commands that are currently busy.
 \fBimport_postgres_result\fR
 .nf
 
-    pg_sqlite \*(T<sqlite_db\*(T> import_postgres_result \*(T<handle\*(T>
+    \*(T<\fBpg_sqlite\fR\*(T> \*(T<sqlite_db\*(T> import_postgres_result \*(T<handle\*(T>
 	[\-rowbyrow]
 	[\-sql \*(T<target_sql\*(T>]
 	[\-create \*(T<new_table\*(T>]
@@ -82,7 +82,7 @@ Import the result of a PostgreSQL request into an sqlite3 table.
 .TP 
 \*(T<handle\*(T>
 A database or result handle. Normally, you would call \*(T<\fBpg_exec\fR\*(T> and pass the result
-handle to pg_sqlite here. If you are using row_by_row mode, though, you use pg_sendquery and pass the
+handle to \*(T<\fBpg_sqlite\fR\*(T> here. If you are using row_by_row mode, though, you use pg_sendquery and pass the
 PostgreSQL database handle here.
 .TP 
 -rowbyrow
@@ -110,10 +110,10 @@ An existing sqlite table to insert the data. The names of the columns must be pr
 When performing the insert on an existing or newly create table, use "INSERT OR REPLACE" semantics. Not compatible with "-sql".
 .TP 
 -as \*(T<name\-type\-list\*(T>
-A list of alternating column names and types.
+A list of alternating column names and types. See note on types.
 .TP 
 -types \*(T<type\-list\*(T>
-A list of column types.
+A list of column types. See note on types.
 .TP 
 -names \*(T<name\-list\*(T>
 A list of column names.
@@ -136,7 +136,7 @@ avoids bloating the WAL log during large re-loads of databases, at some performa
 \fBwrite_tabsep\fR
 .nf
 
-    pg_sqlite \*(T<sqlite_db\*(T> write_tabsep \*(T<handle\*(T> \*(T<sql\*(T>
+    \*(T<\fBpg_sqlite\fR\*(T> \*(T<sqlite_db\*(T> write_tabsep \*(T<handle\*(T> \*(T<sql\*(T>
 	[\*(T<sql\*(T>]
 	[\-sep \*(T<separator\*(T>]
 	[\-null \*(T<null_string\*(T>]
@@ -164,7 +164,7 @@ during long transactions.
 \fBread_tabsep\fR
 .nf
 
-    pg_sqlite \*(T<sqlite_db\*(T> read_tabsep
+    \*(T<\fBpg_sqlite\fR\*(T> \*(T<sqlite_db\*(T> read_tabsep
 	[\-row \*(T<single_tab_separated_row\*(T>]
 	[\-file \*(T<file_handle\*(T>]
 	[\-sql \*(T<target_sql\*(T>]
@@ -211,10 +211,10 @@ An existing sqlite table to insert the data. The names of the columns must be pr
 When performing the insert on an existing or newly create table, use "INSERT OR REPLACE" semantics. Not compatible with "-sql".
 .TP 
 -as \*(T<name\-type\-list\*(T>
-A list of alternating column names and types.
+A list of alternating column names and types. See note on types.
 .TP 
 -types \*(T<type\-list\*(T>
-A list of column types.
+A list of column types. See note on types.
 .TP 
 -names \*(T<name\-list\*(T>
 A list of column names.
@@ -237,7 +237,7 @@ avoids bloating the WAL log during large re-loads of databases, at some performa
 \fBread_tabsep_keylist\fR
 .nf
 
-    pg_sqlite \*(T<sqlite_db\*(T> read_tabsep_keylist
+    \*(T<\fBpg_sqlite\fR\*(T> \*(T<sqlite_db\*(T> read_tabsep_keylist
 	[\-row \*(T<single_tab_separated_row\*(T>]
 	[\-file \*(T<file_handle\*(T>]
 	[\-create \*(T<new_table\*(T>]
@@ -277,7 +277,7 @@ An existing sqlite table to insert the data. The names of the columns must be pr
 When performing the insert on an existing or newly create table, use "INSERT OR REPLACE" semantics. Not compatible with "-sql".
 .TP 
 -as \*(T<name\-type\-list\*(T>
-A list of alternating column names and types.
+A list of alternating column names and types. See note on types.
 .TP 
 -names \*(T<name\-list\*(T>
 A list of column names.
@@ -292,6 +292,10 @@ during long transactions.
 .TP 
 -recommit \*(T<count\*(T>
 Chunk the operation in transactions, with one transaction every \*(T<count\*(T> rows.
+.SH TYPES
+\fIA note on types:\fR \*(T<\fBpg_sqlite\fR\*(T> supports four types: \*(T<integer\*(T> (or int), \*(T<boolean\*(T> (or bool), \*(T<double\*(T> (or real), and \*(T<text\*(T>. \*(T<Integer\*(T>, \*(T<double\*(T>, and \*(T<text\*(T> match both sqlite and postgresql types. \*(T<Boolean\*(T> is an integer type in sqlite, and boolean in postgresql, and converts postgresql boolean values (such as 'yes', 'no', 'true', or 'false') to integer 1 and 0.
+.PP
+In addition, \*(T<\fBpg_sqlite\fR\*(T> will accept PostgreSQL boolean values for the integer type. This may be made conditional on a "strict" mode in the future.
 .SH "RETURN VALUE"
 Number of rows imported or exported.
 .SH "SEE ALSO"
