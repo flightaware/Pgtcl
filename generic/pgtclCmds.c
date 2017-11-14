@@ -824,7 +824,11 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 	if (result)
 	{
-	    int	rId = PgSetResultId(interp, connString, result);
+	    int	rId;
+	    if(PgSetResultId(interp, connString, result, &rId) != TCL_OK) {
+		PQclear(result);
+		return TCL_ERROR;
+	    }
 
 	    ExecStatusType rStat = PQresultStatus(result);
 
@@ -936,7 +940,11 @@ Pg_exec_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 
 	if (result)
 	{
-		int	rId = PgSetResultId(interp, connString, result);
+		int	rId;
+		if(PgSetResultId(interp, connString, result, &rId) != TCL_OK) {
+			PQclear(result);
+			return TCL_ERROR;
+		}
 
 		ExecStatusType rStat = PQresultStatus(result);
 
@@ -3765,7 +3773,11 @@ Pg_getresult(ClientData cData, Tcl_Interp *interp, int objc,
 	/* if there's a non-null result, give the caller the handle */
 	if (result)
 	{
-		int			rId = PgSetResultId(interp, connString, result);
+		int	rId;
+		if(PgSetResultId(interp, connString, result, &rId) != TCL_OK) {
+			PQclear(result);
+			return TCL_ERROR;
+		}
 
 		ExecStatusType rStat = PQresultStatus(result);
 
@@ -3839,7 +3851,11 @@ Pg_getdata(ClientData cData, Tcl_Interp *interp, int objc,
         /* if there's a non-null result, give the caller the handle */
         if (result)
         {
-            int    rId = PgSetResultId(interp, connString, result);
+            int	rId;
+            if(PgSetResultId(interp, connString, result, &rId) != TCL_OK) {
+		PQclear(result);
+	        return TCL_ERROR;
+	    }
     
             ExecStatusType rStat = PQresultStatus(result);
     
@@ -5118,7 +5134,12 @@ Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
 
     if (((result != NULL) || (iResult > 0)) && !callback)
     {
-	int              rId = PgSetResultId(interp, connString, result);
+	int	rId;
+	if(PgSetResultId(interp, connString, result, &rId) != TCL_OK) {
+		PQclear(result);
+		return TCL_ERROR;
+	}
+
 	ExecStatusType rStat = PQresultStatus(result);
 
 	if (rStat == PGRES_COPY_IN || rStat == PGRES_COPY_OUT)
