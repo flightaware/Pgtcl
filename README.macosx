@@ -15,6 +15,9 @@
 #Then run configure in this directory with the following parameters:
 #
 ./configure --prefix=/usr/local --exec-prefix=/usr/local
+make
+# TODO: make this understand the version numbers
+install_name_tool -id /usr/local/lib/pgtcl2.3/libpgtcl2.3.4.dylib libpgtcl2.3.4.dylib
 #
 #Then do a "make" and a "sudo make install" or equivalent, and you should
 #be on your way.
