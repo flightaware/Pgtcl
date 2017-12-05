@@ -38,6 +38,7 @@
 <p>The <tt class="LITERAL">load</tt> command will fail unless the system's dynamic loader knows where to look for the <tt class="FILENAME">libpgtcl</tt> shared library file. You may need to work with <tt class="COMMAND">ldconfig</tt>, or set the environment variable <tt class="ENVAR">LD_LIBRARY_PATH</tt>, or use some equivalent facility for your platform to make it work. Refer to the <span class="PRODUCTNAME">PostgreSQL</span> installation instructions for more information.</p>
 <p><tt class="FILENAME">libpgtcl</tt> in turn depends on the interface library <tt class="FILENAME">libpq</tt>, so the dynamic loader must also be able to find the <tt class="FILENAME">libpq</tt> shared library. In practice this is seldom an issue, since both of these shared libraries are normally stored in the same directory, but it can be a stumbling block in some configurations.</p>
 <p>If you use a custom executable for your application, you might choose to statically bind <tt class="FILENAME">libpgtcl</tt> into the executable and thereby avoid the <tt class="LITERAL">load</tt> command and the potential problems of dynamic linking. See the source code for <span class="APPLICATION">pgtclsh</span> for an example.</p>
+<p>If you want to use the <code class="FUNCTION">pg_sqlite</code> bridge, you must still explicitly <tt class="LITERAL">"package require sqlite3"</tt> before executing any <tt class="LITERAL">sqlite3</tt> commands.</p>
 </div>
 <div class="NAVFOOTER">
 <hr align="left" width="100%">

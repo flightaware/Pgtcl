@@ -19,7 +19,7 @@ dnl	to configure the system for the local environment.
 # so you can encode the package version directly into the source files.
 #-----------------------------------------------------------------------
 
-AC_INIT([pgtcl], [2.1.0])
+AC_INIT([pgtcl], [2.3.4])
 
 #-----
 # Version with patch stripped
@@ -141,13 +141,31 @@ AC_SUBST(PG_LIB_DIR)
 # and PKG_TCL_SOURCES.
 #-----------------------------------------------------------------------
 
-TEA_ADD_SOURCES([pgtcl.c pgtclCmds.c pgtclId.c])
+TEA_ADD_SOURCES([pgtcl.c pgtclCmds.c pgtclId.c tokenize.c])
 TEA_ADD_HEADERS([])
 TEA_ADD_INCLUDES([])
 TEA_ADD_LIBS([])
 TEA_ADD_CFLAGS([])
 TEA_ADD_STUB_SOURCES([])
 TEA_ADD_TCL_SOURCES([postgres-helpers.tcl])
+
+#--------------------------------------------------------------------
+# SQLITE option
+#--------------------------------------------------------------------
+AC_ARG_WITH([sqlite3],
+	[AS_HELP_STRING([--with-sqlite3],[Include pg_sqlite function @<:@default=check@:>@])],
+	[],
+	[with_sqlite3=check])
+AS_IF([test "x$with_sqlite3" != "xno"],
+	[AC_CHECK_LIB([sqlite3], [main],
+		[TEA_ADD_LIBS([-lsqlite3])
+		 TEA_ADD_SOURCES([pgtclSqlite.c])
+		 AC_DEFINE([HAVE_SQLITE3], [1], [Define if you have sqlite3])
+		],
+		[if test "x$with_sqlite3" != "xcheck"; then
+			AC_MSG_FAILURE([--with-sqlite3 was given, but test for sqlite3 failed])
+		 fi
+		], [])])
 
 #--------------------------------------------------------------------
 # __CHANGE__
@@ -216,7 +234,9 @@ TEA_ENABLE_SHARED
 # NOTE - WE HAVE A SPECIFAL VERSION OF TEA_CONFIG_CFLAGS that includes
 # paths to the postgres libraries alongside the Tcl libraries.
 # see aclocal.m4
-PGTCL_CONFIG_CFLAGS
+# This now gets included by TEA_ENABLE_SYMBOLS below, so don't include
+# anything here. Leaving this comment here so the next person to try and
+# figure out what happened in 2.0 won't go down the rabbit hole.
 
 #--------------------------------------------------------------------
 # Set the default compiler switches based on the --enable-symbols option.

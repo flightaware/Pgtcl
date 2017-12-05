@@ -234,6 +234,11 @@ $Header$
     <entry><function>pg::lo_export</function></entry>
     <entry>export a large object to a file</entry>
   </row>
+  <row>
+    <entry><function>pg_sqlite</function></entry>
+    <entry><function>pg::sqlite</function></entry>
+    <entry>bridge between pgtcl and the Tcl sqlite package (when compiled with sqlite bridge)</entry>
+  </row>
 </tbody>
 </tgroup>
 </table>
@@ -253,6 +258,13 @@ $Header$
    in a <command>BEGIN</command>/<command>COMMIT</command> transaction
    block.
   </para>
+
+  <para>
+   The <function>pg_sqlite</function> command is only included if
+   <ProductName>Sqlite 3</ProductName> is installed. It can be disabled
+   at compile time with <literal>"./configure --without-sqlite3"</literal>.
+  </para>
+
 
  </sect1>
 
@@ -316,6 +328,12 @@ load libpgtcl[info sharedlibextension]
     to statically bind <filename>libpgtcl</filename> into the executable and thereby
     avoid the <literal>load</literal> command and the potential problems of dynamic
     linking.  See the source code for <application>pgtclsh</application> for an example.
+   </para>
+
+   <para>
+    If you want to use the <function>pg_sqlite</function> bridge, you must
+    still explicitly <literal>"package require sqlite3"</literal> before executing
+    any <literal>sqlite3</literal> commands.
    </para>
 
 </sect1>
@@ -921,7 +939,7 @@ pg_conndefaults
 
  <refsynopsisdiv>
 <synopsis>
-pg_exec <optional><parameter>-paramarray</parameter> arrayVar</optional> <parameter>conn</parameter> <parameter>commandString</parameter> <optional role="tcl"><parameter>args</parameter></optional>
+pg_exec <optional><parameter>-paramarray</parameter> arrayVar</optional> <optional><parameter>-variables</parameter></optional> <parameter>conn</parameter> <parameter>commandString</parameter> <optional role="tcl"><parameter>args</parameter></optional>
 </synopsis>
  </refsynopsisdiv>
 
@@ -940,6 +958,7 @@ pg_exec <optional><parameter>-paramarray</parameter> arrayVar</optional> <parame
    succeeded!  An error message returned by the server will be
    processed as a command result with failure status, not by
    generating a Tcl error in <function>pg_exec</function>.
+   Check for {[pg_result $result -status] == PGRES_COMMAND_OK}.
   </para>
 
   <para>
@@ -948,12 +967,37 @@ pg_exec <optional><parameter>-paramarray</parameter> arrayVar</optional> <parame
    then NULL is substituted (similarly to the way an array created by -withoutnulls is generated).
    Each such name must occur in a location where a value or field name could appear. See pg_select for more info.
   </para>
+
+  <para>
+   If the <optional>-variables</optional> flag is provided, then embedded Tcl variables are passed as parameters. Variables can be flagged with ':' and array references and namespaces are supported. Complex variable names can usually be embedded with :{nasty-name-here} though no attempt at duplicating Tcl brace-escaping is made.
+   If the variable does not exist, then NULL is substituted.
+  </para>
+
  </refsect1>
 
  <refsect1>
   <title>Arguments</title>
 
   <variablelist>
+
+   <varlistentry>
+    <term><optional>-paramarray arrayname</optional></term>
+    <listitem>
+     <para>
+      Perform parameter substitution via `quoted` elements of the array using PQexecParams or PQSendQueryParams.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><optional>-variables</optional></term>
+    <listitem>
+     <para>
+      Substitute Tcl variables found in the SQL string using PQexecParams or PQSendQueryParams.
+     </para>
+    </listitem>
+   </varlistentry>
+
    <varlistentry>
     <term><parameter>conn</parameter></term>
     <listitem>
@@ -1557,7 +1601,7 @@ pg_result <parameter>resultHandle</parameter> <parameter>resultOption</parameter
 
  <refsynopsisdiv>
 <synopsis>
-pg_select <optional role="tcl"><parameter>-rowbyrow</parameter></optional> <optional role="tcl"><parameter>-nodotfields</parameter></optional> <optional role="tcl"><parameter>-withoutnulls</parameter></optional> <optional role="tcl"><parameter>-paramarray var</parameter></optional> <optional role="tcl"><parameter>-params</parameter> paramList</optional> <parameter>conn</parameter> <parameter>commandString</parameter> <parameter>arrayVar</parameter> <parameter>procedure</parameter>
+pg_select <optional role="tcl"><parameter>-rowbyrow</parameter></optional> <optional role="tcl"><parameter>-nodotfields</parameter></optional> <optional role="tcl"><parameter>-withoutnulls</parameter></optional> <optional role="tcl"><parameter>-paramarray var</parameter></optional> <optional><parameter>-variables</parameter></optional> <optional role="tcl"><parameter>-params</parameter> paramList</optional> <parameter>conn</parameter> <parameter>commandString</parameter> <parameter>arrayVar</parameter> <parameter>procedure</parameter>
 </synopsis>
  </refsynopsisdiv>
 
@@ -1626,6 +1670,11 @@ pg_select <optional role="tcl"><parameter>-rowbyrow</parameter></optional> <opti
   </para>
 
   <para>
+   If the <optional>-variables</optional> flag is provided, then embedded Tcl variables are passed as parameters. Variables can be flagged with ':' and array references and namespaces are supported. Complex variable names can usually be embedded with :{nasty-name-here} though no attempt at duplicating Tcl brace-escaping is made.
+   If the variable does not exist, then NULL is substituted.
+  </para>
+
+  <para>
    Notes: This substitution is performed by generating a positional parameter list and calling PQExecParams with a modified query containing
    $1, $2, ... where the original `names` appeared. This is a straight substitution, so if this mechanism is used the back-quote
    character (`) can not appear elsewhere in the query, even in a quoted string. There are a maximum of 99,999 names.
@@ -1636,6 +1685,33 @@ pg_select <optional role="tcl"><parameter>-rowbyrow</parameter></optional> <opti
   <title>Arguments</title>
 
   <variablelist>
+
+   <varlistentry>
+    <term><optional>-params list</optional></term>
+    <listitem>
+     <para>
+      Perform parameter substitution using PQexecParams or PQSendQueryParams.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><optional>-paramarray arrayname</optional></term>
+    <listitem>
+     <para>
+      Perform parameter substitution via `quoted` elements of the array using PQexecParams or PQSendQueryParams.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><optional>-variables</optional></term>
+    <listitem>
+     <para>
+      Substitute Tcl variables found in the SQL string using PQexecParams or PQSendQueryParams.
+     </para>
+    </listitem>
+   </varlistentry>
 
    <varlistentry>
     <term><optional>-rowbyrow</optional></term>
@@ -2106,7 +2182,7 @@ pg_on_connection_loss <parameter>conn</parameter> <optional role="tcl"><paramete
 
  <refsynopsisdiv>
 <synopsis>
-pg_sendquery <optional><parameter>-paramarray</parameter> arrayVar</optional> <parameter>conn</parameter> <parameter>commandString</parameter> <optional role="tcl"><parameter>args</parameter></optional>
+pg_sendquery <optional><parameter>-paramarray</parameter> <optional><parameter>-variables</parameter></optional> arrayVar</optional> <parameter>conn</parameter> <parameter>commandString</parameter> <optional role="tcl"><parameter>args</parameter></optional>
 </synopsis>
  </refsynopsisdiv>
 
@@ -2133,12 +2209,38 @@ pg_sendquery <optional><parameter>-paramarray</parameter> arrayVar</optional> <p
    then NULL is substituted (similarly to the way an array created by -withoutnulls is generated).
    Each such name must occur in a location where a value or field name could appear. See pg_select for more info.
   </para>
+
+  <para>
+   If the <optional>-variables</optional> flag is provided, then embedded Tcl variables are passed as parameters. Variables can be flagged with ':' and array references and namespaces are supported. Complex variable names can usually be embedded with :{nasty-name-here} though no attempt at duplicating Tcl brace-escaping is made.
+   If the variable does not exist,
+   then NULL is substituted.
+   Each such name must occur in a location where a value or field name could appear. See pg_select for more info.
+  </para>
+
  </refsect1>
 
  <refsect1>
   <title>Arguments</title>
 
   <variablelist>
+   <varlistentry>
+    <term><optional>-paramarray arrayname</optional></term>
+    <listitem>
+     <para>
+      Perform parameter substitution via `quoted` elements of the array using PQexecParams or PQSendQueryParams.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><optional>-variables</optional></term>
+    <listitem>
+     <para>
+      Substitute Tcl variables found in the SQL string using PQexecParams or PQSendQueryParams.
+     </para>
+    </listitem>
+   </varlistentry>
+
    <varlistentry>
     <term><parameter>conn</parameter></term>
     <listitem>
@@ -3643,6 +3745,685 @@ pg_lo_export <parameter>conn</parameter> <parameter>loid</parameter> <parameter>
   </para>
  </refsect1>
 </refentry>
+
+<refentry ID="PGTCL-PGSQLITE">
+ <refmeta>
+  <refentrytitle>pg_sqlite</refentrytitle>
+ </refmeta>
+
+ <refnamediv>
+  <refname>pg_sqlite</refname>
+  <refpurpose>implements a bridge between PostgreSQL and Sqlite3 using the Pgtcl and sqlite3 packages.
+ </refpurpose>
+  <indexterm ID="IX-PGTCL-SQLITE2-2"><primary>pg_sqlite</primary></indexterm>
+ </refnamediv>
+
+ <refsynopsisdiv>
+<synopsis>
+pg_sqlite <parameter>sqlite_db</parameter> <parameter>command</parameter> <optional>args</optional>
+</synopsis>
+ </refsynopsisdiv>
+
+ <refsect1>
+  <title>Description</title>
+
+  <para>
+   <function>pg_sqlite</function> can import the results of a Postgres SQL query
+   (previously made via <function>pg_exec</function>)
+   directly into an sqlite3 table, export the results of an Sqlite SQL query into
+   a Postgres table (via <literal>write_tabsep</literal>), or import TSV files directly into sqlite3.
+  </para>
+  <para>
+   The commands currently implemented are import_postgres_result, read_tabsep, write_tabsep, and read_tabsep_keylist.
+  </para>
+ </refsect1>
+
+ <refsect1>
+  <title>Arguments</title>
+
+  <variablelist>
+
+   <varlistentry>
+    <term><parameter>sqlite_db</parameter></term>
+    <listitem>
+     <para>
+      An Sqlite3 database handle previously created via the <literal>sqlite3</literal> command.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><parameter>command</parameter></term>
+    <listitem>
+     <para>
+      The command, one of
+	<literal>info</literal>,
+	<literal>import_postgres_result</literal>,
+	<literal>read_tabsep</literal>,
+	<literal>write_tabsep</literal>, or
+	<literal>read_tabsep_keylist</literal>,
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><parameter>args</parameter></term>
+    <listitem>
+     <para>
+      Command-specific arguments.
+     </para>
+    </listitem>
+   </varlistentry>
+
+  </variablelist>
+ </refsect1>
+
+ <refsect1>
+  <title>Commands</title>
+
+  <para>
+   <command>info</command>
+
+   <synopsis>
+    <function>pg_sqlite</function> <parameter>sqlite_db</parameter> info
+	<optional role="tcl">-busy</optional>
+	<optional role="tcl">-filename</optional>
+	<optional role="tcl">-db <parameter>database_name</parameter></optional>
+   </synopsis>
+   </para>
+
+   <para>Request information from an SQLITE database connection. Returns a key-value list containing the values requested if available. With no arguments, all available info is returned.</para>
+
+  <variablelist>
+
+   <varlistentry>
+    <term>-filename</term>
+    <listitem>
+     <para>
+	Request the filename associated with a database.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-db <parameter>database</parameter></term>
+    <listitem>
+     <para>
+	For the -filename option, specify the database name (default "main").
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-busy</term>
+    <listitem>
+     <para>
+	Request a list of prepared commands that are currently busy.
+     </para>
+    </listitem>
+   </varlistentry>
+
+  </variablelist>
+
+  <para>
+   <command>import_postgres_result</command>
+
+   <synopsis>
+    <function>pg_sqlite</function> <parameter>sqlite_db</parameter> import_postgres_result <parameter>handle</parameter>
+	<optional role="tcl">-rowbyrow</optional>
+	<optional role="tcl">-sql <parameter>target_sql</parameter></optional>
+	<optional role="tcl">-create <parameter>new_table</parameter></optional>
+	<optional role="tcl">-into <parameter>table</parameter></optional>
+	<optional role="tcl">-replace</optional>
+	<optional role="tcl">-as <parameter>name_type_list</parameter></optional>
+	<optional role="tcl">-types <parameter>type_list</parameter></optional>
+	<optional role="tcl">-names <parameter>name_list</parameter></optional>
+	<optional role="tcl">-pkey <parameter>primary_key</parameter></optional>
+	<optional role="tcl">-sep <parameter>separator</parameter></optional>
+	<optional role="tcl">-null <parameter>null_string</parameter></optional>
+	<optional role="tcl">-poll_interval <parameter>rows</parameter></optional>
+	<optional role="tcl">-recommit <parameter>rows</parameter></optional>
+	<optional role="tcl">-check</optional>
+   </synopsis>
+   </para>
+
+   <para>Import the result of a PostgreSQL request into an sqlite3 table.</para>
+
+  <variablelist>
+   <varlistentry>
+    <term><parameter>handle</parameter></term>
+    <listitem>
+     <para>
+	A database or result handle. Normally, you would call <function>pg_exec</function> and pass the result
+	handle to <function>pg_sqlite</function> here. If you are using row_by_row mode, though, you use pg_sendquery and pass the
+	PostgreSQL database handle here.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-rowbyrow</term>
+    <listitem>
+     <para>
+	Perform the request using row-by-row mode. This injects the data to sqlite directly without making
+	an internal copy, but the result may be incomplete or inconsistent if an error occurs during the
+	request.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-sep <parameter>separator</parameter></term>
+    <listitem>
+     <para>
+	String to use to separate columns. Default is "\t" (tab).
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-null <parameter>null_string</parameter></term>
+    <listitem>
+     <para>
+	String to use to indicate a null value. Default is to treat all strings literally.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-sql <parameter>target_sql</parameter></term>
+    <listitem>
+     <para>
+      An INSERT statement, suitable to be compiled into a prepared statement to be applied to each row.
+      For example "INSERT INTO newtable (id, name, value) VALUES (?,?,?)"
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-create <parameter>new_table</parameter></term>
+    <listitem>
+     <para>
+      A table to be created in sqlite. The names and types of columns, and the primary key, must be provided.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-into <parameter>table</parameter></term>
+    <listitem>
+     <para>
+      An existing sqlite table to insert the data. The names of the columns must be provided, if the type can not be inferred it will be assumed to be "text".
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-replace</term>
+    <listitem>
+     <para>
+      When performing the insert on an existing or newly create table, use "INSERT OR REPLACE" semantics. Not compatible with "-sql".
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-as <parameter>name-type-list</parameter></term>
+    <listitem>
+     <para>
+      A list of alternating column names and types. See note on types.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-types <parameter>type-list</parameter></term>
+    <listitem>
+     <para>
+      A list of column types. See note on types.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-names <parameter>name-list</parameter></term>
+    <listitem>
+     <para>
+      A list of column names.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-pkey <parameter>primary_key</parameter></term>
+    <listitem>
+     <para>
+	A list containing key names and optional sorting to indicate primary key where needed. For example
+	<command>-pkey {{clock ASC} {sequence ASC}}</command>.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-poll_interval <parameter>count</parameter></term>
+    <listitem>
+     <para>
+	Call DoOneEvent() every <parameter>count</parameter> rows to keep the event loop alive
+	during long transactions.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-recommit <parameter>count</parameter></term>
+    <listitem>
+     <para>
+	Chunk the operation in transactions, with one transaction every <parameter>count</parameter> rows.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-check</term>
+    <listitem>
+     <para>
+	Check (via a SELECT) whether the exact row is already present, and skip inserting the row if so. This
+	avoids bloating the WAL log during large re-loads of databases, at some performance cost.
+     </para>
+    </listitem>
+   </varlistentry>
+
+  </variablelist>
+
+  <para>
+   <command>write_tabsep</command>
+
+   <synopsis>
+    <function>pg_sqlite</function> <parameter>sqlite_db</parameter> write_tabsep <parameter>handle</parameter> <parameter>sql</parameter>
+	<optional role="tcl"><parameter>sql</parameter></optional>
+	<optional role="tcl">-sep <parameter>separator</parameter></optional>
+	<optional role="tcl">-null <parameter>null_string</parameter></optional>
+	<optional role="tcl">-poll_interval <parameter>rows</parameter></optional>
+   </synopsis>
+   </para>
+
+   <para>Write the results of the provided <parameter>sql</parameter> to a file handle</para>
+
+     <para>
+	This command may be used to export sqlite3 data to postgres. You issue a <command>COPY FROM STDIN ... FORMAT text</command> command, then use <command>pg_sqlite write_tabsep ...</command> to write the data directly to the Postgresql handle, followed by writing the terminator line to the same handle. See the PostgreSQL documentation on the "COPY" command for more details.
+     </para>
+
+  <variablelist>
+   <varlistentry>
+    <term><parameter>handle</parameter></term>
+    <listitem>
+     <para>
+	File handle.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-sep <parameter>separator</parameter></term>
+    <listitem>
+     <para>
+	String to use to separate columns. Default is "\t" (tab).
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-null <parameter>null_string</parameter></term>
+    <listitem>
+     <para>
+	String to use to indicate a null value. Default is to treat all strings literally.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-poll_interval <parameter>count</parameter></term>
+    <listitem>
+     <para>
+	Call DoOneEvent() every <parameter>count</parameter> rows to keep the event loop alive
+	during long transactions.
+     </para>
+    </listitem>
+   </varlistentry>
+
+  </variablelist>
+
+
+  <para>
+   <command>read_tabsep</command>
+
+   <synopsis>
+    <function>pg_sqlite</function> <parameter>sqlite_db</parameter> read_tabsep
+	<optional role="tcl">-row <parameter>single_tab_separated_row</parameter></optional>
+	<optional role="tcl">-file <parameter>file_handle</parameter></optional>
+	<optional role="tcl">-sql <parameter>target_sql</parameter></optional>
+	<optional role="tcl">-create <parameter>new_table</parameter></optional>
+	<optional role="tcl">-into <parameter>table</parameter></optional>
+	<optional role="tcl">-replace</optional>
+	<optional role="tcl">-as <parameter>name_type_list</parameter></optional>
+	<optional role="tcl">-types <parameter>type_list</parameter></optional>
+	<optional role="tcl">-names <parameter>name_list</parameter></optional>
+	<optional role="tcl">-pkey <parameter>primary_key</parameter></optional>
+	<optional role="tcl">-sep <parameter>separator</parameter></optional>
+	<optional role="tcl">-null <parameter>null_string</parameter></optional>
+	<optional role="tcl">-poll_interval <parameter>rows</parameter></optional>
+	<optional role="tcl">-recommit <parameter>rows</parameter></optional>
+	<optional role="tcl">-check</optional>
+   </synopsis>
+   </para>
+
+   <para>Read a previously opened file into an sqlite3 table.</para>
+
+  <variablelist>
+   <varlistentry>
+    <term>-row <parameter>single_tab_separated_row</parameter></term>
+    <listitem>
+     <para>
+      An already read tab-separated line.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-file <parameter>file_handle</parameter></term>
+    <listitem>
+     <para>
+      An open file consistion of tab-separated rows.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-sep <parameter>separator</parameter></term>
+    <listitem>
+     <para>
+	String to use to separate columns. Default is "\t" (tab).
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-null <parameter>null_string</parameter></term>
+    <listitem>
+     <para>
+	String to use to indicate a null value. Default is to treat all strings literally.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-sql <parameter>target_sql</parameter></term>
+    <listitem>
+     <para>
+      An INSERT statement, suitable to be compiled into a prepared statement to be applied to each row.
+      For example "INSERT INTO newtable (id, name, value) VALUES (?,?,?)"
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-create <parameter>new_table</parameter></term>
+    <listitem>
+     <para>
+      A table to be created in sqlite. The names and types of columns, and the primary key, must be provided.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-into <parameter>table</parameter></term>
+    <listitem>
+     <para>
+      An existing sqlite table to insert the data. The names of the columns must be provided, if the type can not be inferred it will be assumed to be "text".
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-replace</term>
+    <listitem>
+     <para>
+      When performing the insert on an existing or newly create table, use "INSERT OR REPLACE" semantics. Not compatible with "-sql".
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-as <parameter>name-type-list</parameter></term>
+    <listitem>
+     <para>
+      A list of alternating column names and types. See note on types.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-types <parameter>type-list</parameter></term>
+    <listitem>
+     <para>
+      A list of column types. See note on types.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-names <parameter>name-list</parameter></term>
+    <listitem>
+     <para>
+      A list of column names.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-pkey <parameter>primary_key</parameter></term>
+    <listitem>
+     <para>
+	A list containing key names and optional sorting to indicate primary key where needed. For example
+	<command>-pkey {{clock ASC} {sequence ASC}}</command>.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-poll_interval <parameter>count</parameter></term>
+    <listitem>
+     <para>
+	Call DoOneEvent() every <parameter>count</parameter> rows to keep the event loop alive
+	during long transactions.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-recommit <parameter>count</parameter></term>
+    <listitem>
+     <para>
+	Chunk the operation in transactions, with one transaction every <parameter>count</parameter> rows.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-check</term>
+    <listitem>
+     <para>
+	Check (via a SELECT) whether the exact row is already present, and skip inserting the row if so. This
+	avoids bloating the WAL log during large re-loads of databases, at some performance cost.
+     </para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+
+  <para>
+   <command>read_tabsep_keylist</command>
+
+   <synopsis>
+    <function>pg_sqlite</function> <parameter>sqlite_db</parameter> read_tabsep_keylist
+	<optional role="tcl">-row <parameter>single_tab_separated_row</parameter></optional>
+	<optional role="tcl">-file <parameter>file_handle</parameter></optional>
+	<optional role="tcl">-create <parameter>new_table</parameter></optional>
+	<optional role="tcl">-into <parameter>table</parameter></optional>
+	<optional role="tcl">-replace</optional>
+	<optional role="tcl">-as <parameter>name_type_list</parameter></optional>
+	<optional role="tcl">-names <parameter>name_list</parameter></optional>
+	<optional role="tcl">-pkey <parameter>primary_key</parameter></optional>
+	<optional role="tcl">-sep <parameter>separator</parameter></optional>
+	<optional role="tcl">-null <parameter>null_string</parameter></optional>
+	<optional role="tcl">-poll_interval <parameter>rows</parameter></optional>
+	<optional role="tcl">-recommit <parameter>rows</parameter></optional>
+   </synopsis>
+   </para>
+
+   <para>Read a previously opened file containing alternating key-value columns into an sqlite3 table.</para>
+
+  <variablelist>
+   <varlistentry>
+    <term>-row <parameter>single_tab_separated_row</parameter></term>
+    <listitem>
+     <para>
+      An already read tab-separated key-value list line.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-file <parameter>file_handle</parameter></term>
+    <listitem>
+     <para>
+      An open file consistion of tab-separated key-value list rows.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-sep <parameter>separator</parameter></term>
+    <listitem>
+     <para>
+	String to use to separate columns. Default is "\t" (tab).
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-null <parameter>null_string</parameter></term>
+    <listitem>
+     <para>
+	String to use to indicate a null value. Default is to treat all strings literally.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-create <parameter>new_table</parameter></term>
+    <listitem>
+     <para>
+      A table to be created in sqlite. The names and types of columns, and the primary key, must be provided.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-into <parameter>table</parameter></term>
+    <listitem>
+     <para>
+      An existing sqlite table to insert the data. The names of the columns must be provided, if the type can not be inferred it will be assumed to be "text".
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-replace</term>
+    <listitem>
+     <para>
+      When performing the insert on an existing or newly create table, use "INSERT OR REPLACE" semantics. Not compatible with "-sql".
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-as <parameter>name-type-list</parameter></term>
+    <listitem>
+     <para>
+      A list of alternating column names and types. See note on types.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-names <parameter>name-list</parameter></term>
+    <listitem>
+     <para>
+      A list of column names.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-pkey <parameter>primary_key</parameter></term>
+    <listitem>
+     <para>
+	A list containing key names and optional sorting to indicate primary key where needed. For example
+	<command>-pkey {{clock ASC} {sequence ASC}}</command>.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-poll_interval <parameter>count</parameter></term>
+    <listitem>
+     <para>
+	Call DoOneEvent() every <parameter>count</parameter> rows to keep the event loop alive
+	during long transactions.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-recommit <parameter>count</parameter></term>
+    <listitem>
+     <para>
+	Chunk the operation in transactions, with one transaction every <parameter>count</parameter> rows.
+     </para>
+    </listitem>
+   </varlistentry>
+
+  </variablelist>
+
+ </refsect1>
+
+ <refsect1>
+  <title>Types</title>
+  <para>
+   <emphasis>A note on types:</emphasis> <function>pg_sqlite</function> supports four types: <literal>integer</literal> (or int), <literal>boolean</literal> (or bool), <literal>double</literal> (or real), and <literal>text</literal>. <literal>Integer</literal>, <literal>double</literal>, and <literal>text</literal> match both sqlite and postgresql types. <literal>Boolean</literal> is an integer type in sqlite, and boolean in postgresql, and converts postgresql boolean values (such as 'yes', 'no', 'true', or 'false') to integer 1 and 0.
+  </para>
+  <para>
+   In addition, <function>pg_sqlite</function> will accept PostgreSQL boolean values for the integer type. This may be made conditional on a "strict" mode in the future.
+  </para>
+ </refsect1>
+
+ <refsect1>
+  <title>Return Value</title>
+
+  <para>
+   Number of rows imported or exported.
+  </para>
+
+ </refsect1>
+ <refsect1>
+  <title>See Also</title>
+
+  <para>
+   <ProductName>Sqlite 3</ProductName>
+  </para>
+ </refsect1>
+</refentry>
+
 
 </sect1>
 

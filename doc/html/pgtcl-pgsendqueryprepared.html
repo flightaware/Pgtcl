@@ -28,18 +28,18 @@
 </table>
 <hr align="left" width="100%"></div>
 <h1><a name="PGTCL-PGSENDQUERYPREPARED" id="PGTCL-PGSENDQUERYPREPARED"></a>pg_sendquery_prepared</h1>
-<div class="REFNAMEDIV"><a name="AEN1364" id="AEN1364"></a>
+<div class="REFNAMEDIV"><a name="AEN1425" id="AEN1425"></a>
 <h2>Name</h2>
 pg_sendquery_prepared&nbsp;--&nbsp;send a request to execute a prepared statement to the backend connection, without waiting for a result<a name="IX-PGTCL-PGSENDQUERYPREPARED-2" id="IX-PGTCL-PGSENDQUERYPREPARED-2"></a></div>
-<div class="REFSYNOPSISDIV"><a name="AEN1369" id="AEN1369"></a>
+<div class="REFSYNOPSISDIV"><a name="AEN1430" id="AEN1430"></a>
 <h2>Synopsis</h2>
 <pre class="SYNOPSIS">pg_sendquery_prepared <code class="PARAMETER">conn</code> <code class="PARAMETER">statementName</code> ?<span class="OPTIONAL"><code class="PARAMETER">args</code></span>?</pre></div>
-<div class="REFSECT1"><a name="AEN1375" id="AEN1375"></a>
+<div class="REFSECT1"><a name="AEN1436" id="AEN1436"></a>
 <h2>Description</h2>
 <p><code class="FUNCTION">pg_sendquery_prepared</code> submits a command to the <span class="PRODUCTNAME">PostgreSQL</span> server. This function works like <code class="FUNCTION">pg_exec</code>, except that it does not return a result. Rather, the command is issued to the backend asynchronously.</p>
 <p>The result is either an error message or nothing. An empty return indicates that the command was dispatched to the backend.</p>
 </div>
-<div class="REFSECT1"><a name="AEN1382" id="AEN1382"></a>
+<div class="REFSECT1"><a name="AEN1443" id="AEN1443"></a>
 <h2>Arguments</h2>
 <div class="VARIABLELIST">
 <dl>
@@ -58,7 +58,7 @@ pg_sendquery_prepared&nbsp;--&nbsp;send a request to execute a prepared statemen
 </dl>
 </div>
 </div>
-<div class="REFSECT1"><a name="AEN1401" id="AEN1401"></a>
+<div class="REFSECT1"><a name="AEN1462" id="AEN1462"></a>
 <h2>Return Value</h2>
 <p>A Tcl error will be returned if <span class="APPLICATION">pgtcl</span> was unable to issue the command. Otherwise, an empty string will be return. It is up to the developer to use <code class="FUNCTION">pg_getresult</code> to obtain results from commands issued with <code class="FUNCTION">pg_sendquery</code>.</p>
 </div>

@@ -820,7 +820,7 @@ PgDelConnectionId(DRIVER_DEL_PROTO)
  */
 
 int
-PgSetResultId(Tcl_Interp *interp, CONST84 char *connid_c, PGresult *res)
+PgSetResultId(Tcl_Interp *interp, CONST84 char *connid_c, PGresult *res, int *idPtr)
 {
     Tcl_Channel     conn_chan;
     Pg_ConnectionId *connid;
@@ -904,7 +904,9 @@ PgSetResultId(Tcl_Interp *interp, CONST84 char *connid_c, PGresult *res)
 
     Tcl_SetObjResult(interp, cmd);
 
-    return resid;
+    *idPtr = resid;
+
+    return TCL_OK;
 }
 
 

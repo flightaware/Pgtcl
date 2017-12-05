@@ -5,7 +5,7 @@
 \\$2 \(la\\$1\(ra\\$3
 ..
 .if \n(.g .mso www.tmac
-.TH pg_escape_string n "September 2016" "" "PostgreSQL Tcl Interface Documentation"
+.TH pg_escape_string n "November 2017" "" "PostgreSQL Tcl Interface Documentation"
 .SH NAME
 pg_escape_string \- escapes a string for inclusion into SQL statements. This is the same as pg_quote. It was added for consistency. 
 .SH SYNOPSIS

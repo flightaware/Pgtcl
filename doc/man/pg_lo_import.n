@@ -5,7 +5,7 @@
 \\$2 \(la\\$1\(ra\\$3
 ..
 .if \n(.g .mso www.tmac
-.TH pg_lo_import n "September 2016" "" "PostgreSQL Tcl Interface Documentation"
+.TH pg_lo_import n "November 2017" "" "PostgreSQL Tcl Interface Documentation"
 .SH NAME
 pg_lo_import \- import a large object from a file
 .SH SYNOPSIS

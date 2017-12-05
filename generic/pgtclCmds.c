@@ -21,6 +21,7 @@
 #include "pgtclCmds.h"
 #include "pgtclId.h"
 #include "libpq/libpq-fs.h"		/* large-object interface */
+#include "tokenize.h"
 
 #ifndef CONST84
 #     define CONST84
@@ -37,9 +38,11 @@ static int count_parameters(Tcl_Interp *interp, const char *queryString,
 
 static int expand_parameters(Tcl_Interp *interp, const char *queryString,
 				    int nParams, char *paramArrayName,
-				    const char **newQueryStringPtr, const char ***paramValuesPtr);
+				    char **newQueryStringPtr, const char ***paramValuesPtr);
 
 static void build_param_array(Tcl_Interp *interp, int nParams, Tcl_Obj *CONST objv[], const char ***paramValuesPtr);
+
+static void report_connection_error(Tcl_Interp *interp, PGconn *conn);
 
 #ifdef TCL_ARRAYS
 
@@ -696,11 +699,12 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	PGresult        *result;
 	CONST84 char    *connString = NULL;
 	const char      *execString = NULL;
-	const char      *newExecString = NULL;
+	char            *newExecString = NULL;
 	const char     **paramValues = NULL;
 	char		*paramArrayName = NULL;
 	int              nParams;
 	int              index;
+	int              useVariables = 0;
 
 	enum             positionalArgs {EXEC_ARG_CONN, EXEC_ARG_SQL, EXEC_ARGS};
 	int              nextPositionalArg = EXEC_ARG_CONN;
@@ -711,6 +715,8 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		if(strcmp(arg, "-paramarray") == 0) {
 		    index++;
 		    paramArrayName = Tcl_GetString(objv[index]);
+		} else if(strcmp(arg, "-variables") == 0) {
+		    useVariables = 1;
 		} else {
 		    goto wrong_args;
 		}
@@ -727,11 +733,11 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		}
 	    }
 	}
-	
+
 	if (nextPositionalArg != EXEC_ARGS)
 	{
 	    wrong_args:
-		Tcl_WrongNumArgs(interp, 1, objv, "?-paramarray var? connection queryString ?parm...?");
+		Tcl_WrongNumArgs(interp, 1, objv, "?-variables? ?-paramarray var? connection queryString ?parm...?");
 		return TCL_ERROR;
 	}
 
@@ -756,7 +762,23 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	/* objc must be 3 or greater at this point */
 	nParams = objc - index;
 
-	if (paramArrayName) {
+	if (useVariables) {
+		if(paramArrayName || nParams) {
+			Tcl_SetResult(interp, "-variables can not be used with positional or named parameters", TCL_STATIC);
+			return TCL_ERROR;
+		}
+		if (handle_substitutions(interp, execString, &newExecString, &paramValues, &nParams, 1) != TCL_OK) {
+			return TCL_ERROR;
+		}
+		if(nParams)
+			execString = newExecString;
+		else { // No variables being substituted, fall back to simple code path
+			ckfree(newExecString);
+			newExecString = NULL;
+			ckfree(paramValues);
+			paramValues = NULL;
+		}
+	} else if (paramArrayName) {
 	    // Can't combine positional params and -paramarray
 	    if (nParams) {
 		Tcl_SetResult(interp, "Can't use both positional and named parameters", TCL_STATIC);
@@ -781,14 +803,17 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	 * will not accept more than one SQL statement per call, while
 	 * PQexec will.  by checking and using PQexec when no parameters
 	 * are included, we maintain compatibility for code that doesn't
-	 * use params and might have had multiple statements in a single 
+	 * use params and might have had multiple statements in a single
 	 * request */
 	if (nParams == 0) {
 	    result = PQexec(conn, execString);
 	} else {
 	    result = PQexecParams(conn, execString, nParams, NULL, paramValues, NULL, NULL, 0);
 	    ckfree ((void *)paramValues);
-	    if(newExecString) ckfree(newExecString);
+	    if(newExecString) {
+		ckfree(newExecString);
+		newExecString = NULL;
+	    }
 	}
 
 	connid->sql_count++;
@@ -799,7 +824,11 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 	if (result)
 	{
-	    int	rId = PgSetResultId(interp, connString, result);
+	    int	rId;
+	    if(PgSetResultId(interp, connString, result, &rId) != TCL_OK) {
+		PQclear(result);
+		return TCL_ERROR;
+	    }
 
 	    ExecStatusType rStat = PQresultStatus(result);
 
@@ -813,8 +842,27 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	else
 	{
 	    /* error occurred during the query */
-	    Tcl_SetObjResult(interp, Tcl_NewStringObj(PQerrorMessage(conn), -1));
+	    report_connection_error(interp, conn);
 	    return TCL_ERROR;
+	}
+}
+
+/**********************************
+ * report_connection_error
+ Generate a proper Tcl errorCode and return error meaage from an error during a request
+ */
+static void report_connection_error(Tcl_Interp *interp, PGconn *conn)
+{
+	char *errString = PQerrorMessage(conn);
+
+	if(errString[0] != '\0') {
+		char *nl = strchr(errString, '\n');
+		if(nl) *nl = '\0';
+		Tcl_SetErrorCode(interp, "POSTGRESQL", "REQUEST_FAILED", errString, (char *)NULL);
+		if(nl) *nl = '\n';
+		Tcl_SetResult(interp, errString, TCL_VOLATILE);
+	} else {
+		Tcl_SetResult(interp, "Unknown error from Exec or SendQuery", TCL_STATIC);
 	}
 }
 
@@ -892,7 +940,11 @@ Pg_exec_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 
 	if (result)
 	{
-		int	rId = PgSetResultId(interp, connString, result);
+		int	rId;
+		if(PgSetResultId(interp, connString, result, &rId) != TCL_OK) {
+			PQclear(result);
+			return TCL_ERROR;
+		}
 
 		ExecStatusType rStat = PQresultStatus(result);
 
@@ -906,7 +958,7 @@ Pg_exec_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 	else
 	{
 		/* error occurred during the query */
-		Tcl_SetObjResult(interp, Tcl_NewStringObj(PQerrorMessage(conn), -1));
+		report_connection_error(interp, conn);
 		return TCL_ERROR;
 	}
 }
@@ -1865,7 +1917,7 @@ Pg_execute(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 	 */
 	if (result == NULL)
 	{
-            Tcl_SetObjResult(interp, Tcl_NewStringObj(PQerrorMessage(conn), -1));
+		report_connection_error(interp, conn);
 
 		return TCL_ERROR;
 	}
@@ -2662,7 +2714,7 @@ static int count_parameters(Tcl_Interp *interp, const char *queryString, int *nP
  If not, does not modify the arguments.
  */
 static int expand_parameters(Tcl_Interp *interp, const char *queryString, int nParams, char *paramArrayName,
-				const char **newQueryStringPtr, const char ***paramValuesPtr)
+				char **newQueryStringPtr, const char ***paramValuesPtr)
 {
 	// Allocating space for parameter IDs up to 100,000 (5 characters)
 	char        *newQueryString = (char *)ckalloc(strlen(queryString) + 5 * nParams);
@@ -2764,7 +2816,7 @@ error_return:
  send a select query string to the backend connection
 
  syntax:
- pg_select ?-nodotfields? ?-withoutnulls? ?-paramarray var? ?-params list? connection query var proc
+ pg_select ?-nodotfields? ?-withoutnulls? ?-variables? ?-paramarray var? ?-params list? connection query var proc
 
  The query must be a select statement
 
@@ -2827,37 +2879,42 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	Tcl_Obj     *columnListObj  = NULL;
 	Tcl_Obj    **columnNameObjs = NULL;
 	const char **paramValues    = NULL;
-	const char  *newQueryString = NULL;
+	char        *newQueryString = NULL;
 	Tcl_Obj     *paramListObj   = NULL;
+	int          useVariables = 0;
 
 	enum         positionalArgs {SELECT_ARG_CONN, SELECT_ARG_QUERY, SELECT_ARG_VAR, SELECT_ARG_PROC, SELECT_ARGS};
 	int          nextPositionalArg = SELECT_ARG_CONN;
 
 	for(index = 1; index < objc && nextPositionalArg != SELECT_ARGS; index++) {
 	    char *arg = Tcl_GetString(objv[index]);
-	    if (arg[0] == '-') {
+	    if (arg[0] == '-' && arg[1] != '-') {
 		if        (strcmp(arg, "-withoutnulls") == 0) {
 		    withoutNulls = 1;
 		} else if (strcmp(arg, "-rowbyrow") == 0) {
 	            rowByRow = 1;
 		} else if (strcmp(arg, "-nodotfields") == 0) {
 	            noDotFields = 1;
+		} else if(strcmp(arg, "-variables") == 0) {
+		    if(paramListObj || paramArrayName)
+			goto parameter_conflict;
+		    useVariables = 1;
 		} else if (strcmp(arg, "-paramarray") == 0) {
-		    if(paramListObj) {
-			Tcl_SetResult(interp, "Can't have both -paramarray and -params", TCL_STATIC);
-			return TCL_ERROR;
-		    }
+		    if(paramListObj || useVariables)
+			goto parameter_conflict;
 		    index++;
 		    paramArrayName = Tcl_GetString(objv[index]);
 		} else if (strcmp(arg, "-params") == 0) {
-		    if(paramArrayName) {
-			Tcl_SetResult(interp, "Can't have both -paramarray and -params", TCL_STATIC);
+		    if(paramArrayName || useVariables) {
+		      parameter_conflict:
+			Tcl_SetResult(interp, "Can't combine multiple parameter flags (-variables, -paramarray, -params)", TCL_STATIC);
 			return TCL_ERROR;
 		    }
 		    index++;
 		    paramListObj = objv[index];
 		} else {
-		    goto wrong_args;
+			Tcl_SetObjResult(interp, Tcl_NewStringObj ("-arg argument isn't one of \"-nodotfields\", \"-variables\", \"-paramarray\", \"-params\", \"-rowbyrow\", or \"-withoutnulls\"", -1));
+			return TCL_ERROR;
 		}
 	    } else {
 		switch(nextPositionalArg) {
@@ -2883,9 +2940,22 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	}
 	
 	if (index < objc || nextPositionalArg != SELECT_ARGS) {
-	    wrong_args:
-		Tcl_WrongNumArgs(interp, 1, objv, "?-nodotfields? ?-rowbyrow? ?-withoutnulls? ?-paramarray var? ?-params list? connection queryString var proc");
+		Tcl_WrongNumArgs(interp, 1, objv, "?-nodotfields? ?-rowbyrow? ?-withoutnulls? ?-variables? ?-paramarray var? ?-params list? connection queryString var proc");
 		return TCL_ERROR;
+	}
+
+	if (useVariables) {
+		if (handle_substitutions(interp, queryString, &newQueryString, &paramValues, &nParams, 1) != TCL_OK) {
+			return TCL_ERROR;
+		}
+		if(nParams)
+			queryString = newQueryString;
+		else { // No variables being substituted, fall back to simple code path
+			ckfree(newQueryString);
+			newQueryString = NULL;
+			ckfree(paramValues);
+			paramValues = NULL;
+		}
 	}
 
 	if(paramListObj) {
@@ -2935,7 +3005,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 		if(status == 0) {
 			/* error occurred sending the query */
-			Tcl_SetResult(interp, PQerrorMessage(conn), TCL_VOLATILE);
+			report_connection_error(interp, conn);
 			goto cleanup_params_and_return_error;
 		}
 
@@ -2956,7 +3026,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 		if (result == 0) {
 			/* error occurred sending the query */
-			Tcl_SetResult(interp, PQerrorMessage(conn), TCL_VOLATILE);
+			report_connection_error(interp, conn);
 			goto cleanup_params_and_return_error;
 		}
 	}
@@ -2990,10 +3060,17 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 			/* NB FIX there isn't necessarily an error here,
 			 * meaning we can get an empty string */
 			char *errString = PQresultErrorMessage(result);
+			char *errStatus = PQresStatus (resultStatus);
 
 			if (*errString == '\0')
 			{
-				errString = PQresStatus (resultStatus);
+				errString = errStatus;
+				Tcl_SetErrorCode(interp, "POSTGRESQL", errStatus, (char *)NULL);
+			} else {
+				char *nl = strchr(errString, '\n');
+				if(nl) *nl = '\0';
+				Tcl_SetErrorCode(interp, "POSTGRESQL", errStatus, errString, (char *)NULL);
+				if(nl) *nl = '\n';
 			}
 
 			Tcl_SetResult(interp, errString, TCL_VOLATILE);
@@ -3309,7 +3386,7 @@ Pg_listen(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				Tcl_DeleteHashEntry(entry);
 				ckfree(callback);
 				ckfree(caserelname);
-				Tcl_SetResult(interp, PQerrorMessage(conn), TCL_VOLATILE);
+				report_connection_error(interp, conn);
 				return TCL_ERROR;
 			}
 			PQclear(result);
@@ -3353,7 +3430,7 @@ Pg_listen(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				/* Error occurred during the execution of command */
 				PQclear(result);
 				ckfree(caserelname);
-				Tcl_SetResult(interp, PQerrorMessage(conn), TCL_VOLATILE);
+				report_connection_error(interp, conn);
 				return TCL_ERROR;
 			}
 			PQclear(result);
@@ -3383,11 +3460,12 @@ Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
         int              status;
 	CONST84 char    *connString = NULL;
 	const char      *execString = NULL;
-	const char      *newExecString = NULL;
+	char            *newExecString = NULL;
 	const char     **paramValues = NULL;
 	char		*paramArrayName = NULL;
 	int              nParams;
 	int              index;
+	int              useVariables = 0;
 
 	enum             positionalArgs {SENDQUERY_ARG_CONN, SENDQUERY_ARG_SQL, SENDQUERY_ARGS};
 	int              nextPositionalArg = SENDQUERY_ARG_CONN;
@@ -3398,6 +3476,8 @@ Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
 		if(strcmp(arg, "-paramarray") == 0) {
 		    index++;
 		    paramArrayName = Tcl_GetString(objv[index]);
+		} else if(strcmp(arg, "-variables") == 0) {
+		    useVariables = 1;
 		} else {
 		    goto wrong_args;
 		}
@@ -3418,7 +3498,7 @@ Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
 	if (nextPositionalArg != SENDQUERY_ARGS || connString == NULL || execString == NULL)
 	{
 	    wrong_args:
-		Tcl_WrongNumArgs(interp, 1, objv, "?-paramarray var? connection queryString ?parm...?");
+		Tcl_WrongNumArgs(interp, 1, objv, "?-variables? ?-paramarray var? connection queryString ?parm...?");
 		return TCL_ERROR;
 	}
 
@@ -3443,7 +3523,23 @@ Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
 	/* objc must be 3 or greater at this point */
 	nParams = objc - index;
 
-	if (paramArrayName) {
+	if (useVariables) {
+		if(paramArrayName || nParams) {
+			Tcl_SetResult(interp, "-variables can not be used with positional or named parameters", TCL_STATIC);
+			return TCL_ERROR;
+		}
+		if (handle_substitutions(interp, execString, &newExecString, &paramValues, &nParams, 1) != TCL_OK) {
+			return TCL_ERROR;
+		}
+		if(nParams)
+			execString = newExecString;
+		else { // No variables being substituted, fall back to simple code path
+			ckfree(newExecString);
+			newExecString = NULL;
+			ckfree(paramValues);
+			paramValues = NULL;
+		}
+	} else if (paramArrayName) {
 	    // Can't combine positional params and -paramarray
 	    if (nParams) {
 		Tcl_SetResult(interp, "Can't use both positional and named parameters", TCL_STATIC);
@@ -3481,7 +3577,7 @@ Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
 	else
 	{
 	    /* error occurred during the query */
-	    Tcl_SetObjResult(interp, Tcl_NewStringObj(PQerrorMessage(conn), -1));
+	    report_connection_error(interp, conn);
 	    return TCL_ERROR;
 	}
 }
@@ -3571,7 +3667,7 @@ Pg_sendquery_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *C
 	else
 	{
 		/* error occurred during the query */
-		Tcl_SetObjResult(interp, Tcl_NewStringObj(PQerrorMessage(conn), -1));
+		report_connection_error(interp, conn);
 		return TCL_ERROR;
 	}
 }
@@ -3677,7 +3773,11 @@ Pg_getresult(ClientData cData, Tcl_Interp *interp, int objc,
 	/* if there's a non-null result, give the caller the handle */
 	if (result)
 	{
-		int			rId = PgSetResultId(interp, connString, result);
+		int	rId;
+		if(PgSetResultId(interp, connString, result, &rId) != TCL_OK) {
+			PQclear(result);
+			return TCL_ERROR;
+		}
 
 		ExecStatusType rStat = PQresultStatus(result);
 
@@ -3751,7 +3851,11 @@ Pg_getdata(ClientData cData, Tcl_Interp *interp, int objc,
         /* if there's a non-null result, give the caller the handle */
         if (result)
         {
-            int    rId = PgSetResultId(interp, connString, result);
+            int	rId;
+            if(PgSetResultId(interp, connString, result, &rId) != TCL_OK) {
+		PQclear(result);
+	        return TCL_ERROR;
+	    }
     
             ExecStatusType rStat = PQresultStatus(result);
     
@@ -5030,7 +5134,12 @@ Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
 
     if (((result != NULL) || (iResult > 0)) && !callback)
     {
-	int              rId = PgSetResultId(interp, connString, result);
+	int	rId;
+	if(PgSetResultId(interp, connString, result, &rId) != TCL_OK) {
+		PQclear(result);
+		return TCL_ERROR;
+	}
+
 	ExecStatusType rStat = PQresultStatus(result);
 
 	if (rStat == PGRES_COPY_IN || rStat == PGRES_COPY_OUT)
@@ -5043,7 +5152,7 @@ Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
     else if ((result == NULL) && (iResult == 0))
     {
 	/* error occurred during the query */
-	Tcl_SetObjResult(interp, Tcl_NewStringObj(PQerrorMessage(conn), -1));
+	report_connection_error(interp, conn);
 	return TCL_ERROR;
     }
 

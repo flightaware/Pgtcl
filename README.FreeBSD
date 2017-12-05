@@ -1,0 +1,13 @@
+#
+#
+# You should have install tcl and postgresql*-client from
+#  ports or packages.
+#
+# Then run autoconf and configure in this directory, like this:
+
+autoreconf
+#LDFLAGS seems to be needed to find SQLITE3 on FreeBSD 11 without gcc
+env LDFLAGS="${LDFLAGS} -L/usr/local/lib" ./configure --with-tcl=/usr/local/lib/tcl8.6 --mandir=/usr/local/man "$@"
+
+# Add "--enable-symbols" if you want debugging.
+

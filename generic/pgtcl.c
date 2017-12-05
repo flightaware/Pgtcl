@@ -19,6 +19,9 @@
 #include "libpgtcl.h"
 #include "pgtclCmds.h"
 #include "pgtclId.h"
+#ifdef HAVE_SQLITE3
+#include "pgtclSqlite.h"
+#endif
 
 #ifdef WIN32
 #include <c.h>
@@ -94,6 +97,9 @@ static PgCmd commands[] = {
     {"pg_dbinfo", "::pg::dbinfo", Pg_dbinfo,2},
     {"pg_getdata", "::pg::getdata", Pg_getdata,2},
     {"pg_sql", "::pg::sql", Pg_sql,2},
+#ifdef HAVE_SQLITE3
+    {"pg_sqlite", "::pg::sqlite", Pg_sqlite, 3},
+#endif
     {NULL, NULL, NULL, 0}
 };
 
