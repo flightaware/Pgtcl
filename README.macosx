@@ -1,36 +1,36 @@
 
 
-$Id$
-
-Configuration of libpgtcl under Mac OS X no longer requires any tweaks.
-
-We'd love some help in making this a port in the Mac OS X darwinports tree, 
-so this build can be even more automatic.
-
-For now, you need to build and install Tcl and Postgres
-
-    port install tcl
-    port install postgresql
-
-Then run configure in this directory with the following parameters:
-
-./configure --prefix=/opt/local
-
-Then do a "make" and a "sudo make install" or equivalent, and you should
-be on your way.
-
-There is also a version of Tcl included on the Mac in /usr/bin if you install
-developer tools (I think that's what did it), and you'll
-get this one by default (in all likelihood) if you just type tclsh from the
-shell command line.  This version does not have /opt/local/lib in its package 
-path (auto_path).  You need to either edit 
-/System/Library/Frameworks/Tcl.framework/Versions/8.4/Resources/Scripts/init.tcl
-to add /opt/local/lib to the auto_path or make sure you run tclsh from
-/opt/local/bin instead of from /usr/bin, which may require you to type
-/opt/local/bin/tclsh from the command line, or make sure that your PATH
-environment variable has /opt/local/bin first.  This is not a libpgtcl issue.
-
-Here's one way to start up PostgreSQL under Mac OS X:
-
-pg_ctl -D /opt/local/pgsql/data start
-
+#$Id$
+#
+#Configuration of libpgtcl under Mac OS X no longer requires any tweaks.
+#
+#We'd love some help in making this a port in the Mac OS X darwinports tree, 
+#so this build can be even more automatic.
+#
+#For now, you need to build and install Tcl and Postgres
+#
+#brew install tcl
+#brew install postgresql
+##
+#Then run configure in this directory with the following parameters:
+#
+./configure --prefix=/usr/local --exec-prefix=/usr/local
+#
+#Then do a "make" and a "sudo make install" or equivalent, and you should
+#be on your way.
+#
+#There is also a version of Tcl included on the Mac in /usr/bin if you install
+#developer tools (I think that's what did it), and you'll
+#get this one by default (in all likelihood) if you just type tclsh from the
+#shell command line.  This version does not have /opt/local/lib in its package 
+#path (auto_path).  You need to either edit 
+#/System/Library/Frameworks/Tcl.framework/Versions/8.4/Resources/Scripts/init.tcl
+#to add /opt/local/lib to the auto_path or make sure you run tclsh from
+#/opt/local/bin instead of from /usr/bin, which may require you to type
+#/opt/local/bin/tclsh from the command line, or make sure that your PATH
+#environment variable has /opt/local/bin first.  This is not a libpgtcl issue.
+#
+#Here's one way to start up PostgreSQL under Mac OS X:
+#
+#pg_ctl -D /opt/local/pgsql/data start
+#
