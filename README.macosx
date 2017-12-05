@@ -16,8 +16,14 @@
 #
 ./configure --prefix=/usr/local --exec-prefix=/usr/local
 make
-# TODO: make this understand the version numbers
-install_name_tool -id /usr/local/lib/pgtcl2.3/libpgtcl2.3.4.dylib libpgtcl2.3.4.dylib
+# make this understand the version numbers
+# configure.in contains something like 'AC_INIT([pgtcl], [2.3.4])'
+ver=`sed -e '/^AC_INIT/!d' -e '/pgtcl/s/^.*\[\(.*\)\])$/\1/' configure.in`
+dir=`echo $ver | sed 's/\.[0-9]*$//'`
+(
+set -x
+install_name_tool -id /usr/local/lib/pgtcl$dir/libpgtcl$ver.dylib libpgtcl$ver.dylib
+)
 #
 #Then do a "make" and a "sudo make install" or equivalent, and you should
 #be on your way.
