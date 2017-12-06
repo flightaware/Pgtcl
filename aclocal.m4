@@ -728,6 +728,7 @@ AC_DEFUN([TEA_CONFIG_CFLAGS], [
 	Darwin-*)
 	    CFLAGS_OPTIMIZE="-Os"
 	    SHLIB_CFLAGS="-fno-common"
+	    PATCH_NAME="patch_name"
 	    # To avoid discrepancies between what headers configure sees during
 	    # preprocessing tests and compiling tests, move any -isysroot and
 	    # -mmacosx-version-min flags from CFLAGS to CPPFLAGS:
@@ -1187,6 +1188,8 @@ dnl # preprocessing tests use only CPPFLAGS.
     AC_SUBST(SHLIB_CFLAGS)
 
     AC_SUBST(LD_LIBRARY_PATH_VAR)
+
+    AC_SUBST(PATCH_NAME)
 
     # These must be called after we do the basic CFLAGS checks and
     # verify any possible 64-bit or similar switches are necessary

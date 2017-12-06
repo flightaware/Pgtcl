@@ -117,6 +117,13 @@ TCL_SRC_DIR	= @TCL_SRC_DIR@
 # Not used, but retained for reference of what libs Tcl required
 #TCL_LIBS	= @TCL_LIBS@
 
+# For Sierra and beyond you need to patch the install path into the binary. See "patch_name" target, below
+PATCH_NAME      = @PATCH_NAME@
+INSTALL_NAME    = $(pkglibdir)/$(PKG_LIB_FILE)
+
+#
+
+
 #========================================================================
 # TCLLIBPATH seeds the auto_path in Tcl's init.tcl so we can test our
 # package without installing.  The other environment variables allow us
@@ -179,7 +186,12 @@ all: binaries libraries doc
 # of the Makefile, in the "BINARIES" variable.
 #========================================================================
 
-binaries: $(BINARIES)
+binaries: $(BINARIES) $(PATCH_NAME)
+
+# If defined, this target will trigger after the library is made
+patch_name:
+	install_name_tool -id $(INSTALL_NAME) $(PKG_LIB_FILE)
+#
 
 libraries:
 

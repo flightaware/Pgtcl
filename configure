@@ -631,6 +631,7 @@ MAKE_LIB
 TCL_DBGX
 LDFLAGS_DEFAULT
 CFLAGS_DEFAULT
+PATCH_NAME
 LD_LIBRARY_PATH_VAR
 SHLIB_CFLAGS
 SHLIB_LD_LIBS
@@ -7484,6 +7485,7 @@ fi
 	Darwin-*)
 	    CFLAGS_OPTIMIZE="-Os"
 	    SHLIB_CFLAGS="-fno-common"
+	    PATCH_NAME="patch_name"
 	    # To avoid discrepancies between what headers configure sees during
 	    # preprocessing tests and compiling tests, move any -isysroot and
 	    # -mmacosx-version-min flags from CFLAGS to CPPFLAGS:
@@ -8290,6 +8292,8 @@ $as_echo "$tcl_cv_cast_to_union" >&6; }
 $as_echo "#define HAVE_CAST_TO_UNION 1" >>confdefs.h
 
 	fi
+
+
 
 
 
