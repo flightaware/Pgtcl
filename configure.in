@@ -19,7 +19,7 @@ dnl	to configure the system for the local environment.
 # so you can encode the package version directly into the source files.
 #-----------------------------------------------------------------------
 
-AC_INIT([pgtcl], [2.3.4])
+AC_INIT([pgtcl], [2.4.0])
 
 #-----
 # Version with patch stripped
@@ -142,7 +142,7 @@ AC_SUBST(PG_LIB_DIR)
 #-----------------------------------------------------------------------
 
 TEA_ADD_SOURCES([pgtcl.c pgtclCmds.c pgtclId.c tokenize.c])
-TEA_ADD_HEADERS([])
+TEA_ADD_HEADERS([generic/pgtclId.h])
 TEA_ADD_INCLUDES([])
 TEA_ADD_LIBS([])
 TEA_ADD_CFLAGS([])
