@@ -731,7 +731,7 @@ PgDelConnectionId(DRIVER_DEL_PROTO)
 		for (entry = Tcl_FirstHashEntry(&notifies->notify_hash, &hsearch);
 			 entry != NULL;
 			 entry = Tcl_NextHashEntry(&hsearch))
-			ckfree((char *)Tcl_GetHashValue(entry));
+			ckfree((void *)Tcl_GetHashValue(entry));
 		Tcl_DeleteHashTable(&notifies->notify_hash);
 		if (notifies->conn_loss_cmd)
 			ckfree((void *) notifies->conn_loss_cmd);

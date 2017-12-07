@@ -773,9 +773,9 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		if(nParams)
 			execString = newExecString;
 		else { // No variables being substituted, fall back to simple code path
-			ckfree(newExecString);
+			ckfree((void *)newExecString);
 			newExecString = NULL;
-			ckfree(paramValues);
+			ckfree((void *)paramValues);
 			paramValues = NULL;
 		}
 	} else if (paramArrayName) {
@@ -811,7 +811,7 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	    result = PQexecParams(conn, execString, nParams, NULL, paramValues, NULL, NULL, 0);
 	    ckfree ((void *)paramValues);
 	    if(newExecString) {
-		ckfree(newExecString);
+		ckfree((void *)newExecString);
 		newExecString = NULL;
 	    }
 	}
@@ -1738,7 +1738,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				/* objc == 4, they're setting it */
 				if (resultid->nullValueString != NULL) {
 					if (resultid->connid->nullValueString != resultid->nullValueString)
-					ckfree (resultid->nullValueString);
+					ckfree((void *)resultid->nullValueString);
 				}
 
 				nullValueString = Tcl_GetStringFromObj (objv[3], &length);
@@ -2268,7 +2268,7 @@ Pg_lo_read(ClientData cData, Tcl_Interp *interp, int objc,
         if (rc == TCL_OK)
 		Tcl_SetObjResult(interp, Tcl_NewIntObj(nbytes));
 
-	ckfree((char*)buf);
+	ckfree((void *)buf);
 	return rc;
 }
 
@@ -2765,7 +2765,7 @@ static int expand_parameters(Tcl_Interp *interp, const char *queryString, int nP
 		Tcl_Obj *paramValueObj = Tcl_GetVar2Ex(interp, paramArrayName, paramName, 0);
 
 		// This has done its work, ditch it;
-		ckfree(paramName);
+		ckfree((void *)paramName);
 		paramName = NULL;
 
 		// If the name is not present in the parameter array, then treat it as a NULL
@@ -2806,8 +2806,8 @@ static int expand_parameters(Tcl_Interp *interp, const char *queryString, int nP
 
 error_return:
 	// Something went wrong, clean up and return ERROR.
-	if(paramValues) ckfree(paramValues);
-	if(newQueryString) ckfree(newQueryString);
+	if(paramValues) ckfree((void *)paramValues);
+	if(newQueryString) ckfree((void *)newQueryString);
 	return TCL_ERROR;
 }
 
@@ -2951,9 +2951,9 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		if(nParams)
 			queryString = newQueryString;
 		else { // No variables being substituted, fall back to simple code path
-			ckfree(newQueryString);
+			ckfree((void *)newQueryString);
 			newQueryString = NULL;
-			ckfree(paramValues);
+			ckfree((void *)paramValues);
 			paramValues = NULL;
 		}
 	}
@@ -2984,8 +2984,8 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	conn = PgGetConnectionId(interp, connString, &connid);
 	if (conn == NULL) {
 	    cleanup_params_and_return_error: {
-		if(paramValues) ckfree(paramValues);
-		if(newQueryString) ckfree(newQueryString);
+		if(paramValues) ckfree((void *)paramValues);
+		if(newQueryString) ckfree((void *)newQueryString);
 		return TCL_ERROR;
 	    }
 	}
@@ -3034,11 +3034,11 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	// At this point we no longer need these. Zap them so we don't have to worry about them
 	// in the big loop.
 	if(paramValues) {
-		ckfree(paramValues);
+		ckfree((void *)paramValues);
 		paramValues = NULL;
 	}
 	if(newQueryString) {
-		ckfree(newQueryString);
+		ckfree((void *)newQueryString);
 		newQueryString = NULL;
 	}
 
@@ -3359,7 +3359,7 @@ Pg_listen(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		entry = Tcl_CreateHashEntry(&notifies->notify_hash, caserelname, &new);
 		/* If update, free the old callback string */
 		if (!new)
-			ckfree((char *)Tcl_GetHashValue(entry));
+			ckfree((void *)Tcl_GetHashValue(entry));
 
 		/* Store the new callback string */
 		Tcl_SetHashValue(entry, callback);
@@ -3376,7 +3376,7 @@ Pg_listen(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 			sprintf(cmd, "LISTEN %s", origrelname);
 			result = PQexec(conn, cmd);
-			ckfree(cmd);
+			ckfree((void *)cmd);
 			/* Transfer any notify events from libpq to Tcl event queue. */
 			PgNotifyTransferEvents(connid);
 			if (PQresultStatus(result) != PGRES_COMMAND_OK)
@@ -3384,8 +3384,8 @@ Pg_listen(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				/* Error occurred during the execution of command */
 				PQclear(result);
 				Tcl_DeleteHashEntry(entry);
-				ckfree(callback);
-				ckfree(caserelname);
+				ckfree((void *)callback);
+				ckfree((void *)caserelname);
 				report_connection_error(interp, conn);
 				return TCL_ERROR;
 			}
@@ -3404,10 +3404,10 @@ Pg_listen(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
                     Tcl_AppendStringsToObj(tresult, origrelname, NULL);
                     Tcl_SetObjResult(interp, tresult);
 
-			ckfree(caserelname);
+			ckfree((void *)caserelname);
 			return TCL_ERROR;
 		}
-		ckfree((char *)Tcl_GetHashValue(entry));
+		ckfree((void *)Tcl_GetHashValue(entry));
 		Tcl_DeleteHashEntry(entry);
 
 		/*
@@ -3417,12 +3417,11 @@ Pg_listen(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		 */
 		if (!Pg_have_listener(connid, caserelname))
 		{
-			char	   *cmd = (char *)
-			ckalloc((unsigned)(origrelnameStrlen + 10));
+			char	   *cmd = (char *) ckalloc((unsigned)(origrelnameStrlen + 10));
 
 			sprintf(cmd, "UNLISTEN %s", origrelname);
 			result = PQexec(conn, cmd);
-			ckfree(cmd);
+			ckfree((void *)cmd);
 			/* Transfer any notify events from libpq to Tcl event queue. */
 			PgNotifyTransferEvents(connid);
 			if (PQresultStatus(result) != PGRES_COMMAND_OK)
@@ -3536,7 +3535,7 @@ Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
 		else { // No variables being substituted, fall back to simple code path
 			ckfree(newExecString);
 			newExecString = NULL;
-			ckfree(paramValues);
+			ckfree((void *)paramValues);
 			paramValues = NULL;
 		}
 	} else if (paramArrayName) {

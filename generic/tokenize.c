@@ -460,7 +460,7 @@ int handle_substitutions(Tcl_Interp *interp, const char *sql, char **newSqlPtr, 
 	char *newSql = ckalloc(strlen(sql)+1);
 	// Worst possible case? the sql is nothing but ":varname" and they're all one character names. This
 	// will still be big enough.
-	const char **replacementArray = ckalloc((strlen(sql)/2) * (sizeof *replacementArray));
+	const char **replacementArray = (const char **)ckalloc((strlen(sql)/2) * (sizeof *replacementArray));
 
 	const char *p;
 	char *q;
@@ -529,7 +529,7 @@ int handle_substitutions(Tcl_Interp *interp, const char *sql, char **newSqlPtr, 
 		*replacementArrayLengthPtr = nextVarIndex;
 	} else {
 		ckfree(newSql);
-		ckfree(replacementArray);
+		ckfree((char *)replacementArray);
 	}
 	return result;
 }

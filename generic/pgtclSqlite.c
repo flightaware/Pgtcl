@@ -193,7 +193,7 @@ Pg_sqlite_mapTypes(Tcl_Interp *interp, Tcl_Obj *list, int start, int stride, enu
 		}
 
 		if(!mappedTypes[t].name) {
-			ckfree(array);
+			ckfree((void *)array);
 			Tcl_AppendResult(interp, "Unknown type ", typeName, (char *)NULL);
 			return TCL_ERROR;
 		}
@@ -330,12 +330,12 @@ Pg_sqlite_generateCheck(Tcl_Interp *interp, sqlite3 *sqlite_db, char *tableName,
 		char *column = Tcl_GetString(keyv[k]);
 		char *space = strchr(column, ' ');
 		if(space) {
-			primaryKeyNames[k] = ckalloc(space - column + 1);
+			primaryKeyNames[k] = (char *)ckalloc(space - column + 1);
 			*space = 0;
 			strcpy(primaryKeyNames[k], column);
 			*space = ' ';
 		} else {
-			primaryKeyNames[k] = ckalloc(strlen(column) + 1);
+			primaryKeyNames[k] = (char *)ckalloc(strlen(column) + 1);
 			strcpy(primaryKeyNames[k], column);
 		}
 		if(k != 0)
@@ -343,7 +343,7 @@ Pg_sqlite_generateCheck(Tcl_Interp *interp, sqlite3 *sqlite_db, char *tableName,
 		Tcl_AppendStringsToObj(where, primaryKeyNames[k], " = ?", (char *)NULL);
 	}
 
-	primaryKeyIndex = ckalloc((keyc + 1) * (sizeof *primaryKeyIndex));
+	primaryKeyIndex = (int *)ckalloc((keyc + 1) * (sizeof *primaryKeyIndex));
 	for(k = 0; k < keyc+1; k++) {
 		primaryKeyIndex[k] = -1;
 	}
@@ -393,9 +393,9 @@ Pg_sqlite_generateCheck(Tcl_Interp *interp, sqlite3 *sqlite_db, char *tableName,
 	// discard key names
 	if(primaryKeyNames) {
 		for(k = 0; k < keyc; k++) {
-			ckfree(primaryKeyNames[k]);
+			ckfree((void *)primaryKeyNames[k]);
 		}
-		ckfree(primaryKeyNames);
+		ckfree((void *)primaryKeyNames);
 	}
 
 	// save or discard primary key indexes.
@@ -403,7 +403,7 @@ Pg_sqlite_generateCheck(Tcl_Interp *interp, sqlite3 *sqlite_db, char *tableName,
 		if(result == TCL_OK)
 			*primaryKeyIndexPtr = primaryKeyIndex;
 		else
-			ckfree(primaryKeyIndex);
+			ckfree((void *)primaryKeyIndex);
 	}
 
 	// save or discard statement
@@ -743,7 +743,7 @@ Pg_sqlite_split_tabsep(char *row, char ***columnsPtr, int nColumns, char *sepStr
 	int i;
 	char *col;
 	char *nextCol;
-	char **columns = ckalloc(nColumns * sizeof *columns);
+	char **columns = (char **)ckalloc(nColumns * sizeof *columns);
 	int returnCode = TCL_OK;
 	int sepLen = strlen(sepStr);
 
@@ -771,7 +771,7 @@ Pg_sqlite_split_tabsep(char *row, char ***columnsPtr, int nColumns, char *sepStr
 	if(returnCode == TCL_OK) {
 		*columnsPtr = columns;
 	} else {
-		ckfree(columns);
+		ckfree((void *)columns);
 	}
 
 	return returnCode;
@@ -788,7 +788,7 @@ Pg_sqlite_split_keyval(Tcl_Interp *interp, char *row, char ***columnsPtr, int nC
 	char *key;
 	char *nextVal;
 	int col;
-	char **columns = ckalloc(nColumns * sizeof *columns);
+	char **columns = (char **)ckalloc(nColumns * sizeof *columns);
 	int returnCode = TCL_OK;
 	int sepLen = strlen(sepStr);
 
@@ -833,7 +833,7 @@ Pg_sqlite_split_keyval(Tcl_Interp *interp, char *row, char ***columnsPtr, int nC
 	if(returnCode == TCL_OK) {
 		*columnsPtr = columns;
 	} else {
-		ckfree(columns);
+		ckfree((void *)columns);
 		Tcl_SetListObj(unknownObj, 0, NULL);
 	}
 
@@ -1131,9 +1131,9 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 					if(dropTable)
 						Pg_sqlite_dropTable(interp, sqlite_db, dropTable);
 					if (columnNames)
-						ckfree(columnNames);
+						ckfree((void *)columnNames);
 					if (columnTypes)
-						ckfree(columnTypes);
+						ckfree((void *)columnTypes);
 					return TCL_ERROR;
 				}
 			} else if(!nColumns)  {
@@ -1529,10 +1529,10 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			}
 
 			if(columnTypes)
-				ckfree(columnTypes);
+				ckfree((void *)columnTypes);
 
 			if(columns)
-				ckfree(columns);
+				ckfree((void *)columns);
 
 			if(returnCode == TCL_ERROR) {
 				if (errorMessage) {
@@ -1610,11 +1610,11 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 						int check = Pg_sqlite_executeCheck(interp, sqlite_db, checkStatement, primaryKeyIndex, columnTypes, columns, nColumns);
 						if(check == TCL_ERROR) {
 							returnCode = TCL_ERROR;
-							ckfree(columns);
+							ckfree((void *)columns);
 							goto import_loop_end;
 						}
 						if (check == TCL_CONTINUE) {
-							ckfree(columns);
+							ckfree((void *)columns);
 							continue;
 						}
 					}
@@ -1625,11 +1625,11 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 						int type = columnTypes ? columnTypes[column] : PG_SQLITE_TEXT;
 						if (Pg_sqlite_bindValue(sqlite_db, statement, column, columns[column], type, &errorMessage) != TCL_OK) {
 							returnCode = TCL_ERROR;
-							ckfree(columns);
+							ckfree((void *)columns);
 							goto import_loop_end;
 						}
 					}
-					ckfree(columns);
+					ckfree((void *)columns);
 					columns = NULL;
 
 					if (sqlite3_step(statement) != SQLITE_DONE) {
@@ -1690,7 +1690,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			}
 
 			if(columnTypes)
-				ckfree(columnTypes);
+				ckfree((void *)columnTypes);
 
 			if(returnCode == TCL_ERROR) {
 				if (errorMessage) {
