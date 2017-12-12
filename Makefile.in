@@ -390,6 +390,7 @@ install-lib-binaries: binaries
 	    fi; \
 	  fi; \
 	done
+	ln -sf $(PKG_DIR)/$(PKG_LIB_FILE) $(DESTDIR)$(libdir)/`echo $(PKG_LIB_FILE) | sed 's/$(PACKAGE_VERSION)//'`
 	@list='$(PKG_TCL_SOURCES)'; for p in $$list; do \
 	  if test -f $(srcdir)/$$p; then \
 	    destp=`basename $$p`; \
