@@ -12,8 +12,9 @@
 #brew install tcl
 #brew install postgresql
 ##
-#Then run configure in this directory with the following parameters:
+#Then run aoutoconf and configure in this directory with the following parameters:
 #
+autoconf
 ./configure --prefix=/usr/local --exec-prefix=/usr/local
 #
 #Then do a "make" and a "sudo make install" or equivalent, and you should
