@@ -917,7 +917,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 		incoming[CMD_READ_TABSEP] = 1;
 		incoming[CMD_READ_KEYVAL] = 1;
 		argerr[CMD_READ_TABSEP] = "?-row tabsep_row? ?-file file_handle? ?-sql sqlite_sql? ?-create new_table? ?-into table? ?-as name-type-list? ?-types type-list? ?-names name-list? ?-pkey primary_key? ?-sep sepstring? ?-null nullstring? ?-replace? ?-poll_interval count? ?-check?";
-		argerr[CMD_IMPORT_POSTGRES_RESULT] = "handle ?-sql sqlite_sql? ?-create new_table? ?-into table? ?-as name-type-list? ?-types type-list? ?-names name-list? ?-rowbyrow? ?-pkey primary_key? ?-null nullstring? ?-replace? ?-poll_interval count? ?-check? ?-max col?";
+		argerr[CMD_IMPORT_POSTGRES_RESULT] = "handle ?-sql sqlite_sql? ?-create new_table? ?-into table? ?-as name-type-list? ?-types type-list? ?-names name-list? ?-rowbyrow? ?-pkey primary_key? ?-null nullstring? ?-replace? ?-poll_interval count? ?-check? ?-max col varname?";
 		argerr[CMD_READ_KEYVAL] = "?-row tabsep_row? ?-file file_handle? ?-create new_table? ?-into table? ?-as name-type-list? ?-names name-list? ?-pkey primary_key? ?-sep sepstring? ?-unknown colname? ?-replace? ?-poll_interval count?";
 	}
 
@@ -956,6 +956,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 	sqlite3_stmt      *checkStatement = NULL;
 	int		  *primaryKeyIndex = NULL;
 	char              *maxColumn = NULL;
+	char              *maxVar = NULL;
 	int                maxColumnNumber = -1;
 	int                maxColumnType = PG_SQLITE_NOTYPE;
 
@@ -1053,6 +1054,12 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 					return TCL_ERROR;
 				}
 				maxColumn = Tcl_GetString(objv[optIndex]);
+				optIndex++;
+				if(optIndex >= objc) {
+					Tcl_AppendResult(interp, "No variable provided for -max", (char *)NULL);
+					return TCL_ERROR;
+				}
+				maxVar = Tcl_GetString(objv[optIndex]);
 				optIndex++;
 			} else if (cmdIndex != CMD_IMPORT_POSTGRES_RESULT && strcmp(optName, "-row") == 0) {
 				if(optIndex >= objc) {
@@ -1778,25 +1785,29 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 
 			if(maxColumn) {
 				if(maxValid) {
+					Tcl_Obj *obj = NULL;
+
 					switch (maxColumnType) {
 						case PG_SQLITE_TEXT: {
-							Tcl_SetObjResult(interp, Tcl_NewStringObj(maxString, -1));
+							obj = Tcl_NewStringObj(maxString, -1);
 							break;
 						}
 						case PG_SQLITE_INT: {
-							Tcl_SetObjResult(interp, Tcl_NewIntObj(maxInt));
+							obj = Tcl_NewIntObj(maxInt);
 							break;
 						}
 						case PG_SQLITE_DOUBLE: {
-							Tcl_SetObjResult(interp, Tcl_NewDoubleObj(maxFloat));
+							obj = Tcl_NewDoubleObj(maxFloat);
 							break;
 						}
 					}
-				} else {
+
+					if(obj)
+						Tcl_SetVar2Ex(interp, maxVar, NULL, obj, 0);
 				}
-			} else {
-				Tcl_SetObjResult(interp, Tcl_NewIntObj(totalTuples));
 			}
+
+			Tcl_SetObjResult(interp, Tcl_NewIntObj(totalTuples));
 			return returnCode;
 		}
 	}
