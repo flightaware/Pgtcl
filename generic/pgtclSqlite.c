@@ -1047,7 +1047,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 				}
 				sqliteTable = Tcl_GetString(objv[optIndex]);
 				optIndex++;
-			} else if (cmdIndex != CMD_IMPORT_POSTGRES_RESULT && strcmp(optName, "-max") == 0) {
+			} else if (cmdIndex == CMD_IMPORT_POSTGRES_RESULT && strcmp(optName, "-max") == 0) {
 				if(optIndex >= objc) {
 					Tcl_AppendResult(interp, "No column provided for -max", (char *)NULL);
 					return TCL_ERROR;
@@ -1590,8 +1590,8 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			char  *pghandle_name = Tcl_GetString(objv[3]);
 			int    nTuples;
 			int    tupleIndex;
-			int    maxInt;
-			double maxFloat;
+			int    maxInt = 0;
+			double maxFloat = 0.0;
 			char   maxString[BUFSIZ];
 			int    maxValid = 0;
 
@@ -1678,6 +1678,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 							case PG_SQLITE_TEXT: {
 								if(!maxValid || strcmp(val, maxString) > 0) {
 									strcpy(maxString, val);
+									maxValid = 1;
 								}
 								break;
 							}
@@ -1685,6 +1686,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 								int valInt = atoi(val);
 								if(!maxValid || valInt > maxInt) {
 									maxInt = valInt;
+									maxValid = 1;
 								}
 								break;
 							}
@@ -1692,6 +1694,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 								double valFloat = atof(val);
 								if(!maxValid || valFloat > maxFloat) {
 									maxFloat = valFloat;
+									maxValid = 1;
 								}
 								break;
 							}
@@ -1773,23 +1776,27 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 				return TCL_ERROR;
 			}
 
-			if(maxColumn && maxValid) {
-				switch (maxColumnType) {
-					case PG_SQLITE_TEXT: {
-						Tcl_SetObjResult(interp, Tcl_NewStringObj(maxString, -1));
-						break;
+			if(maxColumn) {
+				if(maxValid) {
+					switch (maxColumnType) {
+						case PG_SQLITE_TEXT: {
+							Tcl_SetObjResult(interp, Tcl_NewStringObj(maxString, -1));
+							break;
+						}
+						case PG_SQLITE_INT: {
+							Tcl_SetObjResult(interp, Tcl_NewIntObj(maxInt));
+							break;
+						}
+						case PG_SQLITE_DOUBLE: {
+							Tcl_SetObjResult(interp, Tcl_NewDoubleObj(maxFloat));
+							break;
+						}
 					}
-					case PG_SQLITE_INT: {
-						Tcl_SetObjResult(interp, Tcl_NewIntObj(maxInt));
-						break;
-					}
-					case PG_SQLITE_DOUBLE: {
-						Tcl_SetObjResult(interp, Tcl_NewDoubleObj(maxFloat));
-						break;
-					}
+				} else {
 				}
-			} else
+			} else {
 				Tcl_SetObjResult(interp, Tcl_NewIntObj(totalTuples));
+			}
 			return returnCode;
 		}
 	}
