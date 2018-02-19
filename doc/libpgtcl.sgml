@@ -3893,6 +3893,7 @@ pg_sqlite <parameter>sqlite_db</parameter> <parameter>command</parameter> <optio
 	<optional role="tcl">-poll_interval <parameter>rows</parameter></optional>
 	<optional role="tcl">-recommit <parameter>rows</parameter></optional>
 	<optional role="tcl">-check</optional>
+	<optional role="tcl">-max <parameter>column-name variable-name</parameter></optional>
    </synopsis>
    </para>
 
@@ -4038,6 +4039,15 @@ pg_sqlite <parameter>sqlite_db</parameter> <parameter>command</parameter> <optio
      <para>
 	Check (via a SELECT) whether the exact row is already present, and skip inserting the row if so. This
 	avoids bloating the WAL log during large re-loads of databases, at some performance cost.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-max <parameter>column-name variable-name</parameter></term>
+    <listitem>
+     <para>
+	Set $variable-name to the maximum value of column-name imported.
      </para>
     </listitem>
    </varlistentry>

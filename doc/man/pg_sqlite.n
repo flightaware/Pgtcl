@@ -75,6 +75,7 @@ Request a list of prepared commands that are currently busy.
 	[\-poll_interval \*(T<rows\*(T>]
 	[\-recommit \*(T<rows\*(T>]
 	[\-check]
+	[\-max \*(T<column\-name variable\-name\*(T>]
    
 .fi
 .PP
@@ -132,6 +133,9 @@ Chunk the operation in transactions, with one transaction every \*(T<count\*(T> 
 -check
 Check (via a SELECT) whether the exact row is already present, and skip inserting the row if so. This
 avoids bloating the WAL log during large re-loads of databases, at some performance cost.
+.TP 
+-max \*(T<column\-name variable\-name\*(T>
+Set $variable-name to the maximum value of column-name imported.
 .PP
 \fBwrite_tabsep\fR
 .nf

@@ -99,6 +99,7 @@ pg_sqlite&nbsp;--&nbsp;implements a bridge between PostgreSQL and Sqlite3 using 
         ?<span class="OPTIONAL">-poll_interval <code class="PARAMETER">rows</code></span>?
         ?<span class="OPTIONAL">-recommit <code class="PARAMETER">rows</code></span>?
         ?<span class="OPTIONAL">-check</span>?
+        ?<span class="OPTIONAL">-max <code class="PARAMETER">column-name variable-name</code></span>?
    </pre>
 <p>Import the result of a PostgreSQL request into an sqlite3 table.</p>
 <div class="VARIABLELIST">
@@ -162,6 +163,10 @@ pg_sqlite&nbsp;--&nbsp;implements a bridge between PostgreSQL and Sqlite3 using 
 <dt>-check</dt>
 <dd>
 <p>Check (via a SELECT) whether the exact row is already present, and skip inserting the row if so. This avoids bloating the WAL log during large re-loads of databases, at some performance cost.</p>
+</dd>
+<dt>-max <code class="PARAMETER">column-name variable-name</code></dt>
+<dd>
+<p>Set $variable-name to the maximum value of column-name imported.</p>
 </dd>
 </dl>
 </div>
@@ -346,16 +351,16 @@ pg_sqlite&nbsp;--&nbsp;implements a bridge between PostgreSQL and Sqlite3 using 
 </dl>
 </div>
 </div>
-<div class="REFSECT1"><a name="AEN2633" id="AEN2633"></a>
+<div class="REFSECT1"><a name="AEN2640" id="AEN2640"></a>
 <h2>Types</h2>
 <p><span class="emphasis"><i class="EMPHASIS">A note on types:</i></span> <code class="FUNCTION">pg_sqlite</code> supports four types: <tt class="LITERAL">integer</tt> (or int), <tt class="LITERAL">boolean</tt> (or bool), <tt class="LITERAL">double</tt> (or real), and <tt class="LITERAL">text</tt>. <tt class="LITERAL">Integer</tt>, <tt class="LITERAL">double</tt>, and <tt class="LITERAL">text</tt> match both sqlite and postgresql types. <tt class="LITERAL">Boolean</tt> is an integer type in sqlite, and boolean in postgresql, and converts postgresql boolean values (such as 'yes', 'no', 'true', or 'false') to integer 1 and 0.</p>
 <p>In addition, <code class="FUNCTION">pg_sqlite</code> will accept PostgreSQL boolean values for the integer type. This may be made conditional on a "strict" mode in the future.</p>
 </div>
-<div class="REFSECT1"><a name="AEN2648" id="AEN2648"></a>
+<div class="REFSECT1"><a name="AEN2655" id="AEN2655"></a>
 <h2>Return Value</h2>
 <p>Number of rows imported or exported.</p>
 </div>
-<div class="REFSECT1"><a name="AEN2651" id="AEN2651"></a>
+<div class="REFSECT1"><a name="AEN2658" id="AEN2658"></a>
 <h2>See Also</h2>
 <p><span class="PRODUCTNAME">Sqlite 3</span></p>
 </div>
