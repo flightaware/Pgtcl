@@ -5,7 +5,7 @@
 \\$2 \(la\\$1\(ra\\$3
 ..
 .if \n(.g .mso www.tmac
-.TH pg_escape_bytea n "November 2017" "" "PostgreSQL Tcl Interface Documentation"
+.TH pg_escape_bytea n "February 2018" "" "PostgreSQL Tcl Interface Documentation"
 .SH NAME
 pg_escape_bytea \- escapes a binary string for inclusion into SQL statements. 
 .SH SYNOPSIS

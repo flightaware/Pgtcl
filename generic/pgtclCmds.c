@@ -2816,7 +2816,7 @@ error_return:
  send a select query string to the backend connection
 
  syntax:
- pg_select ?-nodotfields? ?-withoutnulls? ?-variables? ?-paramarray var? ?-params list? connection query var proc
+ pg_select ?-nodotfields? ?-withoutnulls? ?-variables? ?-paramarray var? ?-count var? ?-params list? connection query var proc
 
  The query must be a select statement
 
@@ -2882,6 +2882,8 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	char        *newQueryString = NULL;
 	Tcl_Obj     *paramListObj   = NULL;
 	int          useVariables = 0;
+	int          tuplesProcessed = 0;
+	Tcl_Obj     *tuplesVarObj  = NULL;
 
 	enum         positionalArgs {SELECT_ARG_CONN, SELECT_ARG_QUERY, SELECT_ARG_VAR, SELECT_ARG_PROC, SELECT_ARGS};
 	int          nextPositionalArg = SELECT_ARG_CONN;
@@ -2904,6 +2906,10 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 			goto parameter_conflict;
 		    index++;
 		    paramArrayName = Tcl_GetString(objv[index]);
+		} else if (strcmp(arg, "-count") == 0) {
+		    index++;
+		    tuplesVarObj = objv[index];
+		    Tcl_UnsetVar(interp, Tcl_GetString(tuplesVarObj), 0);
 		} else if (strcmp(arg, "-params") == 0) {
 		    if(paramArrayName || useVariables) {
 		      parameter_conflict:
@@ -2913,7 +2919,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		    index++;
 		    paramListObj = objv[index];
 		} else {
-			Tcl_SetObjResult(interp, Tcl_NewStringObj ("-arg argument isn't one of \"-nodotfields\", \"-variables\", \"-paramarray\", \"-params\", \"-rowbyrow\", or \"-withoutnulls\"", -1));
+			Tcl_SetObjResult(interp, Tcl_NewStringObj ("-arg argument isn't one of \"-nodotfields\", \"-variables\", \"-paramarray\", \"-params\", \"-rowbyrow\", \"-count\", or \"-withoutnulls\"", -1));
 			return TCL_ERROR;
 		}
 	    } else {
@@ -2940,7 +2946,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	}
 	
 	if (index < objc || nextPositionalArg != SELECT_ARGS) {
-		Tcl_WrongNumArgs(interp, 1, objv, "?-nodotfields? ?-rowbyrow? ?-withoutnulls? ?-variables? ?-paramarray var? ?-params list? connection queryString var proc");
+		Tcl_WrongNumArgs(interp, 1, objv, "?-nodotfields? ?-rowbyrow? ?-withoutnulls? ?-variables? ?-paramarray var? ?-params list? ?-count var? connection queryString var proc");
 		return TCL_ERROR;
 	}
 
@@ -3106,8 +3112,12 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 			firstPass = 0;
 		}
 
+		int numTuples = PQntuples(result);
+		if(tuplesVarObj)
+			Tcl_ObjSetVar2(interp, tuplesVarObj, NULL, Tcl_NewIntObj(numTuples), 0);
+
 		// Loop over the result, even if it's a single row.
-		for (tupno = 0; tupno < PQntuples(result); tupno++)
+		for (tupno = 0; tupno < numTuples; tupno++)
 		{
 			// Clear array before filling it in. Ignore failure because it's
 			// OK for the array not to exist at this point.
@@ -3120,6 +3130,8 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 						  columnListObj, TCL_LEAVE_ERR_MSG) == NULL ||
 				    Tcl_SetVar2Ex(interp, varNameString, ".numcols",
 						  Tcl_NewIntObj(ncols), TCL_LEAVE_ERR_MSG) == NULL ||
+				    //Tcl_SetVar2Ex(interp, varNameString, ".tuples",
+				    //  	  Tcl_NewIntObj(numTuples), TCL_LEAVE_ERR_MSG) == NULL ||
 				    Tcl_SetVar2Ex(interp, varNameString, ".tupno",
 						  Tcl_NewIntObj(tupno), TCL_LEAVE_ERR_MSG) == NULL)
 				{
@@ -3159,6 +3171,8 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 					goto done;
 				}
 			}
+
+			tuplesProcessed++;
 
 			// Run the code body.
 			r = Tcl_EvalObjEx(interp, procStringObj, 0);
@@ -3201,15 +3215,26 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 			result = NULL;
 		}
 	}
+
+	if (retval == TCL_OK) {
+		Tcl_SetObjResult(interp, Tcl_NewIntObj(tuplesProcessed));
+	}
+
 	if (columnListObj != NULL)
 	{
 		Tcl_DecrRefCount (columnListObj);
 	}
+
 	if (columnNameObjs != NULL)
 	{
 		ckfree((void *)columnNameObjs);
 	}
+
+	if(tuplesVarObj)
+	    Tcl_UnsetVar(interp, Tcl_GetString(tuplesVarObj), 0);
+
 	Tcl_UnsetVar(interp, varNameString, 0);
+
 	return retval;
 }
 

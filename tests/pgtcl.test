@@ -66,7 +66,7 @@ test pgtcl-1.2 {connect to db using conninfo string} -body {
 
     pg_disconnect $conn
 
-    set conn   
+    set conn
 } -result pgsql3
 
 #
@@ -278,10 +278,10 @@ test pgtcl-4.5 {get results as a list} -body {
 
     set conn [pg::connect -connlist [array get ::conninfo]]
 
-    set res [$conn exec "SELECT relname 
-                           FROM Pg_class 
-                          WHERE relname LIKE 'pg_%' 
-                       ORDER BY relname 
+    set res [$conn exec "SELECT relname
+                           FROM Pg_class
+                          WHERE relname LIKE 'pg_%'
+                       ORDER BY relname
                           LIMIT 5"]
 
     set results [pg::result $res -list]
@@ -291,7 +291,7 @@ test pgtcl-4.5 {get results as a list} -body {
     pg_disconnect $conn
 
     lsort $results
-    
+
 } -result [list pg_aggregate pg_aggregate_fnoid_index pg_am pg_am_name_index pg_am_oid_index]
 
 
@@ -305,9 +305,9 @@ test pgtcl-4.6 {get results as a list of lists} -body {
     set conn [pg::connect -connlist [array get ::conninfo]]
 
     set res [$conn exec "SELECT relname, relkind
-                           FROM Pg_class 
-                          WHERE relname LIKE 'pg_%' 
-                       ORDER BY relname 
+                           FROM Pg_class
+                          WHERE relname LIKE 'pg_%'
+                       ORDER BY relname
                           LIMIT 3"]
 
     set results [pg::result $res -llist]
@@ -317,7 +317,7 @@ test pgtcl-4.6 {get results as a list of lists} -body {
     pg_disconnect $conn
 
     lsort $results
-    
+
 } -result [list [list pg_aggregate r] [list pg_aggregate_fnoid_index i] [list pg_am r]]
 
 #
@@ -330,9 +330,9 @@ test pgtcl-4.7 {get results an array with -assign} -body {
     set conn [pg::connect -connlist [array get ::conninfo]]
 
     set res [$conn exec "SELECT relname, relkind
-                           FROM Pg_class 
-                          WHERE relname LIKE 'pg_%' 
-                       ORDER BY relname 
+                           FROM Pg_class
+                          WHERE relname LIKE 'pg_%'
+                       ORDER BY relname
                           LIMIT 1"]
 
     pg::result $res -assign ARR
@@ -355,9 +355,9 @@ test pgtcl-4.8 {get results an array with -assignbyidx} -body {
     set conn [pg::connect -connlist [array get ::conninfo]]
 
     set res [$conn exec "SELECT oid, relname, relkind
-                           FROM Pg_class 
-                          WHERE relname LIKE 'pg_%' 
-                       ORDER BY relname 
+                           FROM Pg_class
+                          WHERE relname LIKE 'pg_%'
+                       ORDER BY relname
                           LIMIT 1"]
 
     pg::result $res -assignbyidx ARR
@@ -380,9 +380,9 @@ test pgtcl-4.9 {get results an array with -assignbyidx with appendstr} -body {
     set conn [pg::connect -connlist [array get ::conninfo]]
 
     set res [$conn exec "SELECT '0', relname, relkind
-                           FROM Pg_class 
-                          WHERE relname LIKE 'pg_%' 
-                       ORDER BY relname 
+                           FROM Pg_class
+                          WHERE relname LIKE 'pg_%'
+                       ORDER BY relname
                           LIMIT 1"]
 
     pg::result $res -assignbyidx ARR X
@@ -405,9 +405,9 @@ test pgtcl-4.10 {test pg_result -numAttrs} -body {
     set conn [pg::connect -connlist [array get ::conninfo]]
 
     set res [$conn exec "SELECT oid, relname, relkind
-                           FROM Pg_class 
-                          WHERE relname LIKE 'pg_%' 
-                       ORDER BY relname 
+                           FROM Pg_class
+                          WHERE relname LIKE 'pg_%'
+                       ORDER BY relname
                           LIMIT 1"]
 
     set num [pg::result $res -numAttrs]
@@ -429,9 +429,9 @@ test pgtcl-4.11 {test pg_result -numTuples} -body {
     set conn [pg::connect -connlist [array get ::conninfo]]
 
     set res [$conn exec "SELECT oid, relname, relkind
-                           FROM Pg_class 
-                          WHERE relname LIKE 'pg_%' 
-                       ORDER BY relname 
+                           FROM Pg_class
+                          WHERE relname LIKE 'pg_%'
+                       ORDER BY relname
                           LIMIT 10"]
 
     set num [pg::result $res -numTuples]
@@ -454,9 +454,9 @@ test pgtcl-4.12 {test pg_result -status} -body {
     set conn [pg::connect -connlist [array get ::conninfo]]
 
     set res [$conn exec "SELECT 1
-                           FROM Pg_class 
-                          WHERE relname LIKE 'pg_%' 
-                       ORDER BY relname 
+                           FROM Pg_class
+                          WHERE relname LIKE 'pg_%'
+                       ORDER BY relname
                           LIMIT 1"]
 
     set stat [pg::result $res -status]
@@ -520,9 +520,9 @@ test pgtcl-4.15 {test pg_result -getTuple} -body {
     set conn [pg::connect -connlist [array get ::conninfo]]
 
     set res [$conn exec "SELECT 'one', 'two'
-                           FROM Pg_class 
-                          WHERE relname LIKE 'pg_%' 
-                       ORDER BY relname 
+                           FROM Pg_class
+                          WHERE relname LIKE 'pg_%'
+                       ORDER BY relname
                           LIMIT 1"]
 
     set stat [pg_result $res -getTuple 0]
@@ -544,9 +544,9 @@ test pgtcl-4.16 {test pg_result -typleArray} -body {
     set conn [pg::connect -connlist [array get ::conninfo]]
 
     set res [$conn exec "SELECT 'one' AS col1, 'two' AS col2
-                           FROM Pg_class 
-                          WHERE relname LIKE 'pg_%' 
-                       ORDER BY relname 
+                           FROM Pg_class
+                          WHERE relname LIKE 'pg_%'
+                       ORDER BY relname
                           LIMIT 1"]
 
     pg_result $res -tupleArray 0 ARR
@@ -569,9 +569,9 @@ test pgtcl-4.17 {test pg_result -attributes} -body {
     set conn [pg::connect -connlist [array get ::conninfo]]
 
     set res [$conn exec "SELECT 'one' AS col1, 'two' AS col2
-                           FROM Pg_class 
-                          WHERE relname LIKE 'pg_%' 
-                       ORDER BY relname 
+                           FROM Pg_class
+                          WHERE relname LIKE 'pg_%'
+                       ORDER BY relname
                           LIMIT 1"]
 
     set stat [pg_result $res -attributes]
@@ -594,9 +594,9 @@ test pgtcl-4.18 {test pg_result -lAttributes} -body {
     set conn [pg::connect -connlist [array get ::conninfo]]
 
     set res [$conn exec "SELECT 'one' AS col1, 'two' AS col2
-                           FROM Pg_class 
-                          WHERE relname LIKE 'pg_%' 
-                       ORDER BY relname 
+                           FROM Pg_class
+                          WHERE relname LIKE 'pg_%'
+                       ORDER BY relname
                           LIMIT 1"]
 
     set stat [pg_result $res -lAttributes]
@@ -653,7 +653,7 @@ test pgtcl-6.1 {using pg_exec with params} -body {
 
     set res [$conn exec {SELECT relname
                            FROM Pg_class
-                          WHERE relname LIKE $1 
+                          WHERE relname LIKE $1
                        ORDER BY relname
                           LIMIT $2} "pg_%" 5]
 
@@ -789,13 +789,13 @@ test pgtcl-7.1 {using pg_select} -body {
         set tupno $resultArr(.tupno)
 
         lappend names $resultArr(relname)
-        
-    } 
+
+    }
 
     rename $conn {}
 
     llength $names
- 
+
 } -result 5
 
 
@@ -817,13 +817,13 @@ test pgtcl-7.2 {using pg_select via handle} -body {
         set tupno $resultArr(.tupno)
 
         lappend names $resultArr(relname)
-        
-    } 
+
+    }
 
     rename $conn {}
 
     llength $names
- 
+
 } -result 5
 
 
@@ -844,12 +844,12 @@ test pgtcl-7.3 {using pg_select with parameters} -body {
         set tupno $resultArr(.tupno)
 
         lappend names $resultArr(relname)
-    } 
+    }
 
     rename $conn {}
 
     llength $names
- 
+
 } -result 5
 
 
@@ -872,12 +872,12 @@ test pgtcl-7.4 {using pg_select with named parameters} -body {
         set tupno $resultArr(.tupno)
 
         lappend names $resultArr(relname)
-    } 
+    }
 
     rename $conn {}
 
     llength $names
- 
+
 } -result 5
 
 #
@@ -908,6 +908,60 @@ test pgtcl-7.5 {using pg_select with embedded variables} -body {
 
 } -result 5
 
+#
+#
+#
+test pgtcl-7.6 {return value of pg_select} -body {
+
+    unset -nocomplain res
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+
+    set names {}
+
+    set count [pg::select $conn "SELECT relname FROM Pg_class LIMIT 5" resultArr {
+        set headers $resultArr(.headers)
+        set numcols $resultArr(.numcols)
+        set tupno $resultArr(.tupno)
+
+        lappend names $resultArr(relname)
+
+    }]
+
+    rename $conn {}
+
+    list [llength $names] $count
+
+} -result {5 5}
+
+#
+#
+#
+test pgtcl-7.7 {pg_select -count} -body {
+
+    unset -nocomplain res
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+
+    set names {}
+
+    pg::select $conn -count ntuples "SELECT relname FROM Pg_class LIMIT 5" resultArr {
+        set headers $resultArr(.headers)
+        set numcols $resultArr(.numcols)
+        set tupno $resultArr(.tupno)
+
+        lappend names $resultArr(relname)
+
+	set count $ntuples
+    }
+
+    rename $conn {}
+
+    list [llength $names] $count
+
+} -result {5 5}
+
+
 
 #
 #
@@ -922,12 +976,12 @@ test pgtcl-8.1 {using pg_execute} -body {
     pg::execute -array resultArr $conn "SELECT relname FROM Pg_class LIMIT 5" {
 
         lappend names $resultArr(relname)
-        
-    } 
+
+    }
 
     rename $conn {}
     llength $names
- 
+
 } -result 5
 
 #
@@ -941,13 +995,13 @@ test pgtcl-8.2 {using connection command handle for pg_execute, no options} -bod
 
     $conn execute -array resultArr "SELECT relname FROM Pg_class LIMIT 5" {
         lappend ::names $resultArr(relname)
-        
-    } 
+
+    }
 
     rename $conn {}
 
     llength $::names
- 
+
 } -result 5
 
 #
@@ -961,13 +1015,13 @@ test pgtcl-8.3 {using connection command handle for pg_execute, -array option} -
 
     $conn execute -array resultArr -oid OID "SELECT relname FROM Pg_class LIMIT 5" {
         lappend ::names $resultArr(relname)
-        
-    } 
+
+    }
 
     rename $conn {}
 
     llength $::names
- 
+
 } -result 5
 
 #
@@ -980,7 +1034,7 @@ test pgtcl-9.1 {dbinfo version} -body {
 
     set val [pg::dbinfo version $conn]
     set val2 [$conn version]
-    
+
     lappend res [string equal $val $val2]
     ::pg::disconnect $conn
 

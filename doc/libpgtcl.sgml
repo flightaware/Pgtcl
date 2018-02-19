@@ -1601,7 +1601,7 @@ pg_result <parameter>resultHandle</parameter> <parameter>resultOption</parameter
 
  <refsynopsisdiv>
 <synopsis>
-pg_select <optional role="tcl"><parameter>-rowbyrow</parameter></optional> <optional role="tcl"><parameter>-nodotfields</parameter></optional> <optional role="tcl"><parameter>-withoutnulls</parameter></optional> <optional role="tcl"><parameter>-paramarray var</parameter></optional> <optional><parameter>-variables</parameter></optional> <optional role="tcl"><parameter>-params</parameter> paramList</optional> <parameter>conn</parameter> <parameter>commandString</parameter> <parameter>arrayVar</parameter> <parameter>procedure</parameter>
+pg_select <optional role="tcl"><parameter>-rowbyrow</parameter></optional> <optional role="tcl"><parameter>-nodotfields</parameter></optional> <optional role="tcl"><parameter>-withoutnulls</parameter></optional> <optional role="tcl"><parameter>-paramarray var</parameter></optional> <optional><parameter>-variables</parameter></optional> <optional role="tcl"><parameter>-params</parameter> paramList</optional> <optional role="tcl"><parameter>-count</parameter> countVar</optional> <parameter>conn</parameter> <parameter>commandString</parameter> <parameter>arrayVar</parameter> <parameter>procedure</parameter>
 </synopsis>
  </refsynopsisdiv>
 
@@ -1742,6 +1742,15 @@ pg_select <optional role="tcl"><parameter>-rowbyrow</parameter></optional> <opti
    </varlistentry>
 
    <varlistentry>
+    <term><optional>-count countVar</optional></term>
+    <listitem>
+     <para>
+      Set the variable "countVar" to the number of tuples returned for use in the block.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
     <term><parameter>conn</parameter></term>
     <listitem>
      <para>
@@ -1782,7 +1791,7 @@ pg_select <optional role="tcl"><parameter>-rowbyrow</parameter></optional> <opti
  <refsect1>
   <title>Return Value</title>
   <para>
-   None
+   Number of rows actually processed.
   </para>
  </refsect1>
 
