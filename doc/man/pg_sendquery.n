@@ -5,7 +5,7 @@
 \\$2 \(la\\$1\(ra\\$3
 ..
 .if \n(.g .mso www.tmac
-.TH pg_sendquery n "November 2017" "" "PostgreSQL Tcl Interface Documentation"
+.TH pg_sendquery n "February 2018" "" "PostgreSQL Tcl Interface Documentation"
 .SH NAME
 pg_sendquery \- send a query string to the backend connection without waiting for a result
 .SH SYNOPSIS
