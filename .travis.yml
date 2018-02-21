@@ -4,6 +4,12 @@ sudo: required
 
 script:
   - autoreconf -vi
-  - ./configure --with-tcl=/usr/lib/tclConfig.sh
+  - if test "$TRAVIS_OS_NAME" == "osx"; then \
+	./configure --with-tcl=/usr/local/opt/tcl-tk/lib --prefix=/usr/local; \
+    elseif test "$TRAVIS_OS_NAME" == "linux"; then \
+	./configure --with-tcl=/usr/lib/tclConfig.sh; \
+    else \
+	./configure \
+    fi
   - make
   - sudo make install
