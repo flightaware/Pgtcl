@@ -6,8 +6,18 @@ branches:
 
 sudo: required
 
+os:
+  - linux
+  - osx
+
+before_install:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
+
+install:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install tcl-tk && brew install postgres; fi
+
 script:
   - autoreconf -vi
-  - sh ./.travis/configure-"$TRAVIS_OS_NAME"
+  - if test -f .travis/configure-"$TRAVIS_OS_NAME"; then sh ./.travis/configure-"$TRAVIS_OS_NAME"; else sh ./configure; fi
   - make
   - sudo make install
