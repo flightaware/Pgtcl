@@ -1,15 +1,13 @@
 language: c
 
+branches:
+    only:
+      - master
+
 sudo: required
 
 script:
   - autoreconf -vi
-  - if test "$TRAVIS_OS_NAME" == "osx"; then \
-	./configure --with-tcl=/usr/local/opt/tcl-tk/lib --prefix=/usr/local; \
-    elseif test "$TRAVIS_OS_NAME" == "linux"; then \
-	./configure --with-tcl=/usr/lib/tclConfig.sh; \
-    else \
-	./configure \
-    fi
+  - sh ./.travis/configure-"$TRAVIS_OS_NAME"
   - make
   - sudo make install
