@@ -28,20 +28,20 @@
 </table>
 <hr align="left" width="100%"></div>
 <h1><a name="PGTCL-PGSENDQUERY" id="PGTCL-PGSENDQUERY"></a>pg_sendquery</h1>
-<div class="REFNAMEDIV"><a name="AEN1360" id="AEN1360"></a>
+<div class="REFNAMEDIV"><a name="AEN1367" id="AEN1367"></a>
 <h2>Name</h2>
 pg_sendquery&nbsp;--&nbsp;send a query string to the backend connection without waiting for a result<a name="IX-PGTCL-PGSENDQUERY-2" id="IX-PGTCL-PGSENDQUERY-2"></a></div>
-<div class="REFSYNOPSISDIV"><a name="AEN1365" id="AEN1365"></a>
+<div class="REFSYNOPSISDIV"><a name="AEN1372" id="AEN1372"></a>
 <h2>Synopsis</h2>
 <pre class="SYNOPSIS">pg_sendquery [<span class="OPTIONAL"><code class="PARAMETER">-paramarray</code> [<span class="OPTIONAL"><code class="PARAMETER">-variables</code></span>] arrayVar</span>] <code class="PARAMETER">conn</code> <code class="PARAMETER">commandString</code> ?<span class="OPTIONAL"><code class="PARAMETER">args</code></span>?</pre></div>
-<div class="REFSECT1"><a name="AEN1375" id="AEN1375"></a>
+<div class="REFSECT1"><a name="AEN1382" id="AEN1382"></a>
 <h2>Description</h2>
 <p><code class="FUNCTION">pg_sendquery</code> submits a command to the <span class="PRODUCTNAME">PostgreSQL</span> server. This function works like <code class="FUNCTION">pg_exec</code>, except that it does not return a result. Rather, the command is issued to the backend asynchronously.</p>
 <p>The result is either an error message or nothing. An empty return indicates that the command was dispatched to the backend.</p>
 <p>If the [<span class="OPTIONAL">-paramarray</span>] flag is provided, then a substitution is performed on the query, securely replacing each back-quote delimited name with the corresponding entry from the named array. If the array does not contain the named element, then NULL is substituted (similarly to the way an array created by -withoutnulls is generated). Each such name must occur in a location where a value or field name could appear. See pg_select for more info.</p>
 <p>If the [<span class="OPTIONAL">-variables</span>] flag is provided, then embedded Tcl variables are passed as parameters. Variables can be flagged with ':' and array references and namespaces are supported. Complex variable names can usually be embedded with :{nasty-name-here} though no attempt at duplicating Tcl brace-escaping is made. If the variable does not exist, then NULL is substituted. Each such name must occur in a location where a value or field name could appear. See pg_select for more info.</p>
 </div>
-<div class="REFSECT1"><a name="AEN1386" id="AEN1386"></a>
+<div class="REFSECT1"><a name="AEN1393" id="AEN1393"></a>
 <h2>Arguments</h2>
 <div class="VARIABLELIST">
 <dl>
@@ -68,7 +68,7 @@ pg_sendquery&nbsp;--&nbsp;send a query string to the backend connection without 
 </dl>
 </div>
 </div>
-<div class="REFSECT1"><a name="AEN1416" id="AEN1416"></a>
+<div class="REFSECT1"><a name="AEN1423" id="AEN1423"></a>
 <h2>Return Value</h2>
 <p>A Tcl error will be returned if <span class="APPLICATION">pgtcl</span> was unable to issue the command. Otherwise, an empty string will be return. It is up to the developer to use <code class="FUNCTION">pg_getresult</code> to obtain results from commands issued with <code class="FUNCTION">pg_sendquery</code>.</p>
 </div>

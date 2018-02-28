@@ -5,7 +5,7 @@
 \\$2 \(la\\$1\(ra\\$3
 ..
 .if \n(.g .mso www.tmac
-.TH pg_blocking n "November 2017" "" "PostgreSQL Tcl Interface Documentation"
+.TH pg_blocking n "February 2018" "" "PostgreSQL Tcl Interface Documentation"
 .SH NAME
 pg_blocking \- see or set whether or not a connection is set to blocking or nonblocking
 .SH SYNOPSIS

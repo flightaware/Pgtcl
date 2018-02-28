@@ -28,17 +28,17 @@
 </table>
 <hr align="left" width="100%"></div>
 <h1><a name="PGTCL-NULLVALUESTRING" id="PGTCL-NULLVALUESTRING"></a>pg_null_value_string</h1>
-<div class="REFNAMEDIV"><a name="AEN1602" id="AEN1602"></a>
+<div class="REFNAMEDIV"><a name="AEN1609" id="AEN1609"></a>
 <h2>Name</h2>
 pg_null_value_string&nbsp;--&nbsp;define a value to be returned for NULL fields distinct from the default value of an empty string. <a name="IX-PGTCL-NULLVALUESTRING-2" id="IX-PGTCL-NULLVALUESTRING-2"></a></div>
-<div class="REFSYNOPSISDIV"><a name="AEN1607" id="AEN1607"></a>
+<div class="REFSYNOPSISDIV"><a name="AEN1614" id="AEN1614"></a>
 <h2>Synopsis</h2>
 <pre class="SYNOPSIS">pg_null_value_string ?<span class="OPTIONAL"><code class="PARAMETER">string</code></span>?</pre></div>
-<div class="REFSECT1"><a name="AEN1611" id="AEN1611"></a>
+<div class="REFSECT1"><a name="AEN1618" id="AEN1618"></a>
 <h2>Description</h2>
 <p><code class="FUNCTION">pg_null_value_string</code> sets or retrieves a string to be returned in query results for fields whose value is NULL, making it possible to distinguish between NULL values an values that are not null but are comprised of an empty string. Without setting an alternative null value with this or with pg_result's -null_value_string, it is impossible to tell the difference between a NULL field value and one that is not null but empty.</p>
 </div>
-<div class="REFSECT1"><a name="AEN1615" id="AEN1615"></a>
+<div class="REFSECT1"><a name="AEN1622" id="AEN1622"></a>
 <h2>Arguments</h2>
 <div class="VARIABLELIST">
 <dl>
@@ -49,7 +49,7 @@ pg_null_value_string&nbsp;--&nbsp;define a value to be returned for NULL fields 
 </dl>
 </div>
 </div>
-<div class="REFSECT1"><a name="AEN1623" id="AEN1623"></a>
+<div class="REFSECT1"><a name="AEN1630" id="AEN1630"></a>
 <h2>Return Value</h2>
 <p>Returns the string that is currently being returned for null fields. It will be the passed string value if one was passed, or, otherwise, the value currently being used.</p>
 </div>
