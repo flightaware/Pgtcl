@@ -868,6 +868,19 @@ int Pg_sqlite_getDB(Tcl_Interp *interp, char *cmdName, sqlite3 **sqlite_dbPtr)
 	return TCL_OK;
 }
 
+int Pg_sqlite_error_callback(Tcl_Interp *interp, Tcl_Obj *commandObj, int row, int col, const char *errorMessage)
+{
+	struct Tcl_Obj *command = Tcl_NewObj();
+
+	if (Tcl_ListObjAppendList(interp, command, commandObj) != TCL_OK ||
+	    Tcl_ListObjAppendElement(interp, command, Tcl_NewIntObj(row)) ||
+	    Tcl_ListObjAppendElement(interp, command, Tcl_NewIntObj(col)) ||
+	    Tcl_ListObjAppendElement(interp, command, Tcl_NewStringObj(errorMessage, -1)))
+		return TCL_ERROR;
+
+	return Tcl_EvalObjEx(interp, command, TCL_EVAL_DIRECT);
+}
+
 // Main routine, extract the sqlite handle, parse the ensemble command, and run the subcommand.
 int
 Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
@@ -960,7 +973,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 	int                maxColumnNumber = -1;
 	int                maxColumnType = PG_SQLITE_NOTYPE;
 	int                nocomplain = 0;
-	Tcl_Obj           *errorVar = NULL;
+	Tcl_Obj           *errorCallback = NULL;
 
 	// common code
 	if(incoming[cmdIndex]) {
@@ -1083,7 +1096,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 					Tcl_AppendResult(interp, "No variable provided for -errors", (char *)NULL);
 					return TCL_ERROR;
 				}
-				errorVar = objv[optIndex];
+				errorCallback = objv[optIndex];
 				optIndex++;
 			} else if (cmdIndex == CMD_IMPORT_POSTGRES_RESULT && strcmp(optName, "-rowbyrow") == 0) {
 				rowbyrow = 1;
@@ -1612,7 +1625,6 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			char     maxString[BUFSIZ];
 			int      maxValid = 0;
 			int      nRows = -1;
-			Tcl_Obj *errorList = NULL;
 
 			if(rowbyrow) {
 				conn = PgGetConnectionId(interp, pghandle_name, NULL);
@@ -1673,11 +1685,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 					if(checkRow) {
 						int check = Pg_sqlite_executeCheck(interp, sqlite_db, checkStatement, primaryKeyIndex, columnTypes, columns, nColumns);
 						if(check == TCL_ERROR) {
-							if(nocomplain) {
-								if(!errorList) errorList = Tcl_NewObj();
-								Tcl_ListObjAppendElement(interp, errorList, Tcl_NewIntObj(nRows));
-								Tcl_ListObjAppendElement(interp, errorList, Tcl_NewIntObj(-1));
-								Tcl_ListObjAppendElement(interp, errorList, Tcl_GetObjResult(interp));
+							if(nocomplain && Pg_sqlite_error_callback(interp, errorCallback, nRows, -1, Tcl_GetStringResult(interp)) == TCL_OK) {
 								Tcl_ResetResult(interp);
 								continue;
 							}
@@ -1696,12 +1704,8 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 
 						int type = columnTypes ? columnTypes[column] : PG_SQLITE_TEXT;
 						if (Pg_sqlite_bindValue(sqlite_db, statement, column, columns[column], type, &errorMessage) != TCL_OK) {
-							if(nocomplain) {
-								if(!errorList) errorList = Tcl_NewObj();
-								Tcl_ListObjAppendElement(interp, errorList, Tcl_NewIntObj(nRows));
-								Tcl_ListObjAppendElement(interp, errorList, Tcl_NewIntObj(column));
-								Tcl_ListObjAppendElement(interp, errorList, Tcl_GetObjResult(interp));
-								Tcl_ResetResult(interp);
+							if(nocomplain && Pg_sqlite_error_callback(interp, errorCallback, nRows, column, errorMessage) == TCL_OK) {
+								errorMessage = NULL;
 								continue;
 							}
 							returnCode = TCL_ERROR;
@@ -1741,13 +1745,10 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 					columns = NULL;
 
 					if (sqlite3_step(statement) != SQLITE_DONE) {
-						if(nocomplain) {
-							if(!errorList) errorList = Tcl_NewObj();
-							Tcl_ListObjAppendElement(interp, errorList, Tcl_NewIntObj(nRows));
-							Tcl_ListObjAppendElement(interp, errorList, Tcl_NewIntObj(-1));
-							Tcl_ListObjAppendElement(interp, errorList, Tcl_NewStringObj(sqlite3_errmsg(sqlite_db), -1));
+						errorMessage = sqlite3_errmsg(sqlite_db);
+						if(nocomplain && Pg_sqlite_error_callback(interp, errorCallback, nRows, -1, errorMessage) == TCL_OK) {
+							errorMessage = NULL;
 						} else {
-							errorMessage = sqlite3_errmsg(sqlite_db);
 							returnCode = TCL_ERROR;
 							goto import_loop_end;
 						}
@@ -1797,10 +1798,6 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			if(checkStatement) {
 				sqlite3_finalize(checkStatement);
 				checkStatement = NULL;
-			}
-
-			if(errorList) {
-				Tcl_ObjSetVar2(interp, errorVar, NULL, errorList, 0);
 			}
 
 			if(recommitInterval) {
