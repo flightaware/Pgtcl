@@ -75,24 +75,32 @@ Pg_sqlite_commit(Tcl_Interp *interp, sqlite3 *sqlite_db)
 	return TCL_OK;
 }
 
+int
+Pg_sqlite_wal_checkpoint(Tcl_Interp *interp, sqlite3 *sqlite_db)
+{
+	char *errMsg;
+	if(sqlite3_exec(sqlite_db, "PRAGMA wal_checkpoint(PASSIVE);", NULL, NULL, &errMsg) != SQLITE_OK) {
+                Tcl_AppendResult(interp, errMsg, " when doing a WAL checkpoint", (char *)NULL);
+                return TCL_ERROR;
+        }
+	return TCL_OK;
+}
+
 //
 // Finalize a statement, commit, and prepare it again
 //
 int
 Pg_sqlite_recommit(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sql, sqlite3_stmt **statement_ptr)
 {
-//	if(*statement_ptr) {
-//		sqlite3_finalize(*statement_ptr);
-//		*statement_ptr = NULL;
-//	}
-
 	if(Pg_sqlite_commit(interp, sqlite_db) != TCL_OK)
+		return TCL_ERROR;
+
+	if(Pg_sqlite_wal_checkpoint(interp, sqlite_db) != TCL_OK)
 		return TCL_ERROR;
 
 	if(Pg_sqlite_begin(interp, sqlite_db) != TCL_OK)
 		return TCL_ERROR;
 
-//	return Pg_sqlite_prepare(interp, sqlite_db, sql, statement_ptr);
 	return TCL_OK;
 }
 
