@@ -54,7 +54,6 @@ $Header$
    commands are described further on subsequent pages.
   </para>
 
-
 <table id="pgtcl-commands-table">
 <title><application>pgtcl</application> Commands</title>
 <tgroup cols="3">
@@ -264,6 +263,26 @@ $Header$
    <ProductName>Sqlite 3</ProductName> is installed. It can be disabled
    at compile time with <literal>"./configure --without-sqlite3"</literal>.
   </para>
+
+<table id="pgtcl-c-api-table">
+<title><application>pgtcl</application> C API</title>
+<tgroup cols="2">
+<thead>
+  <row>
+    <entry>Function</entry>
+    <entry>Description</entry>
+  </row>
+</thead>
+
+<tbody>
+  <row>
+    <entry><function>PGconn *PgGetConnectionId(interp, id, connid)</function></entry>
+    <entry>Given a Tcl handle to an open Pgtcl connection, return the underlying libpq connection</entry>
+  </row>
+</tbody>
+</tgroup>
+</table>
+
 
 
  </sect1>
@@ -4443,6 +4462,79 @@ pg_sqlite <parameter>sqlite_db</parameter> <parameter>command</parameter> <optio
  </refsect1>
 </refentry>
 
+<refentry ID="PGTCL-PGGETCONNECTIONID">
+ <refmeta>
+  <refentrytitle>PgGetConnectionId</refentrytitle>
+ </refmeta>
+
+ <refnamediv>
+  <refname>PgGetConnectionId</refname>
+  <refpurpose>Provides access to the underlying <literal>libpq</literal> SQL connection handle.
+ </refpurpose>
+  <indexterm ID="IX-PGTCL-C-API-2"><primary>PgGetConnectionId</primary></indexterm>
+ </refnamediv>
+
+ <refsynopsisdiv>
+<synopsis>
+extern PGconn *PgGetConnectionId(Tcl_Interp *interp, const char *handle, Pg_ConnectionId **connid);
+</synopsis>
+ </refsynopsisdiv>
+
+ <refsect1>
+  <title>Description</title>
+
+  <para>
+   <function>PgGetConnectionId</function> returns the underlying <literal>PGconn</literal> handle. This is intended
+	to allow Tcl extensions to Pgtcl to use the existing database connection.
+  </para>
+  <para>
+   The <literal>Pg_ConnectionId</literal> structure provides access to more internals of the Pgtcl handle, but may be ignored in most cases.
+  </para>
+ </refsect1>
+
+ <refsect1>
+  <title>Parameters</title>
+
+  <variablelist>
+
+   <varlistentry>
+    <term>Tcl_Interp *<parameter>interp</parameter></term>
+    <listitem>
+     <para>
+	Pointer to Tcl interpreter.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>char *<parameter>handle</parameter></term>
+    <listitem>
+     <para>
+	The name of the Pgtcl database handle command.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>Pg_ConnectionId **<parameter>connid</parameter></term>
+    <listitem>
+     <para>
+      Pointer to address to hold Pgtcl connection handle. Must be provided even if not used.
+     </para>
+    </listitem>
+   </varlistentry>
+
+  </variablelist>
+ </refsect1>
+
+ <refsect1>
+  <title>Returns</title>
+
+  <para>
+   PGconn *<parameter>conn</parameter> is a pointer to the libpq SQL database connection.
+  </para>
+ </refsect1>
+</refentry>
 
 </sect1>
 

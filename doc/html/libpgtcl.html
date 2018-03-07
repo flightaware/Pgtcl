@@ -70,6 +70,7 @@
 <dt><a href="pgtcl-pgloimport.html">pg_lo_import</a>&nbsp;--&nbsp;import a large object from a file</dt>
 <dt><a href="pgtcl-pgloexport.html">pg_lo_export</a>&nbsp;--&nbsp;export a large object to a file</dt>
 <dt><a href="pgtcl-pgsqlite.html">pg_sqlite</a>&nbsp;--&nbsp;implements a bridge between PostgreSQL and Sqlite3 using the Pgtcl and sqlite3 packages.</dt>
+<dt><a href="pgtcl-pggetconnectionid.html">PgGetConnectionId</a>&nbsp;--&nbsp;Provides access to the underlying <tt class="LITERAL">libpq</tt> SQL connection handle.</dt>
 </dl>
 </dd>
 <dt>1.4. <a href="pgtcl-tclnamespace.html">Tcl Namespace Support</a></dt>
@@ -271,6 +272,25 @@
 </div>
 <p>The <code class="FUNCTION">pg_lo_*</code> commands are interfaces to the large object features of <span class="PRODUCTNAME">PostgreSQL</span>.<a name="AEN242" id="AEN242"></a> The functions are designed to mimic the analogous file system functions in the standard Unix file system interface. The <code class="FUNCTION">pg_lo_*</code> commands should be used within a <tt class="COMMAND">BEGIN</tt>/<tt class="COMMAND">COMMIT</tt> transaction block because the descriptor returned by <code class="FUNCTION">pg_lo_open</code> is only valid for the current transaction. <code class="FUNCTION">pg_lo_import</code> and <code class="FUNCTION">pg_lo_export</code> <span class="emphasis"><i class="EMPHASIS">must</i></span> be used in a <tt class="COMMAND">BEGIN</tt>/<tt class="COMMAND">COMMIT</tt> transaction block.</p>
 <p>The <code class="FUNCTION">pg_sqlite</code> command is only included if <span class="PRODUCTNAME">Sqlite 3</span> is installed. It can be disabled at compile time with <tt class="LITERAL">"./configure --without-sqlite3"</tt>.</p>
+<div class="TABLE"><a name="PGTCL-C-API-TABLE" id="PGTCL-C-API-TABLE"></a>
+<p><b>Table 1-2. <span class="APPLICATION">pgtcl</span> C API</b></p>
+<table border="1" class="CALSTABLE">
+<col>
+<col>
+<thead>
+<tr>
+<th>Function</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code class="FUNCTION">PGconn *PgGetConnectionId(interp, id, connid)</code></td>
+<td>Given a Tcl handle to an open Pgtcl connection, return the underlying libpq connection</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 </div>
 <div class="NAVFOOTER">

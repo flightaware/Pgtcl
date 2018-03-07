@@ -5,7 +5,7 @@
 \\$2 \(la\\$1\(ra\\$3
 ..
 .if \n(.g .mso www.tmac
-.TH pg_on_connection_loss n "February 2018" "" "PostgreSQL Tcl Interface Documentation"
+.TH pg_on_connection_loss n "March 2018" "" "PostgreSQL Tcl Interface Documentation"
 .SH NAME
 pg_on_connection_loss \- set or change a callback for unexpected connection loss
 .SH SYNOPSIS

@@ -1,0 +1,81 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="HTML Tidy for HTML5 for FreeBSD version 5.2.0">
+<title>PgGetConnectionId</title>
+<meta name="GENERATOR" content="Modular DocBook HTML Stylesheet Version 1.79">
+<link rev="MADE" href="mailto:pgsql-docs@postgresql.org">
+<link rel="HOME" title="PostgreSQL Tcl Interface Documentation" href="index.html">
+<link rel="UP" title="pgtcl Command Reference" href="libpgtcl-ref.html">
+<link rel="PREVIOUS" title="pg_sqlite" href="pgtcl-pgsqlite.html">
+<link rel="NEXT" title="Tcl Namespace Support" href="pgtcl-tclnamespace.html">
+<link rel="STYLESHEET" type="text/css" href="stylesheet.css">
+</head>
+<body class="REFENTRY">
+<div class="NAVHEADER">
+<table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<th colspan="5" align="center" valign="bottom">PostgreSQL Tcl Interface Documentation</th>
+</tr>
+<tr>
+<td width="10%" align="left" valign="top"><a href="pgtcl-pgsqlite.html" accesskey="P">Prev</a></td>
+<td width="10%" align="left" valign="top"><a href="pgtcl-pgsqlite.html">Fast Backward</a></td>
+<td width="60%" align="center" valign="bottom"></td>
+<td width="10%" align="right" valign="top"><a href="libpgtcl.html">Fast Forward</a></td>
+<td width="10%" align="right" valign="top"><a href="pgtcl-tclnamespace.html" accesskey="N">Next</a></td>
+</tr>
+</table>
+<hr align="left" width="100%"></div>
+<h1><a name="PGTCL-PGGETCONNECTIONID" id="PGTCL-PGGETCONNECTIONID"></a>PgGetConnectionId</h1>
+<div class="REFNAMEDIV"><a name="AEN2678" id="AEN2678"></a>
+<h2>Name</h2>
+PgGetConnectionId&nbsp;--&nbsp;Provides access to the underlying <tt class="LITERAL">libpq</tt> SQL connection handle. <a name="IX-PGTCL-C-API-2" id="IX-PGTCL-C-API-2"></a></div>
+<div class="REFSYNOPSISDIV"><a name="AEN2684" id="AEN2684"></a>
+<h2>Synopsis</h2>
+<pre class="SYNOPSIS">extern PGconn *PgGetConnectionId(Tcl_Interp *interp, const char *handle, Pg_ConnectionId **connid);</pre></div>
+<div class="REFSECT1"><a name="AEN2686" id="AEN2686"></a>
+<h2>Description</h2>
+<p><code class="FUNCTION">PgGetConnectionId</code> returns the underlying <tt class="LITERAL">PGconn</tt> handle. This is intended to allow Tcl extensions to Pgtcl to use the existing database connection.</p>
+<p>The <tt class="LITERAL">Pg_ConnectionId</tt> structure provides access to more internals of the Pgtcl handle, but may be ignored in most cases.</p>
+</div>
+<div class="REFSECT1"><a name="AEN2693" id="AEN2693"></a>
+<h2>Parameters</h2>
+<div class="VARIABLELIST">
+<dl>
+<dt>Tcl_Interp *<code class="PARAMETER">interp</code></dt>
+<dd>
+<p>Pointer to Tcl interpreter.</p>
+</dd>
+<dt>char *<code class="PARAMETER">handle</code></dt>
+<dd>
+<p>The name of the Pgtcl database handle command.</p>
+</dd>
+<dt>Pg_ConnectionId **<code class="PARAMETER">connid</code></dt>
+<dd>
+<p>Pointer to address to hold Pgtcl connection handle. Must be provided even if not used.</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="REFSECT1"><a name="AEN2711" id="AEN2711"></a>
+<h2>Returns</h2>
+<p>PGconn *<code class="PARAMETER">conn</code> is a pointer to the libpq SQL database connection.</p>
+</div>
+<div class="NAVFOOTER">
+<hr align="left" width="100%">
+<table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td width="33%" align="left" valign="top"><a href="pgtcl-pgsqlite.html" accesskey="P">Prev</a></td>
+<td width="34%" align="center" valign="top"><a href="index.html" accesskey="H">Home</a></td>
+<td width="33%" align="right" valign="top"><a href="pgtcl-tclnamespace.html" accesskey="N">Next</a></td>
+</tr>
+<tr>
+<td width="33%" align="left" valign="top">pg_sqlite</td>
+<td width="34%" align="center" valign="top"><a href="libpgtcl-ref.html" accesskey="U">Up</a></td>
+<td width="33%" align="right" valign="top">Tcl Namespace Support</td>
+</tr>
+</table>
+</div>
+</body>
+</html>

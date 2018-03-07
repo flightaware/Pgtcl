@@ -1,0 +1,32 @@
+.\" -*- coding: us-ascii -*-
+.if \n(.g .ds T< \\FC
+.if \n(.g .ds T> \\F[\n[.fam]]
+.de URL
+\\$2 \(la\\$1\(ra\\$3
+..
+.if \n(.g .mso www.tmac
+.TH PgGetConnectionId n "March 2018" "" "PostgreSQL Tcl Interface Documentation"
+.SH NAME
+PgGetConnectionId \- Provides access to the underlying libpq SQL connection handle. 
+.SH SYNOPSIS
+.nf
+
+extern PGconn *PgGetConnectionId(Tcl_Interp *interp, const char *handle, Pg_ConnectionId **connid);
+.fi
+.SH DESCRIPTION
+\*(T<\fBPgGetConnectionId\fR\*(T> returns the underlying \*(T<PGconn\*(T> handle. This is intended
+to allow Tcl extensions to Pgtcl to use the existing database connection.
+.PP
+The \*(T<Pg_ConnectionId\*(T> structure provides access to more internals of the Pgtcl handle, but may be ignored in most cases.
+.SH PARAMETERS
+.TP 
+Tcl_Interp *\*(T<interp\*(T>
+Pointer to Tcl interpreter.
+.TP 
+char *\*(T<handle\*(T>
+The name of the Pgtcl database handle command.
+.TP 
+Pg_ConnectionId **\*(T<connid\*(T>
+Pointer to address to hold Pgtcl connection handle. Must be provided even if not used.
+.SH RETURNS
+PGconn *\*(T<conn\*(T> is a pointer to the libpq SQL database connection.
