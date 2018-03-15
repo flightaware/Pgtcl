@@ -7,7 +7,7 @@
 
 autoreconf
 #LDFLAGS seems to be needed to find SQLITE3 on FreeBSD 11 without gcc
-env LDFLAGS="${LDFLAGS} -L/usr/local/lib" ./configure --with-tcl=/usr/local/lib/tcl8.6 --mandir=/usr/local/man "$@"
+CC=clang CXX=clang++ LDFLAGS="${LDFLAGS} -L/usr/local/lib" ./configure --with-tcl=/usr/local/lib/tcl8.6 --mandir=/usr/local/man "$@"
 
 # Add "--enable-symbols" if you want debugging.
 
