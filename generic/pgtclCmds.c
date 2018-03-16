@@ -3049,6 +3049,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	}
 
 	/* Transfer any notify events from libpq to Tcl event queue. */
+	// TODO: why was this commented out?
 	// PgNotifyTransferEvents(connid);
 
 	// Invariant from this point: If retval != TCL_OK we're exiting
@@ -3130,8 +3131,6 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 						  columnListObj, TCL_LEAVE_ERR_MSG) == NULL ||
 				    Tcl_SetVar2Ex(interp, varNameString, ".numcols",
 						  Tcl_NewIntObj(ncols), TCL_LEAVE_ERR_MSG) == NULL ||
-				    //Tcl_SetVar2Ex(interp, varNameString, ".tuples",
-				    //  	  Tcl_NewIntObj(numTuples), TCL_LEAVE_ERR_MSG) == NULL ||
 				    Tcl_SetVar2Ex(interp, varNameString, ".tupno",
 						  Tcl_NewIntObj(tupno), TCL_LEAVE_ERR_MSG) == NULL)
 				{
@@ -3214,10 +3213,6 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		} else {
 			result = NULL;
 		}
-	}
-
-	if (retval == TCL_OK) {
-		Tcl_SetObjResult(interp, Tcl_NewIntObj(tuplesProcessed));
 	}
 
 	if (columnListObj != NULL)
