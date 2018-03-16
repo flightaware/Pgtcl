@@ -911,33 +911,7 @@ test pgtcl-7.5 {using pg_select with embedded variables} -body {
 #
 #
 #
-test pgtcl-7.6 {return value of pg_select} -body {
-
-    unset -nocomplain res
-
-    set conn [pg::connect -connlist [array get ::conninfo]]
-
-    set names {}
-
-    set count [pg::select $conn "SELECT relname FROM Pg_class LIMIT 5" resultArr {
-        set headers $resultArr(.headers)
-        set numcols $resultArr(.numcols)
-        set tupno $resultArr(.tupno)
-
-        lappend names $resultArr(relname)
-
-    }]
-
-    rename $conn {}
-
-    list [llength $names] $count
-
-} -result {5 5}
-
-#
-#
-#
-test pgtcl-7.7 {pg_select -count} -body {
+test pgtcl-7.6 {pg_select -count} -body {
 
     unset -nocomplain res
 
