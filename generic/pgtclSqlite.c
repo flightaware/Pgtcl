@@ -1269,6 +1269,8 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 				}
 
 				if (strcmp(optName, "-db") == 0) {
+					if(optIndex >= objc)
+						goto info_wrong_num_args;
 					dbName = Tcl_GetString(objv[optIndex]);
 					optIndex++;
 				} else if (strcmp(optName, "-busy") == 0) {
