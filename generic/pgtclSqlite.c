@@ -13,10 +13,6 @@
 
 #include <sqlite3.h>
 
-#ifndef CONST84
-#     define CONST84
-#endif
-
 #define LAPPEND_STRING(i, o, s) Tcl_ListObjAppendElement((i), (o), Tcl_NewStringObj((s), -1));
 
 // From tclsqlite.c, part 1 of the hack, sqlite3 conveniently guarantees that the first element in
@@ -883,7 +879,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
         sqlite3            *sqlite_db;
 	int                 cmdIndex;
 
-	static CONST84 char *subCommands[] = {
+	static const char *subCommands[] = {
 		"info", "import_postgres_result", "write_tabsep", "read_tabsep", "read_tabsep_keylist",
 		(char *)NULL
 	};

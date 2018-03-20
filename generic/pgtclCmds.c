@@ -23,14 +23,10 @@
 #include "libpq/libpq-fs.h"		/* large-object interface */
 #include "tokenize.h"
 
-#ifndef CONST84
-#     define CONST84
-#endif
-
 /*
  * Local function forward declarations
  */
-static int execute_put_values(Tcl_Interp *interp, CONST84 char *array_varname,
+static int execute_put_values(Tcl_Interp *interp, const char *array_varname,
 				   PGresult *result, char *nullString, int tupno);
 
 static int count_parameters(Tcl_Interp *interp, const char *queryString,
@@ -389,7 +385,7 @@ Pg_connect(ClientData cData, Tcl_Interp *interp, int objc,
     int             async = 0;
         
 
-    static CONST84 char *options[] = {
+    static const char *options[] = {
     	"-host", "-port", "-tty", "-options", "-user", 
         "-password", "-conninfo", "-connlist", "-connhandle",
         "-async", (char *)NULL
@@ -613,7 +609,7 @@ Pg_disconnect(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
 {
     Pg_ConnectionId *connid;
     Tcl_Channel conn_chan;
-    CONST84 char	   *connString;
+    const char	   *connString;
     Tcl_Obj         *tresult;
 
     if (objc != 2)
@@ -697,7 +693,7 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	Pg_ConnectionId *connid;
 	PGconn	        *conn;
 	PGresult        *result;
-	CONST84 char    *connString = NULL;
+	const char    *connString = NULL;
 	const char      *execString = NULL;
 	char            *newExecString = NULL;
 	const char     **paramValues = NULL;
@@ -884,7 +880,7 @@ Pg_exec_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 	Pg_ConnectionId *connid;
 	PGconn	   *conn;
 	PGresult   *result;
-	CONST84 char	   *connString;
+	const char	   *connString;
 	const char *statementNameString;
 	const char **paramValues = NULL;
 
@@ -1122,7 +1118,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
     Pg_resultid        *resultid;
 
 
-	static CONST84 char *options[] = {
+	static const char *options[] = {
 		"-status", "-error", "-foreach", "-conn", "-oid",
 		"-numTuples", "-cmdTuples", "-numAttrs", "-assign", "-assignbyidx",
 		"-getTuple", "-tupleArray", "-tupleArrayWithoutNulls", "-attributes", "-lAttributes",
@@ -1137,7 +1133,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		OPT_CLEAR, OPT_LIST, OPT_LLIST, OPT_DICT, OPT_NULL_VALUE_STRING
 	};
 
-	static CONST84 char *errorOptions[] = {
+	static const char *errorOptions[] = {
 		"severity", "sqlstate", "primary", "detail",
 		"hint", "position", "internal_position", "internal_query",
 		"context", "file", "line", "function", (char *)NULL
@@ -1382,7 +1378,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				 */
 				for (tupno = 0; tupno < PQntuples(result); tupno++)
 				{
-					CONST84 char *field0 = PGgetvalue(result, resultid->nullValueString, tupno, 0);
+					const char *field0 = PGgetvalue(result, resultid->nullValueString, tupno, 0);
 
 					for (i = 1; i < PQnfields(result); i++)
 					{
@@ -1806,7 +1802,7 @@ Pg_execute(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 	int			tupno;
 	int			ntup;
 	int			loop_rc;
-	CONST84 char	   *array_varname = NULL;
+	const char	   *array_varname = NULL;
 	char	   *arg;
 	char	   *connString;
 	char	   *queryString;
@@ -2054,7 +2050,7 @@ Pg_execute(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
  column names, or into an array indexed by the column names.
  **********************************/
 static int
-execute_put_values(Tcl_Interp *interp, CONST84 char *array_varname,
+execute_put_values(Tcl_Interp *interp, const char *array_varname,
 				   PGresult *result, char *nullValueString, int tupno)
 {
 	int			i;
@@ -3477,7 +3473,7 @@ Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
 	Pg_ConnectionId *connid;
 	PGconn	        *conn;
         int              status;
-	CONST84 char    *connString = NULL;
+	const char    *connString = NULL;
 	const char      *execString = NULL;
 	char            *newExecString = NULL;
 	const char     **paramValues = NULL;
@@ -3836,7 +3832,7 @@ Pg_getdata(ClientData cData, Tcl_Interp *interp, int objc,
     char	    *connString;
     int             optIndex;
 
-    static CONST84 char *options[] = {
+    static const char *options[] = {
     	"-result", "-connection", NULL
     };
 
@@ -4597,9 +4593,9 @@ Pg_dbinfo(ClientData cData, Tcl_Interp *interp, int objc,
     Tcl_Channel     conn_chan;
     const char      *paramname;
 
-    static CONST84 char *cmdargs = "connections|results|version|protocol|param|backendpid|socket|sql_count|dbname|user|password|host|port|options|status|transaction_status|error_message|needs_password|used_password|used_ssl";
+    static const char *cmdargs = "connections|results|version|protocol|param|backendpid|socket|sql_count|dbname|user|password|host|port|options|status|transaction_status|error_message|needs_password|used_password|used_ssl";
 
-    static CONST84 char *options[] = {
+    static const char *options[] = {
     	"connections", "results", "version", "protocol", 
         "param", "backendpid", "socket", "sql_count", 
 	"dbname", "user", "password", "host", "port",
@@ -4933,7 +4929,7 @@ Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
     PGconn          *conn;
     PGresult        *result = NULL;
     int              iResult = 0;
-    CONST84 char    *connString;
+    const char    *connString;
     const char      *execString;
     const char     **paramValues = NULL;
     int             *binValues = NULL;
@@ -4946,9 +4942,9 @@ Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
     int             params=0,binparams=0,binresults=0,callback=0,async=0,prepared=0;
     unsigned char   flags = 0;
 
-    static CONST84 char *cmdargs = "";
+    static const char *cmdargs = "";
 
-    static CONST84 char *options[] = {
+    static const char *options[] = {
     	"-params", "-binparams", "-binresults", "-callback", 
         "-async", "-prepared", NULL
     };

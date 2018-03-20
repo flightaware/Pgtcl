@@ -25,10 +25,6 @@
 #include "pgtclCmds.h"
 #include "pgtclId.h"
 
-#ifndef CONST84
-#     define CONST84
-#endif
-
 static int
 PgEndCopy(Pg_ConnectionId * connid, int *errorCodePtr)
 {
@@ -284,7 +280,7 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
     Pg_ConnectionId *connid;
     int             returnCode = TCL_ERROR;
 
-    static CONST84 char *options[] = {
+    static const char *options[] = {
         "quote", "escape_bytea", "unescape_bytea", "disconnect", "exec", 
 	"sqlexec", "execute", "select", 
 	"listen", "on_connection_loss", "lo_creat", "lo_open", "lo_close", 
@@ -659,7 +655,7 @@ PgResultCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[
  * Get back the connection from the Id
  */
 PGconn *
-PgGetConnectionId(Tcl_Interp *interp, CONST84 char *id, Pg_ConnectionId ** connid_p)
+PgGetConnectionId(Tcl_Interp *interp, const char *id, Pg_ConnectionId ** connid_p)
 {
 	Tcl_Channel conn_chan;
 	Pg_ConnectionId *connid;
@@ -820,7 +816,7 @@ PgDelConnectionId(DRIVER_DEL_PROTO)
  */
 
 int
-PgSetResultId(Tcl_Interp *interp, CONST84 char *connid_c, PGresult *res, int *idPtr)
+PgSetResultId(Tcl_Interp *interp, const char *connid_c, PGresult *res, int *idPtr)
 {
     Tcl_Channel     conn_chan;
     Pg_ConnectionId *connid;
@@ -911,7 +907,7 @@ PgSetResultId(Tcl_Interp *interp, CONST84 char *connid_c, PGresult *res, int *id
 
 
 static int
-getresid(Tcl_Interp *interp, CONST84 char *id, Pg_ConnectionId ** connid_p)
+getresid(Tcl_Interp *interp, const char *id, Pg_ConnectionId ** connid_p)
 {
 	Tcl_Channel conn_chan;
 	char	   *mark;
@@ -956,7 +952,7 @@ getresid(Tcl_Interp *interp, CONST84 char *id, Pg_ConnectionId ** connid_p)
  * Get back the result pointer from the Id
  */
 PGresult *
-PgGetResultId(Tcl_Interp *interp, CONST84 char *id, Pg_resultid **resultidPtr)
+PgGetResultId(Tcl_Interp *interp, const char *id, Pg_resultid **resultidPtr)
 {
 	Pg_ConnectionId *connid;
 	int			resid;
@@ -978,7 +974,7 @@ PgGetResultId(Tcl_Interp *interp, CONST84 char *id, Pg_resultid **resultidPtr)
  * Remove a result Id from the hash tables
  */
 void
-PgDelResultId(Tcl_Interp *interp, CONST84 char *id)
+PgDelResultId(Tcl_Interp *interp, const char *id)
 {
 	Pg_ConnectionId *connid;
 	Pg_resultid     *resultid;
@@ -1006,7 +1002,7 @@ PgDelResultId(Tcl_Interp *interp, CONST84 char *id)
  * Get the connection Id from the result Id
  */
 int
-PgGetConnByResultId(Tcl_Interp *interp, CONST84 char *resid_c)
+PgGetConnByResultId(Tcl_Interp *interp, const char *resid_c)
 {
 	char	   *mark;
 	Tcl_Channel conn_chan;
