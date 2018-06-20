@@ -1213,10 +1213,6 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			goto early_error_exit;
 		}
 
-		if(Pg_sqlite_prepare(interp, sqlite_db, sqliteCode, &statement) != TCL_OK) {
-			goto early_error_exit;
-		}
-
 		if(maxColumn) {
 			if (!columnNames || !columnTypes) {
 				Tcl_AppendResult(interp, "Can't specify -max without column names and types",  (char *)NULL);
@@ -1240,6 +1236,10 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 					goto early_error_exit;
 				}
 			}
+		}
+
+		if(Pg_sqlite_prepare(interp, sqlite_db, sqliteCode, &statement) != TCL_OK) {
+			goto early_error_exit;
 		}
 	}
 
