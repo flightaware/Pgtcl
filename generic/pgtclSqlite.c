@@ -1122,6 +1122,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 
 			if(tabsepFile && tabsepRow) {
 				Tcl_AppendResult(interp, "Can't use both -row and -file", (char *)NULL);
+				return TCL_ERROR;
 			}
 		}
 
