@@ -1174,7 +1174,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 		if(sqliteTable) {
 			if(nameTypeList) {
 				if (Pg_sqlite_mapTypes(interp, nameTypeList, 1, 2, &columnTypes, &nColumns) != TCL_OK)
-					return TCL_ERROR;
+					goto early_error_exit;
 			} else if(!nameList) {
 				Tcl_AppendResult(interp, "No template (-as) provided for -into", (char *)NULL);
 				goto early_error_exit;
