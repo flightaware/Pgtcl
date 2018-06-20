@@ -941,8 +941,6 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 	char             **columnNames = NULL;
 	int                nColumns = 0;
 	int                column;
-	PGconn            *conn = NULL;
-	PGresult          *result = NULL;
 	ExecStatusType     status;
 	char              *tabsepFile = NULL;
 	char              *tabsepRow = NULL;
@@ -1237,10 +1235,6 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 				}
 			}
 		}
-
-		if(Pg_sqlite_prepare(interp, sqlite_db, sqliteCode, &statement) != TCL_OK) {
-			goto early_error_exit;
-		}
 	}
 
 	switch (cmdIndex) {
@@ -1474,6 +1468,10 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 				}
 			}
 
+			if(Pg_sqlite_prepare(interp, sqlite_db, sqliteCode, &statement) != TCL_OK) {
+				goto read_tabsep_cleanup_and_exit;
+			}
+
 			while(row) {
 				if(cmdIndex == CMD_READ_KEYVAL) {
 					int len;
@@ -1601,13 +1599,15 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 		}
 
 		case CMD_IMPORT_POSTGRES_RESULT: {
-			char  *pghandle_name = Tcl_GetString(objv[3]);
-			int    nTuples;
-			int    tupleIndex;
-			int    maxInt = 0;
-			double maxFloat = 0.0;
-			char   maxString[BUFSIZ];
-			int    maxValid = 0;
+			char    *pghandle_name = Tcl_GetString(objv[3]);
+			int      nTuples;
+			int      tupleIndex;
+			int      maxInt = 0;
+			double   maxFloat = 0.0;
+			char     maxString[BUFSIZ];
+			int      maxValid = 0;
+			PGconn   *conn = NULL;
+			PGresult *result = NULL;
 
 			if(rowbyrow) {
 				conn = PgGetConnectionId(interp, pghandle_name, NULL);
@@ -1628,10 +1628,14 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 				goto import_cleanup_and_exit;
 			}
 
+			if(Pg_sqlite_prepare(interp, sqlite_db, sqliteCode, &statement) != TCL_OK) {
+				goto import_cleanup_and_exit;
+			}
+
 			if(recommitInterval) {
 				if(Pg_sqlite_begin(interp, sqlite_db) == TCL_ERROR) {
 					returnCode = TCL_ERROR;
-					goto import_loop_end;
+					goto import_cleanup_and_exit;
 				}
 			}
 
@@ -1668,7 +1672,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 						if(check == TCL_ERROR) {
 							returnCode = TCL_ERROR;
 							ckfree((void *)columns);
-							goto import_loop_end;
+							goto import_cleanup_and_exit;
 						}
 						if (check == TCL_CONTINUE) {
 							ckfree((void *)columns);
@@ -1683,7 +1687,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 						if (Pg_sqlite_bindValue(sqlite_db, statement, column, columns[column], type, &errorMessage) != TCL_OK) {
 							returnCode = TCL_ERROR;
 							ckfree((void *)columns);
-							goto import_loop_end;
+							goto import_cleanup_and_exit;
 						}
 					}
 					if(maxColumn && gotMax) {
@@ -1720,7 +1724,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 					if (sqlite3_step(statement) != SQLITE_DONE) {
 						errorMessage = sqlite3_errmsg(sqlite_db);
 						returnCode = TCL_ERROR;
-						goto import_loop_end;
+						goto import_cleanup_and_exit;
 					}
 					sqlite3_reset(statement);
 					sqlite3_clear_bindings(statement);
@@ -1732,7 +1736,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 					if(recommitInterval && (totalTuples % recommitInterval) == 0) {
 						if(Pg_sqlite_recommit(interp, sqlite_db, sqliteCode, &statement) != TCL_OK) {
 							returnCode = TCL_ERROR;
-							goto import_loop_end;
+							goto import_cleanup_and_exit;
 						}
 					}
 					if(pollInterval && (totalTuples % pollInterval) == 0) {
@@ -1748,16 +1752,15 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 				}
 			}
 
-		  import_loop_end:
+		  import_cleanup_and_exit:
 
 			if(rowbyrow) {
 				while(result) {
 					PQclear(result);
+					if(!conn) break;
 					result = PQgetResult(conn);
 				}
 			}
-
-		  import_cleanup_and_exit:
 
 			if(statement) {
 				sqlite3_finalize(statement);
