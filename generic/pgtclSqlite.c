@@ -554,9 +554,9 @@ Pg_sqlite_generate(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sqliteTable, Tc
 	int       objc;
 	Tcl_Obj **keyv = NULL;
 	int       keyc = 0;
-	Tcl_Obj  *create = Tcl_NewObj();
-	Tcl_Obj  *sql = Tcl_NewObj();
-	Tcl_Obj  *values = Tcl_NewObj();
+	Tcl_Obj  *create = NULL;
+	Tcl_Obj  *sql = NULL;
+	Tcl_Obj  *values = NULL;
 	int       i;
 	int       primaryKeyIndex = -1;
 	int       stride;
@@ -596,9 +596,9 @@ Pg_sqlite_generate(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sqliteTable, Tc
 		}
 	}
 
-	Tcl_IncrRefCount(create);
-	Tcl_IncrRefCount(sql);
-	Tcl_IncrRefCount(values);
+	Tcl_IncrRefCount(create = Tcl_NewObj());
+	Tcl_IncrRefCount(sql = Tcl_NewObj());
+	Tcl_IncrRefCount(values = Tcl_NewObj());
 
 	if (newTable)
 		Tcl_AppendStringsToObj(create, "CREATE TABLE ", sqliteTable, " (", (char *)NULL);
@@ -686,10 +686,10 @@ Pg_sqlite_generate(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sqliteTable, Tc
 int
 Pg_sqlite_dropTable(Tcl_Interp *interp, sqlite3 *sqlite_db, char *dropTable)
 {
-	Tcl_Obj *drop = Tcl_NewObj();
+	Tcl_Obj *drop = NULL;
 	int result;
 
-	Tcl_IncrRefCount(drop);
+	Tcl_IncrRefCount(drop = Tcl_NewObj());
 
 	Tcl_AppendStringsToObj(drop, "DROP TABLE ", dropTable, ";", (char *)NULL);
 
