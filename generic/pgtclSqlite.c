@@ -1209,10 +1209,8 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 				goto early_error_exit;
 			}
 
-fprintf(stderr, "generating code for '%s'\n", sqliteTable);
 			sqliteCodeObj = Pg_sqlite_generate(interp, sqlite_db, sqliteTable, nameList, nameTypeList, primaryKey, unknownKey, createTable, replaceRows);
 			sqliteCode = Tcl_GetString(sqliteCodeObj);
-fprintf(stderr, "generated '%s';\n", sqliteCode);
 			if (!sqliteCode) {
 				goto early_error_exit;
 			}
@@ -1684,7 +1682,6 @@ fprintf(stderr, "generated '%s';\n", sqliteCode);
 				goto import_cleanup_and_exit;
 			}
 
-fprintf(stderr, "sqliteCode == '%s'\n", sqliteCode);
 			if(Pg_sqlite_prepare(interp, sqlite_db, sqliteCode, &statement) != TCL_OK) {
 				Tcl_AppendResult (interp, " while preparing ", sqliteCode, (char *)NULL);
 				goto import_cleanup_and_exit;
@@ -1743,7 +1740,6 @@ fprintf(stderr, "sqliteCode == '%s'\n", sqliteCode);
 
 						int type = columnTypes ? columnTypes[column] : PG_SQLITE_TEXT;
 						if (Pg_sqlite_bindValue(sqlite_db, statement, column, columns[column], type, &errorMessage) != TCL_OK) {
-fprintf(stderr, "error from Pg_sqlite_bindValue(sqlite_db, statement, %d, '%s', %d, &errorMessage);\n", column, columns[column], type);
 							returnCode = TCL_ERROR;
 							ckfree((void *)columns);
 							goto import_cleanup_and_exit;
