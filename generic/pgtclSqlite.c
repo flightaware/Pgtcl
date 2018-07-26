@@ -547,7 +547,7 @@ Pg_sqlite_executeCheck(Tcl_Interp *interp, sqlite3 *sqlite_db, sqlite3_stmt *sta
 // the table and no types are provided, it punts and assumes text.
 //
 // TODO: Add type list argument, or get rid of the whole separate -names and -types options.
-char *
+Tcl_Obj*
 Pg_sqlite_generate(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sqliteTable, Tcl_Obj *nameList, Tcl_Obj *nameTypeList, Tcl_Obj *primaryKey, char *unknownKey, int newTable, int replacing)
 {
 	Tcl_Obj **objv;
@@ -560,7 +560,7 @@ Pg_sqlite_generate(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sqliteTable, Tc
 	int       i;
 	int       primaryKeyIndex = -1;
 	int       stride;
-	char     *result = NULL;
+	Tcl_Obj  *result = NULL;
 
 	if(nameTypeList) {
 		if(Tcl_ListObjGetElements(interp, nameTypeList, &objc, &objv) != TCL_OK)
@@ -672,11 +672,11 @@ Pg_sqlite_generate(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sqliteTable, Tc
 			goto cleanup;
 	}
 
-	result = Tcl_GetString(sql);
+	result = sql;
 
   cleanup:
 	if(create) Tcl_DecrRefCount(create);
-	if(sql)    Tcl_DecrRefCount(sql);
+	if(sql && sql != result) Tcl_DecrRefCount(sql);
 	if(values) Tcl_DecrRefCount(values);
 
 	return result;
@@ -964,6 +964,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 	}
 
 	// common variables
+	Tcl_Obj           *sqliteCodeObj = NULL;
 	char              *sqliteCode = NULL;
 	char              *sqliteTable = NULL;
 	char              *dropTable = NULL;
@@ -1192,6 +1193,8 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 						ckfree((void *)columnNames);
 					if (columnTypes)
 						ckfree((void *)columnTypes);
+					if(sqliteCodeObj)
+						Tcl_DecrRefCount(sqliteCodeObj);
 					return TCL_ERROR;
 				}
 			} else if(!nColumns)  {
@@ -1216,7 +1219,10 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 				goto early_error_exit;
 			}
 
-			sqliteCode = Pg_sqlite_generate(interp, sqlite_db, sqliteTable, nameList, nameTypeList, primaryKey, unknownKey, createTable, replaceRows);
+fprintf(stderr, "generating code for '%s'\n", sqliteTable);
+			sqliteCodeObj = Pg_sqlite_generate(interp, sqlite_db, sqliteTable, nameList, nameTypeList, primaryKey, unknownKey, createTable, replaceRows);
+			sqliteCode = Tcl_GetString(sqliteCodeObj);
+fprintf(stderr, "generated '%s';\n", sqliteCode);
 			if (!sqliteCode) {
 				goto early_error_exit;
 			}
@@ -1622,6 +1628,9 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			if(columns)
 				ckfree((void *)columns);
 
+			if(sqliteCodeObj)
+				Tcl_DecrRefCount(sqliteCodeObj);
+
 			if(returnCode == TCL_ERROR) {
 				if (errorMessage) {
 					Tcl_AppendResult(interp, (char *)errorMessage, (char *)NULL);
@@ -1823,6 +1832,9 @@ fprintf(stderr, "error from Pg_sqlite_bindValue(sqlite_db, statement, %d, '%s', 
 
 			if(columnTypes)
 				ckfree((void *)columnTypes);
+
+			if(sqliteCodeObj)
+				Tcl_DecrRefCount(sqliteCodeObj);
 
 			if(returnCode == TCL_ERROR) {
 				if (errorMessage) {
