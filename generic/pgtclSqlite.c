@@ -752,30 +752,20 @@ Pg_sqlite_probe(Tcl_Interp *interp, Tcl_ObjCmdProc **procPtr)
 
 // Error/end-of-file handling wrapped around Tcl_GetsObj
 int
-Pg_sqlite_gets(Tcl_Interp *interp, Tcl_Channel chan, char **linePtr)
+Pg_sqlite_gets(Tcl_Interp *interp, Tcl_Channel chan, Tcl_Obj **lineObjPtr)
 {
-	Tcl_Obj *obj = Tcl_NewObj();
-	int      result = TCL_OK;
+	Tcl_SetStringObj(*lineObjPtr, "", -1);
 
-	Tcl_IncrRefCount(obj);
-
-	if(Tcl_GetsObj(chan, obj) == -1) {
-		*linePtr = NULL;
+	if(Tcl_GetsObj(chan, *lineObjPtr) == -1) {
 		if(Tcl_Eof(chan)) {
-			result = TCL_BREAK;
-			goto cleanup;
+			return TCL_BREAK;
 		} else {
 			Tcl_AppendResult (interp, Tcl_ErrnoMsg(Tcl_GetErrno()), (char *)NULL);
-			result = TCL_ERROR;
-			goto cleanup;
+			return TCL_ERROR;
 		}
 	}
-	*linePtr = Tcl_GetString(obj);
 
-  cleanup:
-	if(obj) Tcl_DecrRefCount(obj);
-
-	return result;
+	return TCL_OK;
 }
 
 // Split a string up into an array of named columns. Modifies the input string.
@@ -1486,11 +1476,14 @@ fprintf(stderr, "generated '%s';\n", sqliteCode);
 			int channelMode;
 			char *row = NULL;
 			Tcl_Obj *unknownObj = NULL;
+			Tcl_Obj *rowObj = NULL;
 
 			if(cmdIndex == CMD_READ_KEYVAL) {
 				unknownObj = Tcl_NewObj();
 				Tcl_IncrRefCount(unknownObj);
 			}
+
+			Tcl_IncrRefCount(rowObj = Tcl_NewObj());
 
 			if(tabsepFile) {
 				tabsepChannel = Tcl_GetChannel(interp, tabsepFile, &channelMode);
@@ -1504,11 +1497,12 @@ fprintf(stderr, "generated '%s';\n", sqliteCode);
 					returnCode = TCL_ERROR;
 					goto read_tabsep_cleanup_and_exit;
 				}
-				if((returnCode = Pg_sqlite_gets(interp, tabsepChannel, &row)) != TCL_OK) {
+				if((returnCode = Pg_sqlite_gets(interp, tabsepChannel, &rowObj)) != TCL_OK) {
 					if (returnCode == TCL_BREAK)
 						returnCode = TCL_OK;
 					goto read_tabsep_cleanup_and_exit;
 				}
+				row = Tcl_GetString(rowObj);
 			} else {
 				row = tabsepRow;
 			}
@@ -1603,8 +1597,9 @@ fprintf(stderr, "generated '%s';\n", sqliteCode);
 
 			  next_row:
 				if(tabsepFile) {
-					if((returnCode = Pg_sqlite_gets(interp, tabsepChannel, &row)) == TCL_BREAK)
+					if((returnCode = Pg_sqlite_gets(interp, tabsepChannel, &rowObj)) == TCL_BREAK)
 						returnCode = TCL_OK;
+					row = Tcl_GetString(rowObj);
 				} else {
 					row = NULL;
 				}
@@ -1632,6 +1627,9 @@ fprintf(stderr, "generated '%s';\n", sqliteCode);
 
 			if(columns)
 				ckfree((void *)columns);
+
+			if(rowObj)
+				Tcl_DecrRefCount(rowObj);
 
 			if(unknownObj)
 				Tcl_DecrRefCount(unknownObj);
