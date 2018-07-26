@@ -1,0 +1,115 @@
+if {[lsearch [namespace children] ::tcltest] == -1} {
+    package require tcltest 2
+    namespace import -force ::tcltest::*
+}
+package require sqlite3
+
+#tcltest::verbose 100
+#tcltest::debug 100
+
+set flist [glob -nocomplain -dir .. libpgtcl*[info sharedlibextension]]
+set flist [concat $flist [glob -nocomplain libpgtcl*[info sharedlibextension]]]
+
+if {[llength $flist] == 0} {
+    puts "\nCan not find a shared lib file\n"
+    exit
+}
+
+puts [list loading [lindex $flist end] ...]
+load [lindex $flist end]
+
+if [file exists $env(HOME)/.conninfo.tcl] {
+    puts [list sourcing $env(HOME)/.conninfo.tcl ...]
+    source $env(HOME)/.conninfo.tcl
+} elseif [file exists conninfo.tcl] {
+    puts [list sourcing conninfo.tcl ...]
+    source conninfo.tcl
+}
+
+puts [list setting up sampledata.tsv]
+catch {file delete sampledata.tsv}
+set ifp [open sampledata.txt r]
+set ofp [open sampledata.tsv w]
+while {[gets $ifp line] >= 0} {
+	puts $ofp [join $line "\t"]
+}
+close $ofp
+close $ifp
+
+puts [list running tests ...]
+#
+#
+#
+test pgtcl-sqlite3-1.1 {import postgresql result} -body {
+	catch {file delete test.sqlite3}
+	sqlite3 sqlite_conn test.sqlite3
+
+	set pg_conn [pg::connect -connhandle pgsql3 -connlist [array get ::conninfo]]
+
+	$pg_conn select {select count(*) as count from Pg_class;} row {
+		set pgtcl_count $row(count)
+	}
+
+	set res [$pg_conn exec "SELECT relname,relnamespace,reltype,relowner FROM Pg_class;"]
+	set rows [
+		pg_sqlite sqlite_conn import_postgres_result $res -create pg_class \
+			-as {relname text relnamespace integer reltype integer relowner integer} \
+			-check -pkey {relname}
+	]
+
+	sqlite_conn eval {select count(*) as count from pg_class;} row {
+		set sqlite_count $row(count)
+	}
+
+	sqlite_conn close
+	expr {$pgtcl_count == $sqlite_count}
+} -result 1
+
+#
+test pgtcl-sqlite3-1.2 {import tabsep internal} -body {
+	catch {file delete test.sqlite3}
+	sqlite3 sqlite_conn test.sqlite3
+
+	sqlite_conn eval {create table pg_class (relname text primary key, relnamespace integer, reltype integer, relowner integer);}
+
+	set i 0
+	foreach name {mike andy eric steve bob} {
+		pg_sqlite sqlite_conn read_tabsep -row "$name\t[incr i]\t[incr i]\t[incr i]" \
+			-types {text integer integer integer} \
+			-sql "INSERT INTO pg_class (relname,relnamespace,reltype,relowner) values (?,?,?,?);"
+	}
+
+	sqlite_conn eval {select relname from pg_class;} row {
+		lappend relname $row(relname)
+	}
+
+	sqlite_conn close
+
+	lsort $relname
+} -result {andy bob eric mike steve}
+
+#
+test pgtcl-sqlite3-1.3 {import tabsep external} -body {
+	catch {file delete test.sqlite3}
+	sqlite3 sqlite_conn test.sqlite3
+
+	set fp [open sampledata.tsv r]
+	
+	pg_sqlite sqlite_conn read_tabsep -file $fp \
+		-create contacts \
+		-as {email text fullname text addr text city text state text zip text} \
+		-pkey {email}
+
+	sqlite_conn eval {select count(email) from contacts;} row {
+		set sqlite_count $row(count)
+	}
+
+	sqlite_conn eval {select * from contacts where email = 'ethel@noway1234.com';} row {
+		set result [list $row(fullname) $row(addr) $row(city) $row(state) $row(zip)]
+	}
+
+	sqlite_conn close
+
+	concat $sqlite_count $result
+} -result {3898 {Ethel Hitzeman} {3724 Forest Village Drive} Rockhampton TX 77628}
+
