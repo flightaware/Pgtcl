@@ -100,7 +100,7 @@ test pgtcl-sqlite3-1.3 {import tabsep external} -body {
 		-as {email text fullname text addr text city text state text zip text} \
 		-pkey {email}
 
-	sqlite_conn eval {select count(email) from contacts;} row {
+	sqlite_conn eval {select count(email) as count from contacts;} row {
 		set sqlite_count $row(count)
 	}
 
