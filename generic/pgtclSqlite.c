@@ -83,7 +83,7 @@ Pg_sqlite_wal_checkpoint(Tcl_Interp *interp, sqlite3 *sqlite_db)
 }
 
 //
-// Finalize a statement, commit, and prepare it again
+// Commit a statement, checkpoint, and prepare it again
 //
 int
 Pg_sqlite_recommit(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sql, sqlite3_stmt **statement_ptr)
@@ -100,13 +100,15 @@ Pg_sqlite_recommit(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sql, sqlite3_st
 	return TCL_OK;
 }
 
+//
+// Exec a Sqlite3 statement embedded in a Tcl object.
+//
 int Pg_sqlite_execObj(Tcl_Interp *interp, sqlite3 *sqlite_db, Tcl_Obj *obj)
 {
 	sqlite3_stmt *statement = NULL;
 	int           result = TCL_OK;
 
 	if(Pg_sqlite_prepare(interp, sqlite_db, Tcl_GetString(obj), &statement) != TCL_OK) {
-		statement = NULL; // probably redundant
 		result = TCL_ERROR;
 	} else if(sqlite3_step(statement) != SQLITE_DONE) {
 		Tcl_AppendResult(interp, sqlite3_errmsg(sqlite_db), (char *)NULL);
@@ -329,6 +331,8 @@ Pg_sqlite_generateCheck(Tcl_Interp *interp, sqlite3 *sqlite_db, char *tableName,
 	if(Tcl_ListObjGetElements(interp, primaryKey, &keyc, &keyv) != TCL_OK)
 		goto cleanup_and_exit;
 
+	Tcl_IncrRefCount(where);
+
 	primaryKeyNames = (char **)ckalloc(keyc * (sizeof *primaryKeyNames));
 	for(k = 0; k < keyc; k++) {
 		char *column = Tcl_GetString(keyv[k]);
@@ -351,6 +355,8 @@ Pg_sqlite_generateCheck(Tcl_Interp *interp, sqlite3 *sqlite_db, char *tableName,
 	for(k = 0; k < keyc+1; k++) {
 		primaryKeyIndex[k] = -1;
 	}
+
+	Tcl_IncrRefCount(sql);
 
 	Tcl_AppendStringsToObj(sql, "SELECT ", (char *)NULL);
 	for(i = 0; i < nColumns; i++) {
@@ -417,6 +423,10 @@ Pg_sqlite_generateCheck(Tcl_Interp *interp, sqlite3 *sqlite_db, char *tableName,
 		else
 			sqlite3_finalize(statement);
 	}
+
+	// Release allocated objects
+	if(sql)   Tcl_DecrRefCount (sql);
+	if(where) Tcl_DecrRefCount (where);
 
 	return result;
 }
@@ -550,27 +560,28 @@ Pg_sqlite_generate(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sqliteTable, Tc
 	int       i;
 	int       primaryKeyIndex = -1;
 	int       stride;
+	char     *result = NULL;
 
 	if(nameTypeList) {
 		if(Tcl_ListObjGetElements(interp, nameTypeList, &objc, &objv) != TCL_OK)
-			return NULL;
+			goto cleanup;
 
 		if(objc & 1) {
 			Tcl_AppendResult(interp, "List must have an even number of elements", (char *)NULL);
-			return NULL;
+			goto cleanup;
 		}
 
 		stride = 2;
 	} else {
 		if(Tcl_ListObjGetElements(interp, nameList, &objc, &objv) != TCL_OK)
-			return NULL;
+			goto cleanup;
 
 		stride = 1;
 	}
 
 	if(newTable && primaryKey) {
 		if(Tcl_ListObjGetElements(interp, primaryKey, &keyc, &keyv) != TCL_OK)
-			return NULL;
+			goto cleanup;
 
 		if(keyc == 1) {
 			char *keyName = Tcl_GetString(keyv[0]);
@@ -579,11 +590,15 @@ Pg_sqlite_generate(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sqliteTable, Tc
 					break;
 			if(i >= objc) {
 				Tcl_AppendResult(interp, "Primary key not found in list", (char *)NULL);
-				return NULL;
+				goto cleanup;
 			}
 			primaryKeyIndex = i/stride;
 		}
 	}
+
+	Tcl_IncreRefCount(create);
+	Tcl_IncreRefCount(sql);
+	Tcl_IncreRefCount(values);
 
 	if (newTable)
 		Tcl_AppendStringsToObj(create, "CREATE TABLE ", sqliteTable, " (", (char *)NULL);
@@ -613,7 +628,7 @@ Pg_sqlite_generate(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sqliteTable, Tc
 
 		if(unknownKey && strcmp(Tcl_GetString(objv[i]), unknownKey) == 0) {
 			Tcl_AppendResult(interp, "Unknown key duplicates existing key", (char *)NULL);
-			return NULL;
+			goto cleanup;
 		}
 
 		if(i > 0)
@@ -654,10 +669,17 @@ Pg_sqlite_generate(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sqliteTable, Tc
 
 	if(newTable) {
 		if(Pg_sqlite_execObj(interp, sqlite_db, create) != TCL_OK)
-			return NULL;
+			goto cleanup;
 	}
 
-	return Tcl_GetString(sql);
+	result = Tcl_GetString(sql);
+
+  cleanup:
+	if(create) Tcl_DecrRefCount(create);
+	if(sql)    Tcl_DecrRefCount(sql);
+	if(values) Tcl_DecrRefCount(values);
+
+	return result;
 }
 
 // Drop table
@@ -665,10 +687,17 @@ int
 Pg_sqlite_dropTable(Tcl_Interp *interp, sqlite3 *sqlite_db, char *dropTable)
 {
 	Tcl_Obj *drop = Tcl_NewObj();
+	int result;
+
+	Tcl_IncrRefCount(drop);
 
 	Tcl_AppendStringsToObj(drop, "DROP TABLE ", dropTable, ";", (char *)NULL);
 
-	return Pg_sqlite_execObj(interp, sqlite_db, drop);
+	result = Pg_sqlite_execObj(interp, sqlite_db, drop);
+
+	if(drop) Tcl_DecrRefCount(drop);
+
+	return result;
 }
 
 // Part 2 of the hack, locate the ObjProc for a known sqlite3 command so I can validate that the
@@ -726,18 +755,27 @@ int
 Pg_sqlite_gets(Tcl_Interp *interp, Tcl_Channel chan, char **linePtr)
 {
 	Tcl_Obj *obj = Tcl_NewObj();
+	int      result = TCL_OK;
+
+	Tcl_IncrRefCount(obj);
 
 	if(Tcl_GetsObj(chan, obj) == -1) {
 		*linePtr = NULL;
 		if(Tcl_Eof(chan)) {
-			return TCL_BREAK;
+			result = TCL_BREAK;
+			goto cleanup;
 		} else {
 			Tcl_AppendResult (interp, Tcl_ErrnoMsg(Tcl_GetErrno()), (char *)NULL);
-			return TCL_ERROR;
+			result = TCL_ERROR;
+			goto cleanup;
 		}
 	}
 	*linePtr = Tcl_GetString(obj);
-	return TCL_OK;
+
+  cleanup:
+	if(obj) Tcl_DecrRefCount(obj);
+
+	return result;
 }
 
 // Split a string up into an array of named columns. Modifies the input string.
@@ -1246,9 +1284,12 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 
 			optIndex = 3;
 
+			Tcl_IncrRefCount(infoList);
+
 			if(objc < optIndex) {
 			  info_wrong_num_args:
 				Tcl_WrongNumArgs(interp, 3, objv, "?-busy? ?-filename? ?-db dbname?");
+				if(infoList) Tcl_DecrRefCount(infoList);
 				return TCL_ERROR;
 			}
 
