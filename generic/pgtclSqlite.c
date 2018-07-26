@@ -321,8 +321,8 @@ Pg_sqlite_generateCheck(Tcl_Interp *interp, sqlite3 *sqlite_db, char *tableName,
 	int           keyc;
 	int          *primaryKeyIndex = NULL;
 	char        **primaryKeyNames = NULL;
-	Tcl_Obj      *sql = Tcl_NewObj();
-	Tcl_Obj      *where = Tcl_NewObj();
+	Tcl_Obj      *sql = NULL;
+	Tcl_Obj      *where = NULL;
 	int           i;
 	int           k;
 	int           result = TCL_ERROR;
@@ -331,7 +331,7 @@ Pg_sqlite_generateCheck(Tcl_Interp *interp, sqlite3 *sqlite_db, char *tableName,
 	if(Tcl_ListObjGetElements(interp, primaryKey, &keyc, &keyv) != TCL_OK)
 		goto cleanup_and_exit;
 
-	Tcl_IncrRefCount(where);
+	Tcl_IncrRefCount(where = Tcl_NewObj());
 
 	primaryKeyNames = (char **)ckalloc(keyc * (sizeof *primaryKeyNames));
 	for(k = 0; k < keyc; k++) {
@@ -356,7 +356,7 @@ Pg_sqlite_generateCheck(Tcl_Interp *interp, sqlite3 *sqlite_db, char *tableName,
 		primaryKeyIndex[k] = -1;
 	}
 
-	Tcl_IncrRefCount(sql);
+	Tcl_IncrRefCount(sql = Tcl_NewObj());
 
 	Tcl_AppendStringsToObj(sql, "SELECT ", (char *)NULL);
 	for(i = 0; i < nColumns; i++) {
@@ -1338,8 +1338,10 @@ fprintf(stderr, "generated '%s';\n", sqliteCode);
 
 				for(pStmt=sqlite3_next_stmt(sqlite_db, pStmt); pStmt; pStmt=sqlite3_next_stmt(sqlite_db, pStmt)){
 					if( sqlite3_stmt_busy(pStmt) ){
-						if(!busyList)
+						if(!busyList) {
 							busyList = Tcl_NewObj();
+							Tcl_IncrRefCount(busyList);
+						}
 						LAPPEND_STRING(interp, busyList, sqlite3_sql(pStmt));
 					}
 				}
@@ -1347,6 +1349,7 @@ fprintf(stderr, "generated '%s';\n", sqliteCode);
 				if(busyList) {
 					LAPPEND_STRING(interp, infoList, "busy");
 					Tcl_ListObjAppendElement(interp, infoList, busyList);
+					Tcl_DecrRefCount(busyList);
 				}
 			}
 
@@ -1484,8 +1487,10 @@ fprintf(stderr, "generated '%s';\n", sqliteCode);
 			char *row = NULL;
 			Tcl_Obj *unknownObj = NULL;
 
-			if(cmdIndex == CMD_READ_KEYVAL)
+			if(cmdIndex == CMD_READ_KEYVAL) {
 				unknownObj = Tcl_NewObj();
+				Tcl_IncrRefCount(unknownObj);
+			}
 
 			if(tabsepFile) {
 				tabsepChannel = Tcl_GetChannel(interp, tabsepFile, &channelMode);
@@ -1627,6 +1632,9 @@ fprintf(stderr, "generated '%s';\n", sqliteCode);
 
 			if(columns)
 				ckfree((void *)columns);
+
+			if(unknownObj)
+				Tcl_DecrRefCount(unknownObj);
 
 			if(sqliteCodeObj)
 				Tcl_DecrRefCount(sqliteCodeObj);
