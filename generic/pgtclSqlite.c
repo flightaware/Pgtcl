@@ -1495,12 +1495,14 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 					returnCode = TCL_ERROR;
 					goto read_tabsep_cleanup_and_exit;
 				}
-				if((returnCode = Pg_sqlite_gets(interp, tabsepChannel, &rowObj)) != TCL_OK) {
+				returnCode = Pg_sqlite_gets(interp, tabsepChannel, &rowObj);
+				if(returnCode == TCL_OK) {
+					row = Tcl_GetString(rowObj);
+				} else {
 					if (returnCode == TCL_BREAK)
 						returnCode = TCL_OK;
 					goto read_tabsep_cleanup_and_exit;
 				}
-				row = Tcl_GetString(rowObj);
 			} else {
 				row = tabsepRow;
 			}
@@ -1595,9 +1597,12 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 
 			  next_row:
 				if(tabsepFile) {
-					if((returnCode = Pg_sqlite_gets(interp, tabsepChannel, &rowObj)) == TCL_BREAK)
+					row = NULL;
+					returnCode = Pg_sqlite_gets(interp, tabsepChannel, &rowObj);
+					if(returnCode == TCL_OK)
+						row = Tcl_GetString(rowObj);
+					else if(returnCode == TCL_BREAK)
 						returnCode = TCL_OK;
-					row = Tcl_GetString(rowObj);
 				} else {
 					row = NULL;
 				}
