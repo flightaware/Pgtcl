@@ -6,3 +6,5 @@ pkgIndex.tcl
 autom4te.cache
 config.status
 config.log
+configure
+sampledata.tsv

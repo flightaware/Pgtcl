@@ -13,7 +13,18 @@
 
 #include <sqlite3.h>
 
-#define LAPPEND_STRING(i, o, s) Tcl_ListObjAppendElement((i), (o), Tcl_NewStringObj((s), -1));
+//#define LAPPEND_STRING(i, o, s) Tcl_ListObjAppendElement((i), (o), Tcl_NewStringObj((s), -1));
+#define LAPPEND_STRING(i, o, s) Pg_sqlite_append_string((i), (o), (s))
+void Pg_sqlite_append_string(Tcl_Interp *interp, Tcl_Obj *o, const char *s)
+{
+	Tcl_Obj *sobj = NULL;
+
+	Tcl_IncrRefCount(sobj = Tcl_NewStringObj(s, -1));
+
+	Tcl_ListObjAppendElement(interp, o, sobj);
+
+	Tcl_DecrRefCount(sobj);
+}
 
 // From tclsqlite.c, part 1 of the hack, sqlite3 conveniently guarantees that the first element in
 // the userdata for an sqlite proc is the sqlite3 database.
@@ -1272,13 +1283,13 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 	switch (cmdIndex) {
 		case CMD_INFO: {
 			char       *dbName = NULL;
-			Tcl_Obj    *infoList = Tcl_NewObj();
+			Tcl_Obj    *infoList = NULL;
 			int         doFilename = 0;
 			int	    doBusy = 0;
 
 			optIndex = 3;
 
-			Tcl_IncrRefCount(infoList);
+			Tcl_IncrRefCount(infoList = Tcl_NewObj());
 
 			if(objc < optIndex) {
 			  info_wrong_num_args:
@@ -1326,10 +1337,8 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 
 				for(pStmt=sqlite3_next_stmt(sqlite_db, pStmt); pStmt; pStmt=sqlite3_next_stmt(sqlite_db, pStmt)){
 					if( sqlite3_stmt_busy(pStmt) ){
-						if(!busyList) {
-							busyList = Tcl_NewObj();
-							Tcl_IncrRefCount(busyList);
-						}
+						if(!busyList)
+							Tcl_IncrRefCount(busyList = Tcl_NewObj());
 						LAPPEND_STRING(interp, busyList, sqlite3_sql(pStmt));
 					}
 				}
@@ -1476,10 +1485,8 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			Tcl_Obj *unknownObj = NULL;
 			Tcl_Obj *rowObj = NULL;
 
-			if(cmdIndex == CMD_READ_KEYVAL) {
-				unknownObj = Tcl_NewObj();
-				Tcl_IncrRefCount(unknownObj);
-			}
+			if(cmdIndex == CMD_READ_KEYVAL)
+				Tcl_IncrRefCount(unknownObj = Tcl_NewObj());
 
 			Tcl_IncrRefCount(rowObj = Tcl_NewObj());
 
@@ -1862,21 +1869,24 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 
 					switch (maxColumnType) {
 						case PG_SQLITE_TEXT: {
-							obj = Tcl_NewStringObj(maxString, -1);
+							Tcl_IncrRefCount(obj = Tcl_NewStringObj(maxString, -1));
 							break;
 						}
 						case PG_SQLITE_INT: {
-							obj = Tcl_NewIntObj(maxInt);
+							Tcl_IncrRefCount(obj = Tcl_NewIntObj(maxInt));
 							break;
 						}
 						case PG_SQLITE_DOUBLE: {
-							obj = Tcl_NewDoubleObj(maxFloat);
+							Tcl_IncrRefCount(obj = Tcl_NewDoubleObj(maxFloat));
 							break;
 						}
 					}
 
-					if(obj)
+					if(obj) {
 						Tcl_SetVar2Ex(interp, maxVar, NULL, obj, 0);
+						Tcl_DecrRefCount(obj);
+						obj = NULL;
+					}
 				}
 			}
 
