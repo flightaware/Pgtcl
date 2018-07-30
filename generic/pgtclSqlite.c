@@ -13,18 +13,7 @@
 
 #include <sqlite3.h>
 
-//#define LAPPEND_STRING(i, o, s) Tcl_ListObjAppendElement((i), (o), Tcl_NewStringObj((s), -1));
-#define LAPPEND_STRING(i, o, s) Pg_sqlite_append_string((i), (o), (s))
-void Pg_sqlite_append_string(Tcl_Interp *interp, Tcl_Obj *o, const char *s)
-{
-	Tcl_Obj *sobj = NULL;
-
-	Tcl_IncrRefCount(sobj = Tcl_NewStringObj(s, -1));
-
-	Tcl_ListObjAppendElement(interp, o, sobj);
-
-	Tcl_DecrRefCount(sobj);
-}
+#define LAPPEND_STRING(i, o, s) Tcl_ListObjAppendElement((i), (o), Tcl_NewStringObj((s), -1));
 
 // From tclsqlite.c, part 1 of the hack, sqlite3 conveniently guarantees that the first element in
 // the userdata for an sqlite proc is the sqlite3 database.
