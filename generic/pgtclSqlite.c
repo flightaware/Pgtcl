@@ -46,6 +46,12 @@ Pg_sqlite_prepare(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sql, sqlite3_stm
 		Tcl_AppendResult(interp, sqlite3_errmsg(sqlite_db), (char *)NULL);
 		return TCL_ERROR;
 	}
+
+	if(!*statement_ptr) {
+		Tcl_AppendResult(interp, "Empty SQL statement provided.", (char *)NULL);
+		return TCL_ERROR;
+	}
+
 	return TCL_OK;
 }
 
