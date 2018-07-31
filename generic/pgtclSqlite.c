@@ -32,7 +32,7 @@ struct SqliteDb {
 };
 
 //
-// Prepare a statement, and finalize if first if it's already prepared
+// Prepare a statement, and finalize it first if it's already prepared
 //
 int
 Pg_sqlite_prepare(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sql, sqlite3_stmt **statement_ptr)
