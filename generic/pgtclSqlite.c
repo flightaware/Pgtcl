@@ -17,6 +17,9 @@
 
 // From tclsqlite.c, part 1 of the hack, sqlite3 conveniently guarantees that the first element in
 // the userdata for an sqlite proc is the sqlite3 database.
+//
+// I have verified with Richard Hipp at the Tcl2017 conference that this behaviour is intentional
+// and stable. -- PDS 2018
 /*
 ** There is one instance of this structure for each SQLite database
 ** that has been opened by the SQLite TCL interface.
