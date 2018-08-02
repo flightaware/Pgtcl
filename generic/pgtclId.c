@@ -216,7 +216,7 @@ PgSetConnectionId(Tcl_Interp *interp, PGconn *conn, char *chandle)
 
         if (chandle == NULL)
         {
-	    sprintf(connid->id, "%spgsql%d", ns, PQsocket(conn));
+	    sprintf(connid->id, "%spgsql%p", ns, connid);
         }
         else
         {
