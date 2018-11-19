@@ -3033,6 +3033,11 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		}
 	}
 
+	// Register on the connection channel to hold it open (eg, in case a user
+	// issues a pg_disconnect inside the select).
+	Tcl_Channel conn_chan = Tcl_GetChannel(interp, connString, 0);
+	Tcl_RegisterChannel(NULL, conn_chan);
+
 	// At this point we no longer need these. Zap them so we don't have to worry about them
 	// in the big loop.
 	if(paramValues) {
@@ -3223,6 +3228,8 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 	if(tuplesVarObj)
 	    Tcl_UnsetVar(interp, Tcl_GetString(tuplesVarObj), 0);
+
+	Tcl_UnregisterChannel(NULL, conn_chan);
 
 	Tcl_UnsetVar(interp, varNameString, 0);
 
