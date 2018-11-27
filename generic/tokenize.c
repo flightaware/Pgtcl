@@ -372,7 +372,7 @@ int Pg_sqlite3GetToken(const char *z, enum sqltoken *tokenType){
 // END change PDS Jul 2017
     case CC_VARALPHA: {
 // special case of "::" which is a cast in PostgreSQL
-      if (z[0]==':' && z[1]==':') {
+      if (z[0]==':' && z[1]==':' && z[2]!=':') {
 	*tokenType = TK_CAST;
 	return 2;
       }
