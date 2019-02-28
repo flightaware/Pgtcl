@@ -16,7 +16,6 @@
 #
 
 
-DOCBOOKDIR=/usr/local/share/sgml/docbook/dsssl/modular/catalog
 STYLESHEET=stylesheet.dsl
 SGMLSOURCE=libpgtcl.sgml
 
@@ -26,10 +25,10 @@ all:	html man pdf
 
 html:	html/HTML.index
 html/HTML.index:	$(SGMLSOURCE)
-	-rm html/*.html html/HTML.index
+	-rm -f html/*.html html/HTML.index
 	-rmdir html
 	-mkdir html
-	cd html && openjade -V draft-mode -wall -wno-unused-param -wno-empty -D .. -c $(DOCBOOKDIR) -d $(STYLESHEET) -i output-html -t sgml $(SGMLSOURCE)
+	cd html && docbook2html -i output-html ../$(SGMLSOURCE)
 	-find html/ -type f -name "*.html" -exec tidy5 -quiet -wrap 2000 -modify \{\} \;
 	sh ./clean-html.sh html/*
 
