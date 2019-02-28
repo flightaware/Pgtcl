@@ -28,7 +28,7 @@ html/HTML.index:	$(SGMLSOURCE)
 	-rm -f html/*.html html/HTML.index
 	-rmdir html
 	-mkdir html
-	cd html && docbook2html -i output-html ../$(SGMLSOURCE)
+	cd html && docbook2html -i output-html -d ../$(STYLESHEET) ../$(SGMLSOURCE)
 	-find html/ -type f -name "*.html" -exec tidy5 -quiet -wrap 2000 -modify \{\} \;
 	sh ./clean-html.sh html/*
 
