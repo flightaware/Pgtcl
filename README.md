@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/flightaware/Pgtcl.svg?branch=master)](https://travis-ci.org/flightaware/Pgtcl)
+
 Thank you for downloading Pgtcl, a package that adds PostgreSQL interface extensions to the Tcl programming language... an open source project that's been in existence for nearly twenty years.
 
 # CONFIGURING
