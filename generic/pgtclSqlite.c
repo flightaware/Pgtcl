@@ -62,7 +62,7 @@ int
 Pg_sqlite_begin(Tcl_Interp *interp, sqlite3 *sqlite_db)
 {
 	char *errMsg;
-	if(sqlite3_exec(sqlite_db, "begin;", NULL, NULL, &errMsg) != SQLITE_OK) {
+	if(sqlite3_exec(sqlite_db, "savepoint pg_sqlite;", NULL, NULL, &errMsg) != SQLITE_OK) {
                 Tcl_AppendResult(interp, errMsg, " when beginning a transaction", (char *)NULL);
                 return TCL_ERROR;
         }
@@ -73,7 +73,7 @@ int
 Pg_sqlite_commit(Tcl_Interp *interp, sqlite3 *sqlite_db)
 {
 	char *errMsg;
-	if(sqlite3_exec(sqlite_db, "commit;", NULL, NULL, &errMsg) != SQLITE_OK) {
+	if(sqlite3_exec(sqlite_db, "release savepoint pg_sqlite;", NULL, NULL, &errMsg) != SQLITE_OK) {
                 Tcl_AppendResult(interp, errMsg, " when comitting a transaction", (char *)NULL);
                 return TCL_ERROR;
         }
