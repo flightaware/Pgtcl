@@ -2,7 +2,7 @@
 "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-<meta name="generator" content="HTML Tidy for HTML5 for FreeBSD version 5.2.0">
+<meta name="generator" content="HTML Tidy for HTML5 for Linux version 5.2.0">
 <title>pg_result</title>
 <meta name="GENERATOR" content="Modular DocBook HTML Stylesheet Version 1.79">
 <link rev="MADE" href="mailto:pgsql-docs@postgresql.org">
@@ -28,18 +28,18 @@
 </table>
 <hr align="left" width="100%"></div>
 <h1><a name="PGTCL-PGRESULT" id="PGTCL-PGRESULT"></a>pg_result</h1>
-<div class="REFNAMEDIV"><a name="AEN780" id="AEN780"></a>
+<div class="REFNAMEDIV"><a name="AEN793" id="AEN793"></a>
 <h2>Name</h2>
 pg_result&nbsp;--&nbsp;get information about a command result<a name="IX-PGTCL-PGRESULT-2" id="IX-PGTCL-PGRESULT-2"></a></div>
-<div class="REFSYNOPSISDIV"><a name="AEN785" id="AEN785"></a>
+<div class="REFSYNOPSISDIV"><a name="AEN798" id="AEN798"></a>
 <h2>Synopsis</h2>
 <pre class="SYNOPSIS">pg_result <code class="PARAMETER">resultHandle</code> <code class="PARAMETER">resultOption</code></pre></div>
-<div class="REFSECT1"><a name="AEN789" id="AEN789"></a>
+<div class="REFSECT1"><a name="AEN802" id="AEN802"></a>
 <h2>Description</h2>
 <p><code class="FUNCTION">pg_result</code> returns information about a command result created by a prior <code class="FUNCTION">pg_exec</code>.</p>
 <p>You can keep a command result around for as long as you need it, but when you are done with it, be sure to free it by executing <code class="FUNCTION">pg_result -clear</code>. Otherwise, you have a memory leak, and <span class="APPLICATION">pgtcl</span> will eventually start complaining that you have created too many command result objects.</p>
 </div>
-<div class="REFSECT1"><a name="AEN797" id="AEN797"></a>
+<div class="REFSECT1"><a name="AEN810" id="AEN810"></a>
 <h2>Arguments</h2>
 <div class="VARIABLELIST">
 <dl>
@@ -198,7 +198,7 @@ pg_result&nbsp;--&nbsp;get information about a command result<a name="IX-PGTCL-P
 </dl>
 </div>
 </div>
-<div class="REFSECT1"><a name="AEN1026" id="AEN1026"></a>
+<div class="REFSECT1"><a name="AEN1039" id="AEN1039"></a>
 <h2>Return Value</h2>
 <p>The result depends on the selected option, as described above.</p>
 </div>
