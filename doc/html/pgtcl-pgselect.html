@@ -28,13 +28,13 @@
 </table>
 <hr align="left" width="100%"></div>
 <h1><a name="PGTCL-PGSELECT" id="PGTCL-PGSELECT"></a>pg_select</h1>
-<div class="REFNAMEDIV"><a name="AEN1045" id="AEN1045"></a>
+<div class="REFNAMEDIV"><a name="AEN1032" id="AEN1032"></a>
 <h2>Name</h2>
 pg_select&nbsp;--&nbsp;loop over the result of a query<a name="IX-PGTCL-PGSELECT-2" id="IX-PGTCL-PGSELECT-2"></a></div>
-<div class="REFSYNOPSISDIV"><a name="AEN1050" id="AEN1050"></a>
+<div class="REFSYNOPSISDIV"><a name="AEN1037" id="AEN1037"></a>
 <h2>Synopsis</h2>
-<pre class="SYNOPSIS">pg_select ?<span class="OPTIONAL"><code class="PARAMETER">-rowbyrow</code></span>? ?<span class="OPTIONAL"><code class="PARAMETER">-nodotfields</code></span>? ?<span class="OPTIONAL"><code class="PARAMETER">-withoutnulls</code></span>? ?<span class="OPTIONAL"><code class="PARAMETER">-paramarray var</code></span>? [<span class="OPTIONAL"><code class="PARAMETER">-variables</code></span>] ?<span class="OPTIONAL"><code class="PARAMETER">-params</code> paramList</span>? ?<span class="OPTIONAL"><code class="PARAMETER">-count</code> countVar</span>? <code class="PARAMETER">conn</code> <code class="PARAMETER">commandString</code> <code class="PARAMETER">arrayVar</code> <code class="PARAMETER">procedure</code></pre></div>
-<div class="REFSECT1"><a name="AEN1070" id="AEN1070"></a>
+<pre class="SYNOPSIS">pg_select ?<span class="OPTIONAL"><code class="PARAMETER">-rowbyrow</code></span>? ?<span class="OPTIONAL"><code class="PARAMETER">-nodotfields</code></span>? ?<span class="OPTIONAL"><code class="PARAMETER">-withoutnulls</code></span>? ?<span class="OPTIONAL"><code class="PARAMETER">-paramarray var</code></span>? [<span class="OPTIONAL"><code class="PARAMETER">-variables</code></span>] ?<span class="OPTIONAL"><code class="PARAMETER">-params</code> paramList</span>? <code class="PARAMETER">conn</code> <code class="PARAMETER">commandString</code> <code class="PARAMETER">arrayVar</code> <code class="PARAMETER">procedure</code></pre></div>
+<div class="REFSECT1"><a name="AEN1055" id="AEN1055"></a>
 <h2>Description</h2>
 <p><code class="FUNCTION">pg_select</code> submits a query (<tt class="COMMAND">SELECT</tt> statement) to the <span class="PRODUCTNAME">PostgreSQL</span> server and executes a given chunk of code for each row in the result. The <code class="PARAMETER">commandString</code> must be a <tt class="COMMAND">SELECT</tt> statement; anything else returns an error. The <code class="PARAMETER">arrayVar</code> variable is an array name used in the loop. For each row, <code class="PARAMETER">arrayVar</code> is filled in with the row values, using the column names as the array indices. Then the <code class="PARAMETER">procedure</code> is executed.</p>
 <p>In addition to the column values, the following special entries are made in the array (unless the [<span class="OPTIONAL">-nodotfields</span>] flag is provided):</p>
@@ -59,7 +59,7 @@ pg_select&nbsp;--&nbsp;loop over the result of a query<a name="IX-PGTCL-PGSELECT
 <p>If the [<span class="OPTIONAL">-variables</span>] flag is provided, then embedded Tcl variables are passed as parameters. Variables can be flagged with ':' and array references and namespaces are supported. Complex variable names can usually be embedded with :{nasty-name-here} though no attempt at duplicating Tcl brace-escaping is made. If the variable does not exist, then NULL is substituted.</p>
 <p>Notes: This substitution is performed by generating a positional parameter list and calling PQExecParams with a modified query containing $1, $2, ... where the original `names` appeared. This is a straight substitution, so if this mechanism is used the back-quote character (`) can not appear elsewhere in the query, even in a quoted string. There are a maximum of 99,999 names.</p>
 </div>
-<div class="REFSECT1"><a name="AEN1106" id="AEN1106"></a>
+<div class="REFSECT1"><a name="AEN1091" id="AEN1091"></a>
 <h2>Arguments</h2>
 <div class="VARIABLELIST">
 <dl>
@@ -87,10 +87,6 @@ pg_select&nbsp;--&nbsp;loop over the result of a query<a name="IX-PGTCL-PGSELECT
 <dd>
 <p>If specified null columns will be unset from the array rather than being defined and containing the null string, typically an empty string.</p>
 </dd>
-<dt>[<span class="OPTIONAL">-count countVar</span>]</dt>
-<dd>
-<p>Set the variable "countVar" to the number of tuples returned for use in the block.</p>
-</dd>
 <dt><code class="PARAMETER">conn</code></dt>
 <dd>
 <p>The handle of the connection on which to execute the query.</p>
@@ -110,11 +106,11 @@ pg_select&nbsp;--&nbsp;loop over the result of a query<a name="IX-PGTCL-PGSELECT
 </dl>
 </div>
 </div>
-<div class="REFSECT1"><a name="AEN1164" id="AEN1164"></a>
+<div class="REFSECT1"><a name="AEN1144" id="AEN1144"></a>
 <h2>Return Value</h2>
-<p>Number of rows actually processed.</p>
+<p>None</p>
 </div>
-<div class="REFSECT1"><a name="AEN1167" id="AEN1167"></a>
+<div class="REFSECT1"><a name="AEN1147" id="AEN1147"></a>
 <h2>Examples</h2>
 <p>This examples assumes that the table <code class="CLASSNAME">table1</code> has columns <tt class="STRUCTFIELD">control</tt> and <tt class="STRUCTFIELD">name</tt> (and perhaps others):</p>
 <pre class="PROGRAMLISTING">pg_select $pgconn "SELECT * FROM table1;" array {

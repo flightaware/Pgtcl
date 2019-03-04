@@ -28,20 +28,20 @@
 </table>
 <hr align="left" width="100%"></div>
 <h1><a name="PGTCL-PGEXEC" id="PGTCL-PGEXEC"></a>pg_exec</h1>
-<div class="REFNAMEDIV"><a name="AEN673" id="AEN673"></a>
+<div class="REFNAMEDIV"><a name="AEN660" id="AEN660"></a>
 <h2>Name</h2>
 pg_exec&nbsp;--&nbsp;send a command to the server<a name="IX-PGTCL-PGEXEC-2" id="IX-PGTCL-PGEXEC-2"></a></div>
-<div class="REFSYNOPSISDIV"><a name="AEN678" id="AEN678"></a>
+<div class="REFSYNOPSISDIV"><a name="AEN665" id="AEN665"></a>
 <h2>Synopsis</h2>
 <pre class="SYNOPSIS">pg_exec [<span class="OPTIONAL"><code class="PARAMETER">-paramarray</code> arrayVar</span>] [<span class="OPTIONAL"><code class="PARAMETER">-variables</code></span>] <code class="PARAMETER">conn</code> <code class="PARAMETER">commandString</code> ?<span class="OPTIONAL"><code class="PARAMETER">args</code></span>?</pre></div>
-<div class="REFSECT1"><a name="AEN688" id="AEN688"></a>
+<div class="REFSECT1"><a name="AEN675" id="AEN675"></a>
 <h2>Description</h2>
 <p><code class="FUNCTION">pg_exec</code> submits a command to the <span class="PRODUCTNAME">PostgreSQL</span> server and returns a result. Command result handles start with the connection handle and add a period and a result number.</p>
 <p>Note that lack of a Tcl error is not proof that the command succeeded! An error message returned by the server will be processed as a command result with failure status, not by generating a Tcl error in <code class="FUNCTION">pg_exec</code>. Check for {[pg_result $result -status] == PGRES_COMMAND_OK}.</p>
 <p>If the [<span class="OPTIONAL">-paramarray</span>] flag is provided, then a substitution is performed on the query, securely replacing each back-quote delimited name with the corresponding entry from the named array. If the array does not contain the named element, then NULL is substituted (similarly to the way an array created by -withoutnulls is generated). Each such name must occur in a location where a value or field name could appear. See pg_select for more info.</p>
 <p>If the [<span class="OPTIONAL">-variables</span>] flag is provided, then embedded Tcl variables are passed as parameters. Variables can be flagged with ':' and array references and namespaces are supported. Complex variable names can usually be embedded with :{nasty-name-here} though no attempt at duplicating Tcl brace-escaping is made. If the variable does not exist, then NULL is substituted.</p>
 </div>
-<div class="REFSECT1"><a name="AEN699" id="AEN699"></a>
+<div class="REFSECT1"><a name="AEN686" id="AEN686"></a>
 <h2>Arguments</h2>
 <div class="VARIABLELIST">
 <dl>
@@ -68,11 +68,11 @@ pg_exec&nbsp;--&nbsp;send a command to the server<a name="IX-PGTCL-PGEXEC-2" id=
 </dl>
 </div>
 </div>
-<div class="REFSECT1"><a name="AEN729" id="AEN729"></a>
+<div class="REFSECT1"><a name="AEN716" id="AEN716"></a>
 <h2>Return Value</h2>
 <p>A result handle. A Tcl error will be returned if <span class="APPLICATION">pgtcl</span> was unable to obtain a server response. Otherwise, a command result object is created and a handle for it is returned. This handle can be passed to <code class="FUNCTION">pg_result</code> to obtain the results of the command.</p>
 </div>
-<div class="REFSECT1"><a name="AEN734" id="AEN734"></a>
+<div class="REFSECT1"><a name="AEN721" id="AEN721"></a>
 <h2>Example</h2>
 <pre class="PROGRAMLISTING">pg_exec $conn {select * from table1 where id = $1 and user = $2} $id $user</pre></div>
 <div class="NAVFOOTER">

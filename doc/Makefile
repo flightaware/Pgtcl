@@ -37,9 +37,9 @@ man:	$(SGMLSOURCE)
 	-rm -rf man
 	-mkdir man
 	cp $(SGMLSOURCE) man/$(SGMLSOURCE)
-	patch man/$(SGMLSOURCE) < dtd-patch.txt
-	cd man && docbook2man --string-param default-manpage-section=n $(SGMLSOURCE)
+	cd man && docbook2man -V default-manpage-section=n $(SGMLSOURCE)
 	rm man/$(SGMLSOURCE)*
+	find man -name \*\. -exec mv {} {}n \;
 	sh ./fix-fi.sh man/*
 	sh ./clean-man.sh man/*
 
@@ -47,8 +47,15 @@ man:	$(SGMLSOURCE)
 # Install Debian packages docbook-utils and ghostscript
 pdf:	libpgtcl.pdf
 libpgtcl.pdf:	$(SGMLSOURCE)
+	rm -rf libpgtcl.ps libpgtcl.pdf
 	docbook2ps -V default-manpage-section=n $(SGMLSOURCE)
 	ps2pdf libpgtcl.ps
 
 clean:
 	rm -f libpgtcl.aux libpgtcl.log libpgtcl.out libpgtcl.tex-pdf libpgtcl.fot
+
+all-man-docker:
+	mkdir docker-context
+	cd docker-context && docker build -t pgtcl-doc -f ../Dockerfile .
+	docker run --rm -it -v $$PWD:/root/doc pgtcl-doc  make all
+	docker rmi pgtcl-doc
