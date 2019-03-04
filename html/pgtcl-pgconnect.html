@@ -2,7 +2,7 @@
 "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-<meta name="generator" content="HTML Tidy for HTML5 for FreeBSD version 5.2.0">
+<meta name="generator" content="HTML Tidy for HTML5 for Linux version 5.2.0">
 <title>pg_connect</title>
 <meta name="GENERATOR" content="Modular DocBook HTML Stylesheet Version 1.79">
 <link rev="MADE" href="mailto:pgsql-docs@postgresql.org">
@@ -28,20 +28,20 @@
 </table>
 <hr align="left" width="100%"></div>
 <h1><a name="PGTCL-PGCONNECT" id="PGTCL-PGCONNECT"></a>pg_connect</h1>
-<div class="REFNAMEDIV"><a name="AEN289" id="AEN289"></a>
+<div class="REFNAMEDIV"><a name="AEN316" id="AEN316"></a>
 <h2>Name</h2>
 pg_connect&nbsp;--&nbsp;open a connection to the server<a name="IX-PGTCL-PGCONNECT-2" id="IX-PGTCL-PGCONNECT-2"></a></div>
-<div class="REFSYNOPSISDIV"><a name="AEN294" id="AEN294"></a>
+<div class="REFSYNOPSISDIV"><a name="AEN321" id="AEN321"></a>
 <h2>Synopsis</h2>
 <pre class="SYNOPSIS">pg_connect -conninfo <code class="PARAMETER">connectOptions</code> ?<span class="OPTIONAL">-connhandle <code class="PARAMETER">connectionHandleName</code></span>? ?<span class="OPTIONAL">-async <code class="PARAMETER">bool</code></span>?
 pg_connect <code class="PARAMETER">dbName</code> ?<span class="OPTIONAL">-host <code class="PARAMETER">hostName</code></span>? ?<span class="OPTIONAL">-port <code class="PARAMETER">portNumber</code></span>? ?<span class="OPTIONAL">-tty <code class="PARAMETER">tty</code></span>? ?<span class="OPTIONAL">-options <code class="PARAMETER">serverOptions</code></span>? ?<span class="OPTIONAL">-connhandle <code class="PARAMETER">connectionHandleName</code></span>? ?<span class="OPTIONAL">-async <code class="PARAMETER">bool</code></span>?
 pg_connect -connlist <code class="PARAMETER">connectNameValueList</code> ?<span class="OPTIONAL">-connhandle <code class="PARAMETER">connectionHandleName</code></span>? ?<span class="OPTIONAL">-async <code class="PARAMETER">bool</code></span>?</pre></div>
-<div class="REFSECT1"><a name="AEN319" id="AEN319"></a>
+<div class="REFSECT1"><a name="AEN346" id="AEN346"></a>
 <h2>Description</h2>
 <p><code class="FUNCTION">pg_connect</code> opens a connection to the <span class="PRODUCTNAME">PostgreSQL</span> server.</p>
 <p>Three syntaxes are available. In the older one, each possible option has a separate option switch in the <tt class="COMMAND">pg_connect</tt> command. In the newer form, a single option string is supplied that can contain multiple option values. The third form takes the parameters as a name value Tcl list. <code class="FUNCTION">pg_conndefaults</code> can be used to retrieve information about the available options in the newer syntax.</p>
 </div>
-<div class="REFSECT1"><a name="AEN327" id="AEN327"></a>
+<div class="REFSECT1"><a name="AEN354" id="AEN354"></a>
 <h2>Arguments</h2>
 <div class="VARIABLELIST">
 <p><b>New style</b></p>
@@ -55,7 +55,7 @@ pg_connect -connlist <code class="PARAMETER">connectNameValueList</code> ?<span 
 <dl>
 <dt><tt class="LITERAL">host</tt></dt>
 <dd>
-<p>Name of host to connect to.<a name="AEN355" id="AEN355"></a> If this begins with a slash, it specifies Unix-domain communication rather than TCP/IP communication; the value is the name of the directory in which the socket file is stored. The default is to connect to a Unix-domain socket in <tt class="FILENAME">/tmp</tt>.<a name="AEN358" id="AEN358"></a></p>
+<p>Name of host to connect to.<a name="AEN382" id="AEN382"></a> If this begins with a slash, it specifies Unix-domain communication rather than TCP/IP communication; the value is the name of the directory in which the socket file is stored. The default is to connect to a Unix-domain socket in <tt class="FILENAME">/tmp</tt>.<a name="AEN385" id="AEN385"></a></p>
 </dd>
 <dt><tt class="LITERAL">hostaddr</tt></dt>
 <dd>
@@ -65,7 +65,7 @@ pg_connect -connlist <code class="PARAMETER">connectNameValueList</code> ?<span 
 </dd>
 <dt><tt class="LITERAL">port</tt></dt>
 <dd>
-<p>Port number to connect to at the server host, or socket file name extension for Unix-domain connections.<a name="AEN391" id="AEN391"></a></p>
+<p>Port number to connect to at the server host, or socket file name extension for Unix-domain connections.<a name="AEN418" id="AEN418"></a></p>
 </dd>
 <dt><tt class="LITERAL">dbname</tt></dt>
 <dd>
@@ -94,7 +94,7 @@ pg_connect -connlist <code class="PARAMETER">connectNameValueList</code> ?<span 
 <dt><tt class="LITERAL">sslmode</tt></dt>
 <dd>
 <p>This option determines whether or with what priority an <acronym class="ACRONYM">SSL</acronym> connection will be negotiated with the server. There are four modes: <tt class="LITERAL">disable</tt> will attempt only an unencrypted <acronym class="ACRONYM">SSL</acronym> connection; <tt class="LITERAL">allow</tt> will negotiate, trying first a non-<acronym class="ACRONYM">SSL</acronym> connection, then if that fails, trying an <acronym class="ACRONYM">SSL</acronym> connection; <tt class="LITERAL">prefer</tt> (the default) will negotiate, trying first an <acronym class="ACRONYM">SSL</acronym> connection, then if that fails, trying a regular non-<acronym class="ACRONYM">SSL</acronym> connection; <tt class="LITERAL">require</tt> will try only an <acronym class="ACRONYM">SSL</acronym> connection.</p>
-<p>If <span class="PRODUCTNAME">PostgreSQL</span> is compiled without SSL support, using option <tt class="LITERAL">require</tt> will cause an error, and options <tt class="LITERAL">allow</tt> and <tt class="LITERAL">prefer</tt> will be tolerated but <span class="APPLICATION">libpq</span> will be unable to negotiate an <acronym class="ACRONYM">SSL</acronym> connection.<a name="AEN447" id="AEN447"></a></p>
+<p>If <span class="PRODUCTNAME">PostgreSQL</span> is compiled without SSL support, using option <tt class="LITERAL">require</tt> will cause an error, and options <tt class="LITERAL">allow</tt> and <tt class="LITERAL">prefer</tt> will be tolerated but <span class="APPLICATION">libpq</span> will be unable to negotiate an <acronym class="ACRONYM">SSL</acronym> connection.<a name="AEN474" id="AEN474"></a></p>
 </dd>
 <dt><tt class="LITERAL">requiressl</tt></dt>
 <dd>
@@ -176,7 +176,7 @@ set conn [pg::connect -connlist [array get ::conninfo]]</pre></dd>
 </dl>
 </div>
 </div>
-<div class="REFSECT1"><a name="AEN558" id="AEN558"></a>
+<div class="REFSECT1"><a name="AEN585" id="AEN585"></a>
 <h2>Return Value</h2>
 <p>If successful, a handle for a database connection is returned. Handles start with the prefix <tt class="LITERAL">pgsql</tt>.</p>
 </div>

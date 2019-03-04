@@ -2,7 +2,7 @@
 "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-<meta name="generator" content="HTML Tidy for HTML5 for FreeBSD version 5.2.0">
+<meta name="generator" content="HTML Tidy for HTML5 for Linux version 5.2.0">
 <title>pg_escape_bytea</title>
 <meta name="GENERATOR" content="Modular DocBook HTML Stylesheet Version 1.79">
 <link rev="MADE" href="mailto:pgsql-docs@postgresql.org">
@@ -28,17 +28,17 @@
 </table>
 <hr align="left" width="100%"></div>
 <h1><a name="PGTCL-PGESCAPE-BYTEA" id="PGTCL-PGESCAPE-BYTEA"></a>pg_escape_bytea</h1>
-<div class="REFNAMEDIV"><a name="AEN1646" id="AEN1646"></a>
+<div class="REFNAMEDIV"><a name="AEN1727" id="AEN1727"></a>
 <h2>Name</h2>
 pg_escape_bytea&nbsp;--&nbsp;escapes a binary string for inclusion into SQL statements. <a name="IX-PGTCL-PGESCAPE-BYTEA-2" id="IX-PGTCL-PGESCAPE-BYTEA-2"></a></div>
-<div class="REFSYNOPSISDIV"><a name="AEN1651" id="AEN1651"></a>
+<div class="REFSYNOPSISDIV"><a name="AEN1732" id="AEN1732"></a>
 <h2>Synopsis</h2>
 <pre class="SYNOPSIS">pg_escape_bytea <code class="PARAMETER">string</code></pre></div>
-<div class="REFSECT1"><a name="AEN1654" id="AEN1654"></a>
+<div class="REFSECT1"><a name="AEN1735" id="AEN1735"></a>
 <h2>Description</h2>
 <p><code class="FUNCTION">pg_escape_bytea</code> escapes a binary string, making it safe for inclusion into SQL statements.</p>
 <pre class="PROGRAMLISTING">    pg_exec $conn "insert into foo values ([pg_escape_binary $name]);" </pre></div>
-<div class="REFSECT1"><a name="AEN1660" id="AEN1660"></a>
+<div class="REFSECT1"><a name="AEN1741" id="AEN1741"></a>
 <h2>Arguments</h2>
 <div class="VARIABLELIST">
 <dl>
@@ -49,7 +49,7 @@ pg_escape_bytea&nbsp;--&nbsp;escapes a binary string for inclusion into SQL stat
 </dl>
 </div>
 </div>
-<div class="REFSECT1"><a name="AEN1668" id="AEN1668"></a>
+<div class="REFSECT1"><a name="AEN1749" id="AEN1749"></a>
 <h2>Return Value</h2>
 <p>Returns the binary string, escaped for inclusion into SQL queries.</p>
 </div>

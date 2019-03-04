@@ -2,7 +2,7 @@
 "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-<meta name="generator" content="HTML Tidy for HTML5 for FreeBSD version 5.2.0">
+<meta name="generator" content="HTML Tidy for HTML5 for Linux version 5.2.0">
 <title>pg_conndefaults</title>
 <meta name="GENERATOR" content="Modular DocBook HTML Stylesheet Version 1.79">
 <link rev="MADE" href="mailto:pgsql-docs@postgresql.org">
@@ -28,21 +28,21 @@
 </table>
 <hr align="left" width="100%"></div>
 <h1><a name="PGTCL-PGCONNDEFAULTS" id="PGTCL-PGCONNDEFAULTS"></a>pg_conndefaults</h1>
-<div class="REFNAMEDIV"><a name="AEN622" id="AEN622"></a>
+<div class="REFNAMEDIV"><a name="AEN649" id="AEN649"></a>
 <h2>Name</h2>
 pg_conndefaults&nbsp;--&nbsp;get connection options and their defaults<a name="IX-PGTCL-PGCONNDEFAULTS-2" id="IX-PGTCL-PGCONNDEFAULTS-2"></a></div>
-<div class="REFSYNOPSISDIV"><a name="AEN627" id="AEN627"></a>
+<div class="REFSYNOPSISDIV"><a name="AEN654" id="AEN654"></a>
 <h2>Synopsis</h2>
 <pre class="SYNOPSIS">pg_conndefaults</pre></div>
-<div class="REFSECT1"><a name="AEN629" id="AEN629"></a>
+<div class="REFSECT1"><a name="AEN656" id="AEN656"></a>
 <h2>Description</h2>
 <p><code class="FUNCTION">pg_conndefaults</code> returns information about the connection options available in <code class="FUNCTION">pg_connect -conninfo</code> and the current default value for each option.</p>
 </div>
-<div class="REFSECT1"><a name="AEN634" id="AEN634"></a>
+<div class="REFSECT1"><a name="AEN661" id="AEN661"></a>
 <h2>Arguments</h2>
 <p>None</p>
 </div>
-<div class="REFSECT1"><a name="AEN637" id="AEN637"></a>
+<div class="REFSECT1"><a name="AEN664" id="AEN664"></a>
 <h2>Return Value</h2>
 <p>The result is a list describing the possible connection options and their current default values. Each entry in the list is a sublist of the format:</p>
 <pre class="SYNOPSIS">{optname label dispchar dispsize value}</pre>

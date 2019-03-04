@@ -2,7 +2,7 @@
 "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-<meta name="generator" content="HTML Tidy for HTML5 for FreeBSD version 5.2.0">
+<meta name="generator" content="HTML Tidy for HTML5 for Linux version 5.2.0">
 <title>pg_escape_string</title>
 <meta name="GENERATOR" content="Modular DocBook HTML Stylesheet Version 1.79">
 <link rev="MADE" href="mailto:pgsql-docs@postgresql.org">
@@ -28,13 +28,13 @@
 </table>
 <hr align="left" width="100%"></div>
 <h1><a name="PGTCL-PGESCAPE-STRING" id="PGTCL-PGESCAPE-STRING"></a>pg_escape_string</h1>
-<div class="REFNAMEDIV"><a name="AEN1611" id="AEN1611"></a>
+<div class="REFNAMEDIV"><a name="AEN1692" id="AEN1692"></a>
 <h2>Name</h2>
 pg_escape_string&nbsp;--&nbsp;escapes a string for inclusion into SQL statements. This is the same as pg_quote. It was added for consistency. <a name="IX-PGTCL-PGESCAPE-STRING-2" id="IX-PGTCL-PGESCAPE-STRING-2"></a></div>
-<div class="REFSYNOPSISDIV"><a name="AEN1616" id="AEN1616"></a>
+<div class="REFSYNOPSISDIV"><a name="AEN1697" id="AEN1697"></a>
 <h2>Synopsis</h2>
 <pre class="SYNOPSIS">pg_escape_string <code class="PARAMETER">string</code></pre></div>
-<div class="REFSECT1"><a name="AEN1619" id="AEN1619"></a>
+<div class="REFSECT1"><a name="AEN1700" id="AEN1700"></a>
 <h2>Description</h2>
 <p><code class="FUNCTION">pg_escape_string</code> quotes a string and escapes single quotes and backslashes within the string, making it safe for inclusion into SQL statements.</p>
 <p>If you're doing something like</p>
@@ -43,7 +43,7 @@ pg_escape_string&nbsp;--&nbsp;escapes a string for inclusion into SQL statements
 <pre class="PROGRAMLISTING">    pg_exec $conn "insert into foo values ([pg_escape_string $name]);" </pre>
 <p>...will make sure that any special characters that occur in name, such as single quote or backslash, will be properly quoted.</p>
 </div>
-<div class="REFSECT1"><a name="AEN1629" id="AEN1629"></a>
+<div class="REFSECT1"><a name="AEN1710" id="AEN1710"></a>
 <h2>Arguments</h2>
 <div class="VARIABLELIST">
 <dl>
@@ -54,11 +54,11 @@ pg_escape_string&nbsp;--&nbsp;escapes a string for inclusion into SQL statements
 </dl>
 </div>
 </div>
-<div class="REFSECT1"><a name="AEN1637" id="AEN1637"></a>
+<div class="REFSECT1"><a name="AEN1718" id="AEN1718"></a>
 <h2>Return Value</h2>
 <p>Returns the string, escaped for inclusion into SQL queries. Note that it adds a set of single quotes around the outside of the string as well.</p>
 </div>
-<div class="REFSECT1"><a name="AEN1640" id="AEN1640"></a>
+<div class="REFSECT1"><a name="AEN1721" id="AEN1721"></a>
 <h2>See Also</h2>
 <p>In most cases, with recent versions of SQL, it is better to use the native parameter insertion capabilities of the SQL server and protocol. If you are using a version of PostgreSQL more recent then 7.4, consider the optional parameter arguments to pg_exec and pg_sendquery, and the paramarray option to pg_exec, pg_sendquery, and pg_select.</p>
 </div>

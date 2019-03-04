@@ -2,7 +2,7 @@
 "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-<meta name="generator" content="HTML Tidy for HTML5 for FreeBSD version 5.2.0">
+<meta name="generator" content="HTML Tidy for HTML5 for Linux version 5.2.0">
 <title>pg_listen</title>
 <meta name="GENERATOR" content="Modular DocBook HTML Stylesheet Version 1.79">
 <link rev="MADE" href="mailto:pgsql-docs@postgresql.org">
@@ -28,19 +28,19 @@
 </table>
 <hr align="left" width="100%"></div>
 <h1><a name="PGTCL-PGLISTEN" id="PGTCL-PGLISTEN"></a>pg_listen</h1>
-<div class="REFNAMEDIV"><a name="AEN1217" id="AEN1217"></a>
+<div class="REFNAMEDIV"><a name="AEN1284" id="AEN1284"></a>
 <h2>Name</h2>
 pg_listen&nbsp;--&nbsp;set or change a callback for asynchronous notification messages<a name="IX-PGTCL-PGLISTEN-2" id="IX-PGTCL-PGLISTEN-2"></a></div>
-<div class="REFSYNOPSISDIV"><a name="AEN1222" id="AEN1222"></a>
+<div class="REFSYNOPSISDIV"><a name="AEN1289" id="AEN1289"></a>
 <h2>Synopsis</h2>
 <pre class="SYNOPSIS">pg_listen <code class="PARAMETER">conn</code> <code class="PARAMETER">notifyName</code> ?<span class="OPTIONAL"><code class="PARAMETER">callbackCommand</code></span>?</pre></div>
-<div class="REFSECT1"><a name="AEN1228" id="AEN1228"></a>
+<div class="REFSECT1"><a name="AEN1295" id="AEN1295"></a>
 <h2>Description</h2>
 <p><code class="FUNCTION">pg_listen</code> creates, changes, or cancels a request to listen for asynchronous notification messages from the <span class="PRODUCTNAME">PostgreSQL</span> server. With a <code class="PARAMETER">callbackCommand</code> parameter, the request is established, or the command string of an already existing request is replaced. With no <code class="PARAMETER">callbackCommand</code> parameter, a prior request is canceled.</p>
-<p>After a <code class="FUNCTION">pg_listen</code> request is established, the specified command string is executed whenever a notification message bearing the given name arrives from the server. This occurs when any <span class="PRODUCTNAME">PostgreSQL</span> client application issues a <tt class="COMMAND">NOTIFY</tt><a name="AEN1239" id="AEN1239"></a> command referencing that name. The command string is executed from the Tcl idle loop. That is the normal idle state of an application written with Tk. In non-Tk Tcl shells, you can execute <code class="FUNCTION">update</code> or <code class="FUNCTION">vwait</code> to cause the idle loop to be entered.</p>
+<p>After a <code class="FUNCTION">pg_listen</code> request is established, the specified command string is executed whenever a notification message bearing the given name arrives from the server. This occurs when any <span class="PRODUCTNAME">PostgreSQL</span> client application issues a <tt class="COMMAND">NOTIFY</tt><a name="AEN1306" id="AEN1306"></a> command referencing that name. The command string is executed from the Tcl idle loop. That is the normal idle state of an application written with Tk. In non-Tk Tcl shells, you can execute <code class="FUNCTION">update</code> or <code class="FUNCTION">vwait</code> to cause the idle loop to be entered.</p>
 <p>You should not invoke the SQL statements <tt class="COMMAND">LISTEN</tt> or <tt class="COMMAND">UNLISTEN</tt> directly when using <code class="FUNCTION">pg_listen</code>. <span class="APPLICATION">pgtcl</span> takes care of issuing those statements for you. But if you want to send a notification message yourself, invoke the SQL <tt class="COMMAND">NOTIFY</tt> statement using <code class="FUNCTION">pg_exec</code>.</p>
 </div>
-<div class="REFSECT1"><a name="AEN1251" id="AEN1251"></a>
+<div class="REFSECT1"><a name="AEN1318" id="AEN1318"></a>
 <h2>Arguments</h2>
 <div class="VARIABLELIST">
 <dl>
@@ -59,7 +59,7 @@ pg_listen&nbsp;--&nbsp;set or change a callback for asynchronous notification me
 </dl>
 </div>
 </div>
-<div class="REFSECT1"><a name="AEN1269" id="AEN1269"></a>
+<div class="REFSECT1"><a name="AEN1336" id="AEN1336"></a>
 <h2>Return Value</h2>
 <p>None</p>
 </div>

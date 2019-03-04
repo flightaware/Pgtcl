@@ -2,7 +2,7 @@
 "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-<meta name="generator" content="HTML Tidy for HTML5 for FreeBSD version 5.2.0">
+<meta name="generator" content="HTML Tidy for HTML5 for Linux version 5.2.0">
 <title>pg_quote</title>
 <meta name="GENERATOR" content="Modular DocBook HTML Stylesheet Version 1.79">
 <link rev="MADE" href="mailto:pgsql-docs@postgresql.org">
@@ -28,13 +28,13 @@
 </table>
 <hr align="left" width="100%"></div>
 <h1><a name="PGTCL-QUOTE" id="PGTCL-QUOTE"></a>pg_quote</h1>
-<div class="REFNAMEDIV"><a name="AEN1568" id="AEN1568"></a>
+<div class="REFNAMEDIV"><a name="AEN1649" id="AEN1649"></a>
 <h2>Name</h2>
 pg_quote&nbsp;--&nbsp;escapes a string for inclusion into SQL statements <a name="IX-PGTCL-QUOTE-2" id="IX-PGTCL-QUOTE-2"></a></div>
-<div class="REFSYNOPSISDIV"><a name="AEN1573" id="AEN1573"></a>
+<div class="REFSYNOPSISDIV"><a name="AEN1654" id="AEN1654"></a>
 <h2>Synopsis</h2>
 <pre class="SYNOPSIS">pg_quote [<span class="OPTIONAL">-null</span>] [<span class="OPTIONAL"><code class="PARAMETER">connection</code></span>] <code class="PARAMETER">string</code></pre></div>
-<div class="REFSECT1"><a name="AEN1579" id="AEN1579"></a>
+<div class="REFSECT1"><a name="AEN1660" id="AEN1660"></a>
 <h2>Description</h2>
 <p><code class="FUNCTION">pg_quote</code> quotes a string and escapes single quotes and backslashes within the string, making it safe for inclusion into SQL statements.</p>
 <p>If a <code class="PARAMETER">connection</code> is provided, the connection is used to customize the quoting process for the database referenced by the connection.</p>
@@ -45,7 +45,7 @@ pg_quote&nbsp;--&nbsp;escapes a string for inclusion into SQL statements <a name
 <pre class="PROGRAMLISTING">    pg_exec $conn "insert into foo values ([pg_quote $name]);" </pre>
 <p>...will make sure that any special characters that occur in name, such as single quote or backslash, will be properly quoted.</p>
 </div>
-<div class="REFSECT1"><a name="AEN1594" id="AEN1594"></a>
+<div class="REFSECT1"><a name="AEN1675" id="AEN1675"></a>
 <h2>Arguments</h2>
 <div class="VARIABLELIST">
 <dl>
@@ -56,11 +56,11 @@ pg_quote&nbsp;--&nbsp;escapes a string for inclusion into SQL statements <a name
 </dl>
 </div>
 </div>
-<div class="REFSECT1"><a name="AEN1602" id="AEN1602"></a>
+<div class="REFSECT1"><a name="AEN1683" id="AEN1683"></a>
 <h2>Return Value</h2>
 <p>Returns the string, escaped for inclusion into SQL queries. Note that it adds a set of single quotes around the outside of the string as well.</p>
 </div>
-<div class="REFSECT1"><a name="AEN1605" id="AEN1605"></a>
+<div class="REFSECT1"><a name="AEN1686" id="AEN1686"></a>
 <h2>See Also</h2>
 <p>In most cases, with recent versions of SQL, it is better to use the native parameter insertion capabilities of the SQL server and protocol. If you are using a version of PostgreSQL more recent then 7.4, consider the optional parameter arguments to pg_exec and pg_sendquery, and the paramarray option to pg_exec, pg_sendquery, and pg_select.</p>
 </div>
