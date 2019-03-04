@@ -16,7 +16,6 @@
 #
 
 
-DOCBOOKDIR=/usr/local/share/sgml/docbook/dsssl/modular/catalog
 STYLESHEET=stylesheet.dsl
 SGMLSOURCE=libpgtcl.sgml
 
@@ -26,10 +25,10 @@ all:	html man pdf
 
 html:	html/HTML.index
 html/HTML.index:	$(SGMLSOURCE)
-	-rm html/*.html html/HTML.index
+	-rm -f html/*.html html/HTML.index
 	-rmdir html
 	-mkdir html
-	cd html && openjade -V draft-mode -wall -wno-unused-param -wno-empty -D .. -c $(DOCBOOKDIR) -d $(STYLESHEET) -i output-html -t sgml $(SGMLSOURCE)
+	cd html && docbook2html -i output-html -d ../$(STYLESHEET) ../$(SGMLSOURCE)
 	-find html/ -type f -name "*.html" -exec tidy5 -quiet -wrap 2000 -modify \{\} \;
 	sh ./clean-html.sh html/*
 
@@ -45,11 +44,11 @@ man:	$(SGMLSOURCE)
 	sh ./clean-man.sh man/*
 
 
+# Install Debian packages docbook-utils and ghostscript
 pdf:	libpgtcl.pdf
 libpgtcl.pdf:	$(SGMLSOURCE)
-	openjade -V draft-mode -D . -c $(DOCBOOKDIR) -d $(STYLESHEET) -t tex -V tex-backend -i output-print -V texpdf-output -o libpgtcl.tex-pdf $(SGMLSOURCE)
-	pdfjadetex libpgtcl.tex-pdf
-	rm -f libpgtcl.tex-pdf
+	docbook2ps -V default-manpage-section=n $(SGMLSOURCE)
+	ps2pdf libpgtcl.ps
 
 clean:
 	rm -f libpgtcl.aux libpgtcl.log libpgtcl.out libpgtcl.tex-pdf libpgtcl.fot
