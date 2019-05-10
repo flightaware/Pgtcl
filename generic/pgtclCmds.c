@@ -707,7 +707,7 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 	for(index = 1; index < objc && nextPositionalArg != EXEC_ARGS; index++) {
 	    char *arg = Tcl_GetString(objv[index]);
-	    if (arg[0] == '-') {
+	    if (arg[0] == '-' && arg[1] != '-') { // a legal SQL statement can start with "--"
 		if(strcmp(arg, "-paramarray") == 0) {
 		    index++;
 		    paramArrayName = Tcl_GetString(objv[index]);
@@ -1821,7 +1821,7 @@ Pg_execute(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 	while (i < objc)
 	{
 		arg = Tcl_GetString(objv[i]);
-		if (arg[0] != '-')
+		if (arg[0] != '-' || arg[1] == '-')
                 {
 		    break;
                 }
@@ -1841,8 +1841,6 @@ Pg_execute(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 			array_varname = Tcl_GetString(objv[i++]);
 			continue;
 		}
-
-		arg = Tcl_GetString(objv[i]);
 
 		if (strcmp(arg, "-oid") == 0)
 		{
