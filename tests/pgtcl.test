@@ -775,6 +775,33 @@ test pgtcl-6.5 {pg_select error code} -body {
 #
 #
 #
+test pgtcl-6.6 {using pg_exec with statement starting with a comment} -body {
+
+    unset -nocomplain res
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+
+    set res [$conn exec {-- something about this statement here
+
+			 SELECT relname
+                           FROM Pg_class
+                          WHERE relname LIKE 'pg_%'
+                       ORDER BY relname
+                          LIMIT 5}]
+
+    set results [pg::result $res -list]
+
+    pg_result $res -clear
+
+    pg_disconnect $conn
+
+    lsort $results
+
+} -result [list pg_aggregate pg_aggregate_fnoid_index pg_am pg_am_name_index pg_am_oid_index]
+
+#
+#
+#
 test pgtcl-7.1 {using pg_select} -body {
 
     unset -nocomplain res
