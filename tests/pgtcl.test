@@ -1111,3 +1111,5 @@ test pgtcl-9.5 {dbinfo socket} -body {
     lappend res [regexp {^[0-9]{1,6}$} $val]
 
 } -result [list 1 1]
+
+puts "tests complete"
