@@ -3,7 +3,7 @@
 #
 # Permission to use, copy, modify, and distribute this software and its
 # documentation for any purpose and without fee is hereby granted, provided
-# that the above copyright notice appear in all copies.  NeoSoft makes no 
+# that the above copyright notice appear in all copies.  NeoSoft makes no
 # representations about the suitability of this software for any purpose.
 # It is provided "as is" without express or implied warranty.
 #
@@ -14,7 +14,7 @@
 # Copyright (C) 2004 Superconnect, Ltd.
 #  Berkeley copyright as above.
 #
-# Copyright (C) 2005-2017 FlightAware, LLC
+# Copyright (C) 2005-2019 FlightAware, LLC
 #  Berkeley copyright as above.
 #
 
@@ -58,13 +58,11 @@ proc quote_sql {string} {
 #
 proc gen_insert_from_array {tableName arrayName} {
     upvar $arrayName array
-
     set nameList [array names array]
-
-    set result "insert into $tableName ([join $nameList ","]) values ("
+    set result [gen_insert_front_part $tableName $nameList]
 
     foreach name $nameList {
-	append result "[pg_quote $array($name)],"
+        append result "[pg_quote $array($name)],"
     }
     return "[string range $result 0 end-1]);"
 }
@@ -107,7 +105,6 @@ proc gen_update_from_array {tableName arrayName keyFields {nullableColumns ""}} 
 # gen_insert_front_part - generate a sql insert front part
 #
 proc gen_insert_front_part {tableName nameList} {
-
     return "insert into $tableName ([join $nameList ","]) values ("
 }
 
@@ -146,18 +143,17 @@ proc perform_insert {session insertStatement} {
 # contents of an element list and a corresponding value list
 #
 proc gen_insert_from_lists {tableName nameList valueList} {
-
-    set result "insert into $tableName ([join $nameList ","]) values ("
+    set result [gen_insert_front_part $tableName $nameList]
 
     foreach value $valueList {
-	append result "[pg_quote $value],"
+        append result "[pg_quote $value],"
     }
     return "[string range $result 0 end-1]);"
 }
 
 #
 # perform_insert_from_lists - generate a sql insert command based on the
-# contents of an element list and a corresponding value list 
+# contents of an element list and a corresponding value list
 # and execute it against the specified database session
 #
 proc perform_insert_from_lists {session tableName nameList valueList} {
