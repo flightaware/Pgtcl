@@ -126,7 +126,7 @@ PgOutputProc(DRIVER_OUTPUT_PROTO)
 	if (bufSize >= 3 && strncmp(&buf[bufSize - 3], "\\.\n", 3) == 0)
 	{
 		bufSize -= 3; // Don't write the terminator using the new API
-		endcopy - 1;
+		endcopy = 1;
 	}
 
 	if (PQputCopyData(conn, buf, bufSize) < 0)
