@@ -29,7 +29,7 @@ static int
 PgEndCopy(Pg_ConnectionId * connid, int *errorCodePtr, int writing)
 {
 	connid->res_copyStatus = RES_COPY_NONE;
-	if (writing && PQPutCopyEnd(connid->conn, NULL) != 1)
+	if (writing && PQputCopyEnd(connid->conn, NULL) != 1)
 	{
 		PQclear(connid->results[connid->res_copy]);
 		connid->results[connid->res_copy] =
@@ -57,6 +57,7 @@ PgInputProc(DRIVER_INPUT_PROTO)
 	Pg_ConnectionId *connid;
 	PGconn	   *conn;
 	int			avail;
+	char	*bufPtr = NULL;
 
 	connid = (Pg_ConnectionId *) cData;
 	conn = connid->conn;
@@ -80,7 +81,7 @@ PgInputProc(DRIVER_INPUT_PROTO)
 
 	/* Move data from libpq's buffer to Tcl's. */
 
-	switch(avail = PQgetCopyData(conn, buf, bufSize)) {
+	switch(avail = PQgetCopyData(conn, &bufPtr, bufSize)) {
 	  case -2: {
 		*errorCodePtr = EIO;
 		return -1;
@@ -88,6 +89,11 @@ PgInputProc(DRIVER_INPUT_PROTO)
 	  case -1: {
 		return PgEndCopy(connid, errorCodePtr, 0);
 	  }
+	}
+
+	if(bufPtr) {
+		memcpy (buf, bufPtr, avail);
+		PQfreemem(bufPtr);
 	}
 
 	return avail;
