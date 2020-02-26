@@ -26,10 +26,10 @@
 #include "pgtclId.h"
 
 static int
-PgEndCopy(Pg_ConnectionId * connid, int *errorCodePtr)
+PgEndCopy(Pg_ConnectionId * connid, int *errorCodePtr, int writing)
 {
 	connid->res_copyStatus = RES_COPY_NONE;
-	if (PQendcopy(connid->conn))
+	if (writing && PQPutCopyEnd(connid->conn, NULL) != 1)
 	{
 		PQclear(connid->results[connid->res_copy]);
 		connid->results[connid->res_copy] =
@@ -80,12 +80,14 @@ PgInputProc(DRIVER_INPUT_PROTO)
 
 	/* Move data from libpq's buffer to Tcl's. */
 
-	avail = PQgetlineAsync(conn, buf, bufSize);
-
-	if (avail < 0)
-	{
-		/* Endmarker detected, change state and return 0 */
-		return PgEndCopy(connid, errorCodePtr);
+	switch(avail = PQgetCopyData(conn, buf, bufSize)) {
+	  case -2: {
+		*errorCodePtr = EIO;
+		return -1;
+	  }
+	  case -1: {
+		return PgEndCopy(connid, errorCodePtr, 0);
+	  }
 	}
 
 	return avail;
@@ -99,6 +101,7 @@ PgOutputProc(DRIVER_OUTPUT_PROTO)
 {
 	Pg_ConnectionId *connid;
 	PGconn	   *conn;
+	int         endcopy = 0;
 
 	connid = (Pg_ConnectionId *) cData;
 	conn = connid->conn;
@@ -110,19 +113,24 @@ PgOutputProc(DRIVER_OUTPUT_PROTO)
 		return -1;
 	}
 
-	if (PQputnbytes(conn, buf, bufSize))
-	{
-		*errorCodePtr = EIO;
-		return -1;
-	}
-
 	/*
 	 * This assumes Tcl script will write the terminator line in a single
 	 * operation; maybe not such a good assumption?
 	 */
 	if (bufSize >= 3 && strncmp(&buf[bufSize - 3], "\\.\n", 3) == 0)
 	{
-		if (PgEndCopy(connid, errorCodePtr) == -1)
+		bufSize -= 3; // Don't write the terminator using the new API
+		endcopy - 1;
+	}
+
+	if (PQputCopyData(conn, buf, bufSize) < 0)
+	{
+		*errorCodePtr = EIO;
+		return -1;
+	}
+
+	if (endcopy) {
+		if (PgEndCopy(connid, errorCodePtr, 1) == -1)
 			return -1;
 	}
 	return bufSize;
