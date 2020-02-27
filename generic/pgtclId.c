@@ -687,12 +687,13 @@ PgGetConnectionId(Tcl_Interp *interp, const char *id, Pg_ConnectionId ** connid_
 int
 PgDelConnectionId(DRIVER_DEL_PROTO)
 {
-	Tcl_HashEntry *entry;
-	Tcl_HashSearch hsearch;
+	Tcl_HashEntry   *entry;
+	Tcl_HashSearch   hsearch;
 	Pg_ConnectionId *connid;
-	Pg_TclNotifies *notifies;
-	int			i;
-        Pg_resultid    *resultid;
+	Pg_TclNotifies  *notifies;
+	int              i;
+        Pg_resultid     *resultid;
+	int              allow_unregister;
 
 
 	connid = (Pg_ConnectionId *) cData;
@@ -742,7 +743,9 @@ PgDelConnectionId(DRIVER_DEL_PROTO)
 	 * pending notify and connection-loss events.
 	 */
 	PgStopNotifyEventSource(connid, 1);
- 
+
+	/* Check if the connection has been broken in the background */
+	allow_unregister = PQsocket(connid->conn) >= 0;
 
 	/* Close the libpq connection too */
 	PQfinish(connid->conn);
@@ -764,7 +767,7 @@ PgDelConnectionId(DRIVER_DEL_PROTO)
 	 * Note we are not leaking a socket, since libpq closed that already.
 	 */
 
-	if (connid->notifier_channel != NULL && interp != NULL)
+	if (allow_unregister && connid->notifier_channel != NULL && interp != NULL)
         {
 		Tcl_UnregisterChannel(NULL, connid->notifier_channel);
          }
