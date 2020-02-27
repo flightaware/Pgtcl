@@ -1039,7 +1039,7 @@ test pgtcl-9.1 {dbinfo version} -body {
     lappend res [string equal $val $val2]
     ::pg::disconnect $conn
 
-    lappend res [regexp {(7|8|9)0([0-9])[012]([0-9])} $val]
+    lappend res [regexp {(7|8|9|10|11|12)0([0-9])[012]([0-9])} $val]
 
 } -result [list 1 1]
 
@@ -1073,7 +1073,11 @@ test pgtcl-9.3 {dbinfo param} -body {
     lappend res [string equal $val $val2]
     ::pg::disconnect $conn
 
-    lappend res [regexp {(7|8|9)\.([0-9])\.([0-9])} $val]
+    set match [regexp {(7|8|9|10|11|12)\.([0-9])\.([0-9])} $val]
+    if {!$match} {
+	set match [regexp {^(10|11|12)\.[1-9][0-9]* \(.*} $val]
+    }
+    lappend res $match
 
 } -result [list 1 1]
 
