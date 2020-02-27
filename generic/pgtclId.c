@@ -916,6 +916,7 @@ getresid(Tcl_Interp *interp, const char *id, Pg_ConnectionId ** connid_p)
 
 	if (!(mark = strrchr(id, '.')))
 	{
+		Tcl_SetResult(interp, "Poorly formated result handle", TCL_STATIC);
 		return -1;
 	}
 	*mark = '\0';
