@@ -108,6 +108,7 @@ PgOutputProc(DRIVER_OUTPUT_PROTO)
 	Pg_ConnectionId *connid;
 	PGconn	   *conn;
 	int         endcopy = 0;
+	int         writeLen;
 
 	connid = (Pg_ConnectionId *) cData;
 	conn = connid->conn;
@@ -119,17 +120,19 @@ PgOutputProc(DRIVER_OUTPUT_PROTO)
 		return -1;
 	}
 
+	writeLen = bufSize;
+
 	/*
 	 * This assumes Tcl script will write the terminator line in a single
 	 * operation; maybe not such a good assumption?
 	 */
-	if (bufSize >= 3 && strncmp(&buf[bufSize - 3], "\\.\n", 3) == 0)
+	if (writeLen >= 3 && strncmp(&buf[writeLen - 3], "\\.\n", 3) == 0)
 	{
-		bufSize -= 3; // Don't write the terminator using the new API
+		writeLen -= 3; // Don't write the terminator using the new API
 		endcopy = 1;
 	}
 
-	if (PQputCopyData(conn, buf, bufSize) < 0)
+	if (PQputCopyData(conn, buf, writeLen) < 0)
 	{
 		*errorCodePtr = EIO;
 		return -1;
