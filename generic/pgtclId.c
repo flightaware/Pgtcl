@@ -601,8 +601,7 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
         }
 	case CONNDEFAULTS:
 	{
-            returnCode = Pg_conndefaults(cData, interp, 1, objvx);
-	    break;
+            return Pg_conndefaults(cData, interp, 1, objvx);
 	}
 	
 	case SET_SINGLE_ROW_MODE:
