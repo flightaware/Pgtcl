@@ -289,7 +289,11 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
         "sendquery_prepared",  "null_value_string", "version", 
         "protocol", "param", "backendpid", "socket", 
 	"conndefaults",  "set_single_row_mode", "is_busy", "blocking",
-	"cancel_request", (char *)NULL
+	"cancel_request",
+#ifdef HAVE_SQLITE3
+	"sqlite"
+#endif
+	(char *)NULL
     };
 
     enum options
@@ -302,7 +306,10 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	SENDQUERY_PREPARED, NULL_VALUE_STRING, VERSION, 
 	PROTOCOL, PARAM, BACKENDPID, SOCKET,
 	CONNDEFAULTS, SET_SINGLE_ROW_MODE, ISBUSY, BLOCKING,
-	CANCELREQUEST
+	CANCELREQUEST,
+#ifdef HAVE_SQLITE3
+	SQLITE3
+#endif
     };
 
     if (objc == 1 || objc > 25)
@@ -605,6 +612,14 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
             returnCode = Pg_cancelrequest(cData, interp, objc, objvx);
 	    break;
 	}
+#ifdef HAVE_SQLITE3
+	case SQLITE3:
+	{
+            objvx[1] = Tcl_NewStringObj(connid->id, -1);
+            returnCode = Pg_sqlite(cData, interp, objc, objvx);
+	    break;
+	}
+#endif
     }
 	Tcl_DecrRefCount(objvx[idx]);
 	return returnCode;
