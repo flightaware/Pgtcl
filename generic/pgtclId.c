@@ -24,6 +24,9 @@
 
 #include "pgtclCmds.h"
 #include "pgtclId.h"
+#ifdef HAVE_SQLITE3
+#  include "pgtclSqlite.h"
+#endif
 
 static int
 PgEndCopy(Pg_ConnectionId * connid, int *errorCodePtr)
@@ -291,7 +294,7 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	"conndefaults",  "set_single_row_mode", "is_busy", "blocking",
 	"cancel_request",
 #ifdef HAVE_SQLITE3
-	"sqlite"
+	"sqlite",
 #endif
 	(char *)NULL
     };
