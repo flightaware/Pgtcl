@@ -1578,9 +1578,9 @@ Pg_copy_complete(ClientData cData, Tcl_Interp *interp, int objc,
 		return TCL_ERROR;
 
 	if (PgEndCopy(connid, &errorCode, 1) == -1) {
-		char *errorMessage = "I/O Error"
+		char *errorMessage = "I/O Error";
 		if(errorCode == EBUSY) {
-			errorMessage = "Busy"
+			errorMessage = "Busy";
 		}
 		Tcl_SetObjResult(interp, Tcl_NewStringObj(errorMessage, -1));
 		return TCL_ERROR;

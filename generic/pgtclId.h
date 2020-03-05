@@ -125,3 +125,6 @@ extern void PgDelCmdHandle(ClientData cData);
 extern void PgDelResultHandle(ClientData cData);
 
 extern Tcl_ChannelType Pg_ConnType;
+
+extern int Pg_copy_complete(
+  ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
