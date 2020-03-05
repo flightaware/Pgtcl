@@ -97,6 +97,7 @@ static PgCmd commands[] = {
     {"pg_dbinfo", "::pg::dbinfo", Pg_dbinfo,2},
     {"pg_getdata", "::pg::getdata", Pg_getdata,2},
     {"pg_sql", "::pg::sql", Pg_sql,2},
+    {"pg_copy_complete", "::pg::copy_complete", Pg_copy_complete, 3},
 #ifdef HAVE_SQLITE3
     {"pg_sqlite", "::pg::sqlite", Pg_sqlite, 3},
 #endif

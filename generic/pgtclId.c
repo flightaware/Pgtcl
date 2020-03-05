@@ -309,7 +309,7 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
         "sendquery_prepared",  "null_value_string", "version", 
         "protocol", "param", "backendpid", "socket", 
 	"conndefaults",  "set_single_row_mode", "is_busy", "blocking",
-	"cancel_request",
+	"cancel_request", "copy_complete",
 #ifdef HAVE_SQLITE3
 	"sqlite",
 #endif
@@ -326,7 +326,7 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	SENDQUERY_PREPARED, NULL_VALUE_STRING, VERSION, 
 	PROTOCOL, PARAM, BACKENDPID, SOCKET,
 	CONNDEFAULTS, SET_SINGLE_ROW_MODE, ISBUSY, BLOCKING,
-	CANCELREQUEST,
+	CANCELREQUEST, COPY_COMPLETE,
 #ifdef HAVE_SQLITE3
 	SQLITE3
 #endif
@@ -459,7 +459,7 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
                      Tcl_GetString(objvx[objvxi]));
             }
             */
-               
+
             idx += num;
             objvx[idx] = Tcl_NewStringObj(connid->id, -1);
             returnCode = Pg_execute(cData, interp, objc, objvx);
@@ -631,6 +631,14 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
             returnCode = Pg_cancelrequest(cData, interp, objc, objvx);
 	    break;
 	}
+
+	case COPY_COMPLETE:
+	{
+            objvx[1] = Tcl_NewStringObj(connid->id, -1);
+            returnCode = Pg_copy_complete(cData, interp, objc, objvx);
+	    break;
+	}
+
 #ifdef HAVE_SQLITE3
 	case SQLITE3:
 	{
@@ -1538,3 +1546,46 @@ PgDelResultHandle(ClientData cData)
 
     return;
 }
+
+/**********************************
+ * pg_copy_complete
+ *
+ * complete a COPY IN operation
+ *
+ * Usage: pg_copy_complete connection
+ *
+ **********************************/
+
+int
+Pg_copy_complete(ClientData cData, Tcl_Interp *interp, int objc,
+				 Tcl_Obj *CONST objv[])
+{
+	Pg_ConnectionId *connid;
+	PGconn	   *conn;
+	char	   *connString;
+	int         errorCode;
+
+	if (objc != 2)
+	{
+		Tcl_WrongNumArgs(interp, 1, objv, "connection");
+		return TCL_ERROR;
+	}
+
+	connString = Tcl_GetString(objv[1]);
+
+	conn = PgGetConnectionId(interp, connString, &connid);
+	if (conn == NULL)
+		return TCL_ERROR;
+
+	if (PgEndCopy(connid, &errorCode, 1) == -1) {
+		char *errorMessage = "I/O Error"
+		if(errorCode == EBUSY) {
+			errorMessage = "Busy"
+		}
+		Tcl_SetObjResult(interp, Tcl_NewStringObj(errorMessage, -1));
+		return TCL_ERROR;
+	}
+
+	return TCL_OK;
+}
+
