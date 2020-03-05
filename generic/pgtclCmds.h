@@ -127,4 +127,7 @@ extern int Pg_getdata(
 extern int Pg_sql(
   ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 
+extern int Pg_copy(
+  ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+
 #endif   /* PGTCLCMDS_H */

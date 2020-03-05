@@ -4547,6 +4547,70 @@ Pg_unescapeBytea(ClientData cData, Tcl_Interp *interp, int objc,
     return TCL_OK;
 }
 
+/*
+ *----------------------------------------------------------------------
+ *
+ * Pg_copy --
+ *
+ *    Implements COPY commands, copy in, copy out, copy end, copy status
+ *
+ *    pg_copy in - write a block of data to postgresql
+ *    pg_copy end - tell server the copy is completed
+ *    pg_copy out - reads a row of data from postgresql
+ *    pg_copy status - get result status from server
+ *----------------------------------------------------------------------
+ */
+int
+Pg_copy(ClientData cData, Tcl_Interp *interp, int objc,
+				 Tcl_Obj *CONST objv[])
+{
+    int             optIndex;
+
+    static const char *cmdargs = "in|out|end|status";";
+
+    static const char *options[] = {
+	"in", "out", "end", "status",
+	NULL
+    };
+
+    enum options
+    {
+	OPT_IN, OPT_OUT, OPT_END, OPT_STATUS
+    };
+
+    if (objc <= 2)
+    {
+	Tcl_WrongNumArgs(interp,1,objv,cmdargs);
+        return TCL_ERROR;
+    }
+
+    if (Tcl_GetIndexFromObj(interp, objv[1], options, "option", TCL_EXACT, &optIndex) != TCL_OK) {
+	return TCL_ERROR;
+    }
+
+    /* 
+     * this is common for most cmdargs, so do it upfront
+     */
+    connString = Tcl_GetString(objv[2]);
+    conn_chan = Tcl_GetChannel(interp, connString, 0);
+    if (conn_chan == NULL)
+    {
+	tresult = Tcl_NewStringObj(connString, -1);
+	Tcl_AppendStringsToObj(tresult, " is not a valid connection", NULL);
+	Tcl_SetObjResult(interp, tresult);
+
+	return TCL_ERROR;
+    }
+
+    /* Check that it is a PG connection and not something else */
+    connid = (Pg_ConnectionId *) Tcl_GetChannelInstanceData(conn_chan);
+
+    if (connid->conn == NULL) {
+	return TCL_ERROR;
+    }
+}
+
+
 
 /*
  *----------------------------------------------------------------------

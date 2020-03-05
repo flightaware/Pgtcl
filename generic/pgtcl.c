@@ -100,6 +100,7 @@ static PgCmd commands[] = {
 #ifdef HAVE_SQLITE3
     {"pg_sqlite", "::pg::sqlite", Pg_sqlite, 3},
 #endif
+    {"pg_copy", "::pg::copy", Pg_copy, 3},
     {NULL, NULL, NULL, 0}
 };
 
