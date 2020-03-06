@@ -1116,4 +1116,141 @@ test pgtcl-9.5 {dbinfo socket} -body {
 
 } -result [list 1 1]
 
+#
+# COPY in/out tests
+#
+test pgtcl-10.1 {copy in} -body {
+    unset -nocomplain res
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+
+    set r [pg_exec $conn {
+    CREATE TEMPORARY TABLE test1011 (
+	key text primary key,
+	val text
+    );
+    }]
+    set ok 1
+    if {[pg_result $r -status] ne "PGRES_COMMAND_OK"} {
+	set ok 0
+	set result "ERROR [pg_result $r -status] [pg_result $r -error]"
+    }
+    pg_result $r -clear
+
+    if {$ok} {
+	set r [pg_exec $conn "COPY test1011 FROM stdin with DELIMITER as '\t';"]
+	if {"[pg_result $r -status]" ne "PGRES_COPY_IN"} {
+	    set ok 0
+	    set result "ERROR [pg_result $r -status] [pg_result $r -error]"
+	} else {
+	    puts $conn "name	batfink"
+	    puts $conn "wings	steel"
+	    puts $conn "type	superhero"
+	    puts $conn "studio	Hal Seeger Studios"
+	    puts $conn "\\."
+	}
+    }
+
+    if {$ok} {
+	set result {}
+	pg_select $conn -nodotfields "select key,val from test1011 ORDER BY key;" row {
+	    lappend result [array get row]
+	}
+    }
+
+    ::pg::disconnect $conn
+
+    set result
+} -result {{key name val batfink} {key studio val {Hal Seeger Studios}} {key type val superhero} {key wings val steel}}
+
+#
+#
+#
+test pgtcl-10.2 {copy in new API} -body {
+    unset -nocomplain res
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+
+    set r [pg_exec $conn {
+    CREATE TEMPORARY TABLE test1011 (
+	key text primary key,
+	val text
+    );
+    }]
+    set ok 1
+    if {[pg_result $r -status] ne "PGRES_COMMAND_OK"} {
+	set ok 0
+	set result "ERROR [pg_result $r -status] [pg_result $r -error]"
+    }
+    pg_result $r -clear
+
+    if {$ok} {
+	set r [pg_exec $conn "COPY test1011 FROM stdin with DELIMITER as '\t';"]
+	if {"[pg_result $r -status]" ne "PGRES_COPY_IN"} {
+	    set ok 0
+	    set result "ERROR [pg_result $r -status] [pg_result $r -error]"
+	} else {
+	    puts $conn "name	batfink"
+	    puts $conn "wings	steel"
+	    puts $conn "type	superhero"
+	    puts $conn "studio	Hal Seeger Studios"
+	    $conn copy_complete
+	}
+    }
+
+    if {$ok} {
+	set result {}
+	pg_select $conn -nodotfields "select key,val from test1011 ORDER BY key;" row {
+	    lappend result [array get row]
+	}
+    }
+
+    ::pg::disconnect $conn
+
+    set result
+} -result {{key name val batfink} {key studio val {Hal Seeger Studios}} {key type val superhero} {key wings val steel}}
+
+#
+#
+#
+test pgtcl-10.3 {copy out} -body {
+    unset -nocomplain res
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+
+    set r [pg_exec $conn {
+    CREATE TEMPORARY TABLE test1011 (
+	key text primary key,
+	val text
+    );
+    INSERT INTO test1011 (key, val) VALUES ('name', 'batfink');
+    INSERT INTO test1011 (key, val) VALUES ('wings', 'steel');
+    INSERT INTO test1011 (key, val) VALUES ('type', 'superhero');
+    INSERT INTO test1011 (key, val) VALUES ('studio', 'Hal Seeger Studios');
+    }]
+    set ok 1
+    if {[pg_result $r -status] ne "PGRES_COMMAND_OK"} {
+	set ok 0
+	set result "ERROR [pg_result $r -status] [pg_result $r -error]"
+    }
+    pg_result $r -clear
+
+    if {$ok} {
+	set r [pg_exec $conn "COPY test1011 TO stdout with DELIMITER as '\t';"]
+	if {"[pg_result $r -status]" eq "PGRES_COPY_OUT"} {
+	    set result {}
+	    while {[gets $conn line]>= 0} {
+		lappend result [split $line "\t"]
+	    }
+	} else {
+	    set result "ERROR [pg_result $r -status] [pg_result $r -error]"
+	}
+	pg_result $r -clear
+	set result [lsort -index 0 $result]
+    }
+    ::pg::disconnect $conn
+
+    set result
+} -result {{name batfink} {studio {Hal Seeger Studios}} {type superhero} {wings steel}}
+
 puts "tests complete"
