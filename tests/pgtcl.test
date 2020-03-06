@@ -1213,7 +1213,7 @@ test pgtcl-10.2 {copy in new API} -body {
 #
 #
 #
-test pgtcl-10.3 {copy in new API} -body {
+test pgtcl-10.3 {copy out} -body {
     unset -nocomplain res
 
     set conn [pg::connect -connlist [array get ::conninfo]]
