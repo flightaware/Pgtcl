@@ -605,9 +605,15 @@ test pgtcl-4.18 {test pg_result -lAttributes} -body {
 
     pg_disconnect $conn
 
-    set stat
+# drop actual type details (oid, size) because they're not stable
 
-} -result [list [list col1 705 -2] [list col2 705 -2]]
+    set names {}
+    foreach tuple $stat {
+	lappend names [lindex $tuple 0]
+    }
+
+    set names
+} -result [list col1 col2]
 
 #
 #
