@@ -94,6 +94,12 @@ PgInputProc(DRIVER_INPUT_PROTO)
 	  }
 	}
 
+	/* Should never happen */
+	if(avail < 0) {
+		*errorCodePtr = EIO;
+		return -1;
+	}
+
 	if(bufPtr) {
 		memcpy (buf, bufPtr, avail);
 		PQfreemem(bufPtr);
