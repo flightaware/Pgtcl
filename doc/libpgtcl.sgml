@@ -238,6 +238,11 @@ $Header$
     <entry><function>pg::sqlite</function></entry>
     <entry>bridge between pgtcl and the Tcl sqlite package (when compiled with sqlite bridge)</entry>
   </row>
+  <row>
+    <entry><function>pg_copy_complete</function></entry>
+    <entry><function>pg::copy_complete</function></entry>
+    <entry>Complete <command>COPY FROM stdin</command> operation after finished writing</entry>
+  </row>
 </tbody>
 </tgroup>
 </table>
@@ -4460,6 +4465,51 @@ pg_sqlite <parameter>sqlite_db</parameter> <parameter>command</parameter> <optio
    <ProductName>Sqlite 3</ProductName>
   </para>
  </refsect1>
+</refentry>
+
+<refentry ID="PGTCL-PGCOPYCOMPLETE">
+ <refmeta>
+  <refentrytitle>pg_compy_complete</refentrytitle>
+ </refmeta>
+
+ <refnamediv>
+  <refname>pg_compy_complete</refname>
+  <refpurpose>Completes a <command>COPY FROM stdin</command> operation
+ </refpurpose>
+  <indexterm ID="IX-PGTCL-COPY_COMPLETE"><primary>pg_copy_complete</primary></indexterm>
+ </refnamediv>
+
+ <refsynopsisdiv>
+<synopsis>
+pg_copy_complete conn
+</synopsis>
+ </refsynopsisdiv>
+
+ <refsect1>
+  <title>Description</title>
+
+  <para>
+   <function>pg_copy_complete</function> completes a <command>COPY FROM stdin</command> operation. After writing the rows to the postgres connection handle, this tells postgres that the copy is completed and it can return to normal operation.
+  </para>
+ </refsect1>
+
+ <refsect1>
+  <title>Arguments</title>
+
+  <variablelist>
+
+   <varlistentry>
+    <term><parameter>conn</parameter></term>
+    <listitem>
+     <para>
+      An postgresql connection handle.
+     </para>
+    </listitem>
+   </varlistentry>
+
+  </variablelist>
+ </refsect1>
+
 </refentry>
 
 <refentry ID="PGTCL-PGGETCONNECTIONID">
