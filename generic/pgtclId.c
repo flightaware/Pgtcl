@@ -29,10 +29,10 @@
 #endif
 
 static int
-PgEndCopy(Pg_ConnectionId * connid, int *errorCodePtr)
+PgEndCopy(Pg_ConnectionId * connid, int *errorCodePtr, int writing)
 {
 	connid->res_copyStatus = RES_COPY_NONE;
-	if (PQendcopy(connid->conn))
+	if (writing && PQputCopyEnd(connid->conn, NULL) != 1)
 	{
 		PQclear(connid->results[connid->res_copy]);
 		connid->results[connid->res_copy] =
@@ -60,6 +60,7 @@ PgInputProc(DRIVER_INPUT_PROTO)
 	Pg_ConnectionId *connid;
 	PGconn	   *conn;
 	int			avail;
+	char	*bufPtr = NULL;
 
 	connid = (Pg_ConnectionId *) cData;
 	conn = connid->conn;
@@ -83,12 +84,25 @@ PgInputProc(DRIVER_INPUT_PROTO)
 
 	/* Move data from libpq's buffer to Tcl's. */
 
-	avail = PQgetlineAsync(conn, buf, bufSize);
+	switch(avail = PQgetCopyData(conn, &bufPtr, bufSize)) {
+	  case -2: {
+		*errorCodePtr = EIO;
+		return -1;
+	  }
+	  case -1: {
+		return PgEndCopy(connid, errorCodePtr, 0);
+	  }
+	}
 
-	if (avail < 0)
-	{
-		/* Endmarker detected, change state and return 0 */
-		return PgEndCopy(connid, errorCodePtr);
+	/* Should never happen */
+	if(avail < 0) {
+		*errorCodePtr = EIO;
+		return -1;
+	}
+
+	if(bufPtr) {
+		memcpy (buf, bufPtr, avail);
+		PQfreemem(bufPtr);
 	}
 
 	return avail;
@@ -102,6 +116,8 @@ PgOutputProc(DRIVER_OUTPUT_PROTO)
 {
 	Pg_ConnectionId *connid;
 	PGconn	   *conn;
+	int         endcopy = 0;
+	int         writeLen;
 
 	connid = (Pg_ConnectionId *) cData;
 	conn = connid->conn;
@@ -113,19 +129,26 @@ PgOutputProc(DRIVER_OUTPUT_PROTO)
 		return -1;
 	}
 
-	if (PQputnbytes(conn, buf, bufSize))
-	{
-		*errorCodePtr = EIO;
-		return -1;
-	}
+	writeLen = bufSize;
 
 	/*
 	 * This assumes Tcl script will write the terminator line in a single
 	 * operation; maybe not such a good assumption?
 	 */
-	if (bufSize >= 3 && strncmp(&buf[bufSize - 3], "\\.\n", 3) == 0)
+	if (writeLen >= 3 && strncmp(&buf[writeLen - 3], "\\.\n", 3) == 0)
 	{
-		if (PgEndCopy(connid, errorCodePtr) == -1)
+		writeLen -= 3; // Don't write the terminator using the new API
+		endcopy = 1;
+	}
+
+	if (PQputCopyData(conn, buf, writeLen) < 0)
+	{
+		*errorCodePtr = EIO;
+		return -1;
+	}
+
+	if (endcopy) {
+		if (PgEndCopy(connid, errorCodePtr, 1) == -1)
 			return -1;
 	}
 	return bufSize;
@@ -292,7 +315,7 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
         "sendquery_prepared",  "null_value_string", "version", 
         "protocol", "param", "backendpid", "socket", 
 	"conndefaults",  "set_single_row_mode", "is_busy", "blocking",
-	"cancel_request",
+	"cancel_request", "copy_complete",
 #ifdef HAVE_SQLITE3
 	"sqlite",
 #endif
@@ -309,7 +332,7 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	SENDQUERY_PREPARED, NULL_VALUE_STRING, VERSION, 
 	PROTOCOL, PARAM, BACKENDPID, SOCKET,
 	CONNDEFAULTS, SET_SINGLE_ROW_MODE, ISBUSY, BLOCKING,
-	CANCELREQUEST,
+	CANCELREQUEST, COPY_COMPLETE,
 #ifdef HAVE_SQLITE3
 	SQLITE3
 #endif
@@ -442,7 +465,7 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
                      Tcl_GetString(objvx[objvxi]));
             }
             */
-               
+
             idx += num;
             objvx[idx] = Tcl_NewStringObj(connid->id, -1);
             returnCode = Pg_execute(cData, interp, objc, objvx);
@@ -614,6 +637,14 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
             returnCode = Pg_cancelrequest(cData, interp, objc, objvx);
 	    break;
 	}
+
+	case COPY_COMPLETE:
+	{
+            objvx[1] = Tcl_NewStringObj(connid->id, -1);
+            returnCode = Pg_copy_complete(cData, interp, objc, objvx);
+	    break;
+	}
+
 #ifdef HAVE_SQLITE3
 	case SQLITE3:
 	{
@@ -1521,3 +1552,46 @@ PgDelResultHandle(ClientData cData)
 
     return;
 }
+
+/**********************************
+ * pg_copy_complete
+ *
+ * complete a COPY IN operation
+ *
+ * Usage: pg_copy_complete connection
+ *
+ **********************************/
+
+int
+Pg_copy_complete(ClientData cData, Tcl_Interp *interp, int objc,
+				 Tcl_Obj *CONST objv[])
+{
+	Pg_ConnectionId *connid;
+	PGconn	   *conn;
+	char	   *connString;
+	int         errorCode;
+
+	if (objc != 2)
+	{
+		Tcl_WrongNumArgs(interp, 1, objv, "connection");
+		return TCL_ERROR;
+	}
+
+	connString = Tcl_GetString(objv[1]);
+
+	conn = PgGetConnectionId(interp, connString, &connid);
+	if (conn == NULL)
+		return TCL_ERROR;
+
+	if (PgEndCopy(connid, &errorCode, 1) == -1) {
+		char *errorMessage = "I/O Error";
+		if(errorCode == EBUSY) {
+			errorMessage = "Busy";
+		}
+		Tcl_SetObjResult(interp, Tcl_NewStringObj(errorMessage, -1));
+		return TCL_ERROR;
+	}
+
+	return TCL_OK;
+}
+
