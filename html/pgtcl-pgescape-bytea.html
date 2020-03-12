@@ -28,17 +28,17 @@
 </table>
 <hr align="left" width="100%"></div>
 <h1><a name="PGTCL-PGESCAPE-BYTEA" id="PGTCL-PGESCAPE-BYTEA"></a>pg_escape_bytea</h1>
-<div class="REFNAMEDIV"><a name="AEN1727" id="AEN1727"></a>
+<div class="REFNAMEDIV"><a name="AEN1734" id="AEN1734"></a>
 <h2>Name</h2>
 pg_escape_bytea&nbsp;--&nbsp;escapes a binary string for inclusion into SQL statements. <a name="IX-PGTCL-PGESCAPE-BYTEA-2" id="IX-PGTCL-PGESCAPE-BYTEA-2"></a></div>
-<div class="REFSYNOPSISDIV"><a name="AEN1732" id="AEN1732"></a>
+<div class="REFSYNOPSISDIV"><a name="AEN1739" id="AEN1739"></a>
 <h2>Synopsis</h2>
 <pre class="SYNOPSIS">pg_escape_bytea <code class="PARAMETER">string</code></pre></div>
-<div class="REFSECT1"><a name="AEN1735" id="AEN1735"></a>
+<div class="REFSECT1"><a name="AEN1742" id="AEN1742"></a>
 <h2>Description</h2>
 <p><code class="FUNCTION">pg_escape_bytea</code> escapes a binary string, making it safe for inclusion into SQL statements.</p>
 <pre class="PROGRAMLISTING">    pg_exec $conn "insert into foo values ([pg_escape_binary $name]);" </pre></div>
-<div class="REFSECT1"><a name="AEN1741" id="AEN1741"></a>
+<div class="REFSECT1"><a name="AEN1748" id="AEN1748"></a>
 <h2>Arguments</h2>
 <div class="VARIABLELIST">
 <dl>
@@ -49,7 +49,7 @@ pg_escape_bytea&nbsp;--&nbsp;escapes a binary string for inclusion into SQL stat
 </dl>
 </div>
 </div>
-<div class="REFSECT1"><a name="AEN1749" id="AEN1749"></a>
+<div class="REFSECT1"><a name="AEN1756" id="AEN1756"></a>
 <h2>Return Value</h2>
 <p>Returns the binary string, escaped for inclusion into SQL queries.</p>
 </div>

@@ -9,7 +9,7 @@
 <link rel="HOME" title="PostgreSQL Tcl Interface Documentation" href="index.html">
 <link rel="UP" title="pgtcl Command Reference" href="libpgtcl-ref.html">
 <link rel="PREVIOUS" title="pg_lo_export" href="pgtcl-pgloexport.html">
-<link rel="NEXT" title="PgGetConnectionId" href="pgtcl-pggetconnectionid.html">
+<link rel="NEXT" title="pg_copy_complete" href="pgtcl-pgcopycomplete.html">
 <link rel="STYLESHEET" type="text/css" href="stylesheet.css">
 </head>
 <body class="REFENTRY">
@@ -22,24 +22,24 @@
 <td width="10%" align="left" valign="top"><a href="pgtcl-pgloexport.html" accesskey="P">Prev</a></td>
 <td width="10%" align="left" valign="top"><a href="pgtcl-pgloexport.html">Fast Backward</a></td>
 <td width="60%" align="center" valign="bottom"></td>
-<td width="10%" align="right" valign="top"><a href="pgtcl-pggetconnectionid.html">Fast Forward</a></td>
-<td width="10%" align="right" valign="top"><a href="pgtcl-pggetconnectionid.html" accesskey="N">Next</a></td>
+<td width="10%" align="right" valign="top"><a href="pgtcl-pgcopycomplete.html">Fast Forward</a></td>
+<td width="10%" align="right" valign="top"><a href="pgtcl-pgcopycomplete.html" accesskey="N">Next</a></td>
 </tr>
 </table>
 <hr align="left" width="100%"></div>
 <h1><a name="PGTCL-PGSQLITE" id="PGTCL-PGSQLITE"></a>pg_sqlite</h1>
-<div class="REFNAMEDIV"><a name="AEN2224" id="AEN2224"></a>
+<div class="REFNAMEDIV"><a name="AEN2231" id="AEN2231"></a>
 <h2>Name</h2>
 pg_sqlite&nbsp;--&nbsp;implements a bridge between PostgreSQL and Sqlite3 using the Pgtcl and sqlite3 packages. <a name="IX-PGTCL-SQLITE2-2" id="IX-PGTCL-SQLITE2-2"></a></div>
-<div class="REFSYNOPSISDIV"><a name="AEN2229" id="AEN2229"></a>
+<div class="REFSYNOPSISDIV"><a name="AEN2236" id="AEN2236"></a>
 <h2>Synopsis</h2>
 <pre class="SYNOPSIS">pg_sqlite <code class="PARAMETER">sqlite_db</code> <code class="PARAMETER">command</code> [<span class="OPTIONAL">args</span>]</pre></div>
-<div class="REFSECT1"><a name="AEN2234" id="AEN2234"></a>
+<div class="REFSECT1"><a name="AEN2241" id="AEN2241"></a>
 <h2>Description</h2>
 <p><code class="FUNCTION">pg_sqlite</code> can import the results of a Postgres SQL query (previously made via <code class="FUNCTION">pg_exec</code>) directly into an sqlite3 table, export the results of an Sqlite SQL query into a Postgres table (via <tt class="LITERAL">write_tabsep</tt>), or import TSV files directly into sqlite3.</p>
 <p>The commands currently implemented are import_postgres_result, read_tabsep, write_tabsep, and read_tabsep_keylist.</p>
 </div>
-<div class="REFSECT1"><a name="AEN2241" id="AEN2241"></a>
+<div class="REFSECT1"><a name="AEN2248" id="AEN2248"></a>
 <h2>Arguments</h2>
 <div class="VARIABLELIST">
 <dl>
@@ -58,7 +58,7 @@ pg_sqlite&nbsp;--&nbsp;implements a bridge between PostgreSQL and Sqlite3 using 
 </dl>
 </div>
 </div>
-<div class="REFSECT1"><a name="AEN2265" id="AEN2265"></a>
+<div class="REFSECT1"><a name="AEN2272" id="AEN2272"></a>
 <h2>Commands</h2>
 <p><tt class="COMMAND">info</tt></p>
 <pre class="SYNOPSIS">    <code class="FUNCTION">pg_sqlite</code> <code class="PARAMETER">sqlite_db</code> info
@@ -351,16 +351,16 @@ pg_sqlite&nbsp;--&nbsp;implements a bridge between PostgreSQL and Sqlite3 using 
 </dl>
 </div>
 </div>
-<div class="REFSECT1"><a name="AEN2653" id="AEN2653"></a>
+<div class="REFSECT1"><a name="AEN2660" id="AEN2660"></a>
 <h2>Types</h2>
 <p><span class="emphasis"><i class="EMPHASIS">A note on types:</i></span> <code class="FUNCTION">pg_sqlite</code> supports four types: <tt class="LITERAL">integer</tt> (or int), <tt class="LITERAL">boolean</tt> (or bool), <tt class="LITERAL">double</tt> (or real), and <tt class="LITERAL">text</tt>. <tt class="LITERAL">Integer</tt>, <tt class="LITERAL">double</tt>, and <tt class="LITERAL">text</tt> match both sqlite and postgresql types. <tt class="LITERAL">Boolean</tt> is an integer type in sqlite, and boolean in postgresql, and converts postgresql boolean values (such as 'yes', 'no', 'true', or 'false') to integer 1 and 0.</p>
 <p>In addition, <code class="FUNCTION">pg_sqlite</code> will accept PostgreSQL boolean values for the integer type. This may be made conditional on a "strict" mode in the future.</p>
 </div>
-<div class="REFSECT1"><a name="AEN2668" id="AEN2668"></a>
+<div class="REFSECT1"><a name="AEN2675" id="AEN2675"></a>
 <h2>Return Value</h2>
 <p>Number of rows imported or exported.</p>
 </div>
-<div class="REFSECT1"><a name="AEN2671" id="AEN2671"></a>
+<div class="REFSECT1"><a name="AEN2678" id="AEN2678"></a>
 <h2>See Also</h2>
 <p><span class="PRODUCTNAME">Sqlite 3</span></p>
 </div>
@@ -370,12 +370,12 @@ pg_sqlite&nbsp;--&nbsp;implements a bridge between PostgreSQL and Sqlite3 using 
 <tr>
 <td width="33%" align="left" valign="top"><a href="pgtcl-pgloexport.html" accesskey="P">Prev</a></td>
 <td width="34%" align="center" valign="top"><a href="index.html" accesskey="H">Home</a></td>
-<td width="33%" align="right" valign="top"><a href="pgtcl-pggetconnectionid.html" accesskey="N">Next</a></td>
+<td width="33%" align="right" valign="top"><a href="pgtcl-pgcopycomplete.html" accesskey="N">Next</a></td>
 </tr>
 <tr>
 <td width="33%" align="left" valign="top">pg_lo_export</td>
 <td width="34%" align="center" valign="top"><a href="libpgtcl-ref.html" accesskey="U">Up</a></td>
-<td width="33%" align="right" valign="top">PgGetConnectionId</td>
+<td width="33%" align="right" valign="top">pg_copy_complete</td>
 </tr>
 </table>
 </div>
