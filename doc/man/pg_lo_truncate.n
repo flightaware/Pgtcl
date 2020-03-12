@@ -3,7 +3,7 @@
 .\" <http://shell.ipoline.com/~elmert/comp/docbook2X/> 
 .\" Please send any bug reports, improvements, comments, patches, 
 .\" etc. to Steve Cheng <steve@ggi-project.org>.
-.TH "PG_LO_TRUNCATE" "" "04 March 2019" "" "PostgreSQL Tcl Interface Documentation"
+.TH "PG_LO_TRUNCATE" "" "12 March 2020" "" "PostgreSQL Tcl Interface Documentation"
 
 .SH NAME
 pg_lo_truncate \- Truncate a large object to a given length

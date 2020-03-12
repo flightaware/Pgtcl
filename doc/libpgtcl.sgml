@@ -4469,14 +4469,14 @@ pg_sqlite <parameter>sqlite_db</parameter> <parameter>command</parameter> <optio
 
 <refentry ID="PGTCL-PGCOPYCOMPLETE">
  <refmeta>
-  <refentrytitle>pg_compy_complete</refentrytitle>
+  <refentrytitle>pg_copy_complete</refentrytitle>
  </refmeta>
 
  <refnamediv>
   <refname>pg_compy_complete</refname>
   <refpurpose>Completes a <command>COPY FROM stdin</command> operation
  </refpurpose>
-  <indexterm ID="IX-PGTCL-COPY_COMPLETE"><primary>pg_copy_complete</primary></indexterm>
+  <indexterm ID="IX-PGTCL-COPY-COMPLETE"><primary>pg_copy_complete</primary></indexterm>
  </refnamediv>
 
  <refsynopsisdiv>

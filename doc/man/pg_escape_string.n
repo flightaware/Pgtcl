@@ -3,7 +3,7 @@
 .\" <http://shell.ipoline.com/~elmert/comp/docbook2X/> 
 .\" Please send any bug reports, improvements, comments, patches, 
 .\" etc. to Steve Cheng <steve@ggi-project.org>.
-.TH "PG_ESCAPE_STRING" "" "04 March 2019" "" "PostgreSQL Tcl Interface Documentation"
+.TH "PG_ESCAPE_STRING" "" "12 March 2020" "" "PostgreSQL Tcl Interface Documentation"
 
 .SH NAME
 pg_escape_string \- escapes a string for inclusion into SQL statements. This is the same as pg_quote. It was added for consistency.

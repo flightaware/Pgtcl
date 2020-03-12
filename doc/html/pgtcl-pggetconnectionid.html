@@ -8,7 +8,7 @@
 <link rev="MADE" href="mailto:pgsql-docs@postgresql.org">
 <link rel="HOME" title="PostgreSQL Tcl Interface Documentation" href="index.html">
 <link rel="UP" title="pgtcl Command Reference" href="libpgtcl-ref.html">
-<link rel="PREVIOUS" title="pg_sqlite" href="pgtcl-pgsqlite.html">
+<link rel="PREVIOUS" title="pg_copy_complete" href="pgtcl-pgcopycomplete.html">
 <link rel="NEXT" title="Tcl Namespace Support" href="pgtcl-tclnamespace.html">
 <link rel="STYLESHEET" type="text/css" href="stylesheet.css">
 </head>
@@ -19,8 +19,8 @@
 <th colspan="5" align="center" valign="bottom">PostgreSQL Tcl Interface Documentation</th>
 </tr>
 <tr>
-<td width="10%" align="left" valign="top"><a href="pgtcl-pgsqlite.html" accesskey="P">Prev</a></td>
-<td width="10%" align="left" valign="top"><a href="pgtcl-pgsqlite.html">Fast Backward</a></td>
+<td width="10%" align="left" valign="top"><a href="pgtcl-pgcopycomplete.html" accesskey="P">Prev</a></td>
+<td width="10%" align="left" valign="top"><a href="pgtcl-pgcopycomplete.html">Fast Backward</a></td>
 <td width="60%" align="center" valign="bottom"></td>
 <td width="10%" align="right" valign="top"><a href="libpgtcl.html">Fast Forward</a></td>
 <td width="10%" align="right" valign="top"><a href="pgtcl-tclnamespace.html" accesskey="N">Next</a></td>
@@ -28,18 +28,18 @@
 </table>
 <hr align="left" width="100%"></div>
 <h1><a name="PGTCL-PGGETCONNECTIONID" id="PGTCL-PGGETCONNECTIONID"></a>PgGetConnectionId</h1>
-<div class="REFNAMEDIV"><a name="AEN2678" id="AEN2678"></a>
+<div class="REFNAMEDIV"><a name="AEN2709" id="AEN2709"></a>
 <h2>Name</h2>
 PgGetConnectionId&nbsp;--&nbsp;Provides access to the underlying <tt class="LITERAL">libpq</tt> SQL connection handle. <a name="IX-PGTCL-C-API-2" id="IX-PGTCL-C-API-2"></a></div>
-<div class="REFSYNOPSISDIV"><a name="AEN2684" id="AEN2684"></a>
+<div class="REFSYNOPSISDIV"><a name="AEN2715" id="AEN2715"></a>
 <h2>Synopsis</h2>
 <pre class="SYNOPSIS">extern PGconn *PgGetConnectionId(Tcl_Interp *interp, const char *handle, Pg_ConnectionId **connid);</pre></div>
-<div class="REFSECT1"><a name="AEN2686" id="AEN2686"></a>
+<div class="REFSECT1"><a name="AEN2717" id="AEN2717"></a>
 <h2>Description</h2>
 <p><code class="FUNCTION">PgGetConnectionId</code> returns the underlying <tt class="LITERAL">PGconn</tt> handle. This is intended to allow Tcl extensions to Pgtcl to use the existing database connection.</p>
 <p>The <tt class="LITERAL">Pg_ConnectionId</tt> structure provides access to more internals of the Pgtcl handle, but may be ignored in most cases.</p>
 </div>
-<div class="REFSECT1"><a name="AEN2693" id="AEN2693"></a>
+<div class="REFSECT1"><a name="AEN2724" id="AEN2724"></a>
 <h2>Parameters</h2>
 <div class="VARIABLELIST">
 <dl>
@@ -58,7 +58,7 @@ PgGetConnectionId&nbsp;--&nbsp;Provides access to the underlying <tt class="LITE
 </dl>
 </div>
 </div>
-<div class="REFSECT1"><a name="AEN2711" id="AEN2711"></a>
+<div class="REFSECT1"><a name="AEN2742" id="AEN2742"></a>
 <h2>Returns</h2>
 <p>PGconn *<code class="PARAMETER">conn</code> is a pointer to the libpq SQL database connection.</p>
 </div>
@@ -66,12 +66,12 @@ PgGetConnectionId&nbsp;--&nbsp;Provides access to the underlying <tt class="LITE
 <hr align="left" width="100%">
 <table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0">
 <tr>
-<td width="33%" align="left" valign="top"><a href="pgtcl-pgsqlite.html" accesskey="P">Prev</a></td>
+<td width="33%" align="left" valign="top"><a href="pgtcl-pgcopycomplete.html" accesskey="P">Prev</a></td>
 <td width="34%" align="center" valign="top"><a href="index.html" accesskey="H">Home</a></td>
 <td width="33%" align="right" valign="top"><a href="pgtcl-tclnamespace.html" accesskey="N">Next</a></td>
 </tr>
 <tr>
-<td width="33%" align="left" valign="top">pg_sqlite</td>
+<td width="33%" align="left" valign="top">pg_copy_complete</td>
 <td width="34%" align="center" valign="top"><a href="libpgtcl-ref.html" accesskey="U">Up</a></td>
 <td width="33%" align="right" valign="top">Tcl Namespace Support</td>
 </tr>
