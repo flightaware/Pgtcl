@@ -110,3 +110,29 @@ test pgtcl-sqlite3-1.3 {import tabsep external} -body {
 	concat $sqlite_count $result
 } -result {5000 {Ethel Hitzeman} {3724 Forest Village Drive} Rockhampton TX 77628}
 
+#
+test pgtcl-sqlite3-1.4 {import postgresql result with multiple keys} -body {
+	sqlite3 sqlite_conn :memory:
+
+	set pg_conn [pg::connect -connhandle pgsql3 -connlist [array get ::conninfo]]
+
+	$pg_conn select {select count(*) as count from Pg_class;} row {
+		set pgtcl_count $row(count)
+	}
+
+	set res [$pg_conn exec "SELECT relname,relnamespace,reltype,relowner FROM Pg_class;"]
+	set rows [
+		pg_sqlite sqlite_conn import_postgres_result $res -create pg_class \
+			-as {relname text relnamespace integer reltype integer relowner integer} \
+			-check -pkey {relname relnamespace}
+	]
+
+	sqlite_conn eval {select count(*) as count from pg_class;} row {
+		set sqlite_count $row(count)
+	}
+
+	sqlite_conn close
+	expr {$pgtcl_count == $sqlite_count}
+} -result 1
+
+
