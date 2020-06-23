@@ -356,7 +356,7 @@ Pg_sqlite_generateCheck(Tcl_Interp *interp, sqlite3 *sqlite_db, char *tableName,
 			strcpy(primaryKeyNames[k], column);
 		}
 		if(k != 0)
-			Tcl_AppendStringsToObj(where, ", ", (char *)NULL);
+			Tcl_AppendStringsToObj(where, " AND ", (char *)NULL);
 		Tcl_AppendStringsToObj(where, primaryKeyNames[k], " = ?", (char *)NULL);
 	}
 
