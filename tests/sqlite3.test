@@ -114,7 +114,7 @@ test pgtcl-sqlite3-1.3 {import tabsep external} -body {
 test pgtcl-sqlite3-1.4 {import postgresql result with multiple keys} -body {
 	sqlite3 sqlite_conn :memory:
 
-	set pg_conn [pg::connect -connhandle pgsql3 -connlist [array get ::conninfo]]
+	set pg_conn [pg::connect -connhandle pgsql4 -connlist [array get ::conninfo]]
 
 	$pg_conn select {select count(*) as count from Pg_class;} row {
 		set pgtcl_count $row(count)
