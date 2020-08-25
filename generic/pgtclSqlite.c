@@ -13,6 +13,9 @@
 
 #include <sqlite3.h>
 
+//#define IFDEBUG(thing) thing
+#define IFDEBUG(thing) /* */
+
 #define LAPPEND_STRING(i, o, s) Tcl_ListObjAppendElement((i), (o), Tcl_NewStringObj((s), -1));
 
 // From tclsqlite.c, part 1 of the hack, sqlite3 conveniently guarantees that the first element in
@@ -401,6 +404,7 @@ Pg_sqlite_generateCheck(Tcl_Interp *interp, sqlite3 *sqlite_db, char *tableName,
 	// combine select list and where clause into statement, and turn it into a string
 	Tcl_AppendStringsToObj(sql, " FROM ", tableName, " WHERE (", Tcl_GetString(where), ");", (char *)NULL);
 
+	IFDEBUG(fprintf(stderr, "Generated check statement = '%s'\n", Tcl_GetString(sql)));
 	// create statement
 	if(Pg_sqlite_prepare(interp, sqlite_db, Tcl_GetString(sql), &statement) != TCL_OK) {
 		goto cleanup_and_exit;
@@ -462,6 +466,7 @@ Pg_sqlite_executeCheck(Tcl_Interp *interp, sqlite3 *sqlite_db, sqlite3_stmt *sta
 		const char       *errorMessage;
 
 		if (Pg_sqlite_bindValue(sqlite_db, statement, i, value, type, &errorMessage) != TCL_OK) {
+			IFDEBUG(fprintf(stderr, "ERROR binding primary key(%d) value = '%s' type = %d\n", i, value, type));
 			Tcl_AppendResult(interp, errorMessage, (char *)NULL);
 			goto cleanup_and_exit;
 		}
