@@ -1595,3 +1595,13 @@ Pg_copy_complete(ClientData cData, Tcl_Interp *interp, int objc,
 	return TCL_OK;
 }
 
+/**********************************
+ * PgCheckConnectionState(Pg_ConnectionId *connid)
+ *
+ * Called after an error from libpq that might have closed a connection
+ * (probably all of them). Unregister the notifier_channel and clear it out.
+ *
+ **********************************/
+int PgCheckConnectionState(Pg_ConnectionId *connid)
+{
+}
