@@ -3094,7 +3094,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				char *colName = PQfname(result, column);
 				if (colName == NULL) {
 					// PQfname failed, shouldn't happen, but we've seen it
-					char		msg[60];
+					char		msg[64];
 
 					sprintf(msg, "PQfname() returned NULL for column %d, ncols %d",
 								column, ncols);
