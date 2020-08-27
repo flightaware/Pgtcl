@@ -1640,9 +1640,14 @@ int PgCheckConnectionState(Pg_ConnectionId *connid)
 		return -1;
 	}
 
-	// Re-create the notifier and re-register the channl
+	// Re-create the channel and re-register the channel
+	connid->notifier_channel = Tcl_MakeTcpClientChannel((ClientData)(long)PQsocket(conn));
+	Tcl_RegisterChannel(NULL, connid->notifier_channel);
 
 	// If the notifier had been running, recreate the notifier
+	if(restart_notifier) {
+		PgStartNotifyEventSource(connid);
+	}
 
 	return 0;
 }
