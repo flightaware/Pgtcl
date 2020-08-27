@@ -1604,4 +1604,28 @@ Pg_copy_complete(ClientData cData, Tcl_Interp *interp, int objc,
  **********************************/
 int PgCheckConnectionState(Pg_ConnectionId *connid)
 {
+	// We don't have a connection, this has probably already been handled upstream.
+	if(!connid->conn) {
+		return;
+	}
+
+	// Connection is still good, we're good.
+	if(connid->conn->status != CONNECTION_BAD) {
+		return;
+	}
+
+	// Clean up notifiers.
+	if (connid->notifier_channel != NULL)
+        {
+		if (connid->notifier_running)
+		{
+			Tcl_DeleteChannelHandler(connid->notifier_channel, Pg_Notify_FileHandler, (ClientData)connid);
+		}
+		connid->notifier_running = 0;
+
+		Tcl_UnregisterChannel(NULL, connid->notifier_channel);
+		connid->notifier_channel = NULL;
+	}
+
+	connid->conn = NULL;
 }
