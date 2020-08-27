@@ -1612,7 +1612,7 @@ int PgCheckConnectionState(Pg_ConnectionId *connid)
 	}
 
 	// Connection is still good, we're good.
-	if(connid->conn->status != CONNECTION_BAD) {
+	if(PQstatus(connid->conn) != CONNECTION_BAD) {
 		return 0;
 	}
 
@@ -1635,13 +1635,13 @@ int PgCheckConnectionState(Pg_ConnectionId *connid)
 	PQreset(connid->conn);
 
 	// Didn't work, bail
-	if(connid->conn->status == CONNECTION_BAD) {
+	if(PQstatus(connid->conn) == CONNECTION_BAD) {
 		connid->conn = NULL;
 		return -1;
 	}
 
 	// Re-create the channel and re-register the channel
-	connid->notifier_channel = Tcl_MakeTcpClientChannel((ClientData)(long)PQsocket(conn));
+	connid->notifier_channel = Tcl_MakeTcpClientChannel((ClientData)(long)PQsocket(connid->conn));
 	Tcl_RegisterChannel(NULL, connid->notifier_channel);
 
 	// If the notifier had been running, recreate the notifier
