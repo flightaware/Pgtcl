@@ -1604,14 +1604,16 @@ Pg_copy_complete(ClientData cData, Tcl_Interp *interp, int objc,
  **********************************/
 int PgCheckConnectionState(Pg_ConnectionId *connid)
 {
-	// We don't have a connection, this has probably already been handled upstream.
+	int restart_notifier = 0;
+
+	// We don't have a connection, we can't do anything.
 	if(!connid->conn) {
-		return;
+		return -1;
 	}
 
 	// Connection is still good, we're good.
 	if(connid->conn->status != CONNECTION_BAD) {
-		return;
+		return 0;
 	}
 
 	// Clean up notifiers.
@@ -1619,6 +1621,8 @@ int PgCheckConnectionState(Pg_ConnectionId *connid)
         {
 		if (connid->notifier_running)
 		{
+			restart_notifier = 1;
+
 			Tcl_DeleteChannelHandler(connid->notifier_channel, Pg_Notify_FileHandler, (ClientData)connid);
 		}
 		connid->notifier_running = 0;
@@ -1627,5 +1631,18 @@ int PgCheckConnectionState(Pg_ConnectionId *connid)
 		connid->notifier_channel = NULL;
 	}
 
-	connid->conn = NULL;
+	// Reset the connection.
+	PQreset(connid->conn);
+
+	// Didn't work, bail
+	if(connid->conn->status == CONNECTION_BAD) {
+		connid->conn = NULL;
+		return -1;
+	}
+
+	// Re-create the notifier and re-register the channl
+
+	// If the notifier had been running, recreate the notifier
+
+	return 0;
 }
