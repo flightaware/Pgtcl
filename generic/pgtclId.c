@@ -39,6 +39,7 @@ PgEndCopy(Pg_ConnectionId * connid, int *errorCodePtr, int writing)
 			PQmakeEmptyPGresult(connid->conn, PGRES_BAD_RESPONSE);
 		connid->res_copy = -1;
 		*errorCodePtr = EIO;
+		PgCheckConnectionState(connid);
 		return -1;
 	}
 	else
@@ -69,6 +70,7 @@ PgInputProc(DRIVER_INPUT_PROTO)
 	 PQresultStatus(connid->results[connid->res_copy]) != PGRES_COPY_OUT)
 	{
 		*errorCodePtr = EBUSY;
+		PgCheckConnectionState(connid);
 		return -1;
 	}
 
@@ -79,6 +81,7 @@ PgInputProc(DRIVER_INPUT_PROTO)
 	if (!PQconsumeInput(conn))
 	{
 		*errorCodePtr = EIO;
+		PgCheckConnectionState(connid);
 		return -1;
 	}
 
@@ -87,9 +90,11 @@ PgInputProc(DRIVER_INPUT_PROTO)
 	switch(avail = PQgetCopyData(conn, &bufPtr, bufSize)) {
 	  case -2: {
 		*errorCodePtr = EIO;
+		PgCheckConnectionState(connid);
 		return -1;
 	  }
 	  case -1: {
+		// PgEndCopy calls PgCheckConnectionState if needed.
 		return PgEndCopy(connid, errorCodePtr, 0);
 	  }
 	}
@@ -97,6 +102,7 @@ PgInputProc(DRIVER_INPUT_PROTO)
 	/* Should never happen */
 	if(avail < 0) {
 		*errorCodePtr = EIO;
+		PgCheckConnectionState(connid);
 		return -1;
 	}
 
@@ -125,6 +131,7 @@ PgOutputProc(DRIVER_OUTPUT_PROTO)
 	if (connid->res_copy < 0 ||
 	  PQresultStatus(connid->results[connid->res_copy]) != PGRES_COPY_IN)
 	{
+		PgCheckConnectionState(connid);
 		*errorCodePtr = EBUSY;
 		return -1;
 	}
@@ -144,10 +151,12 @@ PgOutputProc(DRIVER_OUTPUT_PROTO)
 	if (PQputCopyData(conn, buf, writeLen) < 0)
 	{
 		*errorCodePtr = EIO;
+		PgCheckConnectionState(connid);
 		return -1;
 	}
 
 	if (endcopy) {
+		// PgEndCopy calls PgCheckConnectionState
 		if (PgEndCopy(connid, errorCodePtr, 1) == -1)
 			return -1;
 	}
@@ -697,8 +706,6 @@ PgResultCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[
     return Pg_result(cData, interp, objc + 1, objvx);
 }
 
-
-
 /*
  * Get back the connection from the Id
  */
@@ -748,12 +755,12 @@ PgDelConnectionId(DRIVER_DEL_PROTO)
 
 	for (i = 0; i < connid->res_max; i++)
 	{
-	    if (connid->results[i])
+		if (connid->results[i])
 		{
 			PQclear(connid->results[i]);
 
 
-            resultid = connid->resultids[i];
+			resultid = connid->resultids[i];
 
 			if (resultid != NULL) {
 				Tcl_DecrRefCount(resultid->str);
@@ -816,9 +823,9 @@ PgDelConnectionId(DRIVER_DEL_PROTO)
 	 */
 
 	if (allow_unregister && connid->notifier_channel != NULL && interp != NULL)
-        {
+	{
 		Tcl_UnregisterChannel(NULL, connid->notifier_channel);
-         }
+	}
 
        /*
         * Clear any async result callback, if present.
@@ -852,7 +859,7 @@ PgDelConnectionId(DRIVER_DEL_PROTO)
 /*
  *----------------------------------------------------------------------
  *
- * PgResultId --
+ * PgSetResultId --
  *
  *    Find a slot for a new result id.  If the table is full, expand 
  *    it by a factor of 2.  However, do not expand past the hard max, 
@@ -1617,6 +1624,7 @@ int PgCheckConnectionState(Pg_ConnectionId *connid)
 	}
 
 	// Clean up notifiers.
+	// TODO can all this and call PgConnLossTransferEvents(cannid)?
 	if (connid->notifier_channel != NULL)
         {
 		if (connid->notifier_running)
