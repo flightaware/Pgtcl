@@ -1615,12 +1615,12 @@ int PgCheckConnectionState(Pg_ConnectionId *connid)
 
 	// We don't have a connection, we can't do anything.
 	if(!connid->conn) {
-		return -1;
+		return TCL_ERROR;
 	}
 
 	// Connection is still good, we're good.
 	if(PQstatus(connid->conn) != CONNECTION_BAD) {
-		return 0;
+		return TCL_OK;
 	}
 
 	// Clean up notifiers.
@@ -1645,7 +1645,7 @@ int PgCheckConnectionState(Pg_ConnectionId *connid)
 	// Didn't work, bail
 	if(PQstatus(connid->conn) == CONNECTION_BAD) {
 		connid->conn = NULL;
-		return -1;
+		return TCL_ERROR;
 	}
 
 	// Re-create the channel and re-register the channel
@@ -1657,5 +1657,5 @@ int PgCheckConnectionState(Pg_ConnectionId *connid)
 		PgStartNotifyEventSource(connid);
 	}
 
-	return 0;
+	return TCL_CONTINUE;
 }

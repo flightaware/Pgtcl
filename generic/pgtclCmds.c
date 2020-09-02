@@ -839,6 +839,10 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	{
 	    /* error occurred during the query */
 	    report_connection_error(interp, conn);
+
+	    // Reconnect if the connection is bad.
+	    PgCheckConnectionState(connid);
+
 	    return TCL_ERROR;
 	}
 }
@@ -955,6 +959,10 @@ Pg_exec_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 	{
 		/* error occurred during the query */
 		report_connection_error(interp, conn);
+
+		// Reconnect if the connection is bad.
+		PgCheckConnectionState(connid);
+
 		return TCL_ERROR;
 	}
 }
@@ -1913,6 +1921,9 @@ Pg_execute(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 	{
 		report_connection_error(interp, conn);
 
+		// Look for a failed connection and re-open it.
+		PgCheckConnectionState(connid);
+
 		return TCL_ERROR;
 	}
 
@@ -2081,6 +2092,7 @@ execute_put_values(Tcl_Interp *interp, const char *array_varname,
 	return TCL_OK;
 }
 
+// TODO rewrite this for error handling. Check on PQStatus(obj)?
 /**********************************
  * pg_lo_open
 	 open a large object
@@ -2663,6 +2675,7 @@ Pg_lo_export(ClientData cData, Tcl_Interp *interp, int objc,
 	}
 	return TCL_OK;
 }
+// END TODO block
 
 /*********************************
  * Helper functions for Pg_select()
@@ -3006,6 +3019,10 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		if(status == 0) {
 			/* error occurred sending the query */
 			report_connection_error(interp, conn);
+
+			// Reconnect if the connection is bad.
+			PgCheckConnectionState(connid);
+
 			goto cleanup_params_and_return_error;
 		}
 
@@ -3027,6 +3044,10 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		if (result == 0) {
 			/* error occurred sending the query */
 			report_connection_error(interp, conn);
+
+			// Reconnect if the connection is bad.
+			PgCheckConnectionState(connid);
+
 			goto cleanup_params_and_return_error;
 		}
 	}
@@ -3078,6 +3099,10 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				Tcl_SetErrorCode(interp, "POSTGRESQL", errStatus, errString, (char *)NULL);
 				if(nl) *nl = '\n';
 			}
+
+			// Reconnect if the connection is bad (can only happen here in rowbyrow)
+			if(rowByRow)
+				PgCheckConnectionState(connid);
 
 			Tcl_SetResult(interp, errString, TCL_VOLATILE);
 			retval = TCL_ERROR;
@@ -3598,6 +3623,10 @@ Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
 	{
 	    /* error occurred during the query */
 	    report_connection_error(interp, conn);
+
+	    // Reconnect if the connection is bad.
+	    PgCheckConnectionState(connid);
+
 	    return TCL_ERROR;
 	}
 }
@@ -3688,6 +3717,10 @@ Pg_sendquery_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *C
 	{
 		/* error occurred during the query */
 		report_connection_error(interp, conn);
+
+		// Reconnect if the connection is bad.
+		PgCheckConnectionState(connid);
+
 		return TCL_ERROR;
 	}
 }
@@ -3828,6 +3861,7 @@ Pg_getresult(ClientData cData, Tcl_Interp *interp, int objc,
  *----------------------------------------------------------------------
  */
 
+// TODO figure this out
 int
 Pg_getdata(ClientData cData, Tcl_Interp *interp, int objc,
 			 Tcl_Obj *CONST objv[])
@@ -3932,6 +3966,7 @@ Pg_getdata(ClientData cData, Tcl_Interp *interp, int objc,
         PgNotifyTransferEvents(connid);
     return TCL_OK;
 }
+// END TODO
 
 /**********************************
  * pg_isbusy
@@ -3963,7 +3998,13 @@ Pg_isbusy(ClientData cData, Tcl_Interp *interp, int objc,
 	if (conn == NULL)
 		return TCL_ERROR;
 
-	PQconsumeInput(conn);
+ 	PQconsumeInput(conn);
+
+        // Reconnect if the connection is bad.
+        if(PgCheckConnectionState(connid) != TCL_OK) {
+		Tcl_SetResult(interp, "Connection reset", TCL_STATIC);
+		return TCL_ERROR;
+	}
 
 	Tcl_SetObjResult(interp, Tcl_NewIntObj(PQisBusy(conn)));
 	return TCL_OK;
@@ -4331,7 +4372,6 @@ Pg_quote (ClientData cData, Tcl_Interp *interp, int objc,
 		conn = PgGetConnectionId(interp, connString, &connid);
 		if (conn == NULL)
 			return TCL_ERROR;
-
 
 		/*
 		 * Get the "from" string.
