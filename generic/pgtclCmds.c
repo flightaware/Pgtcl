@@ -3938,7 +3938,6 @@ Pg_getresult(ClientData cData, Tcl_Interp *interp, int objc,
  *----------------------------------------------------------------------
  */
 
-// TODO figure this out
 int
 Pg_getdata(ClientData cData, Tcl_Interp *interp, int objc,
 			 Tcl_Obj *CONST objv[])
@@ -3989,6 +3988,12 @@ Pg_getdata(ClientData cData, Tcl_Interp *interp, int objc,
 	    }
     
             ExecStatusType rStat = PQresultStatus(result);
+
+	    // Reconnect if the connection is bad.
+	    if(PgCheckConnectionState(connid) != TCL_OK) {
+                Tcl_SetResult(interp, "PGRES_CONNECTION_BAD", TCL_STATIC);
+		return TCL_ERROR;
+	    }
     
             if (rStat == PGRES_COPY_IN || rStat == PGRES_COPY_OUT)
             {
@@ -4004,7 +4009,13 @@ Pg_getdata(ClientData cData, Tcl_Interp *interp, int objc,
 
         pollstatus = PQconnectPoll(conn);
 
-        switch (pollstatus)
+	// Reconnect if the connection is bad.
+	if(PgCheckConnectionState(connid) != TCL_OK) {
+                Tcl_SetResult(interp, "PGRES_CONNECTION_BAD", TCL_STATIC);
+		return TCL_ERROR;
+	}
+
+	switch (pollstatus)
         {
             case PGRES_POLLING_FAILED:
             {
@@ -4043,7 +4054,6 @@ Pg_getdata(ClientData cData, Tcl_Interp *interp, int objc,
         PgNotifyTransferEvents(connid);
     return TCL_OK;
 }
-// END TODO
 
 /**********************************
  * pg_isbusy
@@ -4241,8 +4251,12 @@ Pg_cancelrequest(ClientData cData, Tcl_Interp *interp, int objc,
 
 	if (PQrequestCancel(conn) == 0)
 	{
-		Tcl_SetObjResult(interp,
-			 Tcl_NewStringObj(PQerrorMessage(conn), -1));
+		// Reconnect if the connection is bad.
+		if(PgCheckConnectionState(connid) != TCL_OK)
+			Tcl_SetResult(interp, "Connection reset", TCL_STATIC);
+		else
+			Tcl_SetObjResult(interp,
+				 Tcl_NewStringObj(PQerrorMessage(conn), -1));
 		return TCL_ERROR;
 	}
 	return TCL_OK;
