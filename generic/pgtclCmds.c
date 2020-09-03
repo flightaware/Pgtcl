@@ -4857,40 +4857,60 @@ Pg_dbinfo(ClientData cData, Tcl_Interp *interp, int objc,
         }
         case OPT_VERSION:
         {
+#define SET_AND_CHECK_INT(fun) { \
+		int result = fun; \
+		if(PgCheckConnectionState(connid) != TCL_OK) { \
+			Tcl_SetResult(interp, "Connection reset", TCL_STATIC); \
+			return TCL_ERROR; \
+		} \
+		Tcl_SetObjResult(interp, Tcl_NewIntObj(result)); \
+	}
+#define SET_AND_CHECK_BOOL(fun) { \
+		int result = fun; \
+		if(PgCheckConnectionState(connid) != TCL_OK) { \
+			Tcl_SetResult(interp, "Connection reset", TCL_STATIC); \
+			return TCL_ERROR; \
+		} \
+		Tcl_SetObjResult(interp, Tcl_NewBooleanObj(result)); \
+	}
+#define SET_AND_CHECK_STRING(fun) { \
+		const char *result = fun; \
+		if(PgCheckConnectionState(connid) != TCL_OK) { \
+			Tcl_SetResult(interp, "Connection reset", TCL_STATIC); \
+			return TCL_ERROR; \
+		} \
+		Tcl_SetObjResult(interp, Tcl_NewStringObj(result, -1)); \
+	}
 
-            Tcl_SetObjResult(interp, Tcl_NewIntObj(
-                             PQserverVersion(connid->conn)));
+	    SET_AND_CHECK_INT(PQserverVersion(connid->conn));
     
             return TCL_OK;
 
         }
         case OPT_PROTOCOL:
         {
-            Tcl_SetObjResult(interp, Tcl_NewIntObj(
-                            PQprotocolVersion(connid->conn)));
+	    SET_AND_CHECK_INT(PQprotocolVersion(connid->conn));
             return TCL_OK;
         }
         case OPT_PARAM:
         {
             paramname = Tcl_GetString(objv[3]);
-            Tcl_SetObjResult(interp, Tcl_NewStringObj(
-                             PQparameterStatus(connid->conn, paramname), -1));
+	    SET_AND_CHECK_STRING(PQparameterStatus(connid->conn,paramname));
             return TCL_OK;
         }
         case OPT_BACKENDPID:
         {
-            Tcl_SetObjResult(interp, Tcl_NewIntObj(
-                             PQbackendPID(connid->conn)));
+	    SET_AND_CHECK_INT(PQbackendPID(connid->conn));
             return TCL_OK;
         }
         case OPT_SOCKET:
         {
-            Tcl_SetObjResult(interp, Tcl_NewIntObj(
-                             PQsocket(connid->conn)));
+	    SET_AND_CHECK_INT(PQsocket(connid->conn));
             return TCL_OK;
         }
         case OPT_SQL_COUNT:
         {
+	    // Can't call libpq, so leave alone
             Tcl_SetObjResult(interp, Tcl_NewIntObj(
                              connid->sql_count));
             return TCL_OK;
@@ -4898,42 +4918,36 @@ Pg_dbinfo(ClientData cData, Tcl_Interp *interp, int objc,
 
 	case OPT_DBNAME:
 	{
-            Tcl_SetObjResult(interp, Tcl_NewStringObj(
-                             PQdb(connid->conn), -1));
+	    SET_AND_CHECK_STRING(PQdb(connid->conn));
             return TCL_OK;
 	}
 
 	case OPT_USER:
 	{
-            Tcl_SetObjResult(interp, Tcl_NewStringObj(
-                             PQuser(connid->conn), -1));
+	    SET_AND_CHECK_STRING(PQuser(connid->conn));
             return TCL_OK;
 	}
 
 	case OPT_PASSWORD:
 	{
-            Tcl_SetObjResult(interp, Tcl_NewStringObj(
-                             PQpass(connid->conn), -1));
+            SET_AND_CHECK_STRING(PQpass(connid->conn));
             return TCL_OK;
 	}
 
 	case OPT_HOST:
 	{
-            Tcl_SetObjResult(interp, Tcl_NewStringObj(
-                             PQhost(connid->conn), -1));
+	    SET_AND_CHECK_STRING(PQhost(connid->conn));
             return TCL_OK;
 	}
 
 	case OPT_PORT:
 	{
-            Tcl_SetObjResult(interp, Tcl_NewStringObj(
-                             PQport(connid->conn), -1));
+	    SET_AND_CHECK_STRING(PQport(connid->conn));
             return TCL_OK;
 	}
 
 	case OPT_OPTIONS: {
-            Tcl_SetObjResult(interp, Tcl_NewStringObj(
-                             PQoptions(connid->conn), -1));
+	    SET_AND_CHECK_STRING(PQoptions(connid->conn));
             return TCL_OK;
 	}
 
@@ -4961,7 +4975,14 @@ Pg_dbinfo(ClientData cData, Tcl_Interp *interp, int objc,
 	}
 
 	case OPT_TRANSACTION_STATUS: {
-	    switch (PQtransactionStatus(connid->conn)) {
+	    int status = PQtransactionStatus(connid->conn);
+            // Reconnect if the connection is bad.
+            if(PgCheckConnectionState(connid) != TCL_OK) {
+		Tcl_SetResult(interp, "Connection reset", TCL_STATIC);
+		return TCL_ERROR;
+	    }
+
+	    switch (status) {
 	        case PQTRANS_IDLE: {
 		    Tcl_SetObjResult(interp, 
 		        Tcl_NewStringObj("idle", -1));
@@ -5001,26 +5022,22 @@ Pg_dbinfo(ClientData cData, Tcl_Interp *interp, int objc,
 	}
 
 	case OPT_ERROR_MESSAGE: {
-            Tcl_SetObjResult(interp, Tcl_NewStringObj(
-                             PQerrorMessage(connid->conn), -1));
+	    SET_AND_CHECK_STRING(PQerrorMessage(connid->conn));
             return TCL_OK;
 	}
 
 	case OPT_NEEDS_PASSWORD: {
-            Tcl_SetObjResult(interp, Tcl_NewBooleanObj(
-                             PQconnectionNeedsPassword(connid->conn)));
+	    SET_AND_CHECK_BOOL(PQconnectionNeedsPassword(connid->conn));
             return TCL_OK;
 	}
 
 	case OPT_USED_PASSWORD: {
-            Tcl_SetObjResult(interp, Tcl_NewBooleanObj(
-                             PQconnectionUsedPassword(connid->conn)));
+	    SET_AND_CHECK_BOOL(PQconnectionUsedPassword(connid->conn));
             return TCL_OK;
 	}
 
 	case OPT_USED_SSL: {
-            Tcl_SetObjResult(interp, Tcl_NewBooleanObj(
-                             (PQgetssl(connid->conn) != NULL)));
+	    SET_AND_CHECK_BOOL( (PQgetssl(connid->conn) != NULL) );
             return TCL_OK;
 	}
 
@@ -5282,6 +5299,12 @@ Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
     } /* end if callback */
 
     PgNotifyTransferEvents(connid);
+
+    // Reconnect if the connection is bad.
+    if(PgCheckConnectionState(connid) != TCL_OK) {
+	Tcl_SetResult(interp, "Connection reset", TCL_STATIC);
+	return TCL_ERROR;
+    }
 
     if (((result != NULL) || (iResult > 0)) && !callback)
     {
