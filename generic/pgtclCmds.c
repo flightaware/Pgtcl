@@ -3820,12 +3820,17 @@ int
 Pg_set_single_row_mode(ClientData cData, Tcl_Interp *interp, int objc,
 			Tcl_Obj *CONST objv[])
 {
+#ifndef HAVE_PQSETSINGLEROWMODE
+                Tcl_SetObjResult(interp, 
+                    Tcl_NewStringObj(
+                        "function unavailable with this version of the postgres libpq library\n", -1));
+
+	        return TCL_ERROR;
+#else
 	Pg_ConnectionId *connid;
 	PGconn	   *conn;
 	char	   *connString;
-#ifdef HAVE_PQSETSINGLEROWMODE
 	int         setRowModeResult;
-#endif
 
 	if (objc != 2)
 	{
@@ -3839,13 +3844,6 @@ Pg_set_single_row_mode(ClientData cData, Tcl_Interp *interp, int objc,
 	if (conn == NULL)
 		return TCL_ERROR;
 
-#ifndef HAVE_PQSETSINGLEROWMODE
-                Tcl_SetObjResult(interp, 
-                    Tcl_NewStringObj(
-                        "function unavailable with this version of the postgres libpq library\n", -1));
-
-	        return TCL_ERROR;
-#else
 	setRowModeResult = PQsetSingleRowMode (conn);
 	Tcl_SetObjResult (interp, Tcl_NewIntObj (setRowModeResult));
 	return TCL_OK;
