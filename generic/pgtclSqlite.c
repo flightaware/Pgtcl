@@ -722,9 +722,9 @@ Pg_sqlite_probe(Tcl_Interp *interp, Tcl_ObjCmdProc **procPtr)
 	static Tcl_ObjCmdProc *sqlite3_ObjProc = NULL;
 
 	if (sqlite3_ObjProc == NULL) {
-		char               cmd_name[256];
-		char               create_cmd[256];
-		char               delete_cmd[256];
+		char               cmd_name[256 + 1];
+		char               create_cmd[256 + 18 + 1];
+		char               delete_cmd[256 + 7 + 1];
 		struct Tcl_CmdInfo cmd_info;
 
 		if (Tcl_Eval(interp, "package require sqlite3") != TCL_OK) {
@@ -732,8 +732,8 @@ Pg_sqlite_probe(Tcl_Interp *interp, Tcl_ObjCmdProc **procPtr)
 		}
 
 		snprintf(cmd_name, 256, "::dummy%d", getpid());
-		snprintf(create_cmd, 256, "sqlite3 %s :memory:", cmd_name);
-		snprintf(delete_cmd, 256, "%s close", cmd_name);
+		snprintf(create_cmd, 256 + 18, "sqlite3 %s :memory:", cmd_name);
+		snprintf(delete_cmd, 256 + 7, "%s close", cmd_name);
 
 		if (Tcl_Eval(interp, create_cmd) != TCL_OK) {
 			return TCL_ERROR;
