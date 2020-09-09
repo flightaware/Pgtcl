@@ -3112,8 +3112,11 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		// Queue up the result.
 		result = PQgetResult (conn);
 
-		// Reconnect if the connection is bad.
-		if (PgCheckConnectionState(connid) != TCL_OK) {
+		if(result == 0} {
+			/* error occurred sending the query */
+			report_connection_error(interp, conn);
+			// Reconnect if the connection is bad.
+			PgCheckConnectionState(connid);
 			goto cleanup_params_and_return_error;
 		}
 	} else {
