@@ -806,6 +806,7 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	} else {
 	    result = PQexecParams(conn, execString, nParams, NULL, paramValues, NULL, NULL, 0);
 	    ckfree ((void *)paramValues);
+	    paramValues = NULL;
 	    if(newExecString) {
 		ckfree((void *)newExecString);
 		newExecString = NULL;
@@ -822,6 +823,7 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	{
 	    int	rId;
 	    if(PgSetResultId(interp, connString, result, &rId) != TCL_OK) {
+puts("PgSetResultId failed");
 		PQclear(result);
 		return TCL_ERROR;
 	    }
@@ -1199,6 +1201,10 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 				resultStatus = PQresStatus(PQresultStatus(result));
 				Tcl_SetObjResult(interp, Tcl_NewStringObj(resultStatus, -1));
+				// Reconnect if the connection is bad.
+				if (strcmp(resultStatus, "PGRES_COMMAND_OK") != 0) {
+					PgCheckConnectionState(resultid->connid);
+				}
 				return TCL_OK;
 			}
 
@@ -1237,7 +1243,13 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				    return TCL_ERROR;
 			    }
 
-			    return Pg_result_foreach(interp, result, objv[3], objv[4]);
+			    int resultStatus =  Pg_result_foreach(interp, result, objv[3], objv[4]);
+			    if(resultStatus != TCL_OK) {
+				if(PgCheckConnectionState(resultid->connid) != TCL_OK) {
+					return TCL_ERROR;
+				}
+			    }
+			    return resultStatus;
 			}
 
 		case OPT_CONN:
@@ -3112,7 +3124,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		// Queue up the result.
 		result = PQgetResult (conn);
 
-		if(result == 0} {
+		if(result == 0) {
 			/* error occurred sending the query */
 			report_connection_error(interp, conn);
 			// Reconnect if the connection is bad.
