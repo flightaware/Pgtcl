@@ -1251,6 +1251,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 			    int resultStatus =  Pg_result_foreach(interp, result, objv[3], objv[4]);
 			    if(resultStatus != TCL_OK) {
 				if(PgCheckConnectionState(resultid->connid) != TCL_OK) {
+					report_connection_error(interp, resultid->connid->conn);
 					return TCL_ERROR;
 				}
 			    }
@@ -2766,7 +2767,8 @@ Pg_lo_export(ClientData cData, Tcl_Interp *interp, int objc,
             Tcl_SetObjResult(interp, tresult);
 
 	    // Reconnect if the connection is bad.
-	    PgCheckConnectionState(connid);
+	    if(PgCheckConnectionState(connid) != TCL_OK)
+		report_connection_error(interp, conn);
 
             return TCL_ERROR;
 	}
@@ -4016,7 +4018,7 @@ Pg_getdata(ClientData cData, Tcl_Interp *interp, int objc,
 
 	    // Reconnect if the connection is bad.
 	    if(PgCheckConnectionState(connid) != TCL_OK) {
-                Tcl_SetResult(interp, "PGRES_CONNECTION_BAD", TCL_STATIC);
+		report_connection_error(interp, conn);
 		return TCL_ERROR;
 	    }
     
@@ -4036,7 +4038,7 @@ Pg_getdata(ClientData cData, Tcl_Interp *interp, int objc,
 
 	// Reconnect if the connection is bad.
 	if(PgCheckConnectionState(connid) != TCL_OK) {
-                Tcl_SetResult(interp, "PGRES_CONNECTION_BAD", TCL_STATIC);
+		report_connection_error(interp, conn);
 		return TCL_ERROR;
 	}
 
