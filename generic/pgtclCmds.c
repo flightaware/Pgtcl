@@ -3199,8 +3199,8 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				if(nl) *nl = '\n';
 			}
 
-			// Reconnect if the connection is bad (can only happen here in rowbyrow)
-			if(rowByRow)
+			// Reconnect if the connection is bad (can only happen here in rowbyrow or first pass)
+			if(rowByRow || firstPass)
 				PgCheckConnectionState(connid);
 
 			Tcl_SetResult(interp, errString, TCL_VOLATILE);
