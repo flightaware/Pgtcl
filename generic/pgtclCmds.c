@@ -823,8 +823,9 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	{
 	    int	rId;
 	    if(PgSetResultId(interp, connString, result, &rId) != TCL_OK) {
-puts("PgSetResultId failed");
 		PQclear(result);
+		// Reconnect if the connection is bad.
+		PgCheckConnectionState(connid);
 		return TCL_ERROR;
 	    }
 
@@ -855,7 +856,11 @@ puts("PgSetResultId failed");
  */
 static void report_connection_error(Tcl_Interp *interp, PGconn *conn)
 {
-	char *errString = PQerrorMessage(conn);
+	char *errString = "";
+
+	if(conn) {
+		errString = PQerrorMessage(conn);
+	}
 
 	if(errString[0] != '\0') {
 		char *nl = strchr(errString, '\n');
@@ -2188,7 +2193,7 @@ Pg_lo_open(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 
         // Reconnect if the connection is bad.
         if(PgCheckConnectionState(connid) != TCL_OK) {
-		Tcl_SetResult(interp, "Connection reset", TCL_STATIC);
+		report_connection_error(interp, conn);
 		return TCL_ERROR;
 	}
 
@@ -2230,7 +2235,7 @@ Pg_lo_close(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[
 
         // Reconnect if the connection is bad.
         if(PgCheckConnectionState(connid) != TCL_OK) {
-		Tcl_SetResult(interp, "Connection reset", TCL_STATIC);
+		report_connection_error(interp, conn);
 		return TCL_ERROR;
 	}
 
@@ -2294,7 +2299,7 @@ Pg_lo_read(ClientData cData, Tcl_Interp *interp, int objc,
 
         // Reconnect if the connection is bad.
         if(PgCheckConnectionState(connid) != TCL_OK) {
-		Tcl_SetResult(interp, "Connection reset", TCL_STATIC);
+		report_connection_error(interp, conn);
 		rc = TCL_ERROR;
 	}
 	else if (nbytes >= 0)
@@ -2364,7 +2369,7 @@ Pg_lo_write(ClientData cData, Tcl_Interp *interp, int objc,
 
         // Reconnect if the connection is bad.
         if(PgCheckConnectionState(connid) != TCL_OK) {
-		Tcl_SetResult(interp, "Connection reset", TCL_STATIC);
+		report_connection_error(interp, conn);
 		return TCL_ERROR;
 	}
 
@@ -2432,7 +2437,7 @@ Pg_lo_lseek(ClientData cData, Tcl_Interp *interp, int objc,
 
         // Reconnect if the connection is bad.
         if(PgCheckConnectionState(connid) != TCL_OK) {
-		Tcl_SetResult(interp, "Connection reset", TCL_STATIC);
+		report_connection_error(interp, conn);
 		return TCL_ERROR;
 	}
 
@@ -2509,7 +2514,7 @@ Pg_lo_creat(ClientData cData, Tcl_Interp *interp, int objc,
 
         // Reconnect if the connection is bad.
         if(PgCheckConnectionState(connid) != TCL_OK) {
-		Tcl_SetResult(interp, "Connection reset", TCL_STATIC);
+		report_connection_error(interp, conn);
 		return TCL_ERROR;
 	}
 
@@ -2552,7 +2557,7 @@ Pg_lo_tell(ClientData cData, Tcl_Interp *interp, int objc,
 
         // Reconnect if the connection is bad.
         if(PgCheckConnectionState(connid) != TCL_OK) {
-		Tcl_SetResult(interp, "Connection reset", TCL_STATIC);
+		report_connection_error(interp, conn);
 		return TCL_ERROR;
 	}
 
@@ -2603,7 +2608,7 @@ Pg_lo_truncate(ClientData cData, Tcl_Interp *interp, int objc,
 
         // Reconnect if the connection is bad.
         if(PgCheckConnectionState(connid) != TCL_OK) {
-		Tcl_SetResult(interp, "Connection reset", TCL_STATIC);
+		report_connection_error(interp, conn);
 		return TCL_ERROR;
 	}
 
@@ -4109,7 +4114,7 @@ Pg_isbusy(ClientData cData, Tcl_Interp *interp, int objc,
 
         // Reconnect if the connection is bad.
         if(PgCheckConnectionState(connid) != TCL_OK) {
-		Tcl_SetResult(interp, "Connection reset", TCL_STATIC);
+		report_connection_error(interp, conn);
 		return TCL_ERROR;
 	}
 
@@ -4273,7 +4278,7 @@ Pg_cancelrequest(ClientData cData, Tcl_Interp *interp, int objc,
 	{
 		// Reconnect if the connection is bad.
 		if(PgCheckConnectionState(connid) != TCL_OK)
-			Tcl_SetResult(interp, "Connection reset", TCL_STATIC);
+			report_connection_error(interp, conn);
 		else
 			Tcl_SetObjResult(interp,
 				 Tcl_NewStringObj(PQerrorMessage(conn), -1));
@@ -4880,7 +4885,7 @@ Pg_dbinfo(ClientData cData, Tcl_Interp *interp, int objc,
 #define SET_AND_CHECK_INT(fun) { \
 		int result = fun; \
 		if(PgCheckConnectionState(connid) != TCL_OK) { \
-			Tcl_SetResult(interp, "Connection reset", TCL_STATIC); \
+			report_connection_error(interp, connid->conn); \
 			return TCL_ERROR; \
 		} \
 		Tcl_SetObjResult(interp, Tcl_NewIntObj(result)); \
@@ -4888,7 +4893,7 @@ Pg_dbinfo(ClientData cData, Tcl_Interp *interp, int objc,
 #define SET_AND_CHECK_BOOL(fun) { \
 		int result = fun; \
 		if(PgCheckConnectionState(connid) != TCL_OK) { \
-			Tcl_SetResult(interp, "Connection reset", TCL_STATIC); \
+			report_connection_error(interp, connid->conn); \
 			return TCL_ERROR; \
 		} \
 		Tcl_SetObjResult(interp, Tcl_NewBooleanObj(result)); \
@@ -4896,7 +4901,7 @@ Pg_dbinfo(ClientData cData, Tcl_Interp *interp, int objc,
 #define SET_AND_CHECK_STRING(fun) { \
 		const char *result = fun; \
 		if(PgCheckConnectionState(connid) != TCL_OK) { \
-			Tcl_SetResult(interp, "Connection reset", TCL_STATIC); \
+			report_connection_error(interp, connid->conn); \
 			return TCL_ERROR; \
 		} \
 		Tcl_SetObjResult(interp, Tcl_NewStringObj(result, -1)); \
@@ -4998,7 +5003,7 @@ Pg_dbinfo(ClientData cData, Tcl_Interp *interp, int objc,
 	    int status = PQtransactionStatus(connid->conn);
             // Reconnect if the connection is bad.
             if(PgCheckConnectionState(connid) != TCL_OK) {
-		Tcl_SetResult(interp, "Connection reset", TCL_STATIC);
+		report_connection_error(interp, connid->conn);
 		return TCL_ERROR;
 	    }
 
@@ -5322,7 +5327,7 @@ Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
 
     // Reconnect if the connection is bad.
     if(PgCheckConnectionState(connid) != TCL_OK) {
-	Tcl_SetResult(interp, "Connection reset", TCL_STATIC);
+	report_connection_error(interp, conn);
 	return TCL_ERROR;
     }
 
