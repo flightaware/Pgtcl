@@ -1677,9 +1677,11 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			int      maxValid = 0;
 			PGconn   *conn = NULL;
 			PGresult *result = NULL;
+			Pg_resultid *resultid;
+			Pg_ConnectionId *connid;
 
 			if(rowbyrow) {
-				conn = PgGetConnectionId(interp, pghandle_name, NULL);
+				conn = PgGetConnectionId(interp, pghandle_name, &connid);
 				if(conn == NULL) {
 					Tcl_AppendResult (interp, " while getting connection from ", pghandle_name, (char *)NULL);
 					returnCode = TCL_ERROR;
@@ -1688,7 +1690,8 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 				PQsetSingleRowMode(conn);
 				result = PQgetResult(conn);
 			} else {
-				result = PgGetResultId(interp, pghandle_name, NULL);
+				result = PgGetResultId(interp, pghandle_name, &resultid);
+				connid = resultid->connid;
 			}
 
 			if(!result) {
@@ -1716,6 +1719,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 					errorMessage = PQresultErrorMessage(result);
 					if (!*errorMessage)
 						errorMessage = PQresStatus(status);
+					PgCheckConnectionState(connid);
 					returnCode = TCL_ERROR;
 					break;
 				}
@@ -1794,6 +1798,8 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 					if (sqlite3_step(statement) != SQLITE_DONE) {
 						errorMessage = sqlite3_errmsg(sqlite_db);
 						returnCode = TCL_ERROR;
+						if(rowbyrow)
+							PgCheckConnectionState(connid);
 						goto import_cleanup_and_exit;
 					}
 					sqlite3_reset(statement);
@@ -1817,6 +1823,11 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 				if(rowbyrow) {
 					PQclear(result);
 					result = PQgetResult(conn);
+					if(!result && PgCheckConnectionState(connid) != TCL_OK) {
+						errorMessage = "CONNECTION_BAD";
+						returnCode = TCL_ERROR;;
+						goto import_cleanup_and_exit;
+					}
 				} else {
 					result = NULL;
 				}
@@ -1829,6 +1840,10 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 					PQclear(result);
 					if(!conn) break;
 					result = PQgetResult(conn);
+				}
+				if(PgCheckConnectionState(connid) != TCL_OK) {
+					errorMessage = "CONNECTION_BAD";
+					returnCode = TCL_ERROR;;
 				}
 			}
 
