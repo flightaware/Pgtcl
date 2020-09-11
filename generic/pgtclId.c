@@ -1641,12 +1641,14 @@ int PgCheckConnectionState(Pg_ConnectionId *connid)
 		connid->notifier_channel = NULL;
 	}
 
+	// Question: should we do this, or just return TCL_ERROR here?
+
 	// Reset the connection.
 	PQreset(connid->conn);
 
 	// Didn't work, bail
 	if(PQstatus(connid->conn) == CONNECTION_BAD) {
-		connid->conn = NULL;
+		//connid->conn = NULL;
 		return TCL_ERROR;
 	}
 
