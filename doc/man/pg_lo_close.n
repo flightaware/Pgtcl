@@ -3,7 +3,7 @@
 .\" <http://shell.ipoline.com/~elmert/comp/docbook2X/> 
 .\" Please send any bug reports, improvements, comments, patches, 
 .\" etc. to Steve Cheng <steve@ggi-project.org>.
-.TH "PG_LO_CLOSE" "" "12 March 2020" "" "PostgreSQL Tcl Interface Documentation"
+.TH "PG_LO_CLOSE" "" "17 September 2020" "" "PostgreSQL Tcl Interface Documentation"
 
 .SH NAME
 pg_lo_close \- close a large object

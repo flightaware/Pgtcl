@@ -74,7 +74,7 @@ $Header$
   <row>
     <entry><function>pg_dbinfo</function></entry>
     <entry><function>pg::dbinfo</function></entry>
-    <entry>returns the current connection/result handles</entry>
+    <entry>returns data about the connection</entry>
   </row>
   <row>
     <entry><function>pg_disconnect</function></entry>
@@ -798,13 +798,13 @@ name automatically. Without the option, the name is auto-generated, prefixed wit
 
  <refnamediv>
   <refname>pg_dbinfo</refname>
-  <refpurpose>returns a list of current open connection/result handles</refpurpose>
+  <refpurpose>returns data about the connection</refpurpose>
   <indexterm ID="IX-PGTCL-PGCONNINFO-2"><primary>pg_dbinfo</primary></indexterm>
  </refnamediv>
 
  <refsynopsisdiv>
 <synopsis>
-pg_dbinfo connections|results ?conn?
+pg_dbinfo command ?conn? ?paramname?
 </synopsis>
  </refsynopsisdiv>
 
@@ -812,7 +812,7 @@ pg_dbinfo connections|results ?conn?
   <title>Description</title>
 
   <para>
-   <function>pg_dbinfo</function> returns a list of connection\result handles that are currently open. The first argument is either connections or results. If the first argument is results, then a second argument needs to be present, specifyin the connection.
+   <function>pg_dbinfo</function> returns data about the connection. The first argument is a command, and the second and third argument depend on the command chosen.
   </para>
  </refsect1>
 
@@ -820,18 +820,212 @@ pg_dbinfo connections|results ?conn?
   <title>Arguments</title>
   <variablelist>
    <varlistentry>
-    <term><parameter>connections|results</parameter></term>
+    <term><parameter>command</parameter></term>
     <listitem>
-     <para>
-      Either specify connections if you want the connection handles, or results if you want the result handles.
-     </para>
+     <variablelist>
+
+      <varlistentry>
+       <term><parameter>connections</parameter></term>
+       <listitem>
+        <para>
+         Return a list of connection handles.
+	</para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><parameter>results connHandle</parameter></term>
+       <listitem>
+        <para>
+         Return a list of result handles for the named connection.
+	</para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><parameter>version connHandle</parameter></term>
+       <listitem>
+        <para>
+         Return server version for the connection.
+	</para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><parameter>protocol connHandle</parameter></term>
+       <listitem>
+        <para>
+         Return protocol version for the connection.
+	</para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><parameter>param connHandle name</parameter></term>
+       <listitem>
+        <para>
+         Return connection's value for the named parameter.
+	</para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><parameter>backendpid connHandle</parameter></term>
+       <listitem>
+        <para>
+         Return server process ID for the connection.
+	</para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><parameter>socket connHandle</parameter></term>
+       <listitem>
+        <para>
+         Return socket file handle for the connection.
+	</para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><parameter>sql_count connHandle</parameter></term>
+       <listitem>
+        <para>
+         Return number of SQL queries that have been made for the connection.
+	</para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><parameter>dbname connHandle</parameter></term>
+       <listitem>
+        <para>
+         Return name of the connected database.
+	</para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><parameter>user connHandle</parameter></term>
+       <listitem>
+        <para>
+         Return logged in user name.
+	</para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><parameter>password connHandle</parameter></term>
+       <listitem>
+        <para>
+         Return logged in user's password.
+	</para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><parameter>host connHandle</parameter></term>
+       <listitem>
+        <para>
+         Return address of the connected host.
+	</para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><parameter>port connHandle</parameter></term>
+       <listitem>
+        <para>
+         Return host port for the connection.
+	</para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><parameter>options connHandle</parameter></term>
+       <listitem>
+        <para>
+         Return command line options passed in the connection request.
+	</para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><parameter>status connHandle</parameter></term>
+       <listitem>
+        <para>
+         Return connection status.
+	</para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><parameter>transaction_status connHandle</parameter></term>
+       <listitem>
+        <para>
+         Return transaction status.
+	</para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><parameter>error_message connHandle</parameter></term>
+       <listitem>
+        <para>
+         Return the most recent error message on the connection.
+	</para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><parameter>needs_password connHandle</parameter></term>
+       <listitem>
+        <para>
+         Return true if the connection required a password but none was available.
+	</para>
+        <para>
+         This function can be applied after a failed connection attempt to decide whether to prompt the user for a password.
+	</para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><parameter>used_password connHandle</parameter></term>
+       <listitem>
+        <para>
+         Return true if the connection used a password.
+	</para>
+        <para>
+         This function can be applied after either a failed or successful connection attempt to detect whether the server demanded a password.
+	</para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><parameter>used_ssl connHandle</parameter></term>
+       <listitem>
+        <para>
+         Return true if the connection uses SSL.
+	</para>
+       </listitem>
+      </varlistentry>
+
+     </variablelist>
     </listitem>
    </varlistentry>
    <varlistentry>
     <term><parameter>conn</parameter></term>
     <listitem>
      <para>
-      The handle of the connection, if results if specified for the first argument.
+      The handle of the connection, when required.
+     </para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><parameter>param</parameter></term>
+    <listitem>
+     <para>
+      The connection parameter name, when the command "param" is provided.
      </para>
     </listitem>
    </varlistentry>
