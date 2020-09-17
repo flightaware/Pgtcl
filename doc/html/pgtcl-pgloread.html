@@ -2,7 +2,7 @@
 "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-<meta name="generator" content="HTML Tidy for HTML5 for Linux version 5.2.0">
+<meta name="generator" content="HTML Tidy for HTML5 for Linux version 5.6.0">
 <title>pg_lo_read</title>
 <meta name="GENERATOR" content="Modular DocBook HTML Stylesheet Version 1.79">
 <link rev="MADE" href="mailto:pgsql-docs@postgresql.org">
@@ -28,17 +28,17 @@
 </table>
 <hr align="left" width="100%"></div>
 <h1><a name="PGTCL-PGLOREAD" id="PGTCL-PGLOREAD"></a>pg_lo_read</h1>
-<div class="REFNAMEDIV"><a name="AEN1899" id="AEN1899"></a>
+<div class="REFNAMEDIV"><a name="AEN2006" id="AEN2006"></a>
 <h2>Name</h2>
 pg_lo_read&nbsp;--&nbsp;read from a large object<a name="IX-PGTCL-PGLOREAD-2" id="IX-PGTCL-PGLOREAD-2"></a></div>
-<div class="REFSYNOPSISDIV"><a name="AEN1904" id="AEN1904"></a>
+<div class="REFSYNOPSISDIV"><a name="AEN2011" id="AEN2011"></a>
 <h2>Synopsis</h2>
 <pre class="SYNOPSIS">pg_lo_read <code class="PARAMETER">conn</code> <code class="PARAMETER">descriptor</code> <code class="PARAMETER">bufVar</code> <code class="PARAMETER">len</code></pre></div>
-<div class="REFSECT1"><a name="AEN1910" id="AEN1910"></a>
+<div class="REFSECT1"><a name="AEN2017" id="AEN2017"></a>
 <h2>Description</h2>
 <p><code class="FUNCTION">pg_lo_read</code> reads at most <code class="PARAMETER">len</code> bytes from a large object into a variable named <code class="PARAMETER">bufVar</code>.</p>
 </div>
-<div class="REFSECT1"><a name="AEN1916" id="AEN1916"></a>
+<div class="REFSECT1"><a name="AEN2023" id="AEN2023"></a>
 <h2>Arguments</h2>
 <div class="VARIABLELIST">
 <dl>
@@ -61,7 +61,7 @@ pg_lo_read&nbsp;--&nbsp;read from a large object<a name="IX-PGTCL-PGLOREAD-2" id
 </dl>
 </div>
 </div>
-<div class="REFSECT1"><a name="AEN1940" id="AEN1940"></a>
+<div class="REFSECT1"><a name="AEN2047" id="AEN2047"></a>
 <h2>Return Value</h2>
 <p>The number of bytes actually read is returned; this could be less than the number requested if the end of the large object is reached first. In event of an error, the return value is negative.</p>
 </div>

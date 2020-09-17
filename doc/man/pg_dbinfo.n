@@ -3,26 +3,94 @@
 .\" <http://shell.ipoline.com/~elmert/comp/docbook2X/> 
 .\" Please send any bug reports, improvements, comments, patches, 
 .\" etc. to Steve Cheng <steve@ggi-project.org>.
-.TH "PG_DBINFO" "" "12 March 2020" "" "PostgreSQL Tcl Interface Documentation"
+.TH "PG_DBINFO" "" "17 September 2020" "" "PostgreSQL Tcl Interface Documentation"
 
 .SH NAME
-pg_dbinfo \- returns a list of current open connection/result handles
+pg_dbinfo \- returns data about the connection
 
 .SH SYNOPSIS
 
 .nf
-pg_dbinfo connections|results ?conn?
+pg_dbinfo command ?conn? ?paramname?
 .fi
 .SH "DESCRIPTION"
 .PP
-\fBpg_dbinfo\fR returns a list of connection\\result handles that are currently open. The first argument is either connections or results. If the first argument is results, then a second argument needs to be present, specifyin the connection.
+\fBpg_dbinfo\fR returns data about the connection. The first argument is a command, and the second and third argument depend on the command chosen.
 .SH "ARGUMENTS"
 .TP
-\fB\fIconnections|results\fB\fR
-Either specify connections if you want the connection handles, or results if you want the result handles.
+\fB\fIcommand\fB\fR
+.RS
+.TP
+\fB\fIconnections\fB\fR
+Return a list of connection handles.
+.TP
+\fB\fIresults connHandle\fB\fR
+Return a list of result handles for the named connection.
+.TP
+\fB\fIversion connHandle\fB\fR
+Return server version for the connection.
+.TP
+\fB\fIprotocol connHandle\fB\fR
+Return protocol version for the connection.
+.TP
+\fB\fIparam connHandle name\fB\fR
+Return connection's value for the named parameter.
+.TP
+\fB\fIbackendpid connHandle\fB\fR
+Return server process ID for the connection.
+.TP
+\fB\fIsocket connHandle\fB\fR
+Return socket file handle for the connection.
+.TP
+\fB\fIsql_count connHandle\fB\fR
+Return number of SQL queries that have been made for the connection.
+.TP
+\fB\fIdbname connHandle\fB\fR
+Return name of the connected database.
+.TP
+\fB\fIuser connHandle\fB\fR
+Return logged in user name.
+.TP
+\fB\fIpassword connHandle\fB\fR
+Return logged in user's password.
+.TP
+\fB\fIhost connHandle\fB\fR
+Return address of the connected host.
+.TP
+\fB\fIport connHandle\fB\fR
+Return host port for the connection.
+.TP
+\fB\fIoptions connHandle\fB\fR
+Return command line options passed in the connection request.
+.TP
+\fB\fIstatus connHandle\fB\fR
+Return connection status.
+.TP
+\fB\fItransaction_status connHandle\fB\fR
+Return transaction status.
+.TP
+\fB\fIerror_message connHandle\fB\fR
+Return the most recent error message on the connection.
+.TP
+\fB\fIneeds_password connHandle\fB\fR
+Return true if the connection required a password but none was available.
+
+This function can be applied after a failed connection attempt to decide whether to prompt the user for a password.
+.TP
+\fB\fIused_password connHandle\fB\fR
+Return true if the connection used a password.
+
+This function can be applied after either a failed or successful connection attempt to detect whether the server demanded a password.
+.TP
+\fB\fIused_ssl connHandle\fB\fR
+Return true if the connection uses SSL.
+.RE
 .TP
 \fB\fIconn\fB\fR
-The handle of the connection, if results if specified for the first argument.
+The handle of the connection, when required.
+.TP
+\fB\fIparam\fB\fR
+The connection parameter name, when the command "param" is provided.
 .SH "RETURN VALUE"
 .PP
 A Tcl list of connection handle names

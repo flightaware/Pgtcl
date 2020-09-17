@@ -3,7 +3,7 @@
 .\" <http://shell.ipoline.com/~elmert/comp/docbook2X/> 
 .\" Please send any bug reports, improvements, comments, patches, 
 .\" etc. to Steve Cheng <steve@ggi-project.org>.
-.TH "PG_SENDQUERY" "" "12 March 2020" "" "PostgreSQL Tcl Interface Documentation"
+.TH "PG_SENDQUERY" "" "17 September 2020" "" "PostgreSQL Tcl Interface Documentation"
 
 .SH NAME
 pg_sendquery \- send a query string to the backend connection without waiting for a result

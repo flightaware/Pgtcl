@@ -3,7 +3,7 @@
 .\" <http://shell.ipoline.com/~elmert/comp/docbook2X/> 
 .\" Please send any bug reports, improvements, comments, patches, 
 .\" etc. to Steve Cheng <steve@ggi-project.org>.
-.TH "PG_EXEC_PREPARED" "" "12 March 2020" "" "PostgreSQL Tcl Interface Documentation"
+.TH "PG_EXEC_PREPARED" "" "17 September 2020" "" "PostgreSQL Tcl Interface Documentation"
 
 .SH NAME
 pg_exec_prepared \- send a request to execute a prepared SQL statement to the server
