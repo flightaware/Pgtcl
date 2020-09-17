@@ -2,7 +2,7 @@
 "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-<meta name="generator" content="HTML Tidy for HTML5 for Linux version 5.2.0">
+<meta name="generator" content="HTML Tidy for HTML5 for Linux version 5.6.0">
 <title>pg_lo_truncate</title>
 <meta name="GENERATOR" content="Modular DocBook HTML Stylesheet Version 1.79">
 <link rev="MADE" href="mailto:pgsql-docs@postgresql.org">
@@ -28,17 +28,17 @@
 </table>
 <hr align="left" width="100%"></div>
 <h1><a name="PGTCL-PGTRUNCATE" id="PGTCL-PGTRUNCATE"></a>pg_lo_truncate</h1>
-<div class="REFNAMEDIV"><a name="AEN2077" id="AEN2077"></a>
+<div class="REFNAMEDIV"><a name="AEN2184" id="AEN2184"></a>
 <h2>Name</h2>
 pg_lo_truncate&nbsp;--&nbsp;Truncate a large object to a given length<a name="IX-PGTCL-PGLOTRUNCATE-2" id="IX-PGTCL-PGLOTRUNCATE-2"></a></div>
-<div class="REFSYNOPSISDIV"><a name="AEN2082" id="AEN2082"></a>
+<div class="REFSYNOPSISDIV"><a name="AEN2189" id="AEN2189"></a>
 <h2>Synopsis</h2>
 <pre class="SYNOPSIS">pg_lo_truncate <code class="PARAMETER">conn</code> <code class="PARAMETER">descriptor</code> <code class="PARAMETER">length</code></pre></div>
-<div class="REFSECT1"><a name="AEN2087" id="AEN2087"></a>
+<div class="REFSECT1"><a name="AEN2194" id="AEN2194"></a>
 <h2>Description</h2>
 <p><code class="FUNCTION">pg_lo_truncate</code> truncates the specified large object to the given length. If the length is greater than the current large object length, the large object is extended with null bytes.</p>
 </div>
-<div class="REFSECT1"><a name="AEN2091" id="AEN2091"></a>
+<div class="REFSECT1"><a name="AEN2198" id="AEN2198"></a>
 <h2>Arguments</h2>
 <div class="VARIABLELIST">
 <dl>
@@ -57,7 +57,7 @@ pg_lo_truncate&nbsp;--&nbsp;Truncate a large object to a given length<a name="IX
 </dl>
 </div>
 </div>
-<div class="REFSECT1"><a name="AEN2110" id="AEN2110"></a>
+<div class="REFSECT1"><a name="AEN2217" id="AEN2217"></a>
 <h2>Return Value</h2>
 <p>A zero-based offset in bytes suitable for input to <code class="FUNCTION">pg_lo_lseek</code>.</p>
 </div>

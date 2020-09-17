@@ -2,7 +2,7 @@
 "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-<meta name="generator" content="HTML Tidy for HTML5 for Linux version 5.2.0">
+<meta name="generator" content="HTML Tidy for HTML5 for Linux version 5.6.0">
 <title>pg_sqlite</title>
 <meta name="GENERATOR" content="Modular DocBook HTML Stylesheet Version 1.79">
 <link rev="MADE" href="mailto:pgsql-docs@postgresql.org">
@@ -28,18 +28,18 @@
 </table>
 <hr align="left" width="100%"></div>
 <h1><a name="PGTCL-PGSQLITE" id="PGTCL-PGSQLITE"></a>pg_sqlite</h1>
-<div class="REFNAMEDIV"><a name="AEN2231" id="AEN2231"></a>
+<div class="REFNAMEDIV"><a name="AEN2338" id="AEN2338"></a>
 <h2>Name</h2>
 pg_sqlite&nbsp;--&nbsp;implements a bridge between PostgreSQL and Sqlite3 using the Pgtcl and sqlite3 packages. <a name="IX-PGTCL-SQLITE2-2" id="IX-PGTCL-SQLITE2-2"></a></div>
-<div class="REFSYNOPSISDIV"><a name="AEN2236" id="AEN2236"></a>
+<div class="REFSYNOPSISDIV"><a name="AEN2343" id="AEN2343"></a>
 <h2>Synopsis</h2>
 <pre class="SYNOPSIS">pg_sqlite <code class="PARAMETER">sqlite_db</code> <code class="PARAMETER">command</code> [<span class="OPTIONAL">args</span>]</pre></div>
-<div class="REFSECT1"><a name="AEN2241" id="AEN2241"></a>
+<div class="REFSECT1"><a name="AEN2348" id="AEN2348"></a>
 <h2>Description</h2>
 <p><code class="FUNCTION">pg_sqlite</code> can import the results of a Postgres SQL query (previously made via <code class="FUNCTION">pg_exec</code>) directly into an sqlite3 table, export the results of an Sqlite SQL query into a Postgres table (via <tt class="LITERAL">write_tabsep</tt>), or import TSV files directly into sqlite3.</p>
 <p>The commands currently implemented are import_postgres_result, read_tabsep, write_tabsep, and read_tabsep_keylist.</p>
 </div>
-<div class="REFSECT1"><a name="AEN2248" id="AEN2248"></a>
+<div class="REFSECT1"><a name="AEN2355" id="AEN2355"></a>
 <h2>Arguments</h2>
 <div class="VARIABLELIST">
 <dl>
@@ -58,7 +58,7 @@ pg_sqlite&nbsp;--&nbsp;implements a bridge between PostgreSQL and Sqlite3 using 
 </dl>
 </div>
 </div>
-<div class="REFSECT1"><a name="AEN2272" id="AEN2272"></a>
+<div class="REFSECT1"><a name="AEN2379" id="AEN2379"></a>
 <h2>Commands</h2>
 <p><tt class="COMMAND">info</tt></p>
 <pre class="SYNOPSIS">    <code class="FUNCTION">pg_sqlite</code> <code class="PARAMETER">sqlite_db</code> info
@@ -351,16 +351,16 @@ pg_sqlite&nbsp;--&nbsp;implements a bridge between PostgreSQL and Sqlite3 using 
 </dl>
 </div>
 </div>
-<div class="REFSECT1"><a name="AEN2660" id="AEN2660"></a>
+<div class="REFSECT1"><a name="AEN2767" id="AEN2767"></a>
 <h2>Types</h2>
 <p><span class="emphasis"><i class="EMPHASIS">A note on types:</i></span> <code class="FUNCTION">pg_sqlite</code> supports four types: <tt class="LITERAL">integer</tt> (or int), <tt class="LITERAL">boolean</tt> (or bool), <tt class="LITERAL">double</tt> (or real), and <tt class="LITERAL">text</tt>. <tt class="LITERAL">Integer</tt>, <tt class="LITERAL">double</tt>, and <tt class="LITERAL">text</tt> match both sqlite and postgresql types. <tt class="LITERAL">Boolean</tt> is an integer type in sqlite, and boolean in postgresql, and converts postgresql boolean values (such as 'yes', 'no', 'true', or 'false') to integer 1 and 0.</p>
 <p>In addition, <code class="FUNCTION">pg_sqlite</code> will accept PostgreSQL boolean values for the integer type. This may be made conditional on a "strict" mode in the future.</p>
 </div>
-<div class="REFSECT1"><a name="AEN2675" id="AEN2675"></a>
+<div class="REFSECT1"><a name="AEN2782" id="AEN2782"></a>
 <h2>Return Value</h2>
 <p>Number of rows imported or exported.</p>
 </div>
-<div class="REFSECT1"><a name="AEN2678" id="AEN2678"></a>
+<div class="REFSECT1"><a name="AEN2785" id="AEN2785"></a>
 <h2>See Also</h2>
 <p><span class="PRODUCTNAME">Sqlite 3</span></p>
 </div>

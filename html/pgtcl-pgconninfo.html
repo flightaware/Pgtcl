@@ -2,7 +2,7 @@
 "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-<meta name="generator" content="HTML Tidy for HTML5 for Linux version 5.2.0">
+<meta name="generator" content="HTML Tidy for HTML5 for Linux version 5.6.0">
 <title>pg_dbinfo</title>
 <meta name="GENERATOR" content="Modular DocBook HTML Stylesheet Version 1.79">
 <link rev="MADE" href="mailto:pgsql-docs@postgresql.org">
@@ -30,30 +30,119 @@
 <h1><a name="PGTCL-PGCONNINFO" id="PGTCL-PGCONNINFO"></a>pg_dbinfo</h1>
 <div class="REFNAMEDIV"><a name="AEN599" id="AEN599"></a>
 <h2>Name</h2>
-pg_dbinfo&nbsp;--&nbsp;returns a list of current open connection/result handles<a name="IX-PGTCL-PGCONNINFO-2" id="IX-PGTCL-PGCONNINFO-2"></a></div>
+pg_dbinfo&nbsp;--&nbsp;returns data about the connection<a name="IX-PGTCL-PGCONNINFO-2" id="IX-PGTCL-PGCONNINFO-2"></a></div>
 <div class="REFSYNOPSISDIV"><a name="AEN604" id="AEN604"></a>
 <h2>Synopsis</h2>
-<pre class="SYNOPSIS">pg_dbinfo connections|results ?conn?</pre></div>
+<pre class="SYNOPSIS">pg_dbinfo command ?conn? ?paramname?</pre></div>
 <div class="REFSECT1"><a name="AEN606" id="AEN606"></a>
 <h2>Description</h2>
-<p><code class="FUNCTION">pg_dbinfo</code> returns a list of connection\result handles that are currently open. The first argument is either connections or results. If the first argument is results, then a second argument needs to be present, specifyin the connection.</p>
+<p><code class="FUNCTION">pg_dbinfo</code> returns data about the connection. The first argument is a command, and the second and third argument depend on the command chosen.</p>
 </div>
 <div class="REFSECT1"><a name="AEN610" id="AEN610"></a>
 <h2>Arguments</h2>
 <div class="VARIABLELIST">
 <dl>
-<dt><code class="PARAMETER">connections|results</code></dt>
+<dt><code class="PARAMETER">command</code></dt>
 <dd>
-<p>Either specify connections if you want the connection handles, or results if you want the result handles.</p>
+<div class="VARIABLELIST">
+<dl>
+<dt><code class="PARAMETER">connections</code></dt>
+<dd>
+<p>Return a list of connection handles.</p>
+</dd>
+<dt><code class="PARAMETER">results connHandle</code></dt>
+<dd>
+<p>Return a list of result handles for the named connection.</p>
+</dd>
+<dt><code class="PARAMETER">version connHandle</code></dt>
+<dd>
+<p>Return server version for the connection.</p>
+</dd>
+<dt><code class="PARAMETER">protocol connHandle</code></dt>
+<dd>
+<p>Return protocol version for the connection.</p>
+</dd>
+<dt><code class="PARAMETER">param connHandle name</code></dt>
+<dd>
+<p>Return connection's value for the named parameter.</p>
+</dd>
+<dt><code class="PARAMETER">backendpid connHandle</code></dt>
+<dd>
+<p>Return server process ID for the connection.</p>
+</dd>
+<dt><code class="PARAMETER">socket connHandle</code></dt>
+<dd>
+<p>Return socket file handle for the connection.</p>
+</dd>
+<dt><code class="PARAMETER">sql_count connHandle</code></dt>
+<dd>
+<p>Return number of SQL queries that have been made for the connection.</p>
+</dd>
+<dt><code class="PARAMETER">dbname connHandle</code></dt>
+<dd>
+<p>Return name of the connected database.</p>
+</dd>
+<dt><code class="PARAMETER">user connHandle</code></dt>
+<dd>
+<p>Return logged in user name.</p>
+</dd>
+<dt><code class="PARAMETER">password connHandle</code></dt>
+<dd>
+<p>Return logged in user's password.</p>
+</dd>
+<dt><code class="PARAMETER">host connHandle</code></dt>
+<dd>
+<p>Return address of the connected host.</p>
+</dd>
+<dt><code class="PARAMETER">port connHandle</code></dt>
+<dd>
+<p>Return host port for the connection.</p>
+</dd>
+<dt><code class="PARAMETER">options connHandle</code></dt>
+<dd>
+<p>Return command line options passed in the connection request.</p>
+</dd>
+<dt><code class="PARAMETER">status connHandle</code></dt>
+<dd>
+<p>Return connection status.</p>
+</dd>
+<dt><code class="PARAMETER">transaction_status connHandle</code></dt>
+<dd>
+<p>Return transaction status.</p>
+</dd>
+<dt><code class="PARAMETER">error_message connHandle</code></dt>
+<dd>
+<p>Return the most recent error message on the connection.</p>
+</dd>
+<dt><code class="PARAMETER">needs_password connHandle</code></dt>
+<dd>
+<p>Return true if the connection required a password but none was available.</p>
+<p>This function can be applied after a failed connection attempt to decide whether to prompt the user for a password.</p>
+</dd>
+<dt><code class="PARAMETER">used_password connHandle</code></dt>
+<dd>
+<p>Return true if the connection used a password.</p>
+<p>This function can be applied after either a failed or successful connection attempt to detect whether the server demanded a password.</p>
+</dd>
+<dt><code class="PARAMETER">used_ssl connHandle</code></dt>
+<dd>
+<p>Return true if the connection uses SSL.</p>
+</dd>
+</dl>
+</div>
 </dd>
 <dt><code class="PARAMETER">conn</code></dt>
 <dd>
-<p>The handle of the connection, if results if specified for the first argument.</p>
+<p>The handle of the connection, when required.</p>
+</dd>
+<dt><code class="PARAMETER">param</code></dt>
+<dd>
+<p>The connection parameter name, when the command "param" is provided.</p>
 </dd>
 </dl>
 </div>
 </div>
-<div class="REFSECT1"><a name="AEN623" id="AEN623"></a>
+<div class="REFSECT1"><a name="AEN730" id="AEN730"></a>
 <h2>Return Value</h2>
 <p>A Tcl list of connection handle names</p>
 </div>

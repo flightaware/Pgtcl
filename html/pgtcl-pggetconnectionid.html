@@ -2,7 +2,7 @@
 "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-<meta name="generator" content="HTML Tidy for HTML5 for Linux version 5.2.0">
+<meta name="generator" content="HTML Tidy for HTML5 for Linux version 5.6.0">
 <title>PgGetConnectionId</title>
 <meta name="GENERATOR" content="Modular DocBook HTML Stylesheet Version 1.79">
 <link rev="MADE" href="mailto:pgsql-docs@postgresql.org">
@@ -28,18 +28,18 @@
 </table>
 <hr align="left" width="100%"></div>
 <h1><a name="PGTCL-PGGETCONNECTIONID" id="PGTCL-PGGETCONNECTIONID"></a>PgGetConnectionId</h1>
-<div class="REFNAMEDIV"><a name="AEN2709" id="AEN2709"></a>
+<div class="REFNAMEDIV"><a name="AEN2816" id="AEN2816"></a>
 <h2>Name</h2>
 PgGetConnectionId&nbsp;--&nbsp;Provides access to the underlying <tt class="LITERAL">libpq</tt> SQL connection handle. <a name="IX-PGTCL-C-API-2" id="IX-PGTCL-C-API-2"></a></div>
-<div class="REFSYNOPSISDIV"><a name="AEN2715" id="AEN2715"></a>
+<div class="REFSYNOPSISDIV"><a name="AEN2822" id="AEN2822"></a>
 <h2>Synopsis</h2>
 <pre class="SYNOPSIS">extern PGconn *PgGetConnectionId(Tcl_Interp *interp, const char *handle, Pg_ConnectionId **connid);</pre></div>
-<div class="REFSECT1"><a name="AEN2717" id="AEN2717"></a>
+<div class="REFSECT1"><a name="AEN2824" id="AEN2824"></a>
 <h2>Description</h2>
 <p><code class="FUNCTION">PgGetConnectionId</code> returns the underlying <tt class="LITERAL">PGconn</tt> handle. This is intended to allow Tcl extensions to Pgtcl to use the existing database connection.</p>
 <p>The <tt class="LITERAL">Pg_ConnectionId</tt> structure provides access to more internals of the Pgtcl handle, but may be ignored in most cases.</p>
 </div>
-<div class="REFSECT1"><a name="AEN2724" id="AEN2724"></a>
+<div class="REFSECT1"><a name="AEN2831" id="AEN2831"></a>
 <h2>Parameters</h2>
 <div class="VARIABLELIST">
 <dl>
@@ -58,7 +58,7 @@ PgGetConnectionId&nbsp;--&nbsp;Provides access to the underlying <tt class="LITE
 </dl>
 </div>
 </div>
-<div class="REFSECT1"><a name="AEN2742" id="AEN2742"></a>
+<div class="REFSECT1"><a name="AEN2849" id="AEN2849"></a>
 <h2>Returns</h2>
 <p>PGconn *<code class="PARAMETER">conn</code> is a pointer to the libpq SQL database connection.</p>
 </div>
