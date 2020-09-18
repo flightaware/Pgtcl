@@ -1610,9 +1610,6 @@ Pg_copy_complete(ClientData cData, Tcl_Interp *interp, int objc,
  **********************************/
 int PgCheckConnectionState(Pg_ConnectionId *connid)
 {
-	int restart_notifier = 0;
-	int recreate_notifier = 0;
-
 	// We don't have a connection, we can't do anything.
 	if(!connid->conn) {
 		return TCL_ERROR;
@@ -1623,45 +1620,8 @@ int PgCheckConnectionState(Pg_ConnectionId *connid)
 		return TCL_OK;
 	}
 
-	// Clean up notifiers.
-	// TODO can all this and call PgConnLossTransferEvents(cannid)?
-	if (connid->notifier_channel != NULL)
-        {
-		recreate_notifier = 1;
+	// Clean up notifiers and queue a connection loss event.
+	PgConnLossTransferEvents(connid);
 
-		if (connid->notifier_running)
-		{
-			restart_notifier = 1;
-
-			Tcl_DeleteChannelHandler(connid->notifier_channel, Pg_Notify_FileHandler, (ClientData)connid);
-		}
-		connid->notifier_running = 0;
-
-		Tcl_UnregisterChannel(NULL, connid->notifier_channel);
-		connid->notifier_channel = NULL;
-	}
-
-	// Question: should we do this, or just return TCL_ERROR here?
-
-	// Reset the connection.
-	PQreset(connid->conn);
-
-	// Didn't work, bail
-	if(PQstatus(connid->conn) == CONNECTION_BAD) {
-		//connid->conn = NULL;
-		return TCL_ERROR;
-	}
-
-	if(recreate_notifier) {
-		// Re-create the channel and re-register the channel
-		connid->notifier_channel = Tcl_MakeTcpClientChannel((ClientData)(long)PQsocket(connid->conn));
-		Tcl_RegisterChannel(NULL, connid->notifier_channel);
-
-		// If the notifier had been running, recreate the notifier
-		if(restart_notifier) {
-			PgStartNotifyEventSource(connid);
-		}
-	}
-
-	return TCL_CONTINUE;
+	return TCL_ERROR;
 }
