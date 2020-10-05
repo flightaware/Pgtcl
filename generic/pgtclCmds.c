@@ -806,6 +806,7 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	} else {
 	    result = PQexecParams(conn, execString, nParams, NULL, paramValues, NULL, NULL, 0);
 	    ckfree ((void *)paramValues);
+	    paramValues = NULL;
 	    if(newExecString) {
 		ckfree((void *)newExecString);
 		newExecString = NULL;
@@ -823,6 +824,8 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	    int	rId;
 	    if(PgSetResultId(interp, connString, result, &rId) != TCL_OK) {
 		PQclear(result);
+		// Reconnect if the connection is bad.
+		PgCheckConnectionState(connid);
 		return TCL_ERROR;
 	    }
 
@@ -839,6 +842,10 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	{
 	    /* error occurred during the query */
 	    report_connection_error(interp, conn);
+
+	    // Reconnect if the connection is bad.
+	    PgCheckConnectionState(connid);
+
 	    return TCL_ERROR;
 	}
 }
@@ -849,7 +856,11 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
  */
 static void report_connection_error(Tcl_Interp *interp, PGconn *conn)
 {
-	char *errString = PQerrorMessage(conn);
+	char *errString = "";
+
+	if(conn) {
+		errString = PQerrorMessage(conn);
+	}
 
 	if(errString[0] != '\0') {
 		char *nl = strchr(errString, '\n');
@@ -955,6 +966,10 @@ Pg_exec_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 	{
 		/* error occurred during the query */
 		report_connection_error(interp, conn);
+
+		// Reconnect if the connection is bad.
+		PgCheckConnectionState(connid);
+
 		return TCL_ERROR;
 	}
 }
@@ -1191,6 +1206,10 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 				resultStatus = PQresStatus(PQresultStatus(result));
 				Tcl_SetObjResult(interp, Tcl_NewStringObj(resultStatus, -1));
+				// Reconnect if the connection is bad.
+				if (strcmp(resultStatus, "PGRES_COMMAND_OK") != 0) {
+					PgCheckConnectionState(resultid->connid);
+				}
 				return TCL_OK;
 			}
 
@@ -1229,7 +1248,14 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				    return TCL_ERROR;
 			    }
 
-			    return Pg_result_foreach(interp, result, objv[3], objv[4]);
+			    int resultStatus =  Pg_result_foreach(interp, result, objv[3], objv[4]);
+			    if(resultStatus != TCL_OK) {
+				if(PgCheckConnectionState(resultid->connid) != TCL_OK) {
+					report_connection_error(interp, resultid->connid->conn);
+					return TCL_ERROR;
+				}
+			    }
+			    return resultStatus;
 			}
 
 		case OPT_CONN:
@@ -1913,6 +1939,9 @@ Pg_execute(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 	{
 		report_connection_error(interp, conn);
 
+		// Look for a failed connection and re-open it.
+		PgCheckConnectionState(connid);
+
 		return TCL_ERROR;
 	}
 
@@ -2101,6 +2130,7 @@ Pg_lo_open(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 	char	   *connString;
 	char	   *modeString;
 	int			modeStringLen;
+	Pg_ConnectionId *connid;
 
 	if (objc != 4)
 	{
@@ -2109,7 +2139,7 @@ Pg_lo_open(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 	}
 
 	connString = Tcl_GetString(objv[1]);
-	conn = PgGetConnectionId(interp, connString,  NULL);
+	conn = PgGetConnectionId(interp, connString,  &connid);
 	if (conn == NULL)
 		return TCL_ERROR;
 
@@ -2161,6 +2191,13 @@ Pg_lo_open(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 	}
 
 	fd = lo_open(conn, lobjId, mode);
+
+        // Reconnect if the connection is bad.
+        if(PgCheckConnectionState(connid) != TCL_OK) {
+		report_connection_error(interp, conn);
+		return TCL_ERROR;
+	}
+
 	Tcl_SetObjResult(interp, Tcl_NewIntObj(fd));
 	return TCL_OK;
 }
@@ -2179,6 +2216,7 @@ Pg_lo_close(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[
 	PGconn	   *conn;
 	int			fd;
 	char	   *connString;
+	Pg_ConnectionId *connid;
 
 	if (objc != 3)
 	{
@@ -2187,14 +2225,22 @@ Pg_lo_close(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[
 	}
 
 	connString = Tcl_GetString(objv[1]);
-	conn = PgGetConnectionId(interp, connString, NULL);
+	conn = PgGetConnectionId(interp, connString, &connid);
 	if (conn == NULL)
 		return TCL_ERROR;
 
 	if (Tcl_GetIntFromObj(interp, objv[2], &fd) != TCL_OK)
 		return TCL_ERROR;
 
-	Tcl_SetObjResult(interp, Tcl_NewIntObj(lo_close(conn, fd)));
+	int result = lo_close(conn, fd);
+
+        // Reconnect if the connection is bad.
+        if(PgCheckConnectionState(connid) != TCL_OK) {
+		report_connection_error(interp, conn);
+		return TCL_ERROR;
+	}
+
+	Tcl_SetObjResult(interp, Tcl_NewIntObj(result));
 	return TCL_OK;
 }
 
@@ -2221,6 +2267,7 @@ Pg_lo_read(ClientData cData, Tcl_Interp *interp, int objc,
 	Tcl_Obj    *bufObj;
 	int			len;
 	int			rc = TCL_OK;
+	Pg_ConnectionId *connid;
 
 	if (objc != 5)
 	{
@@ -2229,7 +2276,7 @@ Pg_lo_read(ClientData cData, Tcl_Interp *interp, int objc,
 	}
 
 	conn = PgGetConnectionId(interp, Tcl_GetString(objv[1]),
-							 NULL);
+							 &connid);
 	if (conn == NULL)
 		return TCL_ERROR;
 
@@ -2250,7 +2297,13 @@ Pg_lo_read(ClientData cData, Tcl_Interp *interp, int objc,
 	buf = ckalloc(len + 1);
 
 	nbytes = lo_read(conn, fd, buf, len);
-        if (nbytes >= 0)
+
+        // Reconnect if the connection is bad.
+        if(PgCheckConnectionState(connid) != TCL_OK) {
+		report_connection_error(interp, conn);
+		rc = TCL_ERROR;
+	}
+	else if (nbytes >= 0)
         {
 	        bufObj = Tcl_NewByteArrayObj((unsigned char*)buf, nbytes);
 
@@ -2283,6 +2336,7 @@ Pg_lo_write(ClientData cData, Tcl_Interp *interp, int objc,
 	int			fd;
 	int			nbytes = 0;
 	int			len;
+	Pg_ConnectionId *connid;
 
 	if (objc != 5)
 	{
@@ -2291,7 +2345,7 @@ Pg_lo_write(ClientData cData, Tcl_Interp *interp, int objc,
 	}
 
 	conn = PgGetConnectionId(interp, Tcl_GetString(objv[1]),
-							 NULL);
+							 &connid);
 	if (conn == NULL)
 		return TCL_ERROR;
 
@@ -2313,6 +2367,13 @@ Pg_lo_write(ClientData cData, Tcl_Interp *interp, int objc,
 	}
 
 	nbytes = lo_write(conn, fd, (char*)buf, len);
+
+        // Reconnect if the connection is bad.
+        if(PgCheckConnectionState(connid) != TCL_OK) {
+		report_connection_error(interp, conn);
+		return TCL_ERROR;
+	}
+
 	Tcl_SetObjResult(interp, Tcl_NewIntObj(nbytes));
 	return TCL_OK;
 }
@@ -2337,6 +2398,7 @@ Pg_lo_lseek(ClientData cData, Tcl_Interp *interp, int objc,
 	int			offset;
 	int			whence;
 	char	   *connString;
+	Pg_ConnectionId *connid;
         Tcl_Obj    *tresult;
 
 	if (objc != 5)
@@ -2346,7 +2408,7 @@ Pg_lo_lseek(ClientData cData, Tcl_Interp *interp, int objc,
 	}
 
 	connString = Tcl_GetString(objv[1]);
-	conn = PgGetConnectionId(interp, connString, NULL);
+	conn = PgGetConnectionId(interp, connString, &connid);
 	if (conn == NULL)
 		return TCL_ERROR;
 
@@ -2372,7 +2434,15 @@ Pg_lo_lseek(ClientData cData, Tcl_Interp *interp, int objc,
             return TCL_ERROR;
 	}
 
-	Tcl_SetObjResult(interp, Tcl_NewIntObj(lo_lseek(conn, fd, offset, whence)));
+	int result = lo_lseek(conn, fd, offset, whence);
+
+        // Reconnect if the connection is bad.
+        if(PgCheckConnectionState(connid) != TCL_OK) {
+		report_connection_error(interp, conn);
+		return TCL_ERROR;
+	}
+
+	Tcl_SetObjResult(interp, Tcl_NewIntObj(result));
 	return TCL_OK;
 }
 
@@ -2398,6 +2468,7 @@ Pg_lo_creat(ClientData cData, Tcl_Interp *interp, int objc,
 	int			mode;
 	char	   *connString;
         Tcl_Obj    *tresult;
+	Pg_ConnectionId *connid;
 
 	if (objc != 3)
 	{
@@ -2406,7 +2477,7 @@ Pg_lo_creat(ClientData cData, Tcl_Interp *interp, int objc,
 	}
 
 	connString = Tcl_GetString(objv[1]);
-	conn = PgGetConnectionId(interp, connString, NULL);
+	conn = PgGetConnectionId(interp, connString, &connid);
 	if (conn == NULL)
 		return TCL_ERROR;
 
@@ -2440,7 +2511,15 @@ Pg_lo_creat(ClientData cData, Tcl_Interp *interp, int objc,
 		}
 	}
 
-	Tcl_SetObjResult(interp, Tcl_NewIntObj(lo_creat(conn, mode)));
+	int result = lo_creat(conn, mode);
+
+        // Reconnect if the connection is bad.
+        if(PgCheckConnectionState(connid) != TCL_OK) {
+		report_connection_error(interp, conn);
+		return TCL_ERROR;
+	}
+
+	Tcl_SetObjResult(interp, Tcl_NewIntObj(result));
 	return TCL_OK;
 }
 
@@ -2459,6 +2538,7 @@ Pg_lo_tell(ClientData cData, Tcl_Interp *interp, int objc,
 	PGconn	   *conn;
 	int			fd;
 	char	   *connString;
+	Pg_ConnectionId *connid;
 
 	if (objc != 3)
 	{
@@ -2467,14 +2547,22 @@ Pg_lo_tell(ClientData cData, Tcl_Interp *interp, int objc,
 	}
 
 	connString = Tcl_GetString(objv[1]);
-	conn = PgGetConnectionId(interp, connString, NULL);
+	conn = PgGetConnectionId(interp, connString, &connid);
 	if (conn == NULL)
 		return TCL_ERROR;
 
 	if (Tcl_GetIntFromObj(interp, objv[2], &fd) != TCL_OK)
 		return TCL_ERROR;
 
-	Tcl_SetObjResult(interp, Tcl_NewIntObj(lo_tell(conn, fd)));
+	int result = lo_tell(conn, fd);
+
+        // Reconnect if the connection is bad.
+        if(PgCheckConnectionState(connid) != TCL_OK) {
+		report_connection_error(interp, conn);
+		return TCL_ERROR;
+	}
+
+	Tcl_SetObjResult(interp, Tcl_NewIntObj(result));
 	return TCL_OK;
 }
 
@@ -2496,6 +2584,7 @@ Pg_lo_truncate(ClientData cData, Tcl_Interp *interp, int objc,
 	int			fd;
 	int			len = 0;
 	char	   *connString;
+	Pg_ConnectionId *connid;
 
 	if ((objc < 3) || (objc > 4))
 	{
@@ -2504,7 +2593,7 @@ Pg_lo_truncate(ClientData cData, Tcl_Interp *interp, int objc,
 	}
 
 	connString = Tcl_GetString(objv[1]);
-	conn = PgGetConnectionId(interp, connString, NULL);
+	conn = PgGetConnectionId(interp, connString, &connid);
 	if (conn == NULL)
 		return TCL_ERROR;
 
@@ -2515,7 +2604,16 @@ Pg_lo_truncate(ClientData cData, Tcl_Interp *interp, int objc,
 		if (Tcl_GetIntFromObj(interp, objv[3], &len) != TCL_OK)
 			return TCL_ERROR;
 	}
-	Tcl_SetObjResult(interp, Tcl_NewIntObj(lo_truncate(conn, fd, len)));
+
+	int result = lo_truncate(conn, fd, len);
+
+        // Reconnect if the connection is bad.
+        if(PgCheckConnectionState(connid) != TCL_OK) {
+		report_connection_error(interp, conn);
+		return TCL_ERROR;
+	}
+
+	Tcl_SetObjResult(interp, Tcl_NewIntObj(result));
 
 	return TCL_OK;
 }
@@ -2538,6 +2636,7 @@ Pg_lo_unlink(ClientData cData, Tcl_Interp *interp, int objc,
 	int			retval;
 	char	   *connString;
         Tcl_Obj    *tresult;
+	Pg_ConnectionId *connid;
 
 	if (objc != 3)
 	{
@@ -2546,7 +2645,7 @@ Pg_lo_unlink(ClientData cData, Tcl_Interp *interp, int objc,
 	}
 
 	connString = Tcl_GetString(objv[1]);
-	conn = PgGetConnectionId(interp, connString, NULL);
+	conn = PgGetConnectionId(interp, connString, &connid);
 	if (conn == NULL)
 		return TCL_ERROR;
 
@@ -2560,6 +2659,9 @@ Pg_lo_unlink(ClientData cData, Tcl_Interp *interp, int objc,
             Tcl_AppendStringsToObj(tresult, lobjId, NULL);
             Tcl_AppendStringsToObj(tresult, "' failed", NULL);
             Tcl_SetObjResult(interp, tresult);
+
+	    // Reconnect if the connection is bad.
+	    PgCheckConnectionState(connid);
 
             return TCL_ERROR;
 	}
@@ -2588,6 +2690,7 @@ Pg_lo_import(ClientData cData, Tcl_Interp *interp, int objc,
 	Oid			lobjId;
 	char	   *connString;
         Tcl_Obj    *tresult;
+	Pg_ConnectionId *connid;
 
 	if (objc != 3)
 	{
@@ -2596,7 +2699,7 @@ Pg_lo_import(ClientData cData, Tcl_Interp *interp, int objc,
 	}
 
 	connString = Tcl_GetString(objv[1]);
-	conn = PgGetConnectionId(interp, connString, NULL);
+	conn = PgGetConnectionId(interp, connString, &connid);
 	if (conn == NULL)
 		return TCL_ERROR;
 
@@ -2609,6 +2712,9 @@ Pg_lo_import(ClientData cData, Tcl_Interp *interp, int objc,
             Tcl_AppendStringsToObj(tresult, filename, NULL);
             Tcl_AppendStringsToObj(tresult, "' failed", NULL);
             Tcl_SetObjResult(interp, tresult);
+
+	    // Reconnect if the connection is bad.
+	    PgCheckConnectionState(connid);
 
             return TCL_ERROR;
 	}
@@ -2636,6 +2742,7 @@ Pg_lo_export(ClientData cData, Tcl_Interp *interp, int objc,
 	int			retval;
 	char	   *connString;
         Tcl_Obj    *tresult;
+	Pg_ConnectionId *connid;
 
 	if (objc != 4)
 	{
@@ -2644,7 +2751,7 @@ Pg_lo_export(ClientData cData, Tcl_Interp *interp, int objc,
 	}
 
 	connString = Tcl_GetString(objv[1]);
-	conn = PgGetConnectionId(interp, connString, NULL);
+	conn = PgGetConnectionId(interp, connString, &connid);
 	if (conn == NULL)
 		return TCL_ERROR;
 
@@ -2658,6 +2765,10 @@ Pg_lo_export(ClientData cData, Tcl_Interp *interp, int objc,
 	{
             tresult = Tcl_NewStringObj("export failed", -1);
             Tcl_SetObjResult(interp, tresult);
+
+	    // Reconnect if the connection is bad.
+	    if(PgCheckConnectionState(connid) != TCL_OK)
+		report_connection_error(interp, conn);
 
             return TCL_ERROR;
 	}
@@ -3006,6 +3117,10 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		if(status == 0) {
 			/* error occurred sending the query */
 			report_connection_error(interp, conn);
+
+			// Reconnect if the connection is bad.
+			PgCheckConnectionState(connid);
+
 			goto cleanup_params_and_return_error;
 		}
 
@@ -3015,6 +3130,14 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 		// Queue up the result.
 		result = PQgetResult (conn);
+
+		if(result == 0) {
+			/* error occurred sending the query */
+			report_connection_error(interp, conn);
+			// Reconnect if the connection is bad.
+			PgCheckConnectionState(connid);
+			goto cleanup_params_and_return_error;
+		}
 	} else {
 		// Make the call AND queue up the result.
 		if (nParams) {
@@ -3027,6 +3150,10 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		if (result == 0) {
 			/* error occurred sending the query */
 			report_connection_error(interp, conn);
+
+			// Reconnect if the connection is bad.
+			PgCheckConnectionState(connid);
+
 			goto cleanup_params_and_return_error;
 		}
 	}
@@ -3078,6 +3205,10 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				Tcl_SetErrorCode(interp, "POSTGRESQL", errStatus, errString, (char *)NULL);
 				if(nl) *nl = '\n';
 			}
+
+			// Reconnect if the connection is bad (can only happen here in rowbyrow or first pass)
+			if(rowByRow || firstPass)
+				PgCheckConnectionState(connid);
 
 			Tcl_SetResult(interp, errString, TCL_VOLATILE);
 			retval = TCL_ERROR;
@@ -3598,6 +3729,10 @@ Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
 	{
 	    /* error occurred during the query */
 	    report_connection_error(interp, conn);
+
+	    // Reconnect if the connection is bad.
+	    PgCheckConnectionState(connid);
+
 	    return TCL_ERROR;
 	}
 }
@@ -3688,6 +3823,10 @@ Pg_sendquery_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *C
 	{
 		/* error occurred during the query */
 		report_connection_error(interp, conn);
+
+		// Reconnect if the connection is bad.
+		PgCheckConnectionState(connid);
+
 		return TCL_ERROR;
 	}
 }
@@ -3708,12 +3847,17 @@ int
 Pg_set_single_row_mode(ClientData cData, Tcl_Interp *interp, int objc,
 			Tcl_Obj *CONST objv[])
 {
+#ifndef HAVE_PQSETSINGLEROWMODE
+                Tcl_SetObjResult(interp, 
+                    Tcl_NewStringObj(
+                        "function unavailable with this version of the postgres libpq library\n", -1));
+
+	        return TCL_ERROR;
+#else
 	Pg_ConnectionId *connid;
 	PGconn	   *conn;
 	char	   *connString;
-#ifdef HAVE_PQSETSINGLEROWMODE
 	int         setRowModeResult;
-#endif
 
 	if (objc != 2)
 	{
@@ -3727,13 +3871,6 @@ Pg_set_single_row_mode(ClientData cData, Tcl_Interp *interp, int objc,
 	if (conn == NULL)
 		return TCL_ERROR;
 
-#ifndef HAVE_PQSETSINGLEROWMODE
-                Tcl_SetObjResult(interp, 
-                    Tcl_NewStringObj(
-                        "function unavailable with this version of the postgres libpq library\n", -1));
-
-	        return TCL_ERROR;
-#else
 	setRowModeResult = PQsetSingleRowMode (conn);
 	Tcl_SetObjResult (interp, Tcl_NewIntObj (setRowModeResult));
 	return TCL_OK;
@@ -3878,6 +4015,12 @@ Pg_getdata(ClientData cData, Tcl_Interp *interp, int objc,
 	    }
     
             ExecStatusType rStat = PQresultStatus(result);
+
+	    // Reconnect if the connection is bad.
+	    if(PgCheckConnectionState(connid) != TCL_OK) {
+		report_connection_error(interp, conn);
+		return TCL_ERROR;
+	    }
     
             if (rStat == PGRES_COPY_IN || rStat == PGRES_COPY_OUT)
             {
@@ -3893,7 +4036,13 @@ Pg_getdata(ClientData cData, Tcl_Interp *interp, int objc,
 
         pollstatus = PQconnectPoll(conn);
 
-        switch (pollstatus)
+	// Reconnect if the connection is bad.
+	if(PgCheckConnectionState(connid) != TCL_OK) {
+		report_connection_error(interp, conn);
+		return TCL_ERROR;
+	}
+
+	switch (pollstatus)
         {
             case PGRES_POLLING_FAILED:
             {
@@ -3963,7 +4112,13 @@ Pg_isbusy(ClientData cData, Tcl_Interp *interp, int objc,
 	if (conn == NULL)
 		return TCL_ERROR;
 
-	PQconsumeInput(conn);
+ 	PQconsumeInput(conn);
+
+        // Reconnect if the connection is bad.
+        if(PgCheckConnectionState(connid) != TCL_OK) {
+		report_connection_error(interp, conn);
+		return TCL_ERROR;
+	}
 
 	Tcl_SetObjResult(interp, Tcl_NewIntObj(PQisBusy(conn)));
 	return TCL_OK;
@@ -4123,8 +4278,12 @@ Pg_cancelrequest(ClientData cData, Tcl_Interp *interp, int objc,
 
 	if (PQrequestCancel(conn) == 0)
 	{
-		Tcl_SetObjResult(interp,
-			 Tcl_NewStringObj(PQerrorMessage(conn), -1));
+		// Reconnect if the connection is bad.
+		if(PgCheckConnectionState(connid) != TCL_OK)
+			report_connection_error(interp, conn);
+		else
+			Tcl_SetObjResult(interp,
+				 Tcl_NewStringObj(PQerrorMessage(conn), -1));
 		return TCL_ERROR;
 	}
 	return TCL_OK;
@@ -4331,7 +4490,6 @@ Pg_quote (ClientData cData, Tcl_Interp *interp, int objc,
 		conn = PgGetConnectionId(interp, connString, &connid);
 		if (conn == NULL)
 			return TCL_ERROR;
-
 
 		/*
 		 * Get the "from" string.
@@ -4726,40 +4884,60 @@ Pg_dbinfo(ClientData cData, Tcl_Interp *interp, int objc,
         }
         case OPT_VERSION:
         {
+#define SET_AND_CHECK_INT(fun) { \
+		int result = fun; \
+		if(PgCheckConnectionState(connid) != TCL_OK) { \
+			report_connection_error(interp, connid->conn); \
+			return TCL_ERROR; \
+		} \
+		Tcl_SetObjResult(interp, Tcl_NewIntObj(result)); \
+	}
+#define SET_AND_CHECK_BOOL(fun) { \
+		int result = fun; \
+		if(PgCheckConnectionState(connid) != TCL_OK) { \
+			report_connection_error(interp, connid->conn); \
+			return TCL_ERROR; \
+		} \
+		Tcl_SetObjResult(interp, Tcl_NewBooleanObj(result)); \
+	}
+#define SET_AND_CHECK_STRING(fun) { \
+		const char *result = fun; \
+		if(PgCheckConnectionState(connid) != TCL_OK) { \
+			report_connection_error(interp, connid->conn); \
+			return TCL_ERROR; \
+		} \
+		Tcl_SetObjResult(interp, Tcl_NewStringObj(result, -1)); \
+	}
 
-            Tcl_SetObjResult(interp, Tcl_NewIntObj(
-                             PQserverVersion(connid->conn)));
+	    SET_AND_CHECK_INT(PQserverVersion(connid->conn));
     
             return TCL_OK;
 
         }
         case OPT_PROTOCOL:
         {
-            Tcl_SetObjResult(interp, Tcl_NewIntObj(
-                            PQprotocolVersion(connid->conn)));
+	    SET_AND_CHECK_INT(PQprotocolVersion(connid->conn));
             return TCL_OK;
         }
         case OPT_PARAM:
         {
             paramname = Tcl_GetString(objv[3]);
-            Tcl_SetObjResult(interp, Tcl_NewStringObj(
-                             PQparameterStatus(connid->conn, paramname), -1));
+	    SET_AND_CHECK_STRING(PQparameterStatus(connid->conn,paramname));
             return TCL_OK;
         }
         case OPT_BACKENDPID:
         {
-            Tcl_SetObjResult(interp, Tcl_NewIntObj(
-                             PQbackendPID(connid->conn)));
+	    SET_AND_CHECK_INT(PQbackendPID(connid->conn));
             return TCL_OK;
         }
         case OPT_SOCKET:
         {
-            Tcl_SetObjResult(interp, Tcl_NewIntObj(
-                             PQsocket(connid->conn)));
+	    SET_AND_CHECK_INT(PQsocket(connid->conn));
             return TCL_OK;
         }
         case OPT_SQL_COUNT:
         {
+	    // Can't call libpq, so leave alone
             Tcl_SetObjResult(interp, Tcl_NewIntObj(
                              connid->sql_count));
             return TCL_OK;
@@ -4767,42 +4945,36 @@ Pg_dbinfo(ClientData cData, Tcl_Interp *interp, int objc,
 
 	case OPT_DBNAME:
 	{
-            Tcl_SetObjResult(interp, Tcl_NewStringObj(
-                             PQdb(connid->conn), -1));
+	    SET_AND_CHECK_STRING(PQdb(connid->conn));
             return TCL_OK;
 	}
 
 	case OPT_USER:
 	{
-            Tcl_SetObjResult(interp, Tcl_NewStringObj(
-                             PQuser(connid->conn), -1));
+	    SET_AND_CHECK_STRING(PQuser(connid->conn));
             return TCL_OK;
 	}
 
 	case OPT_PASSWORD:
 	{
-            Tcl_SetObjResult(interp, Tcl_NewStringObj(
-                             PQpass(connid->conn), -1));
+            SET_AND_CHECK_STRING(PQpass(connid->conn));
             return TCL_OK;
 	}
 
 	case OPT_HOST:
 	{
-            Tcl_SetObjResult(interp, Tcl_NewStringObj(
-                             PQhost(connid->conn), -1));
+	    SET_AND_CHECK_STRING(PQhost(connid->conn));
             return TCL_OK;
 	}
 
 	case OPT_PORT:
 	{
-            Tcl_SetObjResult(interp, Tcl_NewStringObj(
-                             PQport(connid->conn), -1));
+	    SET_AND_CHECK_STRING(PQport(connid->conn));
             return TCL_OK;
 	}
 
 	case OPT_OPTIONS: {
-            Tcl_SetObjResult(interp, Tcl_NewStringObj(
-                             PQoptions(connid->conn), -1));
+	    SET_AND_CHECK_STRING(PQoptions(connid->conn));
             return TCL_OK;
 	}
 
@@ -4830,7 +5002,14 @@ Pg_dbinfo(ClientData cData, Tcl_Interp *interp, int objc,
 	}
 
 	case OPT_TRANSACTION_STATUS: {
-	    switch (PQtransactionStatus(connid->conn)) {
+	    int status = PQtransactionStatus(connid->conn);
+            // Reconnect if the connection is bad.
+            if(PgCheckConnectionState(connid) != TCL_OK) {
+		report_connection_error(interp, connid->conn);
+		return TCL_ERROR;
+	    }
+
+	    switch (status) {
 	        case PQTRANS_IDLE: {
 		    Tcl_SetObjResult(interp, 
 		        Tcl_NewStringObj("idle", -1));
@@ -4870,26 +5049,22 @@ Pg_dbinfo(ClientData cData, Tcl_Interp *interp, int objc,
 	}
 
 	case OPT_ERROR_MESSAGE: {
-            Tcl_SetObjResult(interp, Tcl_NewStringObj(
-                             PQerrorMessage(connid->conn), -1));
+	    SET_AND_CHECK_STRING(PQerrorMessage(connid->conn));
             return TCL_OK;
 	}
 
 	case OPT_NEEDS_PASSWORD: {
-            Tcl_SetObjResult(interp, Tcl_NewBooleanObj(
-                             PQconnectionNeedsPassword(connid->conn)));
+	    SET_AND_CHECK_BOOL(PQconnectionNeedsPassword(connid->conn));
             return TCL_OK;
 	}
 
 	case OPT_USED_PASSWORD: {
-            Tcl_SetObjResult(interp, Tcl_NewBooleanObj(
-                             PQconnectionUsedPassword(connid->conn)));
+	    SET_AND_CHECK_BOOL(PQconnectionUsedPassword(connid->conn));
             return TCL_OK;
 	}
 
 	case OPT_USED_SSL: {
-            Tcl_SetObjResult(interp, Tcl_NewBooleanObj(
-                             (PQgetssl(connid->conn) != NULL)));
+	    SET_AND_CHECK_BOOL( (PQgetssl(connid->conn) != NULL) );
             return TCL_OK;
 	}
 
@@ -5151,6 +5326,12 @@ Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
     } /* end if callback */
 
     PgNotifyTransferEvents(connid);
+
+    // Reconnect if the connection is bad.
+    if(PgCheckConnectionState(connid) != TCL_OK) {
+	report_connection_error(interp, conn);
+	return TCL_ERROR;
+    }
 
     if (((result != NULL) || (iResult > 0)) && !callback)
     {
