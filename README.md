@@ -9,6 +9,7 @@ Pgtcl is now Tcl Extension Architecture (TEA) compliant, shipping with a standar
 For standard builds to put things in subdirectories of /usr/local, you can often simply execute configure with no arguments at all...
 
 ```sh
+autoreconf
 ./configure
 ```
 
