@@ -795,6 +795,10 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	    build_param_array(interp, nParams, &objv[index], &paramValues);
         }
 
+	Tcl_DString ds;
+	Tcl_Encoding e = Tcl_GetEncoding(interp, "utf-8");
+	char *externalString = Tcl_UtfToExternalDString(e, execString, strlen(execString), &ds);
+
 	/* we could call PQexecParams when nParams is 0, but PQexecParams
 	 * will not accept more than one SQL statement per call, while
 	 * PQexec will.  by checking and using PQexec when no parameters
@@ -802,9 +806,9 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	 * use params and might have had multiple statements in a single
 	 * request */
 	if (nParams == 0) {
-	    result = PQexec(conn, execString);
+	    result = PQexec(conn, externalString);
 	} else {
-	    result = PQexecParams(conn, execString, nParams, NULL, paramValues, NULL, NULL, 0);
+	    result = PQexecParams(conn, externalString, nParams, NULL, paramValues, NULL, NULL, 0);
 	    ckfree ((void *)paramValues);
 	    paramValues = NULL;
 	    if(newExecString) {
@@ -812,6 +816,9 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		newExecString = NULL;
 	    }
 	}
+
+	Tcl_FreeEncoding(e);
+	Tcl_DStringFree(&ds);
 
 	connid->sql_count++;
 
