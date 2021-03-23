@@ -241,6 +241,15 @@ tcl_value(char *value)
 #define tcl_value(x) x
 #endif   /* TCL_ARRAYS */
 
+static Tcl_Encoding utf8encoding = NULL;
+
+/*
+ * Initialize utf8encoding
+ */
+void pgtclInitEncoding(Tcl_Interp *interp) {
+	utf8encoding = Tcl_GetEncoding(interp, "utf-8");
+}
+
 /*
  * PGgetvalue()
  *
@@ -796,8 +805,7 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
         }
 
 	Tcl_DString ds;
-	Tcl_Encoding e = Tcl_GetEncoding(interp, "utf-8");
-	char *externalString = Tcl_UtfToExternalDString(e, execString, strlen(execString), &ds);
+	char *externalString = Tcl_UtfToExternalDString(utf8encoding, execString, strlen(execString), &ds);
 
 	/* we could call PQexecParams when nParams is 0, but PQexecParams
 	 * will not accept more than one SQL statement per call, while
@@ -817,7 +825,6 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	    }
 	}
 
-	Tcl_FreeEncoding(e);
 	Tcl_DStringFree(&ds);
 
 	connid->sql_count++;

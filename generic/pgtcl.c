@@ -181,8 +181,9 @@ Pgtcl_Init(Tcl_Interp *interp)
 	if (tclversion >= 8.1)
 		Tcl_PutEnv("PGCLIENTENCODING=UNICODE");
 
-	/* register all pgtcl commands */
+	pgtclInitEncoding(interp);
 
+	/* register all pgtcl commands */
 
 	for (cmdPtr = commands; cmdPtr->name != NULL; cmdPtr++) {
 		Tcl_CreateObjCommand(interp, cmdPtr->name, 
