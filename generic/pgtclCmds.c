@@ -258,10 +258,10 @@ void pgtclInitEncoding(Tcl_Interp *interp) {
 /*
  * Convert one utf string at a time to an external string, hiding the DString management.
  */
-char *externalString(char *utfString)
+char *externalString(const char *utfString)
 {
 	static Tcl_DString tmpds;
-	static allocated = 0;
+	static int allocated = 0;
 	if(allocated) Tcl_DStringFree(&tmpds);
 	allocated = 1;
 	return Tcl_UtfToExternalDString(utf8encoding, utfString, -1, &tmpds);
@@ -270,10 +270,10 @@ char *externalString(char *utfString)
 /*
  * Convert one external string at a time to a utf string, hiding the DString management.
  */
-char *utfString(char *externalString)
+char *utfString(const char *externalString)
 {
 	static Tcl_DString tmpds;
-	static allocated = 0;
+	static int allocated = 0;
 	if(allocated) Tcl_DStringFree(&tmpds);
 	allocated = 1;
 	return Tcl_ExternalToUtfDString(utf8encoding, externalString, -1, &tmpds);
