@@ -287,6 +287,7 @@ PGgetvalue ( PGresult *result, char *nullString, int tupno, int fieldNumber )
 		return string;
 	}
 
+	// TODO convert from external to utf?
 	/* string is not empty */
 	return tcl_value (string);
 }
@@ -816,6 +817,7 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	if (nParams == 0) {
 	    result = PQexec(conn, externalString);
 	} else {
+	    // TODO convert paramvalues from utf to external
 	    result = PQexecParams(conn, externalString, nParams, NULL, paramValues, NULL, NULL, 0);
 	    ckfree ((void *)paramValues);
 	    paramValues = NULL;
@@ -1022,6 +1024,7 @@ Pg_result_foreach(Tcl_Interp *interp, PGresult *result, Tcl_Obj *arrayNameObj, T
 		    }
 
 		    char *string = PQgetvalue (result, tupno, column);
+		    // TODO convert from external to utf
 
 		    if (Tcl_SetVar2(interp, arrayName, columnName, string, (TCL_LEAVE_ERR_MSG)) == NULL) 
 		    {
@@ -1303,8 +1306,8 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 					return TCL_ERROR;
 				}
 
-                /* This will take care of the cleanup */
-                Tcl_DeleteCommandFromToken(interp, resultid->cmd_token);
+				/* This will take care of the cleanup */
+				Tcl_DeleteCommandFromToken(interp, resultid->cmd_token);
 				return TCL_OK;
 			}
 
@@ -1328,7 +1331,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				}
 
 				Tcl_SetObjResult(interp, Tcl_NewStringObj(
-                  PQcmdTuples(result), -1));
+					PQcmdTuples(result), -1));
 				return TCL_OK;
 			}
 
@@ -1460,19 +1463,19 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 				if (tupno < 0 || tupno >= PQntuples(result))
 				{
-                    tresult = Tcl_NewStringObj("argument to getTuple cannot exceed ", -1);
-                    Tcl_AppendStringsToObj(tresult, "number of tuples - 1", NULL);
-                    Tcl_SetObjResult(interp, tresult);
-/*
-                    Tcl_AppendStringsToObj(Tcl_GetObjResult(interp),
-                        "argument to getTuple cannot exceed ",
-                        "number of tuples - 1", NULL);
-*/
+					tresult = Tcl_NewStringObj("argument to getTuple cannot exceed ", -1);
+					Tcl_AppendStringsToObj(tresult, "number of tuples - 1", NULL);
+					Tcl_SetObjResult(interp, tresult);
+					/*
+					Tcl_AppendStringsToObj(Tcl_GetObjResult(interp),
+						"argument to getTuple cannot exceed ",
+						"number of tuples - 1", NULL);
+					*/
 					return TCL_ERROR;
 				}
 
 				/* set the result object to be an empty list */
-                resultObj = Tcl_NewListObj(0, NULL);
+				resultObj = Tcl_NewListObj(0, NULL);
 
 				/* build up a return list, Tcl-object-style */
 				for (i = 0; i < PQnfields(result); i++)
@@ -1484,7 +1487,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 							   Tcl_NewStringObj(value, -1)) == TCL_ERROR)
 						return TCL_ERROR;
 				}
-                Tcl_SetObjResult(interp, resultObj);
+				Tcl_SetObjResult(interp, resultObj);
 				return TCL_OK;
 			}
 
@@ -1504,8 +1507,8 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 				if (tupno < 0 || tupno >= PQntuples(result))
 				{
-                    tresult = Tcl_NewStringObj("argument to tupleArray cannot exceed number of tuples - 1", -1);
-                    Tcl_SetObjResult(interp, tresult);
+					tresult = Tcl_NewStringObj("argument to tupleArray cannot exceed number of tuples - 1", -1);
+					Tcl_SetObjResult(interp, tresult);
 					return TCL_ERROR;
 				}
 
@@ -1535,6 +1538,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 						char *string;
 
 						string = PQgetvalue (result, tupno, i);
+						// TODO convert from external to utf
 						if (*string == '\0') {
 							if (PQgetisnull (result, tupno, i)) {
 							   Tcl_UnsetVar2 (interp, arrayName, PQfname(result, i), 0);
@@ -1566,7 +1570,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 					Tcl_ListObjAppendElement(interp, resultObj,
 							   Tcl_NewStringObj(PQfname(result, i), -1));
 				}
-                Tcl_SetObjResult(interp, resultObj);
+				Tcl_SetObjResult(interp, resultObj);
 				return TCL_OK;
 			}
 
@@ -1604,7 +1608,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 						== TCL_ERROR)
 						return TCL_ERROR;
 				}
-                Tcl_SetObjResult(interp, resultObj);
+				Tcl_SetObjResult(interp, resultObj);
 				return TCL_OK;
 			}
 
@@ -1761,12 +1765,11 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				if (objc == 3)
 				{
 					if (resultid->nullValueString == NULL || 
-                           *resultid->nullValueString == '\0') {
-
-                        Tcl_SetObjResult(interp, Tcl_NewStringObj("", 0));
+					    *resultid->nullValueString == '\0') {
+						Tcl_SetObjResult(interp, Tcl_NewStringObj("", 0));
 					} else {
-                        Tcl_SetObjResult(interp, 
-                          Tcl_NewStringObj(resultid->nullValueString, -1));
+						Tcl_SetObjResult(interp, 
+							Tcl_NewStringObj(resultid->nullValueString, -1));
 					}
 					return TCL_OK;
 				}
@@ -1787,7 +1790,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 		default:
 			{
-                Tcl_SetObjResult(interp, Tcl_NewStringObj("Invalid option\n", -1));
+				Tcl_SetObjResult(interp, Tcl_NewStringObj("Invalid option\n", -1));
 				goto Pg_result_errReturn;		/* append help info */
 			}
 	}
@@ -1938,6 +1941,7 @@ Pg_execute(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 	 * Execute the query
 	 */
 	queryString = Tcl_GetString(objv[i++]);
+	// TODO convert from utf to external
 	result = PQexec(conn, queryString);
 	connid->sql_count++;
 
@@ -2006,7 +2010,7 @@ Pg_execute(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 				== TCL_ERROR)
 				return TCL_ERROR;
 
-            Tcl_SetObjResult(interp, resultObj);
+			Tcl_SetObjResult(interp, resultObj);
 			PQclear(result);
 			return TCL_ERROR;
 	}
@@ -2108,6 +2112,7 @@ execute_put_values(Tcl_Interp *interp, const char *array_varname,
 	{
 		fname = PQfname(result, i);
 		value = PGgetvalue(result, nullValueString, tupno, i);
+		// TODO convert from external to UTF
 
 		if (array_varname != NULL)
 		{
@@ -3120,8 +3125,10 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	{
 		int status;
 
+		// TODO convert from UTF to external
 		// Make the call
 		if (nParams) {
+			// TODO convert params to external
 			status = PQsendQueryParams(conn, queryString, nParams,
 				NULL, paramValues, NULL, NULL, 0);
 		} else {
@@ -3153,8 +3160,10 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 			goto cleanup_params_and_return_error;
 		}
 	} else {
+		// TODO convert from UTF to external
 		// Make the call AND queue up the result.
 		if (nParams) {
+			// TODO convert params to external
 			result = PQexecParams(conn, queryString, nParams,
 				NULL, paramValues, NULL, NULL, 0);
 		} else {
@@ -3303,6 +3312,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 					}
 				}
 
+				// TODO convert from external to UTF
 				if (valueObj == NULL) {
 					valueObj = Tcl_NewStringObj(string, -1);
 				}
@@ -3725,6 +3735,7 @@ Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
 	    build_param_array(interp, nParams, &objv[index], &paramValues);
         }
 
+	//TODO convert execString from UTF to external
 	if (nParams == 0) {
 	    status = PQsendQuery(conn, execString);
 	} else {
@@ -3798,6 +3809,7 @@ Pg_sendquery_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *C
 		return TCL_ERROR;
 	}
 
+	// TODO convert params
 	/* If there are any extra params, allocate paramValues and fill it
 	 * with the string representations of all of the extra parameters
 	 * substituted on the command line.  Otherwise nParams will be 0,
@@ -5267,6 +5279,7 @@ Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
 	 binValues = (int *)ckalloc (countbin * sizeof (char *));
 
 	 for (param = 0; param < count; param++) {
+		// TODO convert to external
 	     paramValues[param] = Tcl_GetString (elemPtrs[param]);
 	     if (strcmp(paramValues[param], "NULL") == 0)
              {
@@ -5311,6 +5324,7 @@ Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
        Tcl_IncrRefCount(objv[callback]);
        Tcl_Preserve((ClientData) interp);
 
+	// TODO convert to external
        /* 
         *  invoke function based on type 
         *  of query 
@@ -5329,6 +5343,7 @@ Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
         }
     } else {
 
+	// TODO convert to external
         if (prepared) {
 	    result = PQexecPrepared(conn, execString, count, paramValues, paramLengths, binValues, binresults);
         } else if (params) {
