@@ -250,6 +250,37 @@ void pgtclInitEncoding(Tcl_Interp *interp) {
 	utf8encoding = Tcl_GetEncoding(interp, "utf-8");
 }
 
+// The following two functions "waste" a DStrings storage by not freeing it until it's needed again
+// This is a little sloppy but massively simplifies the use since just about every place it's used
+// has to handle a possible early error return
+// NOTE: only one of these can ever be in flight at any time.
+
+/*
+ * Convert one utf string at a time to an external string, hiding the DString management.
+ */
+char *externalString(char *utfString)
+{
+	static Tcl_DString tmpds;
+	static allocated = 0;
+	if(allocated) Tcl_DStringFree(&tmpds);
+	allocated = 1;
+	return Tcl_UtfToExternalDString(utf8encoding, utfString, -1, &tmpds);
+}
+
+/*
+ * Convert one external string at a time to a utf string, hiding the DString management.
+ */
+char *utfString(char *externalString)
+{
+	static Tcl_DString tmpds;
+	static allocated = 0;
+	if(allocated) Tcl_DStringFree(&tmpds);
+	allocated = 1;
+	return Tcl_ExternalToUtfDString(utf8encoding, externalString, -1, &tmpds);
+}
+
+// TODO something to simplify an array worth of external or utf strings in flight at a time
+
 /*
  * PGgetvalue()
  *
@@ -287,7 +318,6 @@ PGgetvalue ( PGresult *result, char *nullString, int tupno, int fieldNumber )
 		return string;
 	}
 
-	// TODO convert from external to utf?
 	/* string is not empty */
 	return tcl_value (string);
 }
@@ -558,11 +588,9 @@ Pg_connect(ClientData cData, Tcl_Interp *interp, int objc,
     if (async)
     {
         conn = PQconnectStart(Tcl_DStringValue(&utfds));
-      
     } 
     else 
     {
-
         conn = PQconnectdb(Tcl_DStringValue(&utfds));
     }
 
@@ -572,7 +600,6 @@ Pg_connect(ClientData cData, Tcl_Interp *interp, int objc,
         return TCL_ERROR;
     }
 
- 
     Tcl_DStringFree(&utfds);
 
     if (PQstatus(conn) != CONNECTION_BAD)
@@ -583,7 +610,6 @@ Pg_connect(ClientData cData, Tcl_Interp *interp, int objc,
         }
 
     }
-   
 
         tresult = Tcl_NewStringObj("Connection to database failed\n", -1);
         if (PQstatus(conn) != CONNECTION_OK)
@@ -805,9 +831,6 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	    build_param_array(interp, nParams, &objv[index], &paramValues);
         }
 
-	Tcl_DString ds;
-	char *externalString = Tcl_UtfToExternalDString(utf8encoding, execString, strlen(execString), &ds);
-
 	/* we could call PQexecParams when nParams is 0, but PQexecParams
 	 * will not accept more than one SQL statement per call, while
 	 * PQexec will.  by checking and using PQexec when no parameters
@@ -815,10 +838,10 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	 * use params and might have had multiple statements in a single
 	 * request */
 	if (nParams == 0) {
-	    result = PQexec(conn, externalString);
+	    result = PQexec(conn, externalString(execString));
 	} else {
 	    // TODO convert paramvalues from utf to external
-	    result = PQexecParams(conn, externalString, nParams, NULL, paramValues, NULL, NULL, 0);
+	    result = PQexecParams(conn, externalString(execString), nParams, NULL, paramValues, NULL, NULL, 0);
 	    ckfree ((void *)paramValues);
 	    paramValues = NULL;
 	    if(newExecString) {
@@ -826,8 +849,6 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		newExecString = NULL;
 	    }
 	}
-
-	Tcl_DStringFree(&ds);
 
 	connid->sql_count++;
 
@@ -1024,9 +1045,8 @@ Pg_result_foreach(Tcl_Interp *interp, PGresult *result, Tcl_Obj *arrayNameObj, T
 		    }
 
 		    char *string = PQgetvalue (result, tupno, column);
-		    // TODO convert from external to utf
 
-		    if (Tcl_SetVar2(interp, arrayName, columnName, string, (TCL_LEAVE_ERR_MSG)) == NULL) 
+		    if (Tcl_SetVar2(interp, arrayName, columnName, utfString(string), (TCL_LEAVE_ERR_MSG)) == NULL) 
 		    {
 			return TCL_ERROR;
 		    }
@@ -1384,7 +1404,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 						if (Tcl_ObjSetVar2(interp, arrVarObj, fieldNameObj,
 										   Tcl_NewStringObj(
-											 PGgetvalue(result, resultid->nullValueString, tupno, i),
+											 utfString(PGgetvalue(result, resultid->nullValueString, tupno, i)),
 											 -1), TCL_LEAVE_ERR_MSG) == NULL) {
 							Tcl_DecrRefCount (fieldNameObj);
 							return TCL_ERROR;
@@ -1421,6 +1441,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				 */
 				for (tupno = 0; tupno < PQntuples(result); tupno++)
 				{
+					// TODO convert from external to UTF8 efficiently
 					const char *field0 = PGgetvalue(result, resultid->nullValueString, tupno, 0);
 
 					for (i = 1; i < PQnfields(result); i++)
@@ -1482,8 +1503,8 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				{
 					char	   *value;
 
-					value = PGgetvalue(result, resultid->nullValueString, tupno, i);
-					if (Tcl_ListObjAppendElement(interp, resultObj,
+					value = utfString(PGgetvalue(result, resultid->nullValueString, tupno, i));
+					if (Tcl_ListObjAppendElement(interp, resultObj, 
 							   Tcl_NewStringObj(value, -1)) == TCL_ERROR)
 						return TCL_ERROR;
 				}
