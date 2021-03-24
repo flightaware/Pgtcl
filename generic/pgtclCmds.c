@@ -702,6 +702,7 @@ void build_param_array(Tcl_Interp *interp, int nParams, Tcl_Obj *CONST objv[], c
 
 	paramValues = (const char **)ckalloc (nParams * sizeof (char *));
 
+	// TODO convert to external
 	for (param = 0; param < nParams; param++) {
 	    paramValues[param] = Tcl_GetString(objv[param]);
 	    if (strcmp(paramValues[param], "NULL") == 0)
@@ -3413,7 +3414,6 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	return retval;
 }
 
-//HERE//
 /*
  * Test whether any callbacks are registered on this connection for
  * the given relation name.  NB: supplied name must be case-folded already.
@@ -3760,11 +3760,10 @@ Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
 	    build_param_array(interp, nParams, &objv[index], &paramValues);
         }
 
-	//TODO convert execString from UTF to external
 	if (nParams == 0) {
-	    status = PQsendQuery(conn, execString);
+	    status = PQsendQuery(conn, externalString(execString));
 	} else {
-	    status = PQsendQueryParams(conn, execString, nParams, NULL, paramValues, NULL, NULL, 1);
+	    status = PQsendQueryParams(conn, externalString(execString), nParams, NULL, paramValues, NULL, NULL, 1);
 	    if(newExecString) ckfree(newExecString);
 	    ckfree ((void *)paramValues);
 	}
@@ -3833,6 +3832,7 @@ Pg_sendquery_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *C
 		Tcl_SetResult(interp, "Attempt to query while COPY in progress", TCL_STATIC);
 		return TCL_ERROR;
 	}
+//HERE//
 
 	// TODO convert params
 	/* If there are any extra params, allocate paramValues and fill it
@@ -5349,7 +5349,6 @@ Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
        Tcl_IncrRefCount(objv[callback]);
        Tcl_Preserve((ClientData) interp);
 
-	// TODO convert to external
        /* 
         *  invoke function based on type 
         *  of query 
@@ -5357,24 +5356,23 @@ Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
         if (prepared) {
 	    iResult = PQsendQueryPrepared(conn, execString, count, paramValues, paramLengths, binValues, binresults);
         } else if (params) {
-            iResult = PQsendQueryParams(conn, execString, count, NULL, paramValues, paramLengths, binValues, binresults);
+            iResult = PQsendQueryParams(conn, externalString(execString), count, NULL, paramValues, paramLengths, binValues, binresults);
 
         } else {
     
-            iResult = PQsendQuery(conn, execString);
+            iResult = PQsendQuery(conn, externalString(execString));
 /*
             ckfree ((void *)paramValues);
 */
         }
     } else {
 
-	// TODO convert to external
         if (prepared) {
 	    result = PQexecPrepared(conn, execString, count, paramValues, paramLengths, binValues, binresults);
         } else if (params) {
-            result = PQexecParams(conn, execString, count, NULL, paramValues, paramLengths, binValues, binresults);
+            result = PQexecParams(conn, externalString(execString), count, NULL, paramValues, paramLengths, binValues, binresults);
         } else {
-            result = PQexec(conn, execString);
+            result = PQexec(conn, externalString(execString));
             ckfree ((void *)paramValues);
         }
     } /* end if callback */
