@@ -1848,8 +1848,6 @@ Pg_result_errReturn:
 	return TCL_ERROR;
 }
 
-//HERE//
-
 /**********************************
  * pg_execute
  send a query string to the backend connection and process the result
@@ -1954,20 +1952,20 @@ Pg_execute(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
             Tcl_SetObjResult(interp, 
               Tcl_NewStringObj("Attempt to query while COPY in progress", -1));
 
-		return TCL_ERROR;
+	    return TCL_ERROR;
 	}
 
         if (connid->callbackPtr || connid->callbackInterp)
         {
                Tcl_SetResult(interp, "Attempt to query while waiting for callback", TCL_STATIC);
                return TCL_ERROR;
-         }
+        }
 
 
 	/*
 	 * Execute the query
 	 */
-	queryString = Tcl_GetString(objv[i++]);
+	queryString = externalString(Tcl_GetString(objv[i++]));
 	// TODO convert from utf to external
 	result = PQexec(conn, queryString);
 	connid->sql_count++;
@@ -2138,8 +2136,7 @@ execute_put_values(Tcl_Interp *interp, const char *array_varname,
 	for (i = 0; i < n; i++)
 	{
 		fname = PQfname(result, i);
-		value = PGgetvalue(result, nullValueString, tupno, i);
-		// TODO convert from external to UTF
+		value = utfString(PGgetvalue(result, nullValueString, tupno, i));
 
 		if (array_varname != NULL)
 		{
@@ -3147,15 +3144,18 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	    }
 	}
 
+	if(nParams) {
+		// TODO convert parameters to external
+	}
+	queryString = externalString(queryString);
+
 	connid->sql_count++;
 	if (rowByRow)
 	{
 		int status;
 
-		// TODO convert from UTF to external
 		// Make the call
 		if (nParams) {
-			// TODO convert params to external
 			status = PQsendQueryParams(conn, queryString, nParams,
 				NULL, paramValues, NULL, NULL, 0);
 		} else {
@@ -3187,10 +3187,8 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 			goto cleanup_params_and_return_error;
 		}
 	} else {
-		// TODO convert from UTF to external
 		// Make the call AND queue up the result.
 		if (nParams) {
-			// TODO convert params to external
 			result = PQexecParams(conn, queryString, nParams,
 				NULL, paramValues, NULL, NULL, 0);
 		} else {
@@ -3339,9 +3337,8 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 					}
 				}
 
-				// TODO convert from external to UTF
 				if (valueObj == NULL) {
-					valueObj = Tcl_NewStringObj(string, -1);
+					valueObj = Tcl_NewStringObj(utfString(string), -1);
 				}
 
 				if (Tcl_ObjSetVar2(interp, varNameObj, columnNameObjs[column],
@@ -3416,6 +3413,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	return retval;
 }
 
+//HERE//
 /*
  * Test whether any callbacks are registered on this connection for
  * the given relation name.  NB: supplied name must be case-folded already.
