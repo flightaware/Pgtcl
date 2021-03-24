@@ -1101,7 +1101,7 @@ test pgtcl-9.4 {dbinfo backend pid} -body {
     lappend res [string equal $val $val2]
     ::pg::disconnect $conn
 
-    lappend res [regexp {^[0-9]{2,6}$} $val]
+    lappend res [regexp {^[0-9]{2,7}$} $val]
 
 } -result [list 1 1]
 
