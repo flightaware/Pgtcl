@@ -1508,8 +1508,9 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 					char	   *value;
 
 					value = utfString(PGgetvalue(result, resultid->nullValueString, tupno, i));
+
 					if (Tcl_ListObjAppendElement(interp, resultObj, 
-							   Tcl_NewStringObj(utfString(value), -1)) == TCL_ERROR)
+							   Tcl_NewStringObj(value, -1)) == TCL_ERROR)
 						return TCL_ERROR;
 				}
 				Tcl_SetObjResult(interp, resultObj);
