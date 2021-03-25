@@ -1052,7 +1052,7 @@ Pg_exec_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 
 	statementNameString = Tcl_GetString(objv[2]);
 
-	result = PQexecPrepared(conn, statementNameString, nParams, paramValues, NULL, NULL, 0);
+	result = PQexecPrepared(conn, externalString(statementNameString), nParams, paramValues, NULL, NULL, 0);
 
 	if (paramValues != (const char **)NULL) {
 	    ckfree ((void *)paramValues);
@@ -1527,18 +1527,17 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				 */
 				for (tupno = 0; tupno < PQntuples(result); tupno++)
 				{
-					const char *rawField0 = PGgetvalue(result, resultid->nullValueString, tupno, 0);
-					char *field0 = ckalloc(strlen(rawField0)*4+1);
+					const char *field0 = utfString(PGgetvalue(result, resultid->nullValueString, tupno, 0));
+					char *dupfield0 = ckalloc(strlen(field0)+1);
 
-					strcpy(field0, utfString(rawField0));
+					strcpy(dupfield0, field0);
 
 					for (i = 1; i < PQnfields(result); i++)
 					{
 						Tcl_Obj    *fieldNameObj;
 
-
 						fieldNameObj = Tcl_NewObj ();
-						Tcl_SetStringObj(fieldNameObj, field0, -1);
+						Tcl_SetStringObj(fieldNameObj, dupfield0, -1);
 						Tcl_AppendToObj(fieldNameObj, ",", 1);
 						Tcl_AppendToObj(fieldNameObj, PQfname(result, i), -1);
 
@@ -1550,11 +1549,11 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 						      Tcl_NewStringObj( val, -1), TCL_LEAVE_ERR_MSG) == NULL)
 						{
 							Tcl_DecrRefCount(fieldNameObj);
-							ckfree(field0);
+							ckfree(dupfield0);
 							return TCL_ERROR;
 						}
 					}
-					ckfree(field0);
+					ckfree(dupfield0);
 				}
 				return TCL_OK;
 			}
@@ -1658,10 +1657,9 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 							   continue;
 							}
 						}
-						string = utfString(string);
 
 						if (Tcl_SetVar2(interp, arrayName, PQfname(result, i),
-									 string,
+									 utfString(string),
 										TCL_LEAVE_ERR_MSG) == NULL)
 							return TCL_ERROR;
 					}
@@ -5456,7 +5454,7 @@ Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
         *  of query 
         */
         if (prepared) {
-	    iResult = PQsendQueryPrepared(conn, execString, count, paramValues, paramLengths, binValues, binresults);
+	    iResult = PQsendQueryPrepared(conn, externalString(execString), count, paramValues, paramLengths, binValues, binresults);
         } else if (params) {
             iResult = PQsendQueryParams(conn, externalString(execString), count, NULL, paramValues, paramLengths, binValues, binresults);
 
@@ -5470,7 +5468,7 @@ Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
     } else {
 
         if (prepared) {
-	    result = PQexecPrepared(conn, execString, count, paramValues, paramLengths, binValues, binresults);
+	    result = PQexecPrepared(conn, externalString(execString), count, paramValues, paramLengths, binValues, binresults);
         } else if (params) {
             result = PQexecParams(conn, externalString(execString), count, NULL, paramValues, paramLengths, binValues, binresults);
         } else {
