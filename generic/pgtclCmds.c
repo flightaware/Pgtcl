@@ -871,7 +871,7 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 			Tcl_SetResult(interp, "-variables can not be used with positional or named parameters", TCL_STATIC);
 			return TCL_ERROR;
 		}
-		if (handle_substitutions(interp, execString, &newExecString, &paramValues, &nParams, 1) != TCL_OK) {
+		if (handle_substitutions(interp, execString, &newExecString, &paramValues, &nParams, &paramsBuffer) != TCL_OK) {
 			return TCL_ERROR;
 		}
 		if(nParams)
@@ -3195,7 +3195,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	}
 
 	if (useVariables) {
-		if (handle_substitutions(interp, queryString, &newQueryString, &paramValues, &nParams, 1) != TCL_OK) {
+		if (handle_substitutions(interp, queryString, &newQueryString, &paramValues, &nParams, &paramsBuffer) != TCL_OK) {
 			return TCL_ERROR;
 		}
 		if(nParams)
@@ -3827,13 +3827,13 @@ Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
 			Tcl_SetResult(interp, "-variables can not be used with positional or named parameters", TCL_STATIC);
 			return TCL_ERROR;
 		}
-		if (handle_substitutions(interp, execString, &newExecString, &paramValues, &nParams, 1) != TCL_OK) {
+		if (handle_substitutions(interp, execString, &newExecString, &paramValues, &nParams, &paramsBuffer) != TCL_OK) {
 			return TCL_ERROR;
 		}
 		if(nParams)
 			execString = newExecString;
 		else { // No variables being substituted, fall back to simple code path
-			ckfree(newExecString);
+			ckfree((void *)newExecString);
 			newExecString = NULL;
 			ckfree((void *)paramValues);
 			paramValues = NULL;

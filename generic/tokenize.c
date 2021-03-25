@@ -455,12 +455,15 @@ int Pg_sqlite3GetToken(const char *z, enum sqltoken *tokenType){
   return i;
 }
 
-int handle_substitutions(Tcl_Interp *interp, const char *sql, char **newSqlPtr, const char ***replacementArrayPtr, int *replacementArrayLengthPtr, int hardError)
+extern int array_to_utf8(Tcl_Interp *interp, const char **paramValues, int *paramLengths, int nParams, const char **bufferPtr);
+
+int handle_substitutions(Tcl_Interp *interp, const char *sql, char **newSqlPtr, const char ***replacementArrayPtr, int *replacementArrayLengthPtr, const char **bufferPtr)
 {
 	char *newSql = ckalloc(strlen(sql)+1);
 	// Worst possible case? the sql is nothing but ":varname" and they're all one character names. This
 	// will still be big enough.
 	const char **replacementArray = (const char **)ckalloc((strlen(sql)/2) * (sizeof *replacementArray));
+	int *lengthArray = (int *)ckalloc((strlen(sql)/2) * sizeof (int));
 
 	const char *p;
 	char *q;
@@ -475,16 +478,14 @@ int handle_substitutions(Tcl_Interp *interp, const char *sql, char **newSqlPtr, 
 		len = Pg_sqlite3GetToken(p, &tk);
 		switch (tk) {
 			case TK_SQLVAR: {
-				if(hardError || nextVarIndex) {
-					Tcl_SetResult(interp, "Can't combine Tcl and Postgres substitutions", TCL_STATIC);
-					result = TCL_ERROR;
-				} else {
-					result = TCL_CONTINUE;
-				}
+				Tcl_SetResult(interp, "Can't combine Tcl and Postgres substitutions", TCL_STATIC);
+				result = TCL_ERROR;
 				goto cleanup_and_exit;
 			}
 			case TK_TCLVAR: {
 				char *nameBuf = ckalloc(len);
+				int stringLength;
+				Tcl_Obj *varObj = NULL;
 				const char *val = NULL;
 				int i;
 				int skip = 1;
@@ -499,11 +500,13 @@ int handle_substitutions(Tcl_Interp *interp, const char *sql, char **newSqlPtr, 
 				for(i = skip; i < len; i++)
 					nameBuf[i-skip] = p[i];
 				nameBuf[i-skip-trunc] = 0;
-				val = Tcl_GetVar(interp, nameBuf, 0);
+				varObj = Tcl_GetVar2Ex(interp, nameBuf, NULL, 0);
+				val = Tcl_GetStringFromObj(varObj, &stringLength);
 				ckfree(nameBuf);
 				p += len;
 
 				replacementArray[nextVarIndex] = val;
+				lengthArray[nextVarIndex] = stringLength;
 				sprintf(q, "$%d", nextVarIndex+1); //1 indexed
 				while(*q) q++;
 				nextVarIndex++;
@@ -522,7 +525,12 @@ int handle_substitutions(Tcl_Interp *interp, const char *sql, char **newSqlPtr, 
 	}
 	*q = 0;
 
+	if(result == TCL_OK)
+		result = array_to_utf8(interp, replacementArray, lengthArray, nextVarIndex, bufferPtr);
+
   cleanup_and_exit:
+	if(lengthArray) ckfree(lengthArray);
+
 	if(result == TCL_OK) {
 		*newSqlPtr = newSql;
 		*replacementArrayPtr = replacementArray;
