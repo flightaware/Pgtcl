@@ -251,7 +251,6 @@ int pgtclInitEncoding(Tcl_Interp *interp) {
 	utf8encoding = Tcl_GetEncoding(interp, "utf-8");
 	if (utf8encoding != NULL)
 		return TCL_OK;
-	Tcl_SetResult(interp, "Could not initialize encoding utf-8", TCL_STATIC);
 	return TCL_ERROR;
 }
 
