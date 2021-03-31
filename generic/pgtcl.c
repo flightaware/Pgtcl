@@ -160,7 +160,7 @@ Pgtcl_Init(Tcl_Interp *interp)
                     * No really good way to do error handling here, since we
                     * don't know how we were loaded
                     */
-                    return FALSE;
+                    return TCL_ERROR;
             }
 
     #endif
@@ -181,7 +181,8 @@ Pgtcl_Init(Tcl_Interp *interp)
 	if (tclversion >= 8.1)
 		Tcl_PutEnv("PGCLIENTENCODING=UNICODE");
 
-	pgtclInitEncoding(interp);
+	if(pgtclInitEncoding(interp) != TCL_OK)
+		return TCL_ERROR;
 
 	/* register all pgtcl commands */
 

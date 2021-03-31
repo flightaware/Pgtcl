@@ -247,8 +247,12 @@ static Tcl_Encoding utf8encoding = NULL;
 /*
  * Initialize utf8encoding
  */
-void pgtclInitEncoding(Tcl_Interp *interp) {
+int pgtclInitEncoding(Tcl_Interp *interp) {
 	utf8encoding = Tcl_GetEncoding(interp, "utf-8");
+	if (utf8encoding != NULL)
+		return TCL_OK;
+	Tcl_SetResult(interp, "Could not initialize encoding utf-8", TCL_STATIC);
+	return TCL_ERROR;
 }
 
 // The following two functions "waste" a DStrings storage by not freeing it until it's needed again
