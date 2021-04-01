@@ -1259,4 +1259,56 @@ test pgtcl-10.3 {copy out} -body {
     set result
 } -result {{name batfink} {studio {Hal Seeger Studios}} {type superhero} {wings steel}}
 
+#
+#
+#
+test pgtcl-11.0 {using pg_exec with 4-byte unicode} -body {
+
+    unset -nocomplain res
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+
+    set glyph "𝔄"
+
+    set res [$conn exec {SELECT relname
+                           FROM Pg_class
+                          WHERE relname LIKE '$glyph'}]
+
+    set results [pg::result $res -list]
+
+    pg_result $res -clear
+
+    pg_disconnect $conn
+
+    lsort $results
+
+} -result [list]
+
+#
+#
+#
+test pgtcl-11.1 {using pg_exec with 4-byte unicode variables} -body {
+
+    unset -nocomplain res
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+
+    set glyph "𝔄"
+
+    set res [$conn exec -variables {SELECT relname
+                           FROM Pg_class
+                          WHERE relname LIKE :glyph}]
+
+    set results [pg::result $res -list]
+
+    pg_result $res -clear
+
+    pg_disconnect $conn
+
+    lsort $results
+
+} -result [list]
+
+
+
 puts "tests complete"
