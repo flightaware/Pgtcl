@@ -34,9 +34,10 @@ static int count_parameters(Tcl_Interp *interp, const char *queryString,
 
 static int expand_parameters(Tcl_Interp *interp, const char *queryString,
 				    int nParams, char *paramArrayName,
-				    char **newQueryStringPtr, const char ***paramValuesPtr);
+				    char **newQueryStringPtr, const char ***paramValuesPtr,
+				    const char **bufferPtr);
 
-static void build_param_array(Tcl_Interp *interp, int nParams, Tcl_Obj *CONST objv[], const char ***paramValuesPtr);
+static int build_param_array(Tcl_Interp *interp, int nParams, Tcl_Obj *CONST objv[], const char ***paramValuesPtr, const char **bufferPtr);
 
 static void report_connection_error(Tcl_Interp *interp, PGconn *conn);
 
@@ -240,6 +241,49 @@ tcl_value(char *value)
 #else    /* TCL_ARRAYS */
 #define tcl_value(x) x
 #endif   /* TCL_ARRAYS */
+
+static Tcl_Encoding utf8encoding = NULL;
+
+/*
+ * Initialize utf8encoding
+ */
+int pgtclInitEncoding(Tcl_Interp *interp) {
+	utf8encoding = Tcl_GetEncoding(interp, "utf-8");
+	if (utf8encoding != NULL)
+		return TCL_OK;
+	return TCL_ERROR;
+}
+
+// The following two functions "waste" a DStrings storage by not freeing it until it's needed again
+// This is a little sloppy but massively simplifies the use since just about every place it's used
+// has to handle a possible early error return
+// NOTE: only one of these can ever be in flight at any time.
+
+/*
+ * Convert one utf string at a time to an external string, hiding the DString management.
+ */
+char *externalString(const char *utfString)
+{
+	static Tcl_DString tmpds;
+	static int allocated = 0;
+	if(allocated) Tcl_DStringFree(&tmpds);
+	allocated = 1;
+	return Tcl_UtfToExternalDString(utf8encoding, utfString, -1, &tmpds);
+}
+
+/*
+ * Convert one external string at a time to a utf string, hiding the DString management.
+ */
+char *utfString(const char *externalString)
+{
+	static Tcl_DString tmpds;
+	static int allocated = 0;
+	if(allocated) Tcl_DStringFree(&tmpds);
+	allocated = 1;
+	return Tcl_ExternalToUtfDString(utf8encoding, externalString, -1, &tmpds);
+}
+
+// TODO something to simplify an array worth of external or utf strings in flight at a time
 
 /*
  * PGgetvalue()
@@ -548,11 +592,9 @@ Pg_connect(ClientData cData, Tcl_Interp *interp, int objc,
     if (async)
     {
         conn = PQconnectStart(Tcl_DStringValue(&utfds));
-      
     } 
     else 
     {
-
         conn = PQconnectdb(Tcl_DStringValue(&utfds));
     }
 
@@ -562,7 +604,6 @@ Pg_connect(ClientData cData, Tcl_Interp *interp, int objc,
         return TCL_ERROR;
     }
 
- 
     Tcl_DStringFree(&utfds);
 
     if (PQstatus(conn) != CONNECTION_BAD)
@@ -573,9 +614,8 @@ Pg_connect(ClientData cData, Tcl_Interp *interp, int objc,
         }
 
     }
-   
 
-        tresult = Tcl_NewStringObj("Connection to database failed\n", -1);
+	tresult = Tcl_NewStringObj("Connection to database failed\n", -1);
         if (PQstatus(conn) != CONNECTION_OK)
 	{
 	    Tcl_AppendStringsToObj(tresult, PQerrorMessage(conn), NULL);
@@ -649,31 +689,101 @@ Pg_disconnect(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
     return TCL_OK;
 }
 
+/* helper for build_param_array and other related functions.
+** convert nParams strings in paramValues, lengths in paramLengths,
+** return allocated buffer containing new strings in bufferPtr
+*/
+int array_to_utf8(Tcl_Interp *interp, const char **paramValues, int *paramLengths, int nParams, const char **bufferPtr)
+{
+	int param;
+	int charsWritten;
+	char *nextDestByte, *paramsBuffer;
+	int remaining;
+	int lengthRequired = 0;
+
+	for (param = 0; param < nParams; param++) {
+	    lengthRequired += paramLengths[param] + 1;
+	}
+
+	lengthRequired += 4; //(Tcl_UtfToExternal assumes it will need 4 bytes for the last character)
+
+	nextDestByte = paramsBuffer = (char *)ckalloc(lengthRequired);
+	remaining = lengthRequired;
+
+	for(param = 0; param < nParams; param++) {
+	    int errcode;
+	    if(!paramLengths[param]) {
+		continue;
+	    }
+	    // the arguments to Tcl_UtfToExternal are hellish
+	    if( TCL_OK != (errcode = Tcl_UtfToExternal(interp, utf8encoding, paramValues[param], paramLengths[param], 0, NULL, nextDestByte, remaining, NULL, &charsWritten, NULL))) {
+		Tcl_Obj *tresult;
+		char errmsg[256];
+
+		sprintf(errmsg, "Errcode %d attempting to convert param %d: ", errcode, param);
+		tresult = Tcl_NewStringObj(errmsg, -1);
+		Tcl_AppendStringsToObj(tresult, paramValues[param], NULL);
+		if(errcode == TCL_CONVERT_NOSPACE) { // CAN'T HAPPEN, check anyway
+		    sprintf(errmsg, " (%d bytes needed, %d bytes available)", paramLengths[param], remaining);
+		    Tcl_AppendStringsToObj(tresult, errmsg, NULL);
+		}
+		Tcl_SetObjResult(interp, tresult);
+
+		ckfree(paramsBuffer);
+		return errcode;
+	    }
+	    paramValues[param] = nextDestByte;
+	    nextDestByte += charsWritten;
+	    *nextDestByte++ = '\0';
+	    remaining -= charsWritten + 1;
+	}
+
+	*bufferPtr = paramsBuffer;
+	return TCL_OK;
+}
+
 /* build_param_array - helper for pg_exec and pg_sendquery */
 /* If there are any extra params, allocate paramValues and fill it
  * with the string representations of all of the extra parameters
  * substituted on the command line.  Otherwise nParams will be 0,
  * and PQexecParams will work just like PQexec (no $-substitutions).
- * The magic string NULL is replaced by a null value!
+ * The magic string NULL is replaced by a null value! // TODO - make this use null value string
  */
-void build_param_array(Tcl_Interp *interp, int nParams, Tcl_Obj *CONST objv[], const char ***paramValuesPtr)
+int build_param_array(Tcl_Interp *interp, int nParams, Tcl_Obj *CONST objv[], const char ***paramValuesPtr, const char **bufferPtr)
 {
-	const char **paramValues = NULL;
-	int  param;
+	const char **paramValues  = NULL;
+	int         *paramLengths = NULL;
+	int          param;
 
 	if(nParams == 0)
-	    return;
+	    return TCL_OK;
 
 	paramValues = (const char **)ckalloc (nParams * sizeof (char *));
+	paramLengths = (int *)ckalloc(nParams * sizeof(int));
 
 	for (param = 0; param < nParams; param++) {
-	    paramValues[param] = Tcl_GetString(objv[param]);
+	    int newLength = 0;
+	    paramValues[param] = Tcl_GetStringFromObj(objv[param], &newLength);
 	    if (strcmp(paramValues[param], "NULL") == 0)
             {
                 paramValues[param] = NULL;
+		paramLengths[param] = 0;
             }
+	    else
+	    {
+		paramLengths[param] = newLength;
+	    }
 	}
+
+	if (array_to_utf8(interp, paramValues, paramLengths, nParams, bufferPtr) != TCL_OK) {
+		ckfree(paramValues);
+		ckfree(paramLengths);
+		return TCL_ERROR;
+	}
+
 	*paramValuesPtr = paramValues;
+
+	return TCL_OK;
 }
 
 /**********************************
@@ -698,6 +808,7 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	char            *newExecString = NULL;
 	const char     **paramValues = NULL;
 	char		*paramArrayName = NULL;
+	const char      *paramsBuffer = NULL;
 	int              nParams;
 	int              index;
 	int              useVariables = 0;
@@ -763,7 +874,7 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 			Tcl_SetResult(interp, "-variables can not be used with positional or named parameters", TCL_STATIC);
 			return TCL_ERROR;
 		}
-		if (handle_substitutions(interp, execString, &newExecString, &paramValues, &nParams, 1) != TCL_OK) {
+		if (handle_substitutions(interp, execString, &newExecString, &paramValues, &nParams, &paramsBuffer) != TCL_OK) {
 			return TCL_ERROR;
 		}
 		if(nParams)
@@ -785,14 +896,16 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	    }
 	    if(nParams) {
 		// After this point we must free newExecString and paramValues before exiting
-		if (expand_parameters(interp, execString, nParams, paramArrayName, &newExecString, &paramValues) == TCL_ERROR) {
+		if (expand_parameters(interp, execString, nParams, paramArrayName, &newExecString, &paramValues, &paramsBuffer) == TCL_ERROR) {
 		    return TCL_ERROR;
 		}
 		execString = newExecString;
 	    }
 	} else if (nParams) {
-	    // After this point we must free paramValues before exiting
-	    build_param_array(interp, nParams, &objv[index], &paramValues);
+	    if (build_param_array(interp, nParams, &objv[index], &paramValues, &paramsBuffer) != TCL_OK) {
+		return TCL_ERROR;
+	    }
+	    // After this point we must free paramValues and paramsBufferbefore exiting
         }
 
 	/* we could call PQexecParams when nParams is 0, but PQexecParams
@@ -802,15 +915,21 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	 * use params and might have had multiple statements in a single
 	 * request */
 	if (nParams == 0) {
-	    result = PQexec(conn, execString);
+	    result = PQexec(conn, externalString(execString));
 	} else {
-	    result = PQexecParams(conn, execString, nParams, NULL, paramValues, NULL, NULL, 0);
+	    // TODO convert paramvalues from utf to external
+	    result = PQexecParams(conn, externalString(execString), nParams, NULL, paramValues, NULL, NULL, 0);
 	    ckfree ((void *)paramValues);
 	    paramValues = NULL;
 	    if(newExecString) {
 		ckfree((void *)newExecString);
 		newExecString = NULL;
 	    }
+	}
+
+	if(paramsBuffer) {
+		ckfree ((void *)paramsBuffer);
+		paramsBuffer = NULL;
 	}
 
 	connid->sql_count++;
@@ -894,6 +1013,7 @@ Pg_exec_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 	const char	   *connString;
 	const char *statementNameString;
 	const char **paramValues = NULL;
+	const char *paramsBuffer = NULL;
 
 	int         nParams;
 
@@ -927,16 +1047,23 @@ Pg_exec_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 	nParams = objc - 3;
 
 	if (nParams > 0) {
-	    // After this point we must free paramValues before exiting
-	    build_param_array(interp, nParams, &objv[3], &paramValues);
+	    if (build_param_array(interp, nParams, &objv[3], &paramValues, &paramsBuffer) != TCL_OK) {
+		return TCL_ERROR;
+	    }
+	    // After this point we must free paramValues and paramsBufferbefore exiting
 	}
 
 	statementNameString = Tcl_GetString(objv[2]);
 
-	result = PQexecPrepared(conn, statementNameString, nParams, paramValues, NULL, NULL, 0);
+	result = PQexecPrepared(conn, externalString(statementNameString), nParams, paramValues, NULL, NULL, 0);
 
 	if (paramValues != (const char **)NULL) {
 	    ckfree ((void *)paramValues);
+	}
+
+	if(paramsBuffer) {
+		ckfree ((void *)paramsBuffer);
+		paramsBuffer = NULL;
 	}
 
 	connid->sql_count++;
@@ -1009,7 +1136,7 @@ Pg_result_foreach(Tcl_Interp *interp, PGresult *result, Tcl_Obj *arrayNameObj, T
 
 		    char *string = PQgetvalue (result, tupno, column);
 
-		    if (Tcl_SetVar2(interp, arrayName, columnName, string, (TCL_LEAVE_ERR_MSG)) == NULL) 
+		    if (Tcl_SetVar2(interp, arrayName, columnName, utfString(string), (TCL_LEAVE_ERR_MSG)) == NULL) 
 		    {
 			return TCL_ERROR;
 		    }
@@ -1289,8 +1416,8 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 					return TCL_ERROR;
 				}
 
-                /* This will take care of the cleanup */
-                Tcl_DeleteCommandFromToken(interp, resultid->cmd_token);
+				/* This will take care of the cleanup */
+				Tcl_DeleteCommandFromToken(interp, resultid->cmd_token);
 				return TCL_OK;
 			}
 
@@ -1314,7 +1441,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				}
 
 				Tcl_SetObjResult(interp, Tcl_NewStringObj(
-                  PQcmdTuples(result), -1));
+					PQcmdTuples(result), -1));
 				return TCL_OK;
 			}
 
@@ -1367,7 +1494,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 						if (Tcl_ObjSetVar2(interp, arrVarObj, fieldNameObj,
 										   Tcl_NewStringObj(
-											 PGgetvalue(result, resultid->nullValueString, tupno, i),
+											 utfString(PGgetvalue(result, resultid->nullValueString, tupno, i)),
 											 -1), TCL_LEAVE_ERR_MSG) == NULL) {
 							Tcl_DecrRefCount (fieldNameObj);
 							return TCL_ERROR;
@@ -1379,7 +1506,6 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 		case OPT_ASSIGNBYIDX:
 			{
-
 				if ((objc != 4) && (objc != 5))
 				{
 					Tcl_WrongNumArgs(interp, 3, objv, "arrayName ?append_string?");
@@ -1404,29 +1530,33 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				 */
 				for (tupno = 0; tupno < PQntuples(result); tupno++)
 				{
-					const char *field0 = PGgetvalue(result, resultid->nullValueString, tupno, 0);
+					const char *field0 = utfString(PGgetvalue(result, resultid->nullValueString, tupno, 0));
+					char *dupfield0 = ckalloc(strlen(field0)+1);
+
+					strcpy(dupfield0, field0);
 
 					for (i = 1; i < PQnfields(result); i++)
 					{
 						Tcl_Obj    *fieldNameObj;
 
-
 						fieldNameObj = Tcl_NewObj ();
-						Tcl_SetStringObj(fieldNameObj, field0, -1);
+						Tcl_SetStringObj(fieldNameObj, dupfield0, -1);
 						Tcl_AppendToObj(fieldNameObj, ",", 1);
 						Tcl_AppendToObj(fieldNameObj, PQfname(result, i), -1);
 
 						if (appendstrObj != NULL)
 							Tcl_AppendObjToObj(fieldNameObj, appendstrObj);
 
+						char *val = utfString(PGgetvalue(result, resultid->nullValueString, tupno, i));
 						if (Tcl_ObjSetVar2(interp, arrVarObj, fieldNameObj,
-										   Tcl_NewStringObj( PGgetvalue(result, resultid->nullValueString, tupno, i), -1), TCL_LEAVE_ERR_MSG) == NULL)
+						      Tcl_NewStringObj( val, -1), TCL_LEAVE_ERR_MSG) == NULL)
 						{
-                            
 							Tcl_DecrRefCount(fieldNameObj);
+							ckfree(dupfield0);
 							return TCL_ERROR;
 						}
 					}
+					ckfree(dupfield0);
 				}
 				return TCL_OK;
 			}
@@ -1446,31 +1576,32 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 				if (tupno < 0 || tupno >= PQntuples(result))
 				{
-                    tresult = Tcl_NewStringObj("argument to getTuple cannot exceed ", -1);
-                    Tcl_AppendStringsToObj(tresult, "number of tuples - 1", NULL);
-                    Tcl_SetObjResult(interp, tresult);
-/*
-                    Tcl_AppendStringsToObj(Tcl_GetObjResult(interp),
-                        "argument to getTuple cannot exceed ",
-                        "number of tuples - 1", NULL);
-*/
+					tresult = Tcl_NewStringObj("argument to getTuple cannot exceed ", -1);
+					Tcl_AppendStringsToObj(tresult, "number of tuples - 1", NULL);
+					Tcl_SetObjResult(interp, tresult);
+					/*
+					Tcl_AppendStringsToObj(Tcl_GetObjResult(interp),
+						"argument to getTuple cannot exceed ",
+						"number of tuples - 1", NULL);
+					*/
 					return TCL_ERROR;
 				}
 
 				/* set the result object to be an empty list */
-                resultObj = Tcl_NewListObj(0, NULL);
+				resultObj = Tcl_NewListObj(0, NULL);
 
 				/* build up a return list, Tcl-object-style */
 				for (i = 0; i < PQnfields(result); i++)
 				{
 					char	   *value;
 
-					value = PGgetvalue(result, resultid->nullValueString, tupno, i);
-					if (Tcl_ListObjAppendElement(interp, resultObj,
+					value = utfString(PGgetvalue(result, resultid->nullValueString, tupno, i));
+
+					if (Tcl_ListObjAppendElement(interp, resultObj, 
 							   Tcl_NewStringObj(value, -1)) == TCL_ERROR)
 						return TCL_ERROR;
 				}
-                Tcl_SetObjResult(interp, resultObj);
+				Tcl_SetObjResult(interp, resultObj);
 				return TCL_OK;
 			}
 
@@ -1490,8 +1621,8 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 				if (tupno < 0 || tupno >= PQntuples(result))
 				{
-                    tresult = Tcl_NewStringObj("argument to tupleArray cannot exceed number of tuples - 1", -1);
-                    Tcl_SetObjResult(interp, tresult);
+					tresult = Tcl_NewStringObj("argument to tupleArray cannot exceed number of tuples - 1", -1);
+					Tcl_SetObjResult(interp, tresult);
 					return TCL_ERROR;
 				}
 
@@ -1506,8 +1637,10 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 					for (i = 0; i < PQnfields(result); i++)
 					{
 						if (Tcl_SetVar2(interp, arrayName, PQfname(result, i),
-							 PGgetvalue(result, resultid->nullValueString, 
-								 tupno, i), TCL_LEAVE_ERR_MSG) == NULL)
+							utfString(
+							    PGgetvalue(result, resultid->nullValueString, 
+								tupno, i)
+							), TCL_LEAVE_ERR_MSG) == NULL)
 						return TCL_ERROR;
 					}
 				} else
@@ -1529,7 +1662,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 						}
 
 						if (Tcl_SetVar2(interp, arrayName, PQfname(result, i),
-									 string,
+									 utfString(string),
 										TCL_LEAVE_ERR_MSG) == NULL)
 							return TCL_ERROR;
 					}
@@ -1552,7 +1685,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 					Tcl_ListObjAppendElement(interp, resultObj,
 							   Tcl_NewStringObj(PQfname(result, i), -1));
 				}
-                Tcl_SetObjResult(interp, resultObj);
+				Tcl_SetObjResult(interp, resultObj);
 				return TCL_OK;
 			}
 
@@ -1590,7 +1723,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 						== TCL_ERROR)
 						return TCL_ERROR;
 				}
-                Tcl_SetObjResult(interp, resultObj);
+				Tcl_SetObjResult(interp, resultObj);
 				return TCL_OK;
 			}
 
@@ -1617,7 +1750,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				{
 				    fieldObj = Tcl_NewObj();
 
-				    Tcl_SetStringObj(fieldObj, PGgetvalue(result, resultid->nullValueString, tupno, i), -1);
+				    Tcl_SetStringObj(fieldObj, utfString(PGgetvalue(result, resultid->nullValueString, tupno, i)), -1);
 				    if (Tcl_ListObjAppendElement(interp, listObj, fieldObj) != TCL_OK)
 					{
 						Tcl_DecrRefCount(listObj);
@@ -1659,7 +1792,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	
 					fieldObj = Tcl_NewObj();
 
-					Tcl_SetStringObj(fieldObj, PGgetvalue(result, resultid->nullValueString, tupno, i), -1);
+					Tcl_SetStringObj(fieldObj, utfString(PGgetvalue(result, resultid->nullValueString, tupno, i)), -1);
 	
 					if (Tcl_ListObjAppendElement(interp, subListObj, fieldObj) != TCL_OK)
 					{
@@ -1710,7 +1843,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 					fieldNameObj = Tcl_NewObj();
 
 					Tcl_SetStringObj(fieldNameObj, PQfname(result, i), -1);
-					Tcl_SetStringObj(fieldObj, PGgetvalue(result, resultid->nullValueString, tupno, i), -1);
+					Tcl_SetStringObj(fieldObj, utfString(PGgetvalue(result, resultid->nullValueString, tupno, i)), -1);
 	
 					if (Tcl_DictObjPut(interp, subListObj, fieldNameObj, fieldObj) != TCL_OK)
 					{
@@ -1747,12 +1880,11 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				if (objc == 3)
 				{
 					if (resultid->nullValueString == NULL || 
-                           *resultid->nullValueString == '\0') {
-
-                        Tcl_SetObjResult(interp, Tcl_NewStringObj("", 0));
+					    *resultid->nullValueString == '\0') {
+						Tcl_SetObjResult(interp, Tcl_NewStringObj("", 0));
 					} else {
-                        Tcl_SetObjResult(interp, 
-                          Tcl_NewStringObj(resultid->nullValueString, -1));
+						Tcl_SetObjResult(interp, 
+							Tcl_NewStringObj(resultid->nullValueString, -1));
 					}
 					return TCL_OK;
 				}
@@ -1773,7 +1905,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 		default:
 			{
-                Tcl_SetObjResult(interp, Tcl_NewStringObj("Invalid option\n", -1));
+				Tcl_SetObjResult(interp, Tcl_NewStringObj("Invalid option\n", -1));
 				goto Pg_result_errReturn;		/* append help info */
 			}
 	}
@@ -1804,7 +1936,6 @@ Pg_result_errReturn:
         Tcl_SetObjResult(interp, tresult);
 	return TCL_ERROR;
 }
-
 
 /**********************************
  * pg_execute
@@ -1910,20 +2041,21 @@ Pg_execute(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
             Tcl_SetObjResult(interp, 
               Tcl_NewStringObj("Attempt to query while COPY in progress", -1));
 
-		return TCL_ERROR;
+	    return TCL_ERROR;
 	}
 
         if (connid->callbackPtr || connid->callbackInterp)
         {
                Tcl_SetResult(interp, "Attempt to query while waiting for callback", TCL_STATIC);
                return TCL_ERROR;
-         }
+        }
 
 
 	/*
 	 * Execute the query
 	 */
-	queryString = Tcl_GetString(objv[i++]);
+	queryString = externalString(Tcl_GetString(objv[i++]));
+	// TODO convert from utf to external
 	result = PQexec(conn, queryString);
 	connid->sql_count++;
 
@@ -1992,7 +2124,7 @@ Pg_execute(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 				== TCL_ERROR)
 				return TCL_ERROR;
 
-            Tcl_SetObjResult(interp, resultObj);
+			Tcl_SetObjResult(interp, resultObj);
 			PQclear(result);
 			return TCL_ERROR;
 	}
@@ -2093,7 +2225,7 @@ execute_put_values(Tcl_Interp *interp, const char *array_varname,
 	for (i = 0; i < n; i++)
 	{
 		fname = PQfname(result, i);
-		value = PGgetvalue(result, nullValueString, tupno, i);
+		value = utfString(PGgetvalue(result, nullValueString, tupno, i));
 
 		if (array_varname != NULL)
 		{
@@ -2819,11 +2951,12 @@ static int count_parameters(Tcl_Interp *interp, const char *queryString, int *nP
  If not, does not modify the arguments.
  */
 static int expand_parameters(Tcl_Interp *interp, const char *queryString, int nParams, char *paramArrayName,
-				char **newQueryStringPtr, const char ***paramValuesPtr)
+				char **newQueryStringPtr, const char ***paramValuesPtr, const char **bufferPtr)
 {
 	// Allocating space for parameter IDs up to 100,000 (5 characters)
 	char        *newQueryString = (char *)ckalloc(strlen(queryString) + 5 * nParams);
 	const char **paramValues    = (const char **)ckalloc(nParams * sizeof (*paramValues));
+	int         *paramLengths   = (int *)ckalloc(nParams * sizeof (int));
 	const char   *input         = queryString;
 	char         *output        = newQueryString;
 	int           paramIndex    = 0;
@@ -2876,9 +3009,10 @@ static int expand_parameters(Tcl_Interp *interp, const char *queryString, int nP
 		// If the name is not present in the parameter array, then treat it as a NULL
 		// in the SQL sense, represented by a literal NULL in the parameter list
 		if(paramValueObj) {
-		    paramValues[paramIndex] = Tcl_GetString(paramValueObj);
+		    paramValues[paramIndex] = Tcl_GetStringFromObj(paramValueObj, &paramLengths[paramIndex]);
 		} else {
 		    paramValues[paramIndex] = NULL;
+		    paramLengths[paramIndex] = 0;
 		}
 
 		// First param (paramValues[0]) is $1, etc...
@@ -2904,6 +3038,10 @@ static int expand_parameters(Tcl_Interp *interp, const char *queryString, int nP
 	// If this triggers then something is very wrong with the logic above.
 	assert(paramIndex == nParams);
 
+	if (array_to_utf8(interp, paramValues, paramLengths, nParams, bufferPtr) != TCL_OK) {
+		goto error_return;
+	}
+
 	// Normal return, push parameters and return OK.
 	*paramValuesPtr = paramValues;
 	*newQueryStringPtr = newQueryString;
@@ -2912,6 +3050,7 @@ static int expand_parameters(Tcl_Interp *interp, const char *queryString, int nP
 error_return:
 	// Something went wrong, clean up and return ERROR.
 	if(paramValues) ckfree((void *)paramValues);
+	if(paramLengths) ckfree((void *)paramLengths);
 	if(newQueryString) ckfree((void *)newQueryString);
 	return TCL_ERROR;
 }
@@ -2979,6 +3118,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	const char  *queryString    = NULL;
 	char        *varNameString  = NULL;
 	char        *paramArrayName = NULL;
+	const char  *paramsBuffer   = NULL;
 	Tcl_Obj     *varNameObj     = NULL;
 	Tcl_Obj     *procStringObj  = NULL;
 	Tcl_Obj     *columnListObj  = NULL;
@@ -3056,7 +3196,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	}
 
 	if (useVariables) {
-		if (handle_substitutions(interp, queryString, &newQueryString, &paramValues, &nParams, 1) != TCL_OK) {
+		if (handle_substitutions(interp, queryString, &newQueryString, &paramValues, &nParams, &paramsBuffer) != TCL_OK) {
 			return TCL_ERROR;
 		}
 		if(nParams)
@@ -3075,7 +3215,9 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	    if (Tcl_ListObjGetElements(interp, paramListObj, &nParams, &listObjv) == TCL_ERROR) {
 		return TCL_ERROR;
 	    }
-	    build_param_array(interp, nParams, listObjv, &paramValues);
+	    if (build_param_array(interp, nParams, listObjv, &paramValues, &paramsBuffer) != TCL_OK) {
+		return TCL_ERROR;
+	    }
         }
 
 	if(paramArrayName) {
@@ -3085,7 +3227,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	    }
 
 	    if (nParams) {
-		if(expand_parameters(interp, queryString, nParams, paramArrayName, &newQueryString, &paramValues) == TCL_ERROR) {
+		if(expand_parameters(interp, queryString, nParams, paramArrayName, &newQueryString, &paramValues, &paramsBuffer) == TCL_ERROR) {
 		    return TCL_ERROR;
 		}
 		queryString = newQueryString;
@@ -3096,10 +3238,16 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	if (conn == NULL) {
 	    cleanup_params_and_return_error: {
 		if(paramValues) ckfree((void *)paramValues);
+		if(paramsBuffer) ckfree((void *)paramsBuffer);
 		if(newQueryString) ckfree((void *)newQueryString);
 		return TCL_ERROR;
 	    }
 	}
+
+	if(nParams) {
+		// TODO convert parameters to external
+	}
+	queryString = externalString(queryString);
 
 	connid->sql_count++;
 	if (rowByRow)
@@ -3290,7 +3438,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				}
 
 				if (valueObj == NULL) {
-					valueObj = Tcl_NewStringObj(string, -1);
+					valueObj = Tcl_NewStringObj(utfString(string), -1);
 				}
 
 				if (Tcl_ObjSetVar2(interp, varNameObj, columnNameObjs[column],
@@ -3614,6 +3762,7 @@ Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
 	char            *newExecString = NULL;
 	const char     **paramValues = NULL;
 	char		*paramArrayName = NULL;
+	const char      *paramsBuffer = NULL;
 	int              nParams;
 	int              index;
 	int              useVariables = 0;
@@ -3679,13 +3828,13 @@ Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
 			Tcl_SetResult(interp, "-variables can not be used with positional or named parameters", TCL_STATIC);
 			return TCL_ERROR;
 		}
-		if (handle_substitutions(interp, execString, &newExecString, &paramValues, &nParams, 1) != TCL_OK) {
+		if (handle_substitutions(interp, execString, &newExecString, &paramValues, &nParams, &paramsBuffer) != TCL_OK) {
 			return TCL_ERROR;
 		}
 		if(nParams)
 			execString = newExecString;
 		else { // No variables being substituted, fall back to simple code path
-			ckfree(newExecString);
+			ckfree((void *)newExecString);
 			newExecString = NULL;
 			ckfree((void *)paramValues);
 			paramValues = NULL;
@@ -3701,23 +3850,26 @@ Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
 	    }
 	    if(nParams) {
 		// After this point we must free newExecString and paramValues before exiting
-		if (expand_parameters(interp, execString, nParams, paramArrayName, &newExecString, &paramValues) == TCL_ERROR) {
+		if (expand_parameters(interp, execString, nParams, paramArrayName, &newExecString, &paramValues, &paramsBuffer) == TCL_ERROR) {
 		    return TCL_ERROR;
 		}
 		execString = newExecString;
 	    }
 	} else if (nParams) {
-	    // After this point we must free paramValues before exiting
-	    build_param_array(interp, nParams, &objv[index], &paramValues);
+	    // After this point we must free paramValues and paramsBuffer before exiting
+	    if (build_param_array(interp, nParams, &objv[index], &paramValues, &paramsBuffer) != TCL_OK) {
+		return TCL_ERROR;
+	    }
         }
 
 	if (nParams == 0) {
-	    status = PQsendQuery(conn, execString);
+	    status = PQsendQuery(conn, externalString(execString));
 	} else {
-	    status = PQsendQueryParams(conn, execString, nParams, NULL, paramValues, NULL, NULL, 1);
+	    status = PQsendQueryParams(conn, externalString(execString), nParams, NULL, paramValues, NULL, NULL, 1);
 	    if(newExecString) ckfree(newExecString);
 	    ckfree ((void *)paramValues);
 	}
+	if(paramsBuffer) ckfree((void *)paramsBuffer);
 	connid->sql_count++;
 
 	/* Transfer any notify events from libpq to Tcl event queue. */
@@ -3783,7 +3935,9 @@ Pg_sendquery_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *C
 		Tcl_SetResult(interp, "Attempt to query while COPY in progress", TCL_STATIC);
 		return TCL_ERROR;
 	}
+//HERE//
 
+	// TODO convert params
 	/* If there are any extra params, allocate paramValues and fill it
 	 * with the string representations of all of the extra parameters
 	 * substituted on the command line.  Otherwise nParams will be 0,
@@ -5253,6 +5407,7 @@ Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
 	 binValues = (int *)ckalloc (countbin * sizeof (char *));
 
 	 for (param = 0; param < count; param++) {
+		// TODO convert to external
 	     paramValues[param] = Tcl_GetString (elemPtrs[param]);
 	     if (strcmp(paramValues[param], "NULL") == 0)
              {
@@ -5302,13 +5457,13 @@ Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
         *  of query 
         */
         if (prepared) {
-	    iResult = PQsendQueryPrepared(conn, execString, count, paramValues, paramLengths, binValues, binresults);
+	    iResult = PQsendQueryPrepared(conn, externalString(execString), count, paramValues, paramLengths, binValues, binresults);
         } else if (params) {
-            iResult = PQsendQueryParams(conn, execString, count, NULL, paramValues, paramLengths, binValues, binresults);
+            iResult = PQsendQueryParams(conn, externalString(execString), count, NULL, paramValues, paramLengths, binValues, binresults);
 
         } else {
     
-            iResult = PQsendQuery(conn, execString);
+            iResult = PQsendQuery(conn, externalString(execString));
 /*
             ckfree ((void *)paramValues);
 */
@@ -5316,11 +5471,11 @@ Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
     } else {
 
         if (prepared) {
-	    result = PQexecPrepared(conn, execString, count, paramValues, paramLengths, binValues, binresults);
+	    result = PQexecPrepared(conn, externalString(execString), count, paramValues, paramLengths, binValues, binresults);
         } else if (params) {
-            result = PQexecParams(conn, execString, count, NULL, paramValues, paramLengths, binValues, binresults);
+            result = PQexecParams(conn, externalString(execString), count, NULL, paramValues, paramLengths, binValues, binresults);
         } else {
-            result = PQexec(conn, execString);
+            result = PQexec(conn, externalString(execString));
             ckfree ((void *)paramValues);
         }
     } /* end if callback */

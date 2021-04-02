@@ -17,6 +17,8 @@
 #include <tcl.h>
 #include "libpq-fe.h"
 
+extern int pgtclInitEncoding(Tcl_Interp *interp);
+
 /* MOVED structure definitions for connection IDs to pctclId.h */
 
 /* **************************/

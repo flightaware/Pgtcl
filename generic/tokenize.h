@@ -14,7 +14,7 @@ TK_CAST, TK_HASH
 };
 
 int Pg_sqlite3GetToken(const char *z, enum sqltoken *tokenType);
-int handle_substitutions(Tcl_Interp *interp, const char *sql, char **newSqlPtr, const char ***replacementArrayPtr, int *replacementArrayLengthPtr, int hardError);
+int handle_substitutions(Tcl_Interp *interp, const char *sql, char **newSqlPtr, const char ***replacementArrayPtr, int *replacementArrayLengthPtr, const char **bufferPtr);
 
 #define sqlite3Isdigit(x) isdigit(x)
 #define sqlite3Isspace(x) isspace(x)
