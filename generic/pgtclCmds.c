@@ -879,12 +879,6 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		}
 		if(nParams)
 			execString = newExecString;
-		else { // No variables being substituted, fall back to simple code path
-			ckfree((void *)newExecString);
-			newExecString = NULL;
-			ckfree((void *)paramValues);
-			paramValues = NULL;
-		}
 	} else if (paramArrayName) {
 	    // Can't combine positional params and -paramarray
 	    if (nParams) {
@@ -917,19 +911,20 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	if (nParams == 0) {
 	    result = PQexec(conn, externalString(execString));
 	} else {
-	    // TODO convert paramvalues from utf to external
 	    result = PQexecParams(conn, externalString(execString), nParams, NULL, paramValues, NULL, NULL, 0);
-	    ckfree ((void *)paramValues);
-	    paramValues = NULL;
-	    if(newExecString) {
-		ckfree((void *)newExecString);
-		newExecString = NULL;
-	    }
 	}
 
+	if(paramValues) {
+	    ckfree ((void *)paramValues);
+	    paramValues = NULL;
+	}
+	if(newExecString) {
+	    ckfree((void *)newExecString);
+	    newExecString = NULL;
+	}
 	if(paramsBuffer) {
-		ckfree ((void *)paramsBuffer);
-		paramsBuffer = NULL;
+	    ckfree ((void *)paramsBuffer);
+	    paramsBuffer = NULL;
 	}
 
 	connid->sql_count++;
@@ -1050,7 +1045,7 @@ Pg_exec_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 	    if (build_param_array(interp, nParams, &objv[3], &paramValues, &paramsBuffer) != TCL_OK) {
 		return TCL_ERROR;
 	    }
-	    // After this point we must free paramValues and paramsBufferbefore exiting
+	    // After this point we must free paramValues and paramsBuffer before exiting
 	}
 
 	statementNameString = Tcl_GetString(objv[2]);
@@ -3833,12 +3828,6 @@ Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
 		}
 		if(nParams)
 			execString = newExecString;
-		else { // No variables being substituted, fall back to simple code path
-			ckfree((void *)newExecString);
-			newExecString = NULL;
-			ckfree((void *)paramValues);
-			paramValues = NULL;
-		}
 	} else if (paramArrayName) {
 	    // Can't combine positional params and -paramarray
 	    if (nParams) {
@@ -3866,10 +3855,19 @@ Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
 	    status = PQsendQuery(conn, externalString(execString));
 	} else {
 	    status = PQsendQueryParams(conn, externalString(execString), nParams, NULL, paramValues, NULL, NULL, 1);
-	    if(newExecString) ckfree(newExecString);
-	    ckfree ((void *)paramValues);
 	}
-	if(paramsBuffer) ckfree((void *)paramsBuffer);
+	if(newExecString) {
+	    ckfree(newExecString);
+	    newExecString = NULL;
+	}
+	if(paramValues) {
+	    ckfree ((void *)paramValues);
+	    paramValues = NULL;
+	}
+	if(paramsBuffer) {
+	    ckfree((void *)paramsBuffer);
+	    paramsBuffer = NULL;
+	}
 	connid->sql_count++;
 
 	/* Transfer any notify events from libpq to Tcl event queue. */
