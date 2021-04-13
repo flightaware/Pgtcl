@@ -712,7 +712,7 @@ int array_to_utf8(Tcl_Interp *interp, const char **paramValues, int *paramLength
 
 	for(param = 0; param < nParams; param++) {
 	    int errcode;
-	    if(!paramLengths[param]) {
+	    if(!paramLengths[param] || !paramValues[param]) {
 		continue;
 	    }
 	    // the arguments to Tcl_UtfToExternal are hellish

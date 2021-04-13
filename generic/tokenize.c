@@ -459,7 +459,8 @@ extern int array_to_utf8(Tcl_Interp *interp, const char **paramValues, int *para
 
 int handle_substitutions(Tcl_Interp *interp, const char *sql, char **newSqlPtr, const char ***replacementArrayPtr, int *replacementArrayLengthPtr, const char **bufferPtr)
 {
-	char *newSql = ckalloc(strlen(sql)+1);
+	// Worst possible case, :a mapping to $99999 at the end of a really long string
+	char *newSql = ckalloc(strlen(sql)*3+1);
 	// Worst possible case? the sql is nothing but ":varname" and they're all one character names. This
 	// will still be big enough.
 	const char **replacementArray = (const char **)ckalloc((strlen(sql)/2) * (sizeof *replacementArray));
