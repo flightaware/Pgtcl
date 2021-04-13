@@ -1309,6 +1309,57 @@ test pgtcl-11.1 {using pg_exec with 4-byte unicode variables} -body {
 
 } -result [list]
 
+#
+#
+#
+test pgtcl-11.2 {using pg_exec with 4-byte unicode array replacement} -body {
+
+    unset -nocomplain res
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+
+    set paramarray(glyph) "𝔄"
+
+    set res [$conn exec -paramarray paramarray {SELECT relname
+                           FROM Pg_class
+                          WHERE relname LIKE `glyph`}]
+
+    set results [pg::result $res -list]
+
+    pg_result $res -clear
+
+    pg_disconnect $conn
+
+    lsort $results
+
+} -result [list]
+
+
+#
+#
+#
+test pgtcl-11.3 {using pg_exec with 4-byte unicode positional args} -body {
+
+    unset -nocomplain res
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+
+    set paramarray(glyph) "𝔄"
+
+    set res [$conn exec {SELECT relname
+                           FROM Pg_class
+                          WHERE relname LIKE $1} $glyph]
+
+    set results [pg::result $res -list]
+
+    pg_result $res -clear
+
+    pg_disconnect $conn
+
+    lsort $results
+
+} -result [list]
+
 
 
 puts "tests complete"

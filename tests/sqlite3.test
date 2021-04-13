@@ -26,10 +26,16 @@ if [file exists $env(HOME)/.conninfo.tcl] {
     source conninfo.tcl
 }
 
-puts [list setting up sampledata.tsv]
-catch {file delete sampledata.tsv}
-set ifp [open sampledata.txt r]
-set ofp [open sampledata.tsv w]
+if {[file exists sampledata.txt]} {
+    set ::fprefix "."
+} elseif {[file exists tests/sampledata.txt]} {
+    set ::fprefix "tests"
+}
+
+puts [list setting up $::fprefix/sampledata.tsv]
+catch {file delete $::fprefix/sampledata.tsv}
+set ifp [open $::fprefix/sampledata.txt r]
+set ofp [open $::fprefix/sampledata.tsv w]
 while {[gets $ifp line] >= 0} {
 	puts $ofp [join $line "\t"]
 }
@@ -90,7 +96,7 @@ test pgtcl-sqlite3-1.2 {import tabsep internal} -body {
 test pgtcl-sqlite3-1.3 {import tabsep external} -body {
 	sqlite3 sqlite_conn :memory:
 
-	set fp [open sampledata.tsv r]
+	set fp [open $::fprefix/sampledata.tsv r]
 	
 	pg_sqlite sqlite_conn read_tabsep -file $fp \
 		-create contacts \
