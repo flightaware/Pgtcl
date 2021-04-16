@@ -502,12 +502,17 @@ int handle_substitutions(Tcl_Interp *interp, const char *sql, char **newSqlPtr, 
 					nameBuf[i-skip] = p[i];
 				nameBuf[i-skip-trunc] = 0;
 				varObj = Tcl_GetVar2Ex(interp, nameBuf, NULL, 0);
-				val = Tcl_GetStringFromObj(varObj, &stringLength);
+				if(varObj) {
+					val = Tcl_GetStringFromObj(varObj, &stringLength);
+					replacementArray[nextVarIndex] = val;
+					lengthArray[nextVarIndex] = stringLength;
+				} else {
+					replacementArray[nextVarIndex] = NULL;
+					lengthArray[nextVarIndex] = 0;
+				}
 				ckfree(nameBuf);
 				p += len;
 
-				replacementArray[nextVarIndex] = val;
-				lengthArray[nextVarIndex] = stringLength;
 				sprintf(q, "$%d", nextVarIndex+1); //1 indexed
 				while(*q) q++;
 				nextVarIndex++;
