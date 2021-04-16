@@ -487,12 +487,11 @@ int handle_substitutions(Tcl_Interp *interp, const char *sql, char **newSqlPtr, 
 				char *nameBuf = ckalloc(len);
 				int stringLength;
 				Tcl_Obj *varObj = NULL;
-				const char *val = NULL;
 				int i;
 				int skip = 1;
 				int trunc = 0;
 
-				// if ${...} then skip '${' and truncate '}'
+				// if :{...} then skip ':{' and truncate '}'
 				if(p[1] == '{') {
 					skip = 2;
 					trunc = 1;
@@ -503,8 +502,7 @@ int handle_substitutions(Tcl_Interp *interp, const char *sql, char **newSqlPtr, 
 				nameBuf[i-skip-trunc] = 0;
 				varObj = Tcl_GetVar2Ex(interp, nameBuf, NULL, 0);
 				if(varObj) {
-					val = Tcl_GetStringFromObj(varObj, &stringLength);
-					replacementArray[nextVarIndex] = val;
+					replacementArray[nextVarIndex] = Tcl_GetStringFromObj(varObj, &stringLength);
 					lengthArray[nextVarIndex] = stringLength;
 				} else {
 					replacementArray[nextVarIndex] = NULL;
