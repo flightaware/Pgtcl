@@ -712,7 +712,7 @@ int array_to_utf8(Tcl_Interp *interp, const char **paramValues, int *paramLength
 
 	for(param = 0; param < nParams; param++) {
 	    int errcode;
-	    if(!paramLengths[param]) {
+	    if(!paramLengths[param] || !paramValues[param]) {
 		continue;
 	    }
 	    // the arguments to Tcl_UtfToExternal are hellish
@@ -1956,8 +1956,6 @@ Pg_execute(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 	int			loop_rc;
 	const char	   *array_varname = NULL;
 	char	   *arg;
-	char	   *connString;
-	char	   *queryString;
 
 	Tcl_Obj    *oid_varnameObj = NULL;
 	Tcl_Obj    *evalObj;
@@ -2026,8 +2024,7 @@ Pg_execute(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 	/*
 	 * Get the connection and make sure no COPY command is pending
 	 */
-	connString = Tcl_GetString(objv[i++]);
-	conn = PgGetConnectionId(interp, connString, &connid);
+	conn = PgGetConnectionId(interp, Tcl_GetString(objv[i++]), &connid);
 	if (conn == NULL)
 		return TCL_ERROR;
 
@@ -2049,9 +2046,7 @@ Pg_execute(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 	/*
 	 * Execute the query
 	 */
-	queryString = externalString(Tcl_GetString(objv[i++]));
-	// TODO convert from utf to external
-	result = PQexec(conn, queryString);
+	result = PQexec(conn, externalString(Tcl_GetString(objv[i++])));
 	connid->sql_count++;
 
 	/*
@@ -3242,7 +3237,6 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	if(nParams) {
 		// TODO convert parameters to external
 	}
-	queryString = externalString(queryString);
 
 	connid->sql_count++;
 	if (rowByRow)
@@ -3251,10 +3245,10 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 		// Make the call
 		if (nParams) {
-			status = PQsendQueryParams(conn, queryString, nParams,
+			status = PQsendQueryParams(conn, externalString(queryString), nParams,
 				NULL, paramValues, NULL, NULL, 0);
 		} else {
-			status = PQsendQuery(conn, queryString);
+			status = PQsendQuery(conn, externalString(queryString));
 		}
 
 		if(status == 0) {
@@ -3284,10 +3278,10 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	} else {
 		// Make the call AND queue up the result.
 		if (nParams) {
-			result = PQexecParams(conn, queryString, nParams,
+			result = PQexecParams(conn, externalString(queryString), nParams,
 				NULL, paramValues, NULL, NULL, 0);
 		} else {
-			result = PQexec(conn, queryString);
+			result = PQexec(conn, externalString(queryString));
 		}
 
 		if (result == 0) {
@@ -3315,6 +3309,11 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	if(newQueryString) {
 		ckfree((void *)newQueryString);
 		newQueryString = NULL;
+	}
+
+	if(paramsBuffer) {
+		ckfree((void *)paramsBuffer);
+		paramsBuffer = NULL;
 	}
 
 	/* Transfer any notify events from libpq to Tcl event queue. */

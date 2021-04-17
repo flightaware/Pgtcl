@@ -459,7 +459,8 @@ extern int array_to_utf8(Tcl_Interp *interp, const char **paramValues, int *para
 
 int handle_substitutions(Tcl_Interp *interp, const char *sql, char **newSqlPtr, const char ***replacementArrayPtr, int *replacementArrayLengthPtr, const char **bufferPtr)
 {
-	char *newSql = ckalloc(strlen(sql)+1);
+	// Worst possible case, :a mapping to $99999 at the end of a really long string
+	char *newSql = ckalloc(strlen(sql)*3+1);
 	// Worst possible case? the sql is nothing but ":varname" and they're all one character names. This
 	// will still be big enough.
 	const char **replacementArray = (const char **)ckalloc((strlen(sql)/2) * (sizeof *replacementArray));
@@ -486,12 +487,11 @@ int handle_substitutions(Tcl_Interp *interp, const char *sql, char **newSqlPtr, 
 				char *nameBuf = ckalloc(len);
 				int stringLength;
 				Tcl_Obj *varObj = NULL;
-				const char *val = NULL;
 				int i;
 				int skip = 1;
 				int trunc = 0;
 
-				// if ${...} then skip '${' and truncate '}'
+				// if :{...} then skip ':{' and truncate '}'
 				if(p[1] == '{') {
 					skip = 2;
 					trunc = 1;
@@ -501,12 +501,16 @@ int handle_substitutions(Tcl_Interp *interp, const char *sql, char **newSqlPtr, 
 					nameBuf[i-skip] = p[i];
 				nameBuf[i-skip-trunc] = 0;
 				varObj = Tcl_GetVar2Ex(interp, nameBuf, NULL, 0);
-				val = Tcl_GetStringFromObj(varObj, &stringLength);
+				if(varObj) {
+					replacementArray[nextVarIndex] = Tcl_GetStringFromObj(varObj, &stringLength);
+					lengthArray[nextVarIndex] = stringLength;
+				} else {
+					replacementArray[nextVarIndex] = NULL;
+					lengthArray[nextVarIndex] = 0;
+				}
 				ckfree(nameBuf);
 				p += len;
 
-				replacementArray[nextVarIndex] = val;
-				lengthArray[nextVarIndex] = stringLength;
 				sprintf(q, "$%d", nextVarIndex+1); //1 indexed
 				while(*q) q++;
 				nextVarIndex++;
