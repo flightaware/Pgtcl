@@ -1205,13 +1205,15 @@ Pg_Notify_EventProc(Tcl_Event *evPtr, int flags)
 		 */
 		Tcl_Obj *callbackList = Tcl_NewListObj(0, NULL);
 		Tcl_ListObjAppendElement(NULL, callbackList, Tcl_NewStringObj(callback, -1));
-		Tcl_ListObjAppendElement(NULL, callbackList, Tcl_NewStringObj(event->notify->relname, -1));
-		Tcl_ListObjAppendElement(NULL, callbackList, Tcl_NewIntObj(event->notify->be_pid));
-		/* In case there is a payload, add it to the callback as a
-		 * further element to the list.
-		 */
-		if (event->notify->extra[0]) {
-			Tcl_ListObjAppendElement (NULL, callbackList,  Tcl_NewStringObj(event->notify->extra, -1));
+		if (event->notify) {
+			Tcl_ListObjAppendElement(NULL, callbackList, Tcl_NewStringObj(event->notify->relname, -1));
+			Tcl_ListObjAppendElement(NULL, callbackList, Tcl_NewIntObj(event->notify->be_pid));
+			/* In case there is a payload, add it to the callback as a
+			 * further element to the list.
+			 */
+			if (event->notify->extra[0]) {
+				Tcl_ListObjAppendElement (NULL, callbackList,  Tcl_NewStringObj(event->notify->extra, -1));
+			}
 		}
 
 		/*
