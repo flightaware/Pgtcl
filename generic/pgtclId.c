@@ -1136,7 +1136,6 @@ Pg_Notify_EventProc(Tcl_Event *evPtr, int flags)
 	NotifyEvent *event = (NotifyEvent *) evPtr;
 	Pg_TclNotifies *notifies;
 	char	   *callback;
-	char	   *svcallback;
 
 	/* We classify SQL notifies as Tcl file events. */
 	if (!(flags & TCL_FILE_EVENTS))
@@ -1199,18 +1198,30 @@ Pg_Notify_EventProc(Tcl_Event *evPtr, int flags)
 		if (callback == NULL)
 			continue;			/* nothing to do for this interpreter */
 
-		/*
-		 * We have to copy the callback string in case the user executes a
-		 * new pg_listen or pg_on_connection_loss during the callback.
+		/* Create a Tcl List Object containing the callback with the channel name 
+		 * (relname) and the PID of the notifying backend. This will also copy the callback
+		 * string in case the user executes a new pg_listen or pg_on_connection_loss
+		 * during the callback
 		 */
-		svcallback = (char *)ckalloc((unsigned)(strlen(callback) + 1));
-		strcpy(svcallback, callback);
+		Tcl_Obj *callbackList = Tcl_NewListObj(0, NULL);
+		Tcl_ListObjAppendElement(NULL, callbackList, Tcl_NewStringObj(callback, -1));
+		if (event->notify) {
+			Tcl_ListObjAppendElement(NULL, callbackList, Tcl_NewStringObj(event->notify->relname, -1));
+			Tcl_ListObjAppendElement(NULL, callbackList, Tcl_NewIntObj(event->notify->be_pid));
+			/* In case there is a payload, add it to the callback as a
+			 * further element to the list.
+			 */
+			if (event->notify->extra[0]) {
+				Tcl_ListObjAppendElement (NULL, callbackList,  Tcl_NewStringObj(event->notify->extra, -1));
+			}
+		}
 
 		/*
 		 * Execute the callback.
 		 */
+		Tcl_IncrRefCount(callbackList);
 		Tcl_Preserve((ClientData)interp);
-		if (Tcl_GlobalEval(interp, svcallback) != TCL_OK)
+		if (Tcl_EvalObjEx(interp, callbackList, TCL_EVAL_GLOBAL) != TCL_OK)
 		{
 			if (event->notify)
 				Tcl_AddErrorInfo(interp, "\n    (\"pg_listen\" script)");
@@ -1219,7 +1230,7 @@ Pg_Notify_EventProc(Tcl_Event *evPtr, int flags)
 			Tcl_BackgroundError(interp);
 		}
 		Tcl_Release((ClientData)interp);
-		ckfree(svcallback);
+		Tcl_DecrRefCount(callbackList);
 
 		/*
 		 * Check for the possibility that the callback closed the
