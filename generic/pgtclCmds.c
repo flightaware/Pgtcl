@@ -255,7 +255,7 @@ int pgtclInitEncoding(Tcl_Interp *interp) {
 }
 
 // Create a new "external" string from a "UTF" string
-char *makeExternalString(Tcl_Interp interp, char *utfString, int length)
+char *makeExternalString(Tcl_Interp *interp, const char *utfString, int length)
 {
 	int newLength = 0;
 	if (length == -1) length = strlen(utfString);
@@ -918,7 +918,7 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
         }
 
 	int validUTF = 0;
-	char *pgString = makeExternalString(execString);
+	char *pgString = makeExternalString(interp, execString, -1);
 	if (pgString) {
 	    validUTF = 1;
 	    /* we could call PQexecParams when nParams is 0, but PQexecParams
@@ -935,8 +935,8 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	}
 
 	if(pgString) {
-	    ckFree ((void *)pgString);
-	    sql = NULL;
+	    ckfree ((void *)pgString);
+	    pgString = NULL;
 	}
 	if(paramValues) {
 	    ckfree ((void *)paramValues);
@@ -1030,7 +1030,7 @@ Pg_exec_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 {
 	Pg_ConnectionId *connid;
 	PGconn	   *conn;
-	PGresult   *result;
+	PGresult   *result = NULL;
 	const char	   *connString;
 	const char *statementNameString;
 	const char **paramValues = NULL;
@@ -1074,9 +1074,14 @@ Pg_exec_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 	    // After this point we must free paramValues and paramsBuffer before exiting
 	}
 
-	statementNameString = Tcl_GetString(objv[2]);
+	statementNameString = makeExternalString(interp, Tcl_GetString(objv[2]), -1);
+	int validUTF = statementNameString != NULL;
 
-	result = PQexecPrepared(conn, externalString(statementNameString), nParams, paramValues, NULL, NULL, 0);
+	if(statementNameString) {
+		result = PQexecPrepared(conn, statementNameString, nParams, paramValues, NULL, NULL, 0);
+		ckfree(statementNameString);
+		statementNameString = NULL;
+	}
 
 	if (paramValues != (const char **)NULL) {
 	    ckfree ((void *)paramValues);
@@ -1112,8 +1117,10 @@ Pg_exec_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 	}
 	else
 	{
-		/* error occurred during the query */
-		report_connection_error(interp, conn);
+		if(validUTF) {
+			/* error occurred during the query */
+			report_connection_error(interp, conn);
+		}
 
 		// Reconnect if the connection is bad.
 		PgCheckConnectionState(connid);
@@ -2068,11 +2075,17 @@ Pg_execute(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
                return TCL_ERROR;
         }
 
+	char *pgString = makeExternalString(interp, Tcl_GetString(objv[i++]), -1);
+	int validUTF = pgString != NULL;
 
-	/*
-	 * Execute the query
-	 */
-	result = PQexec(conn, externalString(Tcl_GetString(objv[i++])));
+	if(pgString) {
+		/*
+		 * Execute the query
+		 */
+		result = PQexec(conn, pgString);
+		ckfree(pgString);
+		pgString = NULL;
+	}
 	connid->sql_count++;
 
 	/*
@@ -2085,10 +2098,12 @@ Pg_execute(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 	 */
 	if (result == NULL)
 	{
-		report_connection_error(interp, conn);
+		if(validUTF) {
+			report_connection_error(interp, conn);
 
-		// Look for a failed connection and re-open it.
-		PgCheckConnectionState(connid);
+			// Look for a failed connection and re-open it.
+			PgCheckConnectionState(connid);
+		}
 
 		return TCL_ERROR;
 	}
@@ -3117,7 +3132,7 @@ int
 Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	Pg_ConnectionId *connid;
-	PGconn	    *conn;
+	PGconn	    *conn = NULL;
 	PGresult    *result;
 	int          r,
 	             retval = TCL_ERROR;
@@ -3131,6 +3146,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	int          index = 1;
 	int          nParams = 0;
 	char        *connString     = NULL;
+	char        *pgString       = NULL;
 	const char  *queryString    = NULL;
 	char        *varNameString  = NULL;
 	char        *paramArrayName = NULL;
@@ -3250,9 +3266,14 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	    }
 	}
 
-	conn = PgGetConnectionId(interp, connString, &connid);
+	pgString = makeExternalString(interp, queryString, -1);
+
+	if(pgString)
+		conn = PgGetConnectionId(interp, connString, &connid);
+
 	if (conn == NULL) {
 	    cleanup_params_and_return_error: {
+		if(pgString) ckfree((void *)pgString);
 		if(paramValues) ckfree((void *)paramValues);
 		if(paramsBuffer) ckfree((void *)paramsBuffer);
 		if(newQueryString) ckfree((void *)newQueryString);
@@ -3260,21 +3281,17 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	    }
 	}
 
-	if(nParams) {
-		// TODO convert parameters to external
-	}
-
 	connid->sql_count++;
+
 	if (rowByRow)
 	{
-		int status;
+		int status = 0;
 
 		// Make the call
 		if (nParams) {
-			status = PQsendQueryParams(conn, externalString(queryString), nParams,
-				NULL, paramValues, NULL, NULL, 0);
+			status = PQsendQueryParams(conn, pgString, nParams, NULL, paramValues, NULL, NULL, 0);
 		} else {
-			status = PQsendQuery(conn, externalString(queryString));
+			status = PQsendQuery(conn, pgString);
 		}
 
 		if(status == 0) {
@@ -3304,10 +3321,9 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	} else {
 		// Make the call AND queue up the result.
 		if (nParams) {
-			result = PQexecParams(conn, externalString(queryString), nParams,
-				NULL, paramValues, NULL, NULL, 0);
+			result = PQexecParams(conn, pgString, nParams, NULL, paramValues, NULL, NULL, 0);
 		} else {
-			result = PQexec(conn, externalString(queryString));
+			result = PQexec(conn, pgString);
 		}
 
 		if (result == 0) {
@@ -3328,6 +3344,10 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 	// At this point we no longer need these. Zap them so we don't have to worry about them
 	// in the big loop.
+	if(pgString) {
+		ckfree((void *)pgString);
+		pgString = NULL;
+	}
 	if(paramValues) {
 		ckfree((void *)paramValues);
 		paramValues = NULL;
@@ -3336,7 +3356,6 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		ckfree((void *)newQueryString);
 		newQueryString = NULL;
 	}
-
 	if(paramsBuffer) {
 		ckfree((void *)paramsBuffer);
 		paramsBuffer = NULL;
