@@ -254,6 +254,21 @@ int pgtclInitEncoding(Tcl_Interp *interp) {
 	return TCL_ERROR;
 }
 
+// Create a new "external" string from a "UTF" string
+char *makeExternalString(Tcl_Interp interp, char *utfString, int length)
+{
+	int newLength = 0;
+	if (length == -1) length = strlen(utfString);
+	char *externalString = ckalloc(length + 4 + 1); // 1 byte for null, 4 bytes to make Tcl_UtfToExternal happy
+
+	if (TCL_OK != Tcl_UtfToExternal(interp, utf8encoding, utfString, length, 0, NULL, externalString, length + 4 + 1, NULL, &newLength, NULL)) {
+		ckfree(externalString);
+		return NULL;
+	}
+	externalString[newLength] = '\0';
+	return externalString;
+}
+
 // The following two functions "waste" a DStrings storage by not freeing it until it's needed again
 // This is a little sloppy but massively simplifies the use since just about every place it's used
 // has to handle a possible early error return
@@ -802,7 +817,7 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	Pg_ConnectionId *connid;
 	PGconn	        *conn;
-	PGresult        *result;
+	PGresult        *result = NULL;
 	const char    *connString = NULL;
 	const char      *execString = NULL;
 	char            *newExecString = NULL;
@@ -902,18 +917,27 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	    // After this point we must free paramValues and paramsBufferbefore exiting
         }
 
-	/* we could call PQexecParams when nParams is 0, but PQexecParams
-	 * will not accept more than one SQL statement per call, while
-	 * PQexec will.  by checking and using PQexec when no parameters
-	 * are included, we maintain compatibility for code that doesn't
-	 * use params and might have had multiple statements in a single
-	 * request */
-	if (nParams == 0) {
-	    result = PQexec(conn, externalString(execString));
-	} else {
-	    result = PQexecParams(conn, externalString(execString), nParams, NULL, paramValues, NULL, NULL, 0);
+	int validUTF = 0;
+	char *pgString = makeExternalString(execString);
+	if (pgString) {
+	    validUTF = 1;
+	    /* we could call PQexecParams when nParams is 0, but PQexecParams
+	     * will not accept more than one SQL statement per call, while
+	     * PQexec will.  by checking and using PQexec when no parameters
+	     * are included, we maintain compatibility for code that doesn't
+	     * use params and might have had multiple statements in a single
+	     * request */
+	    if (nParams == 0) {
+	        result = PQexec(conn, pgString);
+	    } else {
+	        result = PQexecParams(conn, pgString, nParams, NULL, paramValues, NULL, NULL, 0);
+	    }
 	}
 
+	if(pgString) {
+	    ckFree ((void *)pgString);
+	    sql = NULL;
+	}
 	if(paramValues) {
 	    ckfree ((void *)paramValues);
 	    paramValues = NULL;
@@ -954,11 +978,13 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	}
 	else
 	{
-	    /* error occurred during the query */
-	    report_connection_error(interp, conn);
+	    if(validUTF) {
+		/* error occurred during the query */
+		report_connection_error(interp, conn);
 
-	    // Reconnect if the connection is bad.
-	    PgCheckConnectionState(connid);
+		// Reconnect if the connection is bad.
+		PgCheckConnectionState(connid);
+	    }
 
 	    return TCL_ERROR;
 	}
