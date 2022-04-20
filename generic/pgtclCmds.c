@@ -1982,12 +1982,12 @@ Pg_execute(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 {
 	Pg_ConnectionId *connid;
 	PGconn	   *conn;
-	PGresult   *result;
-	int			i;
-	int			tupno;
-	int			ntup;
-	int			loop_rc;
-	const char	   *array_varname = NULL;
+	PGresult   *result = NULL;
+	int        i;
+	int        tupno;
+	int        ntup;
+	int        loop_rc;
+	const char *array_varname = NULL;
 	char	   *arg;
 
 	Tcl_Obj    *oid_varnameObj = NULL;
@@ -3795,7 +3795,7 @@ Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
 {
 	Pg_ConnectionId *connid;
 	PGconn	        *conn;
-        int              status;
+        int              status = 0;
 	const char    *connString = NULL;
 	const char      *execString = NULL;
 	char            *newExecString = NULL;
@@ -3895,10 +3895,20 @@ Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
 	    }
         }
 
-	if (nParams == 0) {
-	    status = PQsendQuery(conn, externalString(execString));
-	} else {
-	    status = PQsendQueryParams(conn, externalString(execString), nParams, NULL, paramValues, NULL, NULL, 1);
+	char *pgString = makeExternalString(interp, execString, -1);
+	int validUTF = pgString != NULL;
+
+	if(pgString) {
+	    if (nParams == 0) {
+		status = PQsendQuery(conn, pgString);
+	    } else {
+		status = PQsendQueryParams(conn, pgString, nParams, NULL, paramValues, NULL, NULL, 1);
+	    }
+	}
+
+	if(pgString) {
+	    ckfree(pgString);
+	    pgString = NULL;
 	}
 	if(newExecString) {
 	    ckfree(newExecString);
@@ -3921,11 +3931,13 @@ Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
 	    return TCL_OK;
 	else
 	{
-	    /* error occurred during the query */
-	    report_connection_error(interp, conn);
+	    if(validUTF) {
+		/* error occurred during the query */
+		report_connection_error(interp, conn);
 
-	    // Reconnect if the connection is bad.
-	    PgCheckConnectionState(connid);
+		// Reconnect if the connection is bad.
+		PgCheckConnectionState(connid);
+	    }
 
 	    return TCL_ERROR;
 	}
@@ -5435,32 +5447,32 @@ Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
     /*
      *  Handle param options
      */
-     if (params) {
-         Tcl_ListObjGetElements(interp, objv[binparams], &countbin, &elembinPtrs);
+    if (params) {
+        Tcl_ListObjGetElements(interp, objv[binparams], &countbin, &elembinPtrs);
 
-         if (countbin != 0 && countbin != count) {
+        if (countbin != 0 && countbin != count) {
             Tcl_SetResult(interp, "-params and -binparams need the same number of elements", TCL_STATIC); 
             return TCL_ERROR;
-         }
+        }
 
-	 int param;
+	int param;
 
-	 paramValues = (const char **)ckalloc (count * sizeof (char *));
-	 binValues = (int *)ckalloc (countbin * sizeof (char *));
+	paramValues = (const char **)ckalloc (count * sizeof (char *));
+	binValues = (int *)ckalloc (countbin * sizeof (char *));
 
-	 for (param = 0; param < count; param++) {
+	for (param = 0; param < count; param++) {
 		// TODO convert to external
-	     paramValues[param] = Tcl_GetString (elemPtrs[param]);
-	     if (strcmp(paramValues[param], "NULL") == 0)
-             {
-                 paramValues[param] = NULL;
-             }
-	 }
+	    paramValues[param] = Tcl_GetString (elemPtrs[param]);
+	    if (strcmp(paramValues[param], "NULL") == 0)
+            {
+                paramValues[param] = NULL;
+            }
+	}
 
-	 for (param = 0; param < countbin; param++) {
-	     Tcl_GetBooleanFromObj (interp, elembinPtrs[param], &binValues[param]);
-	 }
-     }
+	for (param = 0; param < countbin; param++) {
+	    Tcl_GetBooleanFromObj (interp, elembinPtrs[param], &binValues[param]);
+	}
+    }
 
     connString = Tcl_GetString(objv[1]);
     conn = PgGetConnectionId(interp, connString, &connid);
@@ -5483,37 +5495,37 @@ Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
         {
             Tcl_SetResult(interp, "Attempt to wait for result while already waiting", TCL_STATIC);
             return TCL_ERROR;
-       }
+        }
 
-       /* Start the notify event source if it isn't already running */
-       PgStartNotifyEventSource(connid);
+        /* Start the notify event source if it isn't already running */
+        PgStartNotifyEventSource(connid);
 
-       connid->callbackPtr= objv[callback];
-       connid->callbackInterp= interp;
+        connid->callbackPtr= objv[callback];
+        connid->callbackInterp= interp;
 
-       Tcl_IncrRefCount(objv[callback]);
-       Tcl_Preserve((ClientData) interp);
+        Tcl_IncrRefCount(objv[callback]);
+        Tcl_Preserve((ClientData) interp);
 
-       /* 
-        *  invoke function based on type 
-        *  of query 
-        */
+        /* 
+         *  invoke function based on type 
+         *  of query 
+         */
         if (prepared) {
-	    iResult = PQsendQueryPrepared(conn, externalString(execString), count, paramValues, paramLengths, binValues, binresults);
+            iResult = PQsendQueryPrepared(conn, externalString(execString), count, paramValues, paramLengths, binValues, binresults);
         } else if (params) {
             iResult = PQsendQueryParams(conn, externalString(execString), count, NULL, paramValues, paramLengths, binValues, binresults);
 
         } else {
     
-            iResult = PQsendQuery(conn, externalString(execString));
+             iResult = PQsendQuery(conn, externalString(execString));
 /*
-            ckfree ((void *)paramValues);
+             ckfree ((void *)paramValues);
 */
-        }
+         }
     } else {
 
         if (prepared) {
-	    result = PQexecPrepared(conn, externalString(execString), count, paramValues, paramLengths, binValues, binresults);
+            result = PQexecPrepared(conn, externalString(execString), count, paramValues, paramLengths, binValues, binresults);
         } else if (params) {
             result = PQexecParams(conn, externalString(execString), count, NULL, paramValues, paramLengths, binValues, binresults);
         } else {
