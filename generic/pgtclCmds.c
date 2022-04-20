@@ -706,7 +706,8 @@ Pg_disconnect(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
 
 /* helper for build_param_array and other related functions.
 ** convert nParams strings in paramValues, lengths in paramLengths,
-** return allocated buffer containing new strings in bufferPtr
+** allocates and returns buffer containing new strings in bufferPtr
+** for later disposal.
 */
 int array_to_utf8(Tcl_Interp *interp, const char **paramValues, int *paramLengths, int nParams, const char **bufferPtr)
 {
