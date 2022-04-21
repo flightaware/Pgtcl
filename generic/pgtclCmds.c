@@ -261,10 +261,18 @@ char *makeExternalString(Tcl_Interp *interp, const char *utfString, int length)
 	if (length == -1) length = strlen(utfString);
 	char *externalString = ckalloc(length + 4 + 1); // 1 byte for null, 4 bytes to make Tcl_UtfToExternal happy
 
-	if (TCL_OK != Tcl_UtfToExternal(interp, utf8encoding, utfString, length, 0, NULL, externalString, length + 4 + 1, NULL, &newLength, NULL)) {
+	int code = Tcl_UtfToExternal(interp, utf8encoding, utfString, length, 0, NULL, externalString, length + 4 + 1, NULL, &newLength, NULL);
+
+	if (code != TCL_OK) {
+		static char errmsg[128];
 		ckfree(externalString);
+
+		sprintf(errmsg, "Error %d attempting to convert '%.40s...' to external utf8", code, utfString);
+		Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
+
 		return NULL;
 	}
+
 	externalString[newLength] = '\0';
 	return externalString;
 }
@@ -273,18 +281,6 @@ char *makeExternalString(Tcl_Interp *interp, const char *utfString, int length)
 // This is a little sloppy but massively simplifies the use since just about every place it's used
 // has to handle a possible early error return
 // NOTE: only one of these can ever be in flight at any time.
-
-/*
- * Convert one utf string at a time to an external string, hiding the DString management.
- */
-char *externalString(const char *utfString)
-{
-	static Tcl_DString tmpds;
-	static int allocated = 0;
-	if(allocated) Tcl_DStringFree(&tmpds);
-	allocated = 1;
-	return Tcl_UtfToExternalDString(utf8encoding, utfString, -1, &tmpds);
-}
 
 /*
  * Convert one external string at a time to a utf string, hiding the DString management.
