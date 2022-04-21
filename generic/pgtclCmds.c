@@ -5486,18 +5486,23 @@ Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
         return TCL_ERROR;
     }
 
-    execString = Tcl_GetString(objv[2]);
-
-    /*
-     * Handle the callback first, before executing statments
-     */
     if (callback) {
         if (connid->callbackPtr || connid->callbackInterp)
         {
             Tcl_SetResult(interp, "Attempt to wait for result while already waiting", TCL_STATIC);
             return TCL_ERROR;
         }
+    }
 
+    execString = Tcl_GetString(objv[2]);
+    if(!execString) {
+	return TCL_ERROR;
+    }
+
+    /*
+     * Handle the callback first, before executing statments
+     */
+    if (callback) {
         /* Start the notify event source if it isn't already running */
         PgStartNotifyEventSource(connid);
 
@@ -5512,13 +5517,13 @@ Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
          *  of query 
          */
         if (prepared) {
-            iResult = PQsendQueryPrepared(conn, externalString(execString), count, paramValues, paramLengths, binValues, binresults);
+            iResult = PQsendQueryPrepared(conn, execString, count, paramValues, paramLengths, binValues, binresults);
         } else if (params) {
-            iResult = PQsendQueryParams(conn, externalString(execString), count, NULL, paramValues, paramLengths, binValues, binresults);
+            iResult = PQsendQueryParams(conn, execString, count, NULL, paramValues, paramLengths, binValues, binresults);
 
         } else {
     
-             iResult = PQsendQuery(conn, externalString(execString));
+             iResult = PQsendQuery(conn, execString);
 /*
              ckfree ((void *)paramValues);
 */
@@ -5526,14 +5531,17 @@ Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
     } else {
 
         if (prepared) {
-            result = PQexecPrepared(conn, externalString(execString), count, paramValues, paramLengths, binValues, binresults);
+            result = PQexecPrepared(conn, execString, count, paramValues, paramLengths, binValues, binresults);
         } else if (params) {
-            result = PQexecParams(conn, externalString(execString), count, NULL, paramValues, paramLengths, binValues, binresults);
+            result = PQexecParams(conn, execString, count, NULL, paramValues, paramLengths, binValues, binresults);
         } else {
-            result = PQexec(conn, externalString(execString));
+            result = PQexec(conn, execString);
             ckfree ((void *)paramValues);
         }
     } /* end if callback */
+
+    ckfree(execString);
+    execString = NULL;
 
     PgNotifyTransferEvents(connid);
 
@@ -5567,7 +5575,6 @@ Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
 	return TCL_ERROR;
     }
 
-    
     return TCL_OK;
 }
 
