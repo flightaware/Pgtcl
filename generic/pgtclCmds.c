@@ -277,6 +277,34 @@ char *makeExternalString(Tcl_Interp *interp, const char *utfString, int length)
 	return externalString;
 }
 
+// Create a new "UTF" string from an "external" string.
+char *makeUTFString(Tcl_Interp *interp, const char *externalString, int length)
+{
+	int newLength = 0;
+	if (length == -1) length = strlen(externalString);
+
+	// Since this may convert a code point to a surrogate pair, worst case is the string
+	// length doubling, plus 4 bytes to make Tcl_ExternalToUtf happy, plus a terminating null;
+	int bufferSize = length * 2 + 4 + 1;
+
+	char *UTFString = ckalloc(bufferSize);
+
+	int code = Tcl_ExternalToUtf(interp, utf8encoding, externalString, length, 0, NULL, UTFString, bufferSize, NULL, &newLength, NULL);
+
+	if(code != TCL_OK) {
+		static char errmsg[128];
+		ckfree(UTFString);
+
+		sprintf(errmsg, "Error %d attempting to convert '%.40s...' to internal UTF", code, externalString);
+		Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
+
+		return NULL;
+	}
+
+	UTFString[newLength] = '\0';
+	return UTFString;
+}
+
 // The following two functions "waste" a DStrings storage by not freeing it until it's needed again
 // This is a little sloppy but massively simplifies the use since just about every place it's used
 // has to handle a possible early error return
