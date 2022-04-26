@@ -305,6 +305,36 @@ char *makeUTFString(Tcl_Interp *interp, const char *externalString, int length)
 	return UTFString;
 }
 
+// helper function, converts an external string to Tcl UTF and passes it to Tcl_SetVar
+const char *UTF_SetVar2(Tcl_Interp *interp, const char *name1, const char *name2, const char *newValue, int flags)
+{
+	char *UTFnewValue = makeUTFString(interp, newValue, -1);
+
+	if(!UTFnewValue) return NULL;
+
+	const char *code = Tcl_SetVar2(interp, name1, name2, newValue, flags);
+
+	ckfree(UTFnewValue);
+
+	return code;
+}
+
+
+// helper function, converts an external string to Tcl UTF, creates an Object, and passes it to Tcl_SetVarObj
+// Not quite compatible with Tcl_ObjSetVar2
+Tcl_Obj *UTF_ObjSetVar2(Tcl_Interp *interp, Tcl_Obj *part1ptr, Tcl_Obj *part2ptr, const char *newValue, int flags)
+{
+	char *UTFnewValue = makeUTFString(interp, newValue, -1);
+
+	if(!UTFnewValue) return NULL;
+
+	Tcl_Obj *resultPtr = Tcl_ObjSetVar2(interp, part1Ptr, part2Ptr, Tcl_NewStringObj(UTFnewValue, -1), flags);
+
+	ckfree(UTFnewValue);
+
+	return resultPtr;
+}
+
 // The following two functions "waste" a DStrings storage by not freeing it until it's needed again
 // This is a little sloppy but massively simplifies the use since just about every place it's used
 // has to handle a possible early error return
@@ -1187,9 +1217,7 @@ Pg_result_foreach(Tcl_Interp *interp, PGresult *result, Tcl_Obj *arrayNameObj, T
 			continue;
 		    }
 
-		    char *string = PQgetvalue (result, tupno, column);
-
-		    if (Tcl_SetVar2(interp, arrayName, columnName, utfString(string), (TCL_LEAVE_ERR_MSG)) == NULL) 
+		    if (UTF_SetVar2(interp, arrayName, columnName, PQgetvalue (result, tupno, column), (TCL_LEAVE_ERR_MSG)) == NULL) 
 		    {
 			return TCL_ERROR;
 		    }
@@ -1544,11 +1572,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 						Tcl_AppendToObj(fieldNameObj, ",", 1);
 						Tcl_AppendToObj(fieldNameObj, PQfname(result, i), -1);
 
-
-						if (Tcl_ObjSetVar2(interp, arrVarObj, fieldNameObj,
-										   Tcl_NewStringObj(
-											 utfString(PGgetvalue(result, resultid->nullValueString, tupno, i)),
-											 -1), TCL_LEAVE_ERR_MSG) == NULL) {
+						if (UTF_ObjSetVar2(interp, arrVarObj, fieldNameObj, PGgetvalue(result, resultid->nullValueString, tupno, i), TCL_LEAVE_ERR_MSG) == NULL) {
 							Tcl_DecrRefCount (fieldNameObj);
 							return TCL_ERROR;
 						}
@@ -1583,33 +1607,32 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				 */
 				for (tupno = 0; tupno < PQntuples(result); tupno++)
 				{
-					const char *field0 = utfString(PGgetvalue(result, resultid->nullValueString, tupno, 0));
-					char *dupfield0 = ckalloc(strlen(field0)+1);
-
-					strcpy(dupfield0, field0);
+					const char *field0 = makeUTFString(interp, PGgetvalue(result, resultid->nullValueString, tupno, 0), -1);
 
 					for (i = 1; i < PQnfields(result); i++)
 					{
 						Tcl_Obj    *fieldNameObj;
 
 						fieldNameObj = Tcl_NewObj ();
-						Tcl_SetStringObj(fieldNameObj, dupfield0, -1);
+						Tcl_SetStringObj(fieldNameObj, field0, -1);
 						Tcl_AppendToObj(fieldNameObj, ",", 1);
 						Tcl_AppendToObj(fieldNameObj, PQfname(result, i), -1);
 
 						if (appendstrObj != NULL)
 							Tcl_AppendObjToObj(fieldNameObj, appendstrObj);
 
-						char *val = utfString(PGgetvalue(result, resultid->nullValueString, tupno, i));
-						if (Tcl_ObjSetVar2(interp, arrVarObj, fieldNameObj,
-						      Tcl_NewStringObj( val, -1), TCL_LEAVE_ERR_MSG) == NULL)
+						if (UTF_ObjSetVar2(
+							interp, arrVarObj, fieldNameObj,
+							PGgetvalue(result, resultid->nullValueString, tupno, i), -1),
+							TCL_LEAVE_ERR_MSG
+						) == NULL)
 						{
 							Tcl_DecrRefCount(fieldNameObj);
-							ckfree(dupfield0);
+							ckfree(field0);
 							return TCL_ERROR;
 						}
 					}
-					ckfree(dupfield0);
+					ckfree(field0);
 				}
 				return TCL_OK;
 			}
@@ -1646,13 +1669,20 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				/* build up a return list, Tcl-object-style */
 				for (i = 0; i < PQnfields(result); i++)
 				{
-					char	   *value;
+					char *value = makeUTFString(
+						interp,
+						PGgetvalue(result, resultid->nullValueString, tupno, i),
+						-1);
 
-					value = utfString(PGgetvalue(result, resultid->nullValueString, tupno, i));
+					if(!value) return TCL_ERROR;
 
-					if (Tcl_ListObjAppendElement(interp, resultObj, 
-							   Tcl_NewStringObj(value, -1)) == TCL_ERROR)
+					Tcl_Obj *valueObj = Tcl_NewStringObj(value, -1)
+
+					if (Tcl_ListObjAppendElement(interp, resultObj, valueObj) == TCL_ERROR) {
+						Tcl_DecrRefCount(valueObj);
+						ckfree(value);
 						return TCL_ERROR;
+					}
 				}
 				Tcl_SetObjResult(interp, resultObj);
 				return TCL_OK;
@@ -1689,11 +1719,9 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 					 */
 					for (i = 0; i < PQnfields(result); i++)
 					{
-						if (Tcl_SetVar2(interp, arrayName, PQfname(result, i),
-							utfString(
-							    PGgetvalue(result, resultid->nullValueString, 
-								tupno, i)
-							), TCL_LEAVE_ERR_MSG) == NULL)
+						if (UTF_SetVar2(interp, arrayName, PQfname(result, i),
+							PGgetvalue(result, resultid->nullValueString, tupno, i),
+							TCL_LEAVE_ERR_MSG) == NULL)
 						return TCL_ERROR;
 					}
 				} else
@@ -1714,9 +1742,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 							}
 						}
 
-						if (Tcl_SetVar2(interp, arrayName, PQfname(result, i),
-									 utfString(string),
-										TCL_LEAVE_ERR_MSG) == NULL)
+						if (UTF_SetVar2(interp, arrayName, PQfname(result, i), string, TCL_LEAVE_ERR_MSG) == NULL)
 							return TCL_ERROR;
 					}
 				}
