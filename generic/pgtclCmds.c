@@ -328,7 +328,7 @@ Tcl_Obj *UTF_ObjSetVar2(Tcl_Interp *interp, Tcl_Obj *part1ptr, Tcl_Obj *part2ptr
 
 	if(!UTFnewValue) return NULL;
 
-	Tcl_Obj *resultPtr = Tcl_ObjSetVar2(interp, part1Ptr, part2Ptr, Tcl_NewStringObj(UTFnewValue, -1), flags);
+	Tcl_Obj *resultPtr = Tcl_ObjSetVar2(interp, part1ptr, part2ptr, Tcl_NewStringObj(UTFnewValue, -1), flags);
 
 	ckfree(UTFnewValue);
 
@@ -1623,9 +1623,9 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 						if (UTF_ObjSetVar2(
 							interp, arrVarObj, fieldNameObj,
-							PGgetvalue(result, resultid->nullValueString, tupno, i), -1),
+							PGgetvalue(result, resultid->nullValueString, tupno, i),
 							TCL_LEAVE_ERR_MSG
-						) == NULL)
+						    ) == NULL)
 						{
 							Tcl_DecrRefCount(fieldNameObj);
 							ckfree(field0);
@@ -1676,7 +1676,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 					if(!value) return TCL_ERROR;
 
-					Tcl_Obj *valueObj = Tcl_NewStringObj(value, -1)
+					Tcl_Obj *valueObj = Tcl_NewStringObj(value, -1);
 
 					if (Tcl_ListObjAppendElement(interp, resultObj, valueObj) == TCL_ERROR) {
 						Tcl_DecrRefCount(valueObj);
@@ -1827,10 +1827,16 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				*/
 				for (i = 0; i < PQnfields(result); i++)
 				{
-				    fieldObj = Tcl_NewObj();
+					char *fieldString = makeUTFString(interp, PGgetvalue(result, resultid->nullValueString, tupno, i), -1);
+					if(!fieldString) {
+						Tcl_DecrRefCount(listObj);
+						return TCL_ERROR;
+					}
 
-				    Tcl_SetStringObj(fieldObj, utfString(PGgetvalue(result, resultid->nullValueString, tupno, i)), -1);
-				    if (Tcl_ListObjAppendElement(interp, listObj, fieldObj) != TCL_OK)
+					fieldObj = Tcl_NewStringObj(fieldString, -1);
+					ckfree(fieldString);
+
+					if (Tcl_ListObjAppendElement(interp, listObj, fieldObj) != TCL_OK)
 					{
 						Tcl_DecrRefCount(listObj);
 						Tcl_DecrRefCount(fieldObj);
@@ -1868,10 +1874,14 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				*/
 				for (i = 0; i < PQnfields(result); i++)
 				{
-	
-					fieldObj = Tcl_NewObj();
+					char *fieldString = makeUTFString(interp, PGgetvalue(result, resultid->nullValueString, tupno, i), -1);
+					if(!fieldString) {
+						Tcl_DecrRefCount(listObj);
+						return TCL_ERROR;
+					}
 
-					Tcl_SetStringObj(fieldObj, utfString(PGgetvalue(result, resultid->nullValueString, tupno, i)), -1);
+					fieldObj = Tcl_NewStringObj(fieldString, -1);
+					ckfree(fieldString);
 	
 					if (Tcl_ListObjAppendElement(interp, subListObj, fieldObj) != TCL_OK)
 					{
@@ -1917,17 +1927,22 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				*/
 				for (i = 0; i < PQnfields(result); i++)
 				{
-	
-					fieldObj = Tcl_NewObj();
-					fieldNameObj = Tcl_NewObj();
+					char *fieldString = makeUTFString(interp, PGgetvalue(result, resultid->nullValueString, tupno, i), -1);
+					if(!fieldString) {
+						Tcl_DecrRefCount(listObj);
+						return TCL_ERROR;
+					}
 
-					Tcl_SetStringObj(fieldNameObj, PQfname(result, i), -1);
-					Tcl_SetStringObj(fieldObj, utfString(PGgetvalue(result, resultid->nullValueString, tupno, i)), -1);
+					fieldObj = Tcl_NewStringObj(fieldString, -1);
+					ckfree(fieldString);
+	
+					fieldNameObj = Tcl_NewStringObj(PQfname(result, i), -1);
 	
 					if (Tcl_DictObjPut(interp, subListObj, fieldNameObj, fieldObj) != TCL_OK)
 					{
 						Tcl_DecrRefCount(listObj);
 						Tcl_DecrRefCount(fieldObj);
+						Tcl_DecrRefCount(fieldNameObj);
 						return TCL_ERROR;
 					}
 	
