@@ -305,7 +305,7 @@ char *makeUTFString(Tcl_Interp *interp, const char *externalString, int length)
 	return UTFString;
 }
 
-// helper function, converts an external string to Tcl UTF and passes it to Tcl_SetVar
+// helper function, converts an external string to Tcl UTF and passes it to Tcl_SetVar2
 const char *UTF_SetVar2(Tcl_Interp *interp, const char *name1, const char *name2, const char *newValue, int flags)
 {
 	char *UTFnewValue = makeUTFString(interp, newValue, -1);
@@ -320,7 +320,7 @@ const char *UTF_SetVar2(Tcl_Interp *interp, const char *name1, const char *name2
 }
 
 
-// helper function, converts an external string to Tcl UTF, creates an Object, and passes it to Tcl_SetVarObj
+// helper function, converts an external string to Tcl UTF, creates an Object, and passes it to Tcl_ObjSetVar2
 // Not quite compatible with Tcl_ObjSetVar2
 Tcl_Obj *UTF_ObjSetVar2(Tcl_Interp *interp, Tcl_Obj *part1ptr, Tcl_Obj *part2ptr, const char *newValue, int flags)
 {
@@ -334,25 +334,6 @@ Tcl_Obj *UTF_ObjSetVar2(Tcl_Interp *interp, Tcl_Obj *part1ptr, Tcl_Obj *part2ptr
 
 	return resultPtr;
 }
-
-// The following two functions "waste" a DStrings storage by not freeing it until it's needed again
-// This is a little sloppy but massively simplifies the use since just about every place it's used
-// has to handle a possible early error return
-// NOTE: only one of these can ever be in flight at any time.
-
-/*
- * Convert one external string at a time to a utf string, hiding the DString management.
- */
-char *utfString(const char *externalString)
-{
-	static Tcl_DString tmpds;
-	static int allocated = 0;
-	if(allocated) Tcl_DStringFree(&tmpds);
-	allocated = 1;
-	return Tcl_ExternalToUtfDString(utf8encoding, externalString, -1, &tmpds);
-}
-
-// TODO something to simplify an array worth of external or utf strings in flight at a time
 
 /*
  * PGgetvalue()
@@ -2322,19 +2303,27 @@ execute_put_values(Tcl_Interp *interp, const char *array_varname,
 	for (i = 0; i < n; i++)
 	{
 		fname = PQfname(result, i);
-		value = utfString(PGgetvalue(result, nullValueString, tupno, i));
+		value = makeUTFString(interp, PGgetvalue(result, nullValueString, tupno, i), -1);
+		if(!value) {
+			return TCL_ERROR;
+		}
 
 		if (array_varname != NULL)
 		{
 			if (Tcl_SetVar2(interp, array_varname, fname, value,
-							TCL_LEAVE_ERR_MSG) == NULL)
+							TCL_LEAVE_ERR_MSG) == NULL) {
+				ckfree(value);
 				return TCL_ERROR;
+			}
 		}
 		else
 		{
-			if (Tcl_SetVar(interp, fname, value, TCL_LEAVE_ERR_MSG) == NULL)
+			if (Tcl_SetVar(interp, fname, value, TCL_LEAVE_ERR_MSG) == NULL) {
+				ckfree(value);
 				return TCL_ERROR;
+			}
 		}
+		ckfree(value);
 	}
 	return TCL_OK;
 }
@@ -3543,7 +3532,13 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				}
 
 				if (valueObj == NULL) {
-					valueObj = Tcl_NewStringObj(utfString(string), -1);
+					char *utf = makeUTFString(interp, string, -1);
+					if(!utf) {
+						retval = TCL_ERROR;
+						goto done;
+					}
+					valueObj = Tcl_NewStringObj(utf, -1);
+					ckfree(utf);
 				}
 
 				if (Tcl_ObjSetVar2(interp, varNameObj, columnNameObjs[column],
