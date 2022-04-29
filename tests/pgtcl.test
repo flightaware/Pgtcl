@@ -1344,7 +1344,7 @@ test pgtcl-11.3 {using pg_exec with 4-byte unicode positional args} -body {
 
     set conn [pg::connect -connlist [array get ::conninfo]]
 
-    set paramarray(glyph) "𝔄"
+    set glyph "𝔄"
 
     set res [$conn exec {SELECT relname
                            FROM Pg_class
