@@ -1,0 +1,407 @@
+if {[lsearch [namespace children] ::tcltest] == -1} {
+    package require tcltest 2
+    namespace import -force ::tcltest::*
+}
+
+#tcltest::verbose 100
+#tcltest::debug 100
+
+set flist [glob -nocomplain -dir .. libpgtcl*[info sharedlibextension]]
+set flist [concat $flist [glob -nocomplain libpgtcl*[info sharedlibextension]]]
+
+if {[llength $flist] == 0} {
+    puts "\nCan not find a shared lib file\n"
+    exit
+}
+
+
+puts [list loading [lindex $flist end] ...]
+load [lindex $flist end]
+
+if [file exists $env(HOME)/.conninfo.tcl] {
+    puts [list sourcing $env(HOME)/.conninfo.tcl ...]
+    source $env(HOME)/.conninfo.tcl
+} elseif [file exists conninfo.tcl] {
+    puts [list sourcing conninfo.tcl ...]
+    source conninfo.tcl
+}
+
+puts [list preparing the database]
+set conn [pg::connect -connlist [array get ::conninfo]]
+set res [$conn exec {create table big__test__table (c0 varchar primary key, c1 varchar, c2 varchar, c3 varchar)}]
+if {[pg_result $res -status] ne "PGRES_COMMAND_OK"} {
+	# Check if it's a real error or a left-over table
+	set expected "ERROR:  relation \"big__test__table\" already exists\n"
+	set actual [pg_result $res -error]
+	pg_result $res -clear
+	if {$actual ne $expected} {
+		puts $actual
+		exit -1
+	}
+	# Check if the table has the expected columns
+	set result ""
+	set expected [list c0 c1 c2 c3]
+	pg_select $conn {select * from big__test__table LIMIT 1;} row {
+		set result $row(.headers)
+	}
+	if {$result ne $expected} {
+		puts [list Expected columns $expected got $result]
+		exit -1
+	}
+} else {
+	pg_result $res -clear
+}
+pg_disconnect $conn
+
+puts [list running tests ...]
+if 0 {
+#
+#
+#
+test pgtcl-12.1 {Fill table with random data using paramarray} -body {
+    unset -nocomplain res
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+    set res [$conn exec "delete from big__test__table;"]
+    if {[pg_result $res -status] ne "PGRES_COMMAND_OK"} {
+	return [pg_result $res -error]
+    }
+    pg_result $res -clear
+
+    for {set i 0} {$i < 10000} {incr i} {
+	set array(c0) $i
+	set array(c1) [expr rand()]
+	set array(c2) [expr rand()]
+	set array(c3) [expr rand()]
+        set res [$conn exec -paramarray array {insert into big__test__table (c0, c1, c2, c3) values (`c0`, `c1`, `c2`, `c3`)}]
+        if {[pg_result $res -status] ne "PGRES_COMMAND_OK"} {
+	    puts ""
+	    return [pg_result $res -error]
+        }
+	pg_result $res -clear
+	puts -nonewline stderr "1.1 $i       \r"
+    }
+    for {set i 0} {$i < 10000} {incr i} {
+	set array(c0) [expr {int(rand() * 10000)}]
+	set array(c1) [expr rand()]
+	set array(c2) [expr rand()]
+	set array(c3) [expr rand()]
+        set res [$conn exec -paramarray array {update big__test__table set c1 = `c1`, c2 = `c2`, c3=`c3` where c0 = `c0`;}]
+        if {[pg_result $res -status] ne "PGRES_COMMAND_OK"} {
+	    puts ""
+	    return [pg_result $res -error]
+        }
+	pg_result $res -clear
+	puts -nonewline stderr "1.2 $i       \r"
+    }
+
+    pg_disconnect $conn
+
+    list
+} -result [list]
+
+#
+#
+#
+test pgtcl-12.2 {Fill table with random data using inline values} -body {
+    unset -nocomplain res
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+    set res [$conn exec "delete from big__test__table;"]
+    if {[pg_result $res -status] ne "PGRES_COMMAND_OK"} {
+	return [pg_result $res -error]
+    }
+    pg_result $res -clear
+
+    for {set i 0} {$i < 10000} {incr i} {
+	set c0 $i
+	set c1 [expr rand()]
+	set c2 [expr rand()]
+	set c3 [expr rand()]
+        set res [$conn exec {insert into big__test__table (c0, c1, c2, c3) values ($1, $2, $3, $4)} $c0 $c1 $c2 $c3]
+	if {[pg_result $res -status] ne "PGRES_COMMAND_OK"} {
+	    puts ""
+	    return [pg_result $res -error]
+	}
+	pg_result $res -clear
+	puts -nonewline stderr "2.1 $i       \r"
+    }
+    for {set i 0} {$i < 10000} {incr i} {
+	set c0 [expr {int(rand() * 10000)}]
+	set c1 [expr rand()]
+	set c2 [expr rand()]
+	set c3 [expr rand()]
+        set res [$conn exec {update big__test__table set c1 = $2, c2 = $3, c3=$4 where c0 = $1;} $c0 $c1 $c2 $c3]
+	if {[pg_result $res -status] ne "PGRES_COMMAND_OK"} {
+	    puts ""
+	    return [pg_result $res -error]
+	}
+	pg_result $res -clear
+	puts -nonewline stderr "2.2 $i       \r"
+    }
+
+    pg_disconnect $conn
+
+    list
+} -result [list]
+
+#
+#
+#
+test pgtcl-12.3 {Fill table with random data using variables} -body {
+    unset -nocomplain res
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+    set res [$conn exec "delete from big__test__table;"]
+    if {[pg_result $res -status] ne "PGRES_COMMAND_OK"} {
+	return [pg_result $res -error]
+    }
+    pg_result $res -clear
+
+    for {set i 0} {$i < 10000} {incr i} {
+	set c0 $i
+	set c1 [expr rand()]
+	set c2 [expr rand()]
+	set c3 [expr rand()]
+        set res [$conn exec -variables {insert into big__test__table (c0, c1, c2, c3) values (:c0, :c1, :c2, :c3)}]
+	if {[pg_result $res -status] ne "PGRES_COMMAND_OK"} {
+	    puts ""
+	    return [pg_result $res -error]
+	}
+	pg_result $res -clear
+	puts -nonewline stderr "3.1 $i       \r"
+    }
+    for {set i 0} {$i < 10000} {incr i} {
+	set c0 [expr {int(rand() * 10000)}]
+	set c1 [expr rand()]
+	set c2 [expr rand()]
+	set c3 [expr rand()]
+        set res [$conn exec -variables {update big__test__table set c1 = :c1, c2 = :c2, c3=:c3 where c0 = :c0;}]
+	if {[pg_result $res -status] ne "PGRES_COMMAND_OK"} {
+	    puts ""
+	    return [pg_result $res -error]
+	}
+	pg_result $res -clear
+	puts -nonewline stderr "3.2 $i       \r"
+    }
+    pg_disconnect $conn
+
+    list
+} -result [list]
+
+#
+#
+#
+test pgtcl-13.1 {pg_select with -variables} -body {
+    unset -nocomplain res
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+    set res [$conn exec "delete from big__test__table;"]
+    if {[pg_result $res -status] ne "PGRES_COMMAND_OK"} {
+	return [pg_result $res -error]
+    }
+    pg_result $res -clear
+
+    for {set i 0} {$i < 10000} {incr i} {
+	set c0 $i
+	set c1 [expr rand()]
+	set c2 [expr rand()]
+	set c3 [expr rand()]
+        set res [$conn exec -variables {insert into big__test__table (c0, c1, c2, c3) values (:c0, :c1, :c2, :c3)}]
+	if {[pg_result $res -status] ne "PGRES_COMMAND_OK"} {
+	    puts ""
+	    return [pg_result $res -error]
+	}
+	pg_result $res -clear
+	puts -nonewline stderr "13.1.1 $i       \r"
+    }
+    set result 0
+    for {set i 0} {$i < 10000} {incr i} {
+	set c0 [expr {int(rand() * 10000)}]
+        $conn select -variables {SELECT * FROM big__test__table WHERE c0 = :c0;} row {
+		incr result
+	}
+	puts -nonewline stderr "13.1.2 $i       \r"
+    }
+    puts stderr [list result $result]
+    pg_disconnect $conn
+
+    list
+} -result [list]
+
+#
+#
+#
+test pgtcl-13.2 {pg_select with -paramarray} -body {
+    unset -nocomplain res
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+    set res [$conn exec "delete from big__test__table;"]
+    if {[pg_result $res -status] ne "PGRES_COMMAND_OK"} {
+	return [pg_result $res -error]
+    }
+    pg_result $res -clear
+
+    for {set i 0} {$i < 10000} {incr i} {
+	set array(c0) $i
+	set array(c1) [expr rand()]
+	set array(c2) [expr rand()]
+	set array(c3) [expr rand()]
+        set res [$conn exec -paramarray array {insert into big__test__table (c0, c1, c2, c3) values (`c0`, `c1`, `c2`, `c3`)}]
+	if {[pg_result $res -status] ne "PGRES_COMMAND_OK"} {
+	    puts ""
+	    return [pg_result $res -error]
+	}
+	pg_result $res -clear
+	puts -nonewline stderr "13.1.1 $i       \r"
+    }
+    set result 0
+    for {set i 0} {$i < 10000} {incr i} {
+	set array(c0) [expr {int(rand() * 10000)}]
+        $conn select -paramarray array {SELECT * FROM big__test__table WHERE c0 = `c0`;} row {
+		incr result
+	}
+	puts -nonewline stderr "13.1.2 $i       \r"
+    }
+    puts stderr [list result $result]
+    pg_disconnect $conn
+
+    list
+} -result [list]
+
+#
+#
+#
+test pgtcl-13.3 {pg_select with -params} -body {
+    unset -nocomplain res
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+    set res [$conn exec "delete from big__test__table;"]
+    if {[pg_result $res -status] ne "PGRES_COMMAND_OK"} {
+	return [pg_result $res -error]
+    }
+    pg_result $res -clear
+
+    puts "\rpgtcl-13.3            "
+    for {set i 0} {$i < 10000} {incr i} {
+	set c0 $i
+	set c1 [expr rand()]
+	set c2 [expr rand()]
+	set c3 [expr rand()]
+        set res [$conn exec {insert into big__test__table (c0, c1, c2, c3) values ($1, $2, $3, $4)} $c0 $c1 $c2 $c3]
+	if {[pg_result $res -status] ne "PGRES_COMMAND_OK"} {
+	    puts ""
+	    return [pg_result $res -error]
+	}
+	pg_result $res -clear
+	puts -nonewline stderr "\r13.1.1 $i       "
+    }
+    set result 0
+    for {set i 0} {$i < 10000} {incr i} {
+	set c0 [expr {int(rand() * 10000)}]
+        $conn select -params [list $c0] {SELECT * FROM big__test__table WHERE c0 = $1;} row {
+		incr result
+	}
+	puts -nonewline stderr "\r13.1.2 $i       "
+    }
+    puts stderr "\r[list result $result]         "
+    pg_disconnect $conn
+
+    list
+} -result [list]
+}
+#
+#
+#
+test pgtcl-14.1 {comprehensive tests} -body {
+    unset -nocomplain res
+
+    set conn [pg::connect -connlist [array get ::conninfo]]
+    set res [$conn exec "delete from big__test__table;"]
+    if {[pg_result $res -status] ne "PGRES_COMMAND_OK"} {
+	return [pg_result $res -error]
+    }
+    pg_result $res -clear
+
+    puts "\rpgtcl-14.1            "
+    for {set i 0} {$i < 10000} {incr i} {
+	set c0 $i
+	set c1 [expr rand()]
+	set c2 [expr rand()]
+	set c3 [expr rand()]
+        set res [$conn exec {insert into big__test__table (c0, c1, c2, c3) values ($1, $2, $3, $4)} $c0 $c1 $c2 $c3]
+	if {[pg_result $res -status] ne "PGRES_COMMAND_OK"} {
+	    puts ""
+	    return [pg_result $res -error]
+	}
+	pg_result $res -clear
+	puts -nonewline stderr "\r14.1.1 $i       "
+    }
+    set result 0
+    for {set i 0} {$i < 10000} {incr i} {
+	set c0 [expr {int(rand() * 10000)}]
+        $conn select -variables {SELECT * FROM big__test__table WHERE c0 = :c0;} row {
+		incr result
+	}
+	set c1 [expr rand()]
+	set c2 [expr rand()]
+	set c3 [expr rand()]
+        set res [$conn exec {update big__test__table set c1 = $2, c2 = $3, c3=$4 where c0 = $1;} $c0 $c1 $c2 $c3]
+	if {[pg_result $res -status] ne "PGRES_COMMAND_OK"} {
+	    puts ""
+	    return [pg_result $res -error]
+	}
+	pg_result $res -clear
+	set c0 [expr {int(rand() * 10000)}]
+        $conn select -params [list $c0] {SELECT * FROM big__test__table WHERE c0 = $1;} row {
+		incr result
+	}
+	set array(c0) [expr {int(rand() * 10000)}]
+	set array(c1) [expr rand()]
+	set array(c2) [expr rand()]
+	set array(c3) [expr rand()]
+        set res [$conn exec -paramarray array {update big__test__table set c1 = `c1`, c2 = `c2`, c3=`c3` where c0 = `c0`;}]
+        if {[pg_result $res -status] ne "PGRES_COMMAND_OK"} {
+	    puts "{update big__test__table set c1 = `c1`, c2 = `c2`, c3=`c3` where c0 = `c0`;}" failed
+	    return [pg_result $res -error]
+        }
+	pg_result $res -clear
+        $conn select -paramarray array {SELECT * FROM big__test__table WHERE c0 = `c0`;} row {
+		incr result
+	}
+	pg_execute $conn "select * from big__test__table WHERE c0 = [pg_quote $c0]" {
+		incr result
+	}
+        pg_select -paramarray array $conn {SELECT * FROM big__test__table WHERE c0 = `c0`;} row {
+		incr result
+	}
+        set res [$conn exec -variables {SELECT * FROM big__test__table WHERE c0 = :c0}]
+	set stat [pg_result $res -status]
+        if {$stat ne "PGRES_COMMAND_OK" && $stat ne "PGRES_TUPLES_OK"} {
+	    set err [pg_result $res -error]
+	    puts "{SELECT * FROM big__test__table WHERE c0 = :c0} status [pg_result $res -status] error  $err"
+	    return $err
+        }
+	pg_result $res -foreach row {
+		incr result
+	}
+	pg_result $res -clear
+	puts -nonewline stderr "\r14.1.2 $i $result      "
+    }
+    puts stderr "\r[list result $result]         "
+    pg_disconnect $conn
+
+    list
+} -result [list]
+
+puts "cleaning up"
+set conn [pg::connect -connlist [array get ::conninfo]]
+set res [$conn exec "drop table big__test__table;"]
+if {[pg_result $res -status] ne "PGRES_COMMAND_OK"} {
+    return [pg_result $res -error]
+}
+pg_result $res -clear
+pg_disconnect $conn
+
+
+puts "tests complete"
