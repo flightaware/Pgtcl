@@ -18,6 +18,9 @@
 
 #include <tcl.h>
 
+#undef TCL_STORAGE_CLASS
+#define TCL_STORAGE_CLASS DLLEXPORT
+
 EXTERN int	Pgtcl_Init(Tcl_Interp *interp);
 extern int	Pgtcl_SafeInit(Tcl_Interp *interp);
 
