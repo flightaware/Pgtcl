@@ -59,7 +59,7 @@ test pgtcl-sqlite3-1.1 {import postgresql result} -body {
 	set rows [
 		pg_sqlite sqlite_conn import_postgres_result $res -create pg_class \
 			-as {relname text relnamespace integer reltype integer relowner integer} \
-			-check -pkey {relname}
+			-check -pkey {relname relnamespace}
 	]
 
 	sqlite_conn eval {select count(*) as count from pg_class;} row {

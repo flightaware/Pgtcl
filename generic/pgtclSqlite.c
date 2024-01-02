@@ -294,12 +294,13 @@ Pg_sqlite_bindValue(sqlite3 *sqlite_db, sqlite3_stmt *statement, int column, cha
 			break;
 		}
 		case PG_SQLITE_INT: {
-			int ival = atoi(value);
+			char* end;
+			long ival = strtoul(value, &end, 10);
 			if(ival == 0) {
 				// It might be a boolean column mapped to an integer column
 				ival = Pg_sqlite_toBool(value);
 			}
-			if (sqlite3_bind_int(statement, column+1, ival) == SQLITE_OK)
+			if (sqlite3_bind_int64(statement, column+1, ival) == SQLITE_OK)
 				return TCL_OK;
 			break;
 		}
@@ -509,8 +510,9 @@ Pg_sqlite_executeCheck(Tcl_Interp *interp, sqlite3 *sqlite_db, sqlite3_stmt *sta
 						break;
 					}
 					case PG_SQLITE_INT: {
-						int ival = sqlite3_column_int(statement, i);
-						int rval = atoi(row[i]);
+						char* end;
+						long ival = sqlite3_column_int64(statement, i);
+						long rval = strtoul(row[i], &end, 10);
 						if(ival != rval) {
 							status = TCL_OK;
 							goto cleanup_and_exit;
@@ -1671,7 +1673,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 			char    *pghandle_name = Tcl_GetString(objv[3]);
 			int      nTuples;
 			int      tupleIndex;
-			int      maxInt = 0;
+			long     maxInt = 0;
 			double   maxFloat = 0.0;
 			char     maxString[BUFSIZ];
 			int      maxValid = 0;
@@ -1775,7 +1777,8 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 								break;
 							}
 							case PG_SQLITE_INT: {
-								int valInt = atoi(val);
+								char* end;
+								long valInt = strtoul(val, &end, 10);
 								if(!maxValid || valInt > maxInt) {
 									maxInt = valInt;
 									maxValid = 1;
@@ -1794,7 +1797,6 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 					}
 					ckfree((void *)columns);
 					columns = NULL;
-
 					if (sqlite3_step(statement) != SQLITE_DONE) {
 						errorMessage = sqlite3_errmsg(sqlite_db);
 						returnCode = TCL_ERROR;
