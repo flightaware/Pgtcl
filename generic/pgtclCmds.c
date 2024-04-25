@@ -53,33 +53,46 @@ int pgtclInitEncoding(Tcl_Interp *interp) {
 	return TCL_ERROR;
 }
 
+// stringStorage is used to track the storage used by externalString and utfString.
+//
+// If you need more than one Dstring in flight at once, you need separate stringStorage objects
+//
+struct stringStorage {
+	Tcl_DString tmpds;
+	int allocated;
+};
+
+void initStorage(struct stringStorage *storage) {
+	storage->allocated = 0;
+}
+
+void freeStorage(struct stringStorage *storage) {
+	if(storage->allocated) Tcl_DStringFree(&storage->tmpds);
+	storage->allocated = 0;
+}
+
 // The following two functions "waste" a DStrings storage by not freeing it until it's needed again
 // This is a little sloppy but massively simplifies the use since just about every place it's used
 // has to handle a possible early error return
-// NOTE: only one of these can ever be in flight at any time.
 
 /*
  * Convert one utf string at a time to an external string, hiding the DString management.
  */
-char *externalString(const char *utfString)
+char *externalString(struct stringStorage *storage, const char *utfString)
 {
-	static Tcl_DString tmpds;
-	static int allocated = 0;
-	if(allocated) Tcl_DStringFree(&tmpds);
-	allocated = 1;
-	return Tcl_UtfToExternalDString(utf8encoding, utfString, -1, &tmpds);
+	if(storage->allocated) Tcl_DStringFree(&storage->tmpds);
+	storage->allocated = 1;
+	return Tcl_UtfToExternalDString(utf8encoding, utfString, -1, &storage->tmpds);
 }
 
 /*
  * Convert one external string at a time to a utf string, hiding the DString management.
  */
-char *utfString(const char *externalString)
+char *utfString(struct stringStorage *storage, const char *externalString)
 {
-	static Tcl_DString tmpds;
-	static int allocated = 0;
-	if(allocated) Tcl_DStringFree(&tmpds);
-	allocated = 1;
-	return Tcl_ExternalToUtfDString(utf8encoding, externalString, -1, &tmpds);
+	if(storage->allocated) Tcl_DStringFree(&storage->tmpds);
+	storage->allocated = 1;
+	return Tcl_ExternalToUtfDString(utf8encoding, externalString, -1, &storage->tmpds);
 }
 
 // TODO something to simplify an array worth of external or utf strings in flight at a time
@@ -611,6 +624,7 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 	enum             positionalArgs {EXEC_ARG_CONN, EXEC_ARG_SQL, EXEC_ARGS};
 	int              nextPositionalArg = EXEC_ARG_CONN;
+	struct stringStorage    storage;
 
 	for(index = 1; index < objc && nextPositionalArg != EXEC_ARGS; index++) {
 	    char *arg = Tcl_GetString(objv[index]);
@@ -698,6 +712,7 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	    // After this point we must free paramValues and paramsBufferbefore exiting
         }
 
+	initStorage(&storage);
 	/* we could call PQexecParams when nParams is 0, but PQexecParams
 	 * will not accept more than one SQL statement per call, while
 	 * PQexec will.  by checking and using PQexec when no parameters
@@ -705,10 +720,11 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	 * use params and might have had multiple statements in a single
 	 * request */
 	if (nParams == 0) {
-	    result = PQexec(conn, externalString(execString));
+	    result = PQexec(conn, externalString(&storage, execString));
 	} else {
-	    result = PQexecParams(conn, externalString(execString), nParams, NULL, paramValues, NULL, NULL, 0);
+	    result = PQexecParams(conn, externalString(&storage, execString), nParams, NULL, paramValues, NULL, NULL, 0);
 	}
+	freeStorage(&storage);
 
 	if(paramValues) {
 	    ckfree ((void *)paramValues);
@@ -805,6 +821,7 @@ Pg_exec_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 	const char *statementNameString;
 	const char **paramValues = NULL;
 	const char *paramsBuffer = NULL;
+	struct stringStorage storage;
 
 	int         nParams;
 
@@ -846,7 +863,9 @@ Pg_exec_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 
 	statementNameString = Tcl_GetString(objv[2]);
 
-	result = PQexecPrepared(conn, externalString(statementNameString), nParams, paramValues, NULL, NULL, 0);
+	initStorage(&storage);
+	result = PQexecPrepared(conn, externalString(&storage, statementNameString), nParams, paramValues, NULL, NULL, 0);
+	freeStorage(&storage);
 
 	if (paramValues != (const char **)NULL) {
 	    ckfree ((void *)paramValues);
@@ -902,7 +921,8 @@ Pg_result_foreach(Tcl_Interp *interp, PGresult *result, Tcl_Obj *arrayNameObj, T
     int retval = TCL_OK;
     int tupno;
     int column;
-	char *arrayName = Tcl_GetString (arrayNameObj);
+    char *arrayName = Tcl_GetString (arrayNameObj);
+    struct stringStorage storage;
 
     if (PQresultStatus(result) != PGRES_TUPLES_OK)
     {
@@ -914,6 +934,7 @@ Pg_result_foreach(Tcl_Interp *interp, PGresult *result, Tcl_Obj *arrayNameObj, T
 
     int ncols = PQnfields(result);
 
+    initStorage(&storage);
     for (tupno = 0; tupno < PQntuples(result); tupno++)
     {
 	    for (column = 0; column < ncols; column++)
@@ -927,9 +948,10 @@ Pg_result_foreach(Tcl_Interp *interp, PGresult *result, Tcl_Obj *arrayNameObj, T
 
 		    char *string = PQgetvalue (result, tupno, column);
 
-		    if (Tcl_SetVar2(interp, arrayName, columnName, utfString(string), (TCL_LEAVE_ERR_MSG)) == NULL) 
+		    if (Tcl_SetVar2(interp, arrayName, columnName, utfString(&storage, string), (TCL_LEAVE_ERR_MSG)) == NULL) 
 		    {
-			return TCL_ERROR;
+			retval = TCL_ERROR;
+			goto cleanup;
 		    }
 	    }
 
@@ -953,6 +975,8 @@ Pg_result_foreach(Tcl_Interp *interp, PGresult *result, Tcl_Obj *arrayNameObj, T
 		    break;
 	    }
     }
+cleanup:
+    freeStorage(&storage);
     return retval;
 }
 
@@ -1039,16 +1063,16 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	char	   *queryResultString;
 	int			optIndex;
 	int			errorOptIndex;
+	int        retval = TCL_OK;
 
 	Tcl_Obj* listObj;
 	Tcl_Obj* subListObj;
 	Tcl_Obj* fieldObj = NULL;
-    Tcl_Obj    *fieldNameObj;
 	Tcl_Obj* tresult;
-    /* Tcl_CmdInfo    infoPtr; */
 
+	struct stringStorage storage;
 
-    Pg_resultid        *resultid;
+	Pg_resultid        *resultid;
 
 
 	static const char *options[] = {
@@ -1258,6 +1282,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 				arrVarObj = objv[3];
 
+				initStorage(&storage);
 				/*
 				 * this assignment assigns the table of result tuples into
 				 * a giant array with the name given in the argument. The
@@ -1285,14 +1310,15 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 						if (Tcl_ObjSetVar2(interp, arrVarObj, fieldNameObj,
 										   Tcl_NewStringObj(
-											 utfString(PGgetvalue(result, resultid->nullValueString, tupno, i)),
+											 utfString(&storage, PGgetvalue(result, resultid->nullValueString, tupno, i)),
 											 -1), TCL_LEAVE_ERR_MSG) == NULL) {
+							retval = TCL_ERROR;
 							Tcl_DecrRefCount (fieldNameObj);
-							return TCL_ERROR;
+							goto cleanupStorage;
 						}
 					}
 				}
-				return TCL_OK;
+				goto cleanupStorage;
 			}
 
 		case OPT_ASSIGNBYIDX:
@@ -1310,6 +1336,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				else
 					appendstrObj = NULL;
 
+				initStorage(&storage);
 				/*
 				 * this assignment assigns the table of result tuples into
 				 * a giant array with the name given in the argument.  The
@@ -1321,7 +1348,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				 */
 				for (tupno = 0; tupno < PQntuples(result); tupno++)
 				{
-					const char *field0 = utfString(PGgetvalue(result, resultid->nullValueString, tupno, 0));
+					const char *field0 = utfString(&storage, PGgetvalue(result, resultid->nullValueString, tupno, 0));
 					char *dupfield0 = ckalloc(strlen(field0)+1);
 
 					strcpy(dupfield0, field0);
@@ -1338,18 +1365,19 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 						if (appendstrObj != NULL)
 							Tcl_AppendObjToObj(fieldNameObj, appendstrObj);
 
-						char *val = utfString(PGgetvalue(result, resultid->nullValueString, tupno, i));
+						char *val = utfString(&storage, PGgetvalue(result, resultid->nullValueString, tupno, i));
 						if (Tcl_ObjSetVar2(interp, arrVarObj, fieldNameObj,
 						      Tcl_NewStringObj( val, -1), TCL_LEAVE_ERR_MSG) == NULL)
 						{
 							Tcl_DecrRefCount(fieldNameObj);
 							ckfree(dupfield0);
-							return TCL_ERROR;
+							retval = TCL_ERROR;
+							goto cleanupStorage;
 						}
 					}
 					ckfree(dupfield0);
 				}
-				return TCL_OK;
+				goto cleanupStorage;
 			}
 
 		case OPT_GETTUPLE:
@@ -1386,14 +1414,16 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				{
 					char	   *value;
 
-					value = utfString(PGgetvalue(result, resultid->nullValueString, tupno, i));
+					value = utfString(&storage, PGgetvalue(result, resultid->nullValueString, tupno, i));
 
 					if (Tcl_ListObjAppendElement(interp, resultObj, 
-							   Tcl_NewStringObj(value, -1)) == TCL_ERROR)
-						return TCL_ERROR;
+							   Tcl_NewStringObj(value, -1)) == TCL_ERROR) {
+						retval = TCL_ERROR;
+						goto cleanupStorage;
+					}
 				}
 				Tcl_SetObjResult(interp, resultObj);
-				return TCL_OK;
+				goto cleanupStorage;
 			}
 
 		case OPT_TUPLEARRAY:
@@ -1419,6 +1449,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 				arrayName = Tcl_GetString(objv[4]);
 
+				initStorage(&storage);
 				if (optIndex == OPT_TUPLEARRAY)
 				{
 					/* it's the -array variant, if the field is null,
@@ -1428,11 +1459,13 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 					for (i = 0; i < PQnfields(result); i++)
 					{
 						if (Tcl_SetVar2(interp, arrayName, PQfname(result, i),
-							utfString(
+							utfString(&storage,
 							    PGgetvalue(result, resultid->nullValueString, 
 								tupno, i)
-							), TCL_LEAVE_ERR_MSG) == NULL)
-						return TCL_ERROR;
+							), TCL_LEAVE_ERR_MSG) == NULL) {
+							retval = TCL_ERROR;
+							goto cleanupStorage;
+						}
 					}
 				} else
 				{
@@ -1453,12 +1486,14 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 						}
 
 						if (Tcl_SetVar2(interp, arrayName, PQfname(result, i),
-									 utfString(string),
-										TCL_LEAVE_ERR_MSG) == NULL)
-							return TCL_ERROR;
+									 utfString(&storage, string),
+										TCL_LEAVE_ERR_MSG) == NULL) {
+							retval = TCL_ERROR;
+							goto cleanupStorage;
+						}
 					}
 				}
-				return TCL_OK;
+				goto cleanupStorage;
 			}
 
 		case OPT_ATTRIBUTES:
@@ -1523,6 +1558,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
  	
 			listObj = Tcl_NewListObj(0, (Tcl_Obj **) NULL);
 
+			initStorage(&storage);
 			/*
 			**	Loop through the tuple, and append each 
 			**	attribute to the list
@@ -1541,12 +1577,13 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				{
 				    fieldObj = Tcl_NewObj();
 
-				    Tcl_SetStringObj(fieldObj, utfString(PGgetvalue(result, resultid->nullValueString, tupno, i)), -1);
+				    Tcl_SetStringObj(fieldObj, utfString(&storage, PGgetvalue(result, resultid->nullValueString, tupno, i)), -1);
 				    if (Tcl_ListObjAppendElement(interp, listObj, fieldObj) != TCL_OK)
 					{
 						Tcl_DecrRefCount(listObj);
 						Tcl_DecrRefCount(fieldObj);
-						return TCL_ERROR;
+						retval = TCL_ERROR;
+						goto cleanupStorage;
 					}
 	
 				}
@@ -1554,13 +1591,13 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	
 			Tcl_SetObjResult(interp, listObj);
 			
-			return TCL_OK;
-
+			goto cleanupStorage;
 		}
 		case OPT_LLIST: 
 		{
 			listObj = Tcl_NewListObj(0, (Tcl_Obj **) NULL);
 	
+			initStorage(&storage);
 			/*
 			**	This is the top level list. This
 			**	contains the other lists
@@ -1583,13 +1620,14 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	
 					fieldObj = Tcl_NewObj();
 
-					Tcl_SetStringObj(fieldObj, utfString(PGgetvalue(result, resultid->nullValueString, tupno, i)), -1);
+					Tcl_SetStringObj(fieldObj, utfString(&storage, PGgetvalue(result, resultid->nullValueString, tupno, i)), -1);
 	
 					if (Tcl_ListObjAppendElement(interp, subListObj, fieldObj) != TCL_OK)
 					{
 						Tcl_DecrRefCount(listObj);
 						Tcl_DecrRefCount(fieldObj);
-						return TCL_ERROR;
+						retval = TCL_ERROR;
+						goto cleanupStorage;
 					}
 	
 				}
@@ -1597,19 +1635,21 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				{
 					Tcl_DecrRefCount(listObj);
 					Tcl_DecrRefCount(fieldObj);
-					return TCL_ERROR;
+					retval = TCL_ERROR;
+					goto cleanupStorage;
 				}
 			}
 	
 			Tcl_SetObjResult(interp, listObj);
 		
-			return TCL_OK;
+			goto cleanupStorage;
 		}
 
 		case OPT_DICT: 
                 {
 			listObj = Tcl_NewDictObj();
 	
+			initStorage(&storage);
 			/*
 			**	This is the top level list. This
 			**	contains the other lists
@@ -1629,18 +1669,19 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				*/
 				for (i = 0; i < PQnfields(result); i++)
 				{
+					Tcl_Obj    *fieldNameObj;
 	
 					fieldObj = Tcl_NewObj();
 					fieldNameObj = Tcl_NewObj();
 
 					Tcl_SetStringObj(fieldNameObj, PQfname(result, i), -1);
-					Tcl_SetStringObj(fieldObj, utfString(PGgetvalue(result, resultid->nullValueString, tupno, i)), -1);
-	
+					Tcl_SetStringObj(fieldObj, utfString(&storage, PGgetvalue(result, resultid->nullValueString, tupno, i)), -1);
 					if (Tcl_DictObjPut(interp, subListObj, fieldNameObj, fieldObj) != TCL_OK)
 					{
 						Tcl_DecrRefCount(listObj);
 						Tcl_DecrRefCount(fieldObj);
-						return TCL_ERROR;
+						retval = TCL_ERROR;
+						goto cleanupStorage;
 					}
 	
 				}
@@ -1648,13 +1689,13 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				{
 					Tcl_DecrRefCount(listObj);
 					Tcl_DecrRefCount(fieldObj);
-					return TCL_ERROR;
+					retval = TCL_ERROR;
+					goto cleanupStorage;
 				}
 			}
 	
 			Tcl_SetObjResult(interp, listObj);
-			return TCL_OK;
-
+			goto cleanupStorage;
                 }
 
 		case OPT_NULL_VALUE_STRING:
@@ -1726,6 +1767,10 @@ Pg_result_errReturn:
 					 (char *)NULL);
         Tcl_SetObjResult(interp, tresult);
 	return TCL_ERROR;
+
+cleanupStorage:
+	freeStorage(&storage);
+	return retval;
 }
 
 /**********************************
@@ -1752,6 +1797,7 @@ Pg_execute(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 	int			loop_rc;
 	const char	   *array_varname = NULL;
 	char	   *arg;
+	struct stringStorage storage;
 
 	Tcl_Obj    *oid_varnameObj = NULL;
 	Tcl_Obj    *evalObj;
@@ -1842,7 +1888,9 @@ Pg_execute(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 	/*
 	 * Execute the query
 	 */
-	result = PQexec(conn, externalString(Tcl_GetString(objv[i++])));
+	initStorage(&storage);
+	result = PQexec(conn, externalString(&storage, Tcl_GetString(objv[i++])));
+	freeStorage(&storage);
 	connid->sql_count++;
 
 	/*
@@ -1998,34 +2046,43 @@ static int
 execute_put_values(Tcl_Interp *interp, const char *array_varname,
 				   PGresult *result, char *nullValueString, int tupno)
 {
-	int			i;
-	int			n;
+	int	    i;
+	int	    n;
 	char	   *fname;
 	char	   *value;
+	struct stringStorage storage;
+	int         retval = TCL_OK;
 
 	/*
 	 * For each column get the column name and value and put it into a Tcl
 	 * variable (either scalar or array item)
 	 */
+	initStorage(&storage);
 	n = PQnfields(result);
 	for (i = 0; i < n; i++)
 	{
 		fname = PQfname(result, i);
-		value = utfString(PGgetvalue(result, nullValueString, tupno, i));
+		value = utfString(&storage, PGgetvalue(result, nullValueString, tupno, i));
 
 		if (array_varname != NULL)
 		{
 			if (Tcl_SetVar2(interp, array_varname, fname, value,
-							TCL_LEAVE_ERR_MSG) == NULL)
-				return TCL_ERROR;
+							TCL_LEAVE_ERR_MSG) == NULL) {
+				retval = TCL_ERROR;
+				goto cleanup;
+			}
 		}
 		else
 		{
-			if (Tcl_SetVar(interp, fname, value, TCL_LEAVE_ERR_MSG) == NULL)
-				return TCL_ERROR;
+			if (Tcl_SetVar(interp, fname, value, TCL_LEAVE_ERR_MSG) == NULL) {
+				retval = TCL_ERROR;
+				goto cleanup;
+			}
 		}
 	}
-	return TCL_OK;
+cleanup:
+	freeStorage(&storage);
+	return retval;
 }
 
 /**********************************
@@ -2919,6 +2976,8 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	enum         positionalArgs {SELECT_ARG_CONN, SELECT_ARG_QUERY, SELECT_ARG_VAR, SELECT_ARG_PROC, SELECT_ARGS};
 	int          nextPositionalArg = SELECT_ARG_CONN;
 
+	struct stringStorage storage;
+
 	for(index = 1; index < objc && nextPositionalArg != SELECT_ARGS; index++) {
 	    char *arg = Tcl_GetString(objv[index]);
 	    if (arg[0] == '-' && arg[1] != '-') {
@@ -3039,13 +3098,15 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	{
 		int status;
 
+		initStorage(&storage);
 		// Make the call
 		if (nParams) {
-			status = PQsendQueryParams(conn, externalString(queryString), nParams,
+			status = PQsendQueryParams(conn, externalString(&storage, queryString), nParams,
 				NULL, paramValues, NULL, NULL, 0);
 		} else {
-			status = PQsendQuery(conn, externalString(queryString));
+			status = PQsendQuery(conn, externalString(&storage, queryString));
 		}
+		freeStorage(&storage);
 
 		if(status == 0) {
 			/* error occurred sending the query */
@@ -3072,13 +3133,15 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 			goto cleanup_params_and_return_error;
 		}
 	} else {
+		initStorage(&storage);
 		// Make the call AND queue up the result.
 		if (nParams) {
-			result = PQexecParams(conn, externalString(queryString), nParams,
+			result = PQexecParams(conn, externalString(&storage, queryString), nParams,
 				NULL, paramValues, NULL, NULL, 0);
 		} else {
-			result = PQexec(conn, externalString(queryString));
+			result = PQexec(conn, externalString(&storage, queryString));
 		}
+		freeStorage(&storage);
 
 		if (result == 0) {
 			/* error occurred sending the query */
@@ -3228,7 +3291,9 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				}
 
 				if (valueObj == NULL) {
-					valueObj = Tcl_NewStringObj(utfString(string), -1);
+					initStorage(&storage);
+					valueObj = Tcl_NewStringObj(utfString(&storage, string), -1);
+					freeStorage(&storage);
 				}
 
 				if (Tcl_ObjSetVar2(interp, varNameObj, columnNameObjs[column],
@@ -3560,6 +3625,8 @@ Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
 	enum             positionalArgs {SENDQUERY_ARG_CONN, SENDQUERY_ARG_SQL, SENDQUERY_ARGS};
 	int              nextPositionalArg = SENDQUERY_ARG_CONN;
 
+	struct stringStorage storage;
+
 	for(index = 1; index < objc && nextPositionalArg != SENDQUERY_ARGS; index++) {
 	    char *arg = Tcl_GetString(objv[index]);
 	    if (arg[0] == '-') {
@@ -3646,11 +3713,13 @@ Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
 	    }
         }
 
+	initStorage(&storage);
 	if (nParams == 0) {
-	    status = PQsendQuery(conn, externalString(execString));
+	    status = PQsendQuery(conn, externalString(&storage, execString));
 	} else {
-	    status = PQsendQueryParams(conn, externalString(execString), nParams, NULL, paramValues, NULL, NULL, 1);
+	    status = PQsendQueryParams(conn, externalString(&storage, execString), nParams, NULL, paramValues, NULL, NULL, 1);
 	}
+	freeStorage(&storage);
 	if(newExecString) {
 	    ckfree(newExecString);
 	    newExecString = NULL;
@@ -5068,6 +5137,7 @@ Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
     int             count=0, countbin=0, optIndex;
     int             params=0,binparams=0,binresults=0,callback=0,async=0,prepared=0;
     unsigned char   flags = 0;
+    struct stringStorage storage;
 
     static const char *cmdargs = "";
 
@@ -5229,6 +5299,7 @@ Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
     /*
      * Handle the callback first, before executing statments
      */
+    initStorage(&storage);
     if (callback) {
         if (connid->callbackPtr || connid->callbackInterp)
         {
@@ -5250,13 +5321,13 @@ Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
         *  of query 
         */
         if (prepared) {
-	    iResult = PQsendQueryPrepared(conn, externalString(execString), count, paramValues, paramLengths, binValues, binresults);
+	    iResult = PQsendQueryPrepared(conn, externalString(&storage, execString), count, paramValues, paramLengths, binValues, binresults);
         } else if (params) {
-            iResult = PQsendQueryParams(conn, externalString(execString), count, NULL, paramValues, paramLengths, binValues, binresults);
+            iResult = PQsendQueryParams(conn, externalString(&storage, execString), count, NULL, paramValues, paramLengths, binValues, binresults);
 
         } else {
     
-            iResult = PQsendQuery(conn, externalString(execString));
+            iResult = PQsendQuery(conn, externalString(&storage, execString));
 /*
             ckfree ((void *)paramValues);
 */
@@ -5264,14 +5335,15 @@ Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
     } else {
 
         if (prepared) {
-	    result = PQexecPrepared(conn, externalString(execString), count, paramValues, paramLengths, binValues, binresults);
+	    result = PQexecPrepared(conn, externalString(&storage, execString), count, paramValues, paramLengths, binValues, binresults);
         } else if (params) {
-            result = PQexecParams(conn, externalString(execString), count, NULL, paramValues, paramLengths, binValues, binresults);
+            result = PQexecParams(conn, externalString(&storage, execString), count, NULL, paramValues, paramLengths, binValues, binresults);
         } else {
-            result = PQexec(conn, externalString(execString));
+            result = PQexec(conn, externalString(&storage, execString));
             ckfree ((void *)paramValues);
         }
     } /* end if callback */
+    freeStorage(&storage);
 
     PgNotifyTransferEvents(connid);
 
