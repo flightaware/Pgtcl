@@ -24,34 +24,8 @@
 #endif
 
 #ifdef WIN32
-#include <c.h>
+#include <winsock2.h>
 #endif
-
-#ifdef _MSC_VER
-/* Only do this when MSVC++ is compiling us. */
-#ifdef USE_TCL_STUBS
- /* Mark this .obj as needing tcl's Stubs library. */
-#pragma comment(lib, "tclstub" \
-			STRINGIFY(JOIN(TCL_MAJOR_VERSION,TCL_MINOR_VERSION)) ".lib")
-#if !defined(_MT) || !defined(_DLL) || defined(_DEBUG)
-
- /*
-  * This fixes a bug with how the Stubs library was compiled. The
-  * requirement for msvcrt.lib from tclstubXX.lib should be removed.
-  */
-#pragma comment(linker, "-nodefaultlib:msvcrt.lib")
-#endif
-#else
- /* Mark this .obj needing the import library */
-#pragma comment(lib, "tcl" \
-		STRINGIFY(JOIN(TCL_MAJOR_VERSION,TCL_MINOR_VERSION)) ".lib")
-#endif
-#endif
-#undef TCL_STORAGE_CLASS
-#define TCL_STORAGE_CLASS DLLEXPORT
-/* END STUBS MUMBO JUMBO */
-
-
 
 typedef struct {
     char *name;                 /* Name of command. */
@@ -115,55 +89,31 @@ static PgCmd commands[] = {
 EXTERN int
 Pgtcl_Init(Tcl_Interp *interp)
 {
-	double		tclversion;
-	Tcl_Obj    *tclVersionObj;
-        PgCmd *cmdPtr;
+    double tclversion;
+    Tcl_Obj *tclVersionObj;
+    PgCmd *cmdPtr;
 
-        #ifdef WIN32
-        WSADATA wsaData;
-        #endif
+#ifdef WIN32
+    WSADATA wsaData;
+#endif
 
 #ifdef USE_TCL_STUBS
 	if (Tcl_InitStubs(interp, "8.1", 0) == NULL)
 		return TCL_ERROR;
 #endif
-
-        #ifdef WIN32X
-        /*
-        * On Windows, need to explicitly load the libpq library to
-        * force the call to WSAStartup.
-        */
-	Tcl_Obj    *tresult;
-
-        if (LoadLibrary("libpq.dll") == NULL) {
-        //char buf[32];
-        //sprintf(buf, "%d", GetLastError());
-        tresult = Tcl_NewStringObj("Cannot load \"libpq.dll\" (or dependant), error was ");
-        Tcl_AppendToObj(tresult, GetLastError(), -1);
-        Tcl_SetObjResult(interp, tresult);
         
-/*
-        Tcl_AppendStringsToObj(Tcl_GetObjResult(interp), 
-            "Cannot load \"libpq.dll\" (or dependant), error was ", 
-            GetLastError(), NULL);
-*/
+#ifdef WIN32
 
-        return TCL_ERROR;
-        }
-        #endif
-        
-    #ifdef WIN32
+    if (WSAStartup(MAKEWORD(1, 1), &wsaData))
+    {
+           /*
+            * No really good way to do error handling here, since we
+            * don't know how we were loaded
+            */
+            return TCL_ERROR;
+    }
 
-            if (WSAStartup(MAKEWORD(1, 1), &wsaData))
-            {
-                   /*
-                    * No really good way to do error handling here, since we
-                    * don't know how we were loaded
-                    */
-                    return TCL_ERROR;
-            }
-
-    #endif
+#endif
 
 
 	/*

@@ -24,7 +24,6 @@
 
 package provide sc_postgres 1.3
 
-package require Tclx
 package require Pgtcl
 
 namespace eval sc_pg {
