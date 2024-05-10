@@ -16,7 +16,7 @@ jobs:
     - name: Install dependencies
       run: |
         brew update
-        brew install tcl-tk || true
+        brew install tcl-tk autoconf || true
         ls -lR /opt/homebrew/Cellar/tcl-tk/
         sudo mkdir -p /usr/local/include /usr/local/lib /usr/local/bin
         sudo ln -sf /opt/homebrew/Cellar/tcl-tk/8.6.14/include /usr/local/include/tcl8.6
