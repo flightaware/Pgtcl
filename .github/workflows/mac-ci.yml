@@ -17,7 +17,7 @@ jobs:
       run: |
         brew update
         brew install tcl-tk || true
-        sudo mkdir -p /usr/local
+        sudo mkdir -p /usr/local/include /usr/local/lib /usr/local/bin
         sudo ln -sf /usr/local/opt/tcl-tk/include /usr/local/include/tcl8.6
         sudo rm -f /usr/local/lib/libtcl* || true
         sudo cp /usr/local/opt/tcl-tk/lib/libtcl* /usr/local/lib
