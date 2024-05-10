@@ -18,16 +18,16 @@ jobs:
         brew update
         brew install tcl-tk autoconf || true
         ls -lR /opt/homebrew/Cellar/tcl-tk/
-        sudo mkdir -p /usr/local/include /usr/local/lib /usr/local/bin
-        sudo ln -sf /opt/homebrew/Cellar/tcl-tk/8.6.14/include /usr/local/include/tcl8.6
-        sudo rm -f /usr/local/lib/libtcl* || true
-        sudo cp /opt/homebrew/Cellar/tcl-tk/8.6.14/lib/libtcl* /usr/local/lib
-        sudo ln -sf /opt/homebrew/Cellar/tcl-tk/8.6.14/bin/tclsh8.6 /usr/local/bin/tclsh
-        sudo ln -sf /opt/homebrew/Cellar/tcl-tk/8.6.14/bin/tclsh8.6 /usr/local/bin/tclsh8.6
+        #sudo mkdir -p /usr/local/include /usr/local/lib /usr/local/bin
+        #sudo ln -sf /opt/homebrew/Cellar/tcl-tk/8.6.14/include /usr/local/include/tcl8.6
+        #sudo rm -f /usr/local/lib/libtcl* || true
+        #sudo cp /opt/homebrew/Cellar/tcl-tk/8.6.14/lib/ /usr/local/lib/
+        #sudo ln -sf /opt/homebrew/Cellar/tcl-tk/8.6.14/bin/tclsh8.6 /usr/local/bin/tclsh
+        #sudo ln -sf /opt/homebrew/Cellar/tcl-tk/8.6.14/bin/tclsh8.6 /usr/local/bin/tclsh8.6
     - name: configure
       run: |       
         autoreconf -vi
-        ./configure --with-tcl=/usr/local/opt/tcl-tk/lib --prefix=/usr/local        
+        ./configure --with-tcl=/opt/homebrew/Cellar/tcl-tk/8.6.14/lib/ --prefix=/usr/local        
     - name: make
       run: make
     - name: install
