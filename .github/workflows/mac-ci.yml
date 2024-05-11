@@ -17,13 +17,11 @@ jobs:
       run: |
         brew update
         brew install tcl-tk autoconf libpq
-        ls -l /opt/homebrew/opt/libpq/
-        ls -l /opt/homebrew/opt/tcl-tk/
     - name: configure
       run: |       
         autoreconf -vi
-        export PG_CONFIG=/opt/homebrew/Cellar/libpq/16.3/bin/pg_config
-        ./configure --with-tcl=/opt/homebrew/Cellar/tcl-tk/8.6.14/lib/ --prefix=/usr/local        
+        export PG_CONFIG=/opt/homebrew/opt/libpq/bin/pg_config
+        ./configure --with-tcl=/opt/homebrew/opt/tcl-tk/lib/ --prefix=/usr/local        
     - name: make
       run: make
     - name: install
