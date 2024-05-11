@@ -16,17 +16,9 @@ jobs:
     - name: Install dependencies
       run: |
         brew update
-        brew install tcl-tk autoconf libpq || true
-        ls -l /opt/homebrew/Cellar/
-        ls -lR /opt/homebrew/Cellar/libpq
-        echo PATH=$PATH
-        #ls -lR /opt/homebrew/Cellar/tcl-tk/
-        #sudo mkdir -p /usr/local/include /usr/local/lib /usr/local/bin
-        #sudo ln -sf /opt/homebrew/Cellar/tcl-tk/8.6.14/include /usr/local/include/tcl8.6
-        #sudo rm -f /usr/local/lib/libtcl* || true
-        #sudo cp /opt/homebrew/Cellar/tcl-tk/8.6.14/lib/ /usr/local/lib/
-        #sudo ln -sf /opt/homebrew/Cellar/tcl-tk/8.6.14/bin/tclsh8.6 /usr/local/bin/tclsh
-        #sudo ln -sf /opt/homebrew/Cellar/tcl-tk/8.6.14/bin/tclsh8.6 /usr/local/bin/tclsh8.6
+        brew install tcl-tk autoconf libpq
+        ls -l /opt/homebrew/opt/libpq/
+        ls -l /opt/homebrew/opt/tcl-tk/
     - name: configure
       run: |       
         autoreconf -vi
