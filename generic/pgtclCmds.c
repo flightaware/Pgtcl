@@ -53,36 +53,86 @@ int pgtclInitEncoding(Tcl_Interp *interp) {
 	return TCL_ERROR;
 }
 
-// The following two functions "waste" a DStrings storage by not freeing it until it's needed again
-// This is a little sloppy but massively simplifies the use since just about every place it's used
-// has to handle a possible early error return
-// NOTE: only one of these can ever be in flight at any time.
-
-/*
- * Convert one utf string at a time to an external string, hiding the DString management.
- */
-char *externalString(const char *utfString)
+// Create a new "external" string from a "UTF" string
+char *makeExternalString(Tcl_Interp *interp, const char *utfString, int length)
 {
-	static Tcl_DString tmpds;
-	static int allocated = 0;
-	if(allocated) Tcl_DStringFree(&tmpds);
-	allocated = 1;
-	return Tcl_UtfToExternalDString(utf8encoding, utfString, -1, &tmpds);
+	int newLength = 0;
+	if (length == -1) length = strlen(utfString);
+	char *externalString = ckalloc(length + 4 + 1); // 1 byte for null, 4 bytes to make Tcl_UtfToExternal happy
+
+	int code = Tcl_UtfToExternal(interp, utf8encoding, utfString, length, 0, NULL, externalString, length + 4 + 1, NULL, &newLength, NULL);
+
+	if (code != TCL_OK) {
+		static char errmsg[128];
+		ckfree(externalString);
+
+		sprintf(errmsg, "Error %d attempting to convert '%.40s...' to external utf8", code, utfString);
+		Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
+
+		return NULL;
+	}
+
+	externalString[newLength] = '\0';
+	return externalString;
 }
 
-/*
- * Convert one external string at a time to a utf string, hiding the DString management.
- */
-char *utfString(const char *externalString)
+// Create a new "UTF" string from an "external" string.
+char *makeUTFString(Tcl_Interp *interp, const char *externalString, int length)
 {
-	static Tcl_DString tmpds;
-	static int allocated = 0;
-	if(allocated) Tcl_DStringFree(&tmpds);
-	allocated = 1;
-	return Tcl_ExternalToUtfDString(utf8encoding, externalString, -1, &tmpds);
+	int newLength = 0;
+	if (length == -1) length = strlen(externalString);
+
+	// Since this may convert a code point to a surrogate pair, worst case is the string
+	// length doubling, plus 4 bytes to make Tcl_ExternalToUtf happy, plus a terminating null;
+	int bufferSize = length * 2 + 4 + 1;
+
+	char *UTFString = ckalloc(bufferSize);
+
+	int code = Tcl_ExternalToUtf(interp, utf8encoding, externalString, length, 0, NULL, UTFString, bufferSize, NULL, &newLength, NULL);
+
+	if(code != TCL_OK) {
+		static char errmsg[128];
+		ckfree(UTFString);
+
+		sprintf(errmsg, "Error %d attempting to convert '%.40s...' to internal UTF", code, externalString);
+		Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
+
+		return NULL;
+	}
+
+	UTFString[newLength] = '\0';
+	return UTFString;
 }
 
-// TODO something to simplify an array worth of external or utf strings in flight at a time
+// helper function, converts an external string to Tcl UTF and passes it to Tcl_SetVar2
+const char *UTF_SetVar2(Tcl_Interp *interp, const char *name1, const char *name2, const char *newValue, int flags)
+{
+	char *UTFnewValue = makeUTFString(interp, newValue, -1);
+
+	if(!UTFnewValue) return NULL;
+
+	const char *code = Tcl_SetVar2(interp, name1, name2, newValue, flags);
+
+	ckfree(UTFnewValue);
+
+	return code;
+}
+
+
+// helper function, converts an external string to Tcl UTF, creates an Object, and passes it to Tcl_ObjSetVar2
+// Not quite compatible with Tcl_ObjSetVar2
+Tcl_Obj *UTF_ObjSetVar2(Tcl_Interp *interp, Tcl_Obj *part1ptr, Tcl_Obj *part2ptr, const char *newValue, int flags)
+{
+	char *UTFnewValue = makeUTFString(interp, newValue, -1);
+
+	if(!UTFnewValue) return NULL;
+
+	Tcl_Obj *resultPtr = Tcl_ObjSetVar2(interp, part1ptr, part2ptr, Tcl_NewStringObj(UTFnewValue, -1), flags);
+
+	ckfree(UTFnewValue);
+
+	return resultPtr;
+}
 
 /*
  * PGgetvalue()
@@ -487,7 +537,8 @@ Pg_disconnect(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
 
 /* helper for build_param_array and other related functions.
 ** convert nParams strings in paramValues, lengths in paramLengths,
-** return allocated buffer containing new strings in bufferPtr
+** allocates and returns buffer containing new strings in bufferPtr
+** for later disposal.
 */
 int array_to_utf8(Tcl_Interp *interp, const char **paramValues, int *paramLengths, int nParams, const char **bufferPtr)
 {
@@ -598,7 +649,7 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	Pg_ConnectionId *connid;
 	PGconn	        *conn;
-	PGresult        *result;
+	PGresult        *result = NULL;
 	const char    *connString = NULL;
 	const char      *execString = NULL;
 	char            *newExecString = NULL;
@@ -698,18 +749,27 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	    // After this point we must free paramValues and paramsBufferbefore exiting
         }
 
-	/* we could call PQexecParams when nParams is 0, but PQexecParams
-	 * will not accept more than one SQL statement per call, while
-	 * PQexec will.  by checking and using PQexec when no parameters
-	 * are included, we maintain compatibility for code that doesn't
-	 * use params and might have had multiple statements in a single
-	 * request */
-	if (nParams == 0) {
-	    result = PQexec(conn, externalString(execString));
-	} else {
-	    result = PQexecParams(conn, externalString(execString), nParams, NULL, paramValues, NULL, NULL, 0);
+	int validUTF = 0;
+	char *pgString = makeExternalString(interp, execString, -1);
+	if (pgString) {
+	    validUTF = 1;
+	    /* we could call PQexecParams when nParams is 0, but PQexecParams
+	     * will not accept more than one SQL statement per call, while
+	     * PQexec will.  by checking and using PQexec when no parameters
+	     * are included, we maintain compatibility for code that doesn't
+	     * use params and might have had multiple statements in a single
+	     * request */
+	    if (nParams == 0) {
+	        result = PQexec(conn, pgString);
+	    } else {
+	        result = PQexecParams(conn, pgString, nParams, NULL, paramValues, NULL, NULL, 0);
+	    }
 	}
 
+	if(pgString) {
+	    ckfree ((void *)pgString);
+	    pgString = NULL;
+	}
 	if(paramValues) {
 	    ckfree ((void *)paramValues);
 	    paramValues = NULL;
@@ -750,11 +810,13 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	}
 	else
 	{
-	    /* error occurred during the query */
-	    report_connection_error(interp, conn);
+	    if(validUTF) {
+		/* error occurred during the query */
+		report_connection_error(interp, conn);
 
-	    // Reconnect if the connection is bad.
-	    PgCheckConnectionState(connid);
+		// Reconnect if the connection is bad.
+		PgCheckConnectionState(connid);
+	    }
 
 	    return TCL_ERROR;
 	}
@@ -800,7 +862,7 @@ Pg_exec_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 {
 	Pg_ConnectionId *connid;
 	PGconn	   *conn;
-	PGresult   *result;
+	PGresult   *result = NULL;
 	const char	   *connString;
 	const char *statementNameString;
 	const char **paramValues = NULL;
@@ -844,9 +906,14 @@ Pg_exec_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 	    // After this point we must free paramValues and paramsBuffer before exiting
 	}
 
-	statementNameString = Tcl_GetString(objv[2]);
+	statementNameString = makeExternalString(interp, Tcl_GetString(objv[2]), -1);
+	int validUTF = statementNameString != NULL;
 
-	result = PQexecPrepared(conn, externalString(statementNameString), nParams, paramValues, NULL, NULL, 0);
+	if(statementNameString) {
+		result = PQexecPrepared(conn, statementNameString, nParams, paramValues, NULL, NULL, 0);
+		ckfree(statementNameString);
+		statementNameString = NULL;
+	}
 
 	if (paramValues != (const char **)NULL) {
 	    ckfree ((void *)paramValues);
@@ -882,8 +949,10 @@ Pg_exec_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 	}
 	else
 	{
-		/* error occurred during the query */
-		report_connection_error(interp, conn);
+		if(validUTF) {
+			/* error occurred during the query */
+			report_connection_error(interp, conn);
+		}
 
 		// Reconnect if the connection is bad.
 		PgCheckConnectionState(connid);
@@ -925,9 +994,7 @@ Pg_result_foreach(Tcl_Interp *interp, PGresult *result, Tcl_Obj *arrayNameObj, T
 			continue;
 		    }
 
-		    char *string = PQgetvalue (result, tupno, column);
-
-		    if (Tcl_SetVar2(interp, arrayName, columnName, utfString(string), (TCL_LEAVE_ERR_MSG)) == NULL) 
+		    if (UTF_SetVar2(interp, arrayName, columnName, PQgetvalue (result, tupno, column), (TCL_LEAVE_ERR_MSG)) == NULL) 
 		    {
 			return TCL_ERROR;
 		    }
@@ -1282,11 +1349,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 						Tcl_AppendToObj(fieldNameObj, ",", 1);
 						Tcl_AppendToObj(fieldNameObj, PQfname(result, i), -1);
 
-
-						if (Tcl_ObjSetVar2(interp, arrVarObj, fieldNameObj,
-										   Tcl_NewStringObj(
-											 utfString(PGgetvalue(result, resultid->nullValueString, tupno, i)),
-											 -1), TCL_LEAVE_ERR_MSG) == NULL) {
+						if (UTF_ObjSetVar2(interp, arrVarObj, fieldNameObj, PGgetvalue(result, resultid->nullValueString, tupno, i), TCL_LEAVE_ERR_MSG) == NULL) {
 							Tcl_DecrRefCount (fieldNameObj);
 							return TCL_ERROR;
 						}
@@ -1321,33 +1384,32 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				 */
 				for (tupno = 0; tupno < PQntuples(result); tupno++)
 				{
-					const char *field0 = utfString(PGgetvalue(result, resultid->nullValueString, tupno, 0));
-					char *dupfield0 = ckalloc(strlen(field0)+1);
-
-					strcpy(dupfield0, field0);
+					const char *field0 = makeUTFString(interp, PGgetvalue(result, resultid->nullValueString, tupno, 0), -1);
 
 					for (i = 1; i < PQnfields(result); i++)
 					{
 						Tcl_Obj    *fieldNameObj;
 
 						fieldNameObj = Tcl_NewObj ();
-						Tcl_SetStringObj(fieldNameObj, dupfield0, -1);
+						Tcl_SetStringObj(fieldNameObj, field0, -1);
 						Tcl_AppendToObj(fieldNameObj, ",", 1);
 						Tcl_AppendToObj(fieldNameObj, PQfname(result, i), -1);
 
 						if (appendstrObj != NULL)
 							Tcl_AppendObjToObj(fieldNameObj, appendstrObj);
 
-						char *val = utfString(PGgetvalue(result, resultid->nullValueString, tupno, i));
-						if (Tcl_ObjSetVar2(interp, arrVarObj, fieldNameObj,
-						      Tcl_NewStringObj( val, -1), TCL_LEAVE_ERR_MSG) == NULL)
+						if (UTF_ObjSetVar2(
+							interp, arrVarObj, fieldNameObj,
+							PGgetvalue(result, resultid->nullValueString, tupno, i),
+							TCL_LEAVE_ERR_MSG
+						    ) == NULL)
 						{
 							Tcl_DecrRefCount(fieldNameObj);
-							ckfree(dupfield0);
+							ckfree(field0);
 							return TCL_ERROR;
 						}
 					}
-					ckfree(dupfield0);
+					ckfree(field0);
 				}
 				return TCL_OK;
 			}
@@ -1384,13 +1446,20 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				/* build up a return list, Tcl-object-style */
 				for (i = 0; i < PQnfields(result); i++)
 				{
-					char	   *value;
+					char *value = makeUTFString(
+						interp,
+						PGgetvalue(result, resultid->nullValueString, tupno, i),
+						-1);
 
-					value = utfString(PGgetvalue(result, resultid->nullValueString, tupno, i));
+					if(!value) return TCL_ERROR;
 
-					if (Tcl_ListObjAppendElement(interp, resultObj, 
-							   Tcl_NewStringObj(value, -1)) == TCL_ERROR)
+					Tcl_Obj *valueObj = Tcl_NewStringObj(value, -1);
+
+					if (Tcl_ListObjAppendElement(interp, resultObj, valueObj) == TCL_ERROR) {
+						Tcl_DecrRefCount(valueObj);
+						ckfree(value);
 						return TCL_ERROR;
+					}
 				}
 				Tcl_SetObjResult(interp, resultObj);
 				return TCL_OK;
@@ -1427,11 +1496,9 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 					 */
 					for (i = 0; i < PQnfields(result); i++)
 					{
-						if (Tcl_SetVar2(interp, arrayName, PQfname(result, i),
-							utfString(
-							    PGgetvalue(result, resultid->nullValueString, 
-								tupno, i)
-							), TCL_LEAVE_ERR_MSG) == NULL)
+						if (UTF_SetVar2(interp, arrayName, PQfname(result, i),
+							PGgetvalue(result, resultid->nullValueString, tupno, i),
+							TCL_LEAVE_ERR_MSG) == NULL)
 						return TCL_ERROR;
 					}
 				} else
@@ -1452,9 +1519,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 							}
 						}
 
-						if (Tcl_SetVar2(interp, arrayName, PQfname(result, i),
-									 utfString(string),
-										TCL_LEAVE_ERR_MSG) == NULL)
+						if (UTF_SetVar2(interp, arrayName, PQfname(result, i), string, TCL_LEAVE_ERR_MSG) == NULL)
 							return TCL_ERROR;
 					}
 				}
@@ -1539,10 +1604,16 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				*/
 				for (i = 0; i < PQnfields(result); i++)
 				{
-				    fieldObj = Tcl_NewObj();
+					char *fieldString = makeUTFString(interp, PGgetvalue(result, resultid->nullValueString, tupno, i), -1);
+					if(!fieldString) {
+						Tcl_DecrRefCount(listObj);
+						return TCL_ERROR;
+					}
 
-				    Tcl_SetStringObj(fieldObj, utfString(PGgetvalue(result, resultid->nullValueString, tupno, i)), -1);
-				    if (Tcl_ListObjAppendElement(interp, listObj, fieldObj) != TCL_OK)
+					fieldObj = Tcl_NewStringObj(fieldString, -1);
+					ckfree(fieldString);
+
+					if (Tcl_ListObjAppendElement(interp, listObj, fieldObj) != TCL_OK)
 					{
 						Tcl_DecrRefCount(listObj);
 						Tcl_DecrRefCount(fieldObj);
@@ -1580,10 +1651,14 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				*/
 				for (i = 0; i < PQnfields(result); i++)
 				{
-	
-					fieldObj = Tcl_NewObj();
+					char *fieldString = makeUTFString(interp, PGgetvalue(result, resultid->nullValueString, tupno, i), -1);
+					if(!fieldString) {
+						Tcl_DecrRefCount(listObj);
+						return TCL_ERROR;
+					}
 
-					Tcl_SetStringObj(fieldObj, utfString(PGgetvalue(result, resultid->nullValueString, tupno, i)), -1);
+					fieldObj = Tcl_NewStringObj(fieldString, -1);
+					ckfree(fieldString);
 	
 					if (Tcl_ListObjAppendElement(interp, subListObj, fieldObj) != TCL_OK)
 					{
@@ -1629,17 +1704,22 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				*/
 				for (i = 0; i < PQnfields(result); i++)
 				{
-	
-					fieldObj = Tcl_NewObj();
-					fieldNameObj = Tcl_NewObj();
+					char *fieldString = makeUTFString(interp, PGgetvalue(result, resultid->nullValueString, tupno, i), -1);
+					if(!fieldString) {
+						Tcl_DecrRefCount(listObj);
+						return TCL_ERROR;
+					}
 
-					Tcl_SetStringObj(fieldNameObj, PQfname(result, i), -1);
-					Tcl_SetStringObj(fieldObj, utfString(PGgetvalue(result, resultid->nullValueString, tupno, i)), -1);
+					fieldObj = Tcl_NewStringObj(fieldString, -1);
+					ckfree(fieldString);
+	
+					fieldNameObj = Tcl_NewStringObj(PQfname(result, i), -1);
 	
 					if (Tcl_DictObjPut(interp, subListObj, fieldNameObj, fieldObj) != TCL_OK)
 					{
 						Tcl_DecrRefCount(listObj);
 						Tcl_DecrRefCount(fieldObj);
+						Tcl_DecrRefCount(fieldNameObj);
 						return TCL_ERROR;
 					}
 	
@@ -1745,12 +1825,12 @@ Pg_execute(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 {
 	Pg_ConnectionId *connid;
 	PGconn	   *conn;
-	PGresult   *result;
-	int			i;
-	int			tupno;
-	int			ntup;
-	int			loop_rc;
-	const char	   *array_varname = NULL;
+	PGresult   *result = NULL;
+	int        i;
+	int        tupno;
+	int        ntup;
+	int        loop_rc;
+	const char *array_varname = NULL;
 	char	   *arg;
 
 	Tcl_Obj    *oid_varnameObj = NULL;
@@ -1838,11 +1918,17 @@ Pg_execute(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
                return TCL_ERROR;
         }
 
+	char *pgString = makeExternalString(interp, Tcl_GetString(objv[i++]), -1);
+	int validUTF = pgString != NULL;
 
-	/*
-	 * Execute the query
-	 */
-	result = PQexec(conn, externalString(Tcl_GetString(objv[i++])));
+	if(pgString) {
+		/*
+		 * Execute the query
+		 */
+		result = PQexec(conn, pgString);
+		ckfree(pgString);
+		pgString = NULL;
+	}
 	connid->sql_count++;
 
 	/*
@@ -1855,10 +1941,12 @@ Pg_execute(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 	 */
 	if (result == NULL)
 	{
-		report_connection_error(interp, conn);
+		if(validUTF) {
+			report_connection_error(interp, conn);
 
-		// Look for a failed connection and re-open it.
-		PgCheckConnectionState(connid);
+			// Look for a failed connection and re-open it.
+			PgCheckConnectionState(connid);
+		}
 
 		return TCL_ERROR;
 	}
@@ -2011,19 +2099,27 @@ execute_put_values(Tcl_Interp *interp, const char *array_varname,
 	for (i = 0; i < n; i++)
 	{
 		fname = PQfname(result, i);
-		value = utfString(PGgetvalue(result, nullValueString, tupno, i));
+		value = makeUTFString(interp, PGgetvalue(result, nullValueString, tupno, i), -1);
+		if(!value) {
+			return TCL_ERROR;
+		}
 
 		if (array_varname != NULL)
 		{
 			if (Tcl_SetVar2(interp, array_varname, fname, value,
-							TCL_LEAVE_ERR_MSG) == NULL)
+							TCL_LEAVE_ERR_MSG) == NULL) {
+				ckfree(value);
 				return TCL_ERROR;
+			}
 		}
 		else
 		{
-			if (Tcl_SetVar(interp, fname, value, TCL_LEAVE_ERR_MSG) == NULL)
+			if (Tcl_SetVar(interp, fname, value, TCL_LEAVE_ERR_MSG) == NULL) {
+				ckfree(value);
 				return TCL_ERROR;
+			}
 		}
+		ckfree(value);
 	}
 	return TCL_OK;
 }
@@ -2887,7 +2983,7 @@ int
 Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	Pg_ConnectionId *connid;
-	PGconn	    *conn;
+	PGconn	    *conn = NULL;
 	PGresult    *result;
 	int          r,
 	             retval = TCL_ERROR;
@@ -2901,6 +2997,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	int          index = 1;
 	int          nParams = 0;
 	char        *connString     = NULL;
+	char        *pgString       = NULL;
 	const char  *queryString    = NULL;
 	char        *varNameString  = NULL;
 	char        *paramArrayName = NULL;
@@ -3020,9 +3117,14 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	    }
 	}
 
-	conn = PgGetConnectionId(interp, connString, &connid);
+	pgString = makeExternalString(interp, queryString, -1);
+
+	if(pgString)
+		conn = PgGetConnectionId(interp, connString, &connid);
+
 	if (conn == NULL) {
 	    cleanup_params_and_return_error: {
+		if(pgString) ckfree((void *)pgString);
 		if(paramValues) ckfree((void *)paramValues);
 		if(paramsBuffer) ckfree((void *)paramsBuffer);
 		if(newQueryString) ckfree((void *)newQueryString);
@@ -3030,21 +3132,17 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	    }
 	}
 
-	if(nParams) {
-		// TODO convert parameters to external
-	}
-
 	connid->sql_count++;
+
 	if (rowByRow)
 	{
-		int status;
+		int status = 0;
 
 		// Make the call
 		if (nParams) {
-			status = PQsendQueryParams(conn, externalString(queryString), nParams,
-				NULL, paramValues, NULL, NULL, 0);
+			status = PQsendQueryParams(conn, pgString, nParams, NULL, paramValues, NULL, NULL, 0);
 		} else {
-			status = PQsendQuery(conn, externalString(queryString));
+			status = PQsendQuery(conn, pgString);
 		}
 
 		if(status == 0) {
@@ -3074,10 +3172,9 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	} else {
 		// Make the call AND queue up the result.
 		if (nParams) {
-			result = PQexecParams(conn, externalString(queryString), nParams,
-				NULL, paramValues, NULL, NULL, 0);
+			result = PQexecParams(conn, pgString, nParams, NULL, paramValues, NULL, NULL, 0);
 		} else {
-			result = PQexec(conn, externalString(queryString));
+			result = PQexec(conn, pgString);
 		}
 
 		if (result == 0) {
@@ -3098,6 +3195,10 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 	// At this point we no longer need these. Zap them so we don't have to worry about them
 	// in the big loop.
+	if(pgString) {
+		ckfree((void *)pgString);
+		pgString = NULL;
+	}
 	if(paramValues) {
 		ckfree((void *)paramValues);
 		paramValues = NULL;
@@ -3106,7 +3207,6 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		ckfree((void *)newQueryString);
 		newQueryString = NULL;
 	}
-
 	if(paramsBuffer) {
 		ckfree((void *)paramsBuffer);
 		paramsBuffer = NULL;
@@ -3228,7 +3328,13 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				}
 
 				if (valueObj == NULL) {
-					valueObj = Tcl_NewStringObj(utfString(string), -1);
+					char *utf = makeUTFString(interp, string, -1);
+					if(!utf) {
+						retval = TCL_ERROR;
+						goto done;
+					}
+					valueObj = Tcl_NewStringObj(utf, -1);
+					ckfree(utf);
 				}
 
 				if (Tcl_ObjSetVar2(interp, varNameObj, columnNameObjs[column],
@@ -3546,7 +3652,7 @@ Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
 {
 	Pg_ConnectionId *connid;
 	PGconn	        *conn;
-        int              status;
+        int              status = 0;
 	const char    *connString = NULL;
 	const char      *execString = NULL;
 	char            *newExecString = NULL;
@@ -3646,10 +3752,20 @@ Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
 	    }
         }
 
-	if (nParams == 0) {
-	    status = PQsendQuery(conn, externalString(execString));
-	} else {
-	    status = PQsendQueryParams(conn, externalString(execString), nParams, NULL, paramValues, NULL, NULL, 1);
+	char *pgString = makeExternalString(interp, execString, -1);
+	int validUTF = pgString != NULL;
+
+	if(pgString) {
+	    if (nParams == 0) {
+		status = PQsendQuery(conn, pgString);
+	    } else {
+		status = PQsendQueryParams(conn, pgString, nParams, NULL, paramValues, NULL, NULL, 1);
+	    }
+	}
+
+	if(pgString) {
+	    ckfree(pgString);
+	    pgString = NULL;
 	}
 	if(newExecString) {
 	    ckfree(newExecString);
@@ -3672,11 +3788,13 @@ Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
 	    return TCL_OK;
 	else
 	{
-	    /* error occurred during the query */
-	    report_connection_error(interp, conn);
+	    if(validUTF) {
+		/* error occurred during the query */
+		report_connection_error(interp, conn);
 
-	    // Reconnect if the connection is bad.
-	    PgCheckConnectionState(connid);
+		// Reconnect if the connection is bad.
+		PgCheckConnectionState(connid);
+	    }
 
 	    return TCL_ERROR;
 	}
@@ -5186,32 +5304,32 @@ Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
     /*
      *  Handle param options
      */
-     if (params) {
-         Tcl_ListObjGetElements(interp, objv[binparams], &countbin, &elembinPtrs);
+    if (params) {
+        Tcl_ListObjGetElements(interp, objv[binparams], &countbin, &elembinPtrs);
 
-         if (countbin != 0 && countbin != count) {
+        if (countbin != 0 && countbin != count) {
             Tcl_SetResult(interp, "-params and -binparams need the same number of elements", TCL_STATIC); 
             return TCL_ERROR;
-         }
+        }
 
-	 int param;
+	int param;
 
-	 paramValues = (const char **)ckalloc (count * sizeof (char *));
-	 binValues = (int *)ckalloc (countbin * sizeof (char *));
+	paramValues = (const char **)ckalloc (count * sizeof (char *));
+	binValues = (int *)ckalloc (countbin * sizeof (char *));
 
-	 for (param = 0; param < count; param++) {
+	for (param = 0; param < count; param++) {
 		// TODO convert to external
-	     paramValues[param] = Tcl_GetString (elemPtrs[param]);
-	     if (strcmp(paramValues[param], "NULL") == 0)
-             {
-                 paramValues[param] = NULL;
-             }
-	 }
+	    paramValues[param] = Tcl_GetString (elemPtrs[param]);
+	    if (strcmp(paramValues[param], "NULL") == 0)
+            {
+                paramValues[param] = NULL;
+            }
+	}
 
-	 for (param = 0; param < countbin; param++) {
-	     Tcl_GetBooleanFromObj (interp, elembinPtrs[param], &binValues[param]);
-	 }
-     }
+	for (param = 0; param < countbin; param++) {
+	    Tcl_GetBooleanFromObj (interp, elembinPtrs[param], &binValues[param]);
+	}
+    }
 
     connString = Tcl_GetString(objv[1]);
     conn = PgGetConnectionId(interp, connString, &connid);
@@ -5224,54 +5342,62 @@ Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
         return TCL_ERROR;
     }
 
-    execString = Tcl_GetString(objv[2]);
-
-    /*
-     * Handle the callback first, before executing statments
-     */
     if (callback) {
         if (connid->callbackPtr || connid->callbackInterp)
         {
             Tcl_SetResult(interp, "Attempt to wait for result while already waiting", TCL_STATIC);
             return TCL_ERROR;
-       }
+        }
+    }
 
-       /* Start the notify event source if it isn't already running */
-       PgStartNotifyEventSource(connid);
+    execString = Tcl_GetString(objv[2]);
+    if(!execString) {
+	return TCL_ERROR;
+    }
 
-       connid->callbackPtr= objv[callback];
-       connid->callbackInterp= interp;
+    /*
+     * Handle the callback first, before executing statments
+     */
+    if (callback) {
+        /* Start the notify event source if it isn't already running */
+        PgStartNotifyEventSource(connid);
 
-       Tcl_IncrRefCount(objv[callback]);
-       Tcl_Preserve((ClientData) interp);
+        connid->callbackPtr= objv[callback];
+        connid->callbackInterp= interp;
 
-       /* 
-        *  invoke function based on type 
-        *  of query 
-        */
+        Tcl_IncrRefCount(objv[callback]);
+        Tcl_Preserve((ClientData) interp);
+
+        /* 
+         *  invoke function based on type 
+         *  of query 
+         */
         if (prepared) {
-	    iResult = PQsendQueryPrepared(conn, externalString(execString), count, paramValues, paramLengths, binValues, binresults);
+            iResult = PQsendQueryPrepared(conn, execString, count, paramValues, paramLengths, binValues, binresults);
         } else if (params) {
-            iResult = PQsendQueryParams(conn, externalString(execString), count, NULL, paramValues, paramLengths, binValues, binresults);
+            iResult = PQsendQueryParams(conn, execString, count, NULL, paramValues, paramLengths, binValues, binresults);
 
         } else {
     
-            iResult = PQsendQuery(conn, externalString(execString));
+             iResult = PQsendQuery(conn, execString);
 /*
-            ckfree ((void *)paramValues);
+             ckfree ((void *)paramValues);
 */
-        }
+         }
     } else {
 
         if (prepared) {
-	    result = PQexecPrepared(conn, externalString(execString), count, paramValues, paramLengths, binValues, binresults);
+            result = PQexecPrepared(conn, execString, count, paramValues, paramLengths, binValues, binresults);
         } else if (params) {
-            result = PQexecParams(conn, externalString(execString), count, NULL, paramValues, paramLengths, binValues, binresults);
+            result = PQexecParams(conn, execString, count, NULL, paramValues, paramLengths, binValues, binresults);
         } else {
-            result = PQexec(conn, externalString(execString));
+            result = PQexec(conn, execString);
             ckfree ((void *)paramValues);
         }
     } /* end if callback */
+
+    ckfree(execString);
+    execString = NULL;
 
     PgNotifyTransferEvents(connid);
 
@@ -5305,7 +5431,6 @@ Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
 	return TCL_ERROR;
     }
 
-    
     return TCL_OK;
 }
 
