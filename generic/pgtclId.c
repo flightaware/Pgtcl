@@ -208,7 +208,7 @@ PgSetConnectionId(Tcl_Interp *interp, PGconn *conn, char *chandle)
         Tcl_Obj         *nsstr;
 	Pg_ConnectionId *connid;
 	int             i;
-        CONST char      *ns = "";
+        const char      *ns = "";
 
 	connid = (Pg_ConnectionId *) ckalloc(sizeof(Pg_ConnectionId));
 	connid->conn = conn;
@@ -304,7 +304,7 @@ PgSetConnectionId(Tcl_Interp *interp, PGconn *conn, char *chandle)
  *----------------------------------------------------------------------
  */
 int
-PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
     int             optIndex;
     int             objvxi;
@@ -681,7 +681,7 @@ PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
  *----------------------------------------------------------------------
  */
 int
-PgResultCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+PgResultCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
     int    objvxi;
     Tcl_Obj    *objvx[25];
@@ -972,7 +972,7 @@ getresid(Tcl_Interp *interp, const char *id, Pg_ConnectionId ** connid_p)
 	int			resid;
 	Pg_ConnectionId *connid;
 
-	if (!(mark = strrchr(id, '.')))
+	if (!(mark = (char *) strrchr(id, '.')))
 	{
 		Tcl_SetResult(interp, "Poorly formated result handle", TCL_STATIC);
 		return -1;
@@ -1066,7 +1066,7 @@ PgGetConnByResultId(Tcl_Interp *interp, const char *resid_c)
 	Tcl_Channel conn_chan;
     Tcl_Obj     *tresult;
 
-	if (!(mark = strrchr(resid_c, '.')))
+	if (!(mark = (char *) strrchr(resid_c, '.')))
 		goto error_out;
 	*mark = '\0';
 	conn_chan = Tcl_GetChannel(interp, resid_c, 0);
@@ -1581,7 +1581,7 @@ PgDelResultHandle(ClientData cData)
 
 int
 Pg_copy_complete(ClientData cData, Tcl_Interp *interp, int objc,
-				 Tcl_Obj *CONST objv[])
+				 Tcl_Obj *const objv[])
 {
 	Pg_ConnectionId *connid;
 	PGconn	   *conn;

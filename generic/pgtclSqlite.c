@@ -10,6 +10,7 @@
 
 #include "pgtclCmds.h"
 #include "pgtclId.h"
+#include "pgtclCompat.h"
 
 #include <sqlite3.h>
 
@@ -181,10 +182,10 @@ char *Pg_sqlite_typename(enum mappedTypes type)
 // Step through a list and produce an array of the types in the list. Since the list may be a list of types
 // or a list of names and types, we take a start index and stride to describe the list.
 int
-Pg_sqlite_mapTypes(Tcl_Interp *interp, Tcl_Obj *list, int start, int stride, enum mappedTypes **arrayPtr, int *lengthPtr)
+Pg_sqlite_mapTypes(Tcl_Interp *interp, Tcl_Obj *list, int start, int stride, enum mappedTypes **arrayPtr, Tcl_Size *lengthPtr)
 {
 	Tcl_Obj          **objv;
-	int                objc;
+	Tcl_Size           objc;
 	enum mappedTypes  *array;
 	int                i;
 	int                col;
@@ -225,10 +226,10 @@ Pg_sqlite_mapTypes(Tcl_Interp *interp, Tcl_Obj *list, int start, int stride, enu
 // Step through a list and produce an array of the names in the list. Since the list may be a list of types
 // or a list of names and types, we take a stride to describe the list.
 int
-Pg_sqlite_getNames(Tcl_Interp *interp, Tcl_Obj *list, int stride, char ***arrayPtr, int *lengthPtr)
+Pg_sqlite_getNames(Tcl_Interp *interp, Tcl_Obj *list, int stride, char ***arrayPtr, Tcl_Size *lengthPtr)
 {
 	Tcl_Obj **objv;
-	int       objc;
+	Tcl_Size  objc;
 	char    **array;
 	int       i;
 	int       col;
@@ -331,7 +332,7 @@ int
 Pg_sqlite_generateCheck(Tcl_Interp *interp, sqlite3 *sqlite_db, char *tableName, char **columnNames, int nColumns, Tcl_Obj *primaryKey, sqlite3_stmt **statementPtr, int **primaryKeyIndexPtr)
 {
 	Tcl_Obj     **keyv;
-	int           keyc;
+	Tcl_Size      keyc;
 	int          *primaryKeyIndex = NULL;
 	char        **primaryKeyNames = NULL;
 	Tcl_Obj      *sql = NULL;
@@ -567,9 +568,9 @@ Tcl_Obj*
 Pg_sqlite_generate(Tcl_Interp *interp, sqlite3 *sqlite_db, char *sqliteTable, Tcl_Obj *nameList, Tcl_Obj *nameTypeList, Tcl_Obj *primaryKey, char *unknownKey, int newTable, int replacing)
 {
 	Tcl_Obj **objv;
-	int       objc;
+	Tcl_Size  objc;
 	Tcl_Obj **keyv = NULL;
-	int       keyc = 0;
+	Tcl_Size  keyc = 0;
 	Tcl_Obj  *create = NULL;
 	Tcl_Obj  *sql = NULL;
 	Tcl_Obj  *values = NULL;
@@ -727,7 +728,7 @@ Pg_sqlite_probe(Tcl_Interp *interp, Tcl_ObjCmdProc **procPtr)
 		char               cmd_name[256 + 1];
 		char               create_cmd[256 + 18 + 1];
 		char               delete_cmd[256 + 7 + 1];
-		struct Tcl_CmdInfo cmd_info;
+		Tcl_CmdInfo cmd_info;
 
 		if (Tcl_Eval(interp, "package require sqlite3") != TCL_OK) {
 			return TCL_ERROR;
@@ -890,7 +891,7 @@ Pg_sqlite_split_keyval(Tcl_Interp *interp, char *row, char ***columnsPtr, int nC
 
 int Pg_sqlite_getDB(Tcl_Interp *interp, char *cmdName, sqlite3 **sqlite_dbPtr)
 {
-        struct Tcl_CmdInfo  sqlite_commandInfo;
+        Tcl_CmdInfo  sqlite_commandInfo;
 	Tcl_ObjCmdProc     *sqlite3_ObjProc = NULL;
         struct SqliteDb    *sqlite_clientData;
 
@@ -918,7 +919,7 @@ int Pg_sqlite_getDB(Tcl_Interp *interp, char *cmdName, sqlite3 **sqlite_dbPtr)
 
 // Main routine, extract the sqlite handle, parse the ensemble command, and run the subcommand.
 int
-Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
         sqlite3            *sqlite_db;
 	int                 cmdIndex;
@@ -984,7 +985,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 	const char        *errorMessage = NULL;
 	enum mappedTypes  *columnTypes = NULL;
 	char             **columnNames = NULL;
-	int                nColumns = 0;
+	Tcl_Size           nColumns = 0;
 	int                column;
 	ExecStatusType     status;
 	char              *tabsepFile = NULL;
@@ -1532,7 +1533,7 @@ Pg_sqlite(ClientData clientdata, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 
 			while(row) {
 				if(cmdIndex == CMD_READ_KEYVAL) {
-					int len;
+					Tcl_Size len;
 					if (Pg_sqlite_split_keyval(interp, row, &columns, nColumns, sepString, columnNames, unknownObj) != TCL_OK) {
 						returnCode = TCL_ERROR;
 						break;

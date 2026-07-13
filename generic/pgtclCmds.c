@@ -20,6 +20,7 @@
 
 #include "pgtclCmds.h"
 #include "pgtclId.h"
+#include "pgtclCompat.h"
 #include "libpq/libpq-fs.h"		/* large-object interface */
 #include "tokenize.h"
 
@@ -30,14 +31,14 @@ static int execute_put_values(Tcl_Interp *interp, const char *array_varname,
 				   PGresult *result, char *nullString, int tupno);
 
 static int count_parameters(Tcl_Interp *interp, const char *queryString,
-				    int *nParamsPtr);
+				    Tcl_Size *nParamsPtr);
 
 static int expand_parameters(Tcl_Interp *interp, const char *queryString,
 				    int nParams, char *paramArrayName,
 				    char **newQueryStringPtr, const char ***paramValuesPtr,
 				    const char **bufferPtr);
 
-static int build_param_array(Tcl_Interp *interp, int nParams, Tcl_Obj *CONST objv[], const char ***paramValuesPtr, const char **bufferPtr);
+static int build_param_array(Tcl_Interp *interp, int nParams, Tcl_Obj *const objv[], const char ***paramValuesPtr, const char **bufferPtr);
 
 static void report_connection_error(Tcl_Interp *interp, PGconn *conn);
 
@@ -188,7 +189,7 @@ PGgetvalue ( PGresult *result, char *nullString, int tupno, int fieldNumber )
 
 int
 Pg_conndefaults(ClientData cData, Tcl_Interp *interp, int objc,
-				Tcl_Obj *CONST objv[])
+				Tcl_Obj *const objv[])
 {
 	PQconninfoOption *options = PQconndefaults();
 	PQconninfoOption *option;
@@ -265,7 +266,7 @@ Pg_conndefaults(ClientData cData, Tcl_Interp *interp, int objc,
 
 int
 Pg_connect(ClientData cData, Tcl_Interp *interp, int objc,
-		   Tcl_Obj *CONST objv[])
+		   Tcl_Obj *const objv[])
 {
     PGconn	    *conn;
     char	    *connhandle = NULL;
@@ -362,7 +363,8 @@ Pg_connect(ClientData cData, Tcl_Interp *interp, int objc,
             case OPT_CONNLIST:
             {
                 Tcl_Obj    **elemPtrs;
-                int        count, lelem;
+                Tcl_Size   count;
+                int        lelem;
 
                 Tcl_ListObjGetElements(interp, objv[i + 1], &count, &elemPtrs);
 
@@ -491,7 +493,7 @@ Pg_connect(ClientData cData, Tcl_Interp *interp, int objc,
  **********************************/
 
 int
-Pg_disconnect(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+Pg_disconnect(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
     Pg_ConnectionId *connid;
     Tcl_Channel conn_chan;
@@ -540,7 +542,7 @@ Pg_disconnect(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
 ** allocates and returns buffer containing new strings in bufferPtr
 ** for later disposal.
 */
-int array_to_utf8(Tcl_Interp *interp, const char **paramValues, int *paramLengths, int nParams, const char **bufferPtr)
+int array_to_utf8(Tcl_Interp *interp, const char **paramValues, Tcl_Size *paramLengths, int nParams, const char **bufferPtr)
 {
 	int param;
 	int charsWritten;
@@ -571,7 +573,7 @@ int array_to_utf8(Tcl_Interp *interp, const char **paramValues, int *paramLength
 		tresult = Tcl_NewStringObj(errmsg, -1);
 		Tcl_AppendStringsToObj(tresult, paramValues[param], NULL);
 		if(errcode == TCL_CONVERT_NOSPACE) { // CAN'T HAPPEN, check anyway
-		    sprintf(errmsg, " (%d bytes needed, %d bytes available)", paramLengths[param], remaining);
+		    sprintf(errmsg, " (%d bytes needed, %d bytes available)", (int) paramLengths[param], remaining);
 		    Tcl_AppendStringsToObj(tresult, errmsg, NULL);
 		}
 		Tcl_SetObjResult(interp, tresult);
@@ -596,20 +598,20 @@ int array_to_utf8(Tcl_Interp *interp, const char **paramValues, int *paramLength
  * and PQexecParams will work just like PQexec (no $-substitutions).
  * The magic string NULL is replaced by a null value! // TODO - make this use null value string
  */
-int build_param_array(Tcl_Interp *interp, int nParams, Tcl_Obj *CONST objv[], const char ***paramValuesPtr, const char **bufferPtr)
+int build_param_array(Tcl_Interp *interp, int nParams, Tcl_Obj *const objv[], const char ***paramValuesPtr, const char **bufferPtr)
 {
 	const char **paramValues  = NULL;
-	int         *paramLengths = NULL;
+	Tcl_Size    *paramLengths = NULL;
 	int          param;
 
 	if(nParams == 0)
 	    return TCL_OK;
 
 	paramValues = (const char **)ckalloc (nParams * sizeof (char *));
-	paramLengths = (int *)ckalloc(nParams * sizeof(int));
+	paramLengths = (Tcl_Size *)ckalloc(nParams * sizeof(Tcl_Size));
 
 	for (param = 0; param < nParams; param++) {
-	    int newLength = 0;
+	    Tcl_Size newLength = 0;
 	    paramValues[param] = Tcl_GetStringFromObj(objv[param], &newLength);
 	    if (strcmp(paramValues[param], "NULL") == 0)
             {
@@ -646,7 +648,7 @@ int build_param_array(Tcl_Interp *interp, int nParams, Tcl_Obj *CONST objv[], co
  **********************************/
 
 int
-Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 	Pg_ConnectionId *connid;
 	PGconn	        *conn;
@@ -657,7 +659,7 @@ Pg_exec(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	const char     **paramValues = NULL;
 	char		*paramArrayName = NULL;
 	const char      *paramsBuffer = NULL;
-	int              nParams;
+	Tcl_Size         nParams;
 	int              index;
 	int              useVariables = 0;
 
@@ -859,7 +861,7 @@ static void report_connection_error(Tcl_Interp *interp, PGconn *conn)
  **********************************/
 
 int
-Pg_exec_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+Pg_exec_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 	Pg_ConnectionId *connid;
 	PGconn	   *conn;
@@ -912,7 +914,7 @@ Pg_exec_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 
 	if(statementNameString) {
 		result = PQexecPrepared(conn, statementNameString, nParams, paramValues, NULL, NULL, 0);
-		ckfree(statementNameString);
+		ckfree((void *)statementNameString);
 		statementNameString = NULL;
 	}
 
@@ -1097,7 +1099,7 @@ Pg_result_foreach(Tcl_Interp *interp, PGresult *result, Tcl_Obj *arrayNameObj, T
 
  **********************************/
 int
-Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 	PGresult   *result;
 	int			i;
@@ -1140,7 +1142,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		"context", "file", "line", "function", (char *)NULL
 	};
 
-	static CONST char pgDiagCodes[] = {
+	static const char pgDiagCodes[] = {
 		PG_DIAG_SEVERITY,
 		PG_DIAG_SQLSTATE, 
 		PG_DIAG_MESSAGE_PRIMARY,
@@ -1406,11 +1408,11 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 						    ) == NULL)
 						{
 							Tcl_DecrRefCount(fieldNameObj);
-							ckfree(field0);
+							ckfree((void *)field0);
 							return TCL_ERROR;
 						}
 					}
-					ckfree(field0);
+					ckfree((void *)field0);
 				}
 				return TCL_OK;
 			}
@@ -1741,7 +1743,7 @@ Pg_result(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		case OPT_NULL_VALUE_STRING:
 			{
 				char       *nullValueString;
-				int         length;
+				Tcl_Size    length;
 
 				if ((objc < 3) || (objc > 4))
 				{
@@ -1822,7 +1824,7 @@ Pg_result_errReturn:
  **********************************/
 
 int
-Pg_execute(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+Pg_execute(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 	Pg_ConnectionId *connid;
 	PGconn	   *conn;
@@ -2136,7 +2138,7 @@ execute_put_values(Tcl_Interp *interp, const char *array_varname,
 **********************/
 
 int
-Pg_lo_open(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+Pg_lo_open(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 	PGconn	   *conn;
 	int			lobjId;
@@ -2144,7 +2146,7 @@ Pg_lo_open(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 	int			fd;
 	char	   *connString;
 	char	   *modeString;
-	int			modeStringLen;
+	Tcl_Size		modeStringLen;
 	Pg_ConnectionId *connid;
 
 	if (objc != 4)
@@ -2226,7 +2228,7 @@ Pg_lo_open(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 
 **********************/
 int
-Pg_lo_close(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+Pg_lo_close(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 	PGconn	   *conn;
 	int			fd;
@@ -2272,7 +2274,7 @@ Pg_lo_close(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[
 **********************/
 int
 Pg_lo_read(ClientData cData, Tcl_Interp *interp, int objc,
-		   Tcl_Obj *CONST objv[])
+		   Tcl_Obj *const objv[])
 {
 	PGconn	   *conn;
 	int			fd;
@@ -2323,7 +2325,7 @@ Pg_lo_read(ClientData cData, Tcl_Interp *interp, int objc,
 	        bufObj = Tcl_NewByteArrayObj((unsigned char*)buf, nbytes);
 
 	    if (Tcl_ObjSetVar2(interp, bufVar, NULL, bufObj,
-					   TCL_LEAVE_ERR_MSG | TCL_PARSE_PART1) == NULL)
+					   TCL_LEAVE_ERR_MSG) == NULL)
 		rc = TCL_ERROR;
         }
    
@@ -2344,12 +2346,12 @@ Pg_lo_write
 ***********************************/
 int
 Pg_lo_write(ClientData cData, Tcl_Interp *interp, int objc,
-			Tcl_Obj *CONST objv[])
+			Tcl_Obj *const objv[])
 {
 	PGconn	   *conn;
 	char	   *buf;
 	int			fd;
-	int			nbytes = 0;
+	Tcl_Size		nbytes = 0;
 	int			len;
 	Pg_ConnectionId *connid;
 
@@ -2405,7 +2407,7 @@ whence can be either
 ***********************************/
 int
 Pg_lo_lseek(ClientData cData, Tcl_Interp *interp, int objc,
-			Tcl_Obj *CONST objv[])
+			Tcl_Obj *const objv[])
 {
 	PGconn	   *conn;
 	int			fd;
@@ -2475,7 +2477,7 @@ for now, we don't support any additional storage managers.
 ***********************************/
 int
 Pg_lo_creat(ClientData cData, Tcl_Interp *interp, int objc,
-			Tcl_Obj *CONST objv[])
+			Tcl_Obj *const objv[])
 {
 	PGconn	   *conn;
 	char	   *modeStr;
@@ -2548,7 +2550,7 @@ Pg_lo_tell
 ***********************************/
 int
 Pg_lo_tell(ClientData cData, Tcl_Interp *interp, int objc,
-		   Tcl_Obj *CONST objv[])
+		   Tcl_Obj *const objv[])
 {
 	PGconn	   *conn;
 	int			fd;
@@ -2593,7 +2595,7 @@ Pg_lo_truncate
 ***********************************/
 int
 Pg_lo_truncate(ClientData cData, Tcl_Interp *interp, int objc,
-		   Tcl_Obj *CONST objv[])
+		   Tcl_Obj *const objv[])
 {
 	PGconn	   *conn;
 	int			fd;
@@ -2644,7 +2646,7 @@ Pg_lo_unlink
 ***********************************/
 int
 Pg_lo_unlink(ClientData cData, Tcl_Interp *interp, int objc,
-			 Tcl_Obj *CONST objv[])
+			 Tcl_Obj *const objv[])
 {
 	PGconn	   *conn;
 	int			lobjId;
@@ -2698,7 +2700,7 @@ Pg_lo_import
 
 int
 Pg_lo_import(ClientData cData, Tcl_Interp *interp, int objc,
-			 Tcl_Obj *CONST objv[])
+			 Tcl_Obj *const objv[])
 {
 	PGconn	   *conn;
 	const char	   *filename;
@@ -2749,7 +2751,7 @@ Pg_lo_export
 
 int
 Pg_lo_export(ClientData cData, Tcl_Interp *interp, int objc,
-			 Tcl_Obj *CONST objv[])
+			 Tcl_Obj *const objv[])
 {
 	PGconn	   *conn;
 	const char	   *filename;
@@ -2800,7 +2802,7 @@ Pg_lo_export(ClientData cData, Tcl_Interp *interp, int objc,
 
  If successful, sets nParams to the number of expected parameters in queryString
  */
-static int count_parameters(Tcl_Interp *interp, const char *queryString, int *nParamsPtr)
+static int count_parameters(Tcl_Interp *interp, const char *queryString, Tcl_Size *nParamsPtr)
 {
 
     int nQuotes = 0;
@@ -2839,7 +2841,7 @@ static int expand_parameters(Tcl_Interp *interp, const char *queryString, int nP
 	// Allocating space for parameter IDs up to 100,000 (5 characters)
 	char        *newQueryString = (char *)ckalloc(strlen(queryString) + 5 * nParams);
 	const char **paramValues    = (const char **)ckalloc(nParams * sizeof (*paramValues));
-	int         *paramLengths   = (int *)ckalloc(nParams * sizeof (int));
+	Tcl_Size    *paramLengths   = (Tcl_Size *)ckalloc(nParams * sizeof (Tcl_Size));
 	const char   *input         = queryString;
 	char         *output        = newQueryString;
 	int           paramIndex    = 0;
@@ -2982,7 +2984,7 @@ error_return:
  **********************************/
 
 int
-Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 	Pg_ConnectionId *connid;
 	PGconn	    *conn = NULL;
@@ -2997,7 +2999,7 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	int          rowByRow = 0;
 	int          firstPass = 1;
 	int          index = 1;
-	int          nParams = 0;
+	Tcl_Size     nParams = 0;
 	char        *connString     = NULL;
 	char        *pgString       = NULL;
 	const char  *queryString    = NULL;
@@ -3012,7 +3014,6 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	char        *newQueryString = NULL;
 	Tcl_Obj     *paramListObj   = NULL;
 	int          useVariables = 0;
-	int          tuplesProcessed = 0;
 	Tcl_Obj     *tuplesVarObj  = NULL;
 
 	enum         positionalArgs {SELECT_ARG_CONN, SELECT_ARG_QUERY, SELECT_ARG_VAR, SELECT_ARG_PROC, SELECT_ARGS};
@@ -3347,8 +3348,6 @@ Pg_select(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 				}
 			}
 
-			tuplesProcessed++;
-
 			// Run the code body.
 			r = Tcl_EvalObjEx(interp, procStringObj, 0);
 			if ((r != TCL_OK) && (r != TCL_CONTINUE))
@@ -3456,7 +3455,7 @@ Pg_listen
    vwait or update can be used to enter the Tcl event loop.
 ***********************************/
 int
-Pg_listen(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+Pg_listen(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 	const char	   *origrelname;
 	char	   *caserelname;
@@ -3468,8 +3467,8 @@ Pg_listen(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	PGresult   *result;
 	int			new;
 	char	   *connString;
-	int			callbackStrlen = 0;
-	int         origrelnameStrlen;
+	Tcl_Size		callbackStrlen = 0;
+	Tcl_Size    origrelnameStrlen;
         Tcl_Obj     *tresult;
 
 	if (objc < 3 || objc > 4)
@@ -3650,7 +3649,7 @@ Pg_listen(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
  **********************************/
 int
 Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
-			 Tcl_Obj *CONST objv[])
+			 Tcl_Obj *const objv[])
 {
 	Pg_ConnectionId *connid;
 	PGconn	        *conn;
@@ -3661,7 +3660,7 @@ Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
 	const char     **paramValues = NULL;
 	char		*paramArrayName = NULL;
 	const char      *paramsBuffer = NULL;
-	int              nParams;
+	Tcl_Size         nParams;
 	int              index;
 	int              useVariables = 0;
 
@@ -3815,7 +3814,7 @@ Pg_sendquery(ClientData cData, Tcl_Interp *interp, int objc,
  **********************************/
 
 int
-Pg_sendquery_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+Pg_sendquery_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 	Pg_ConnectionId *connid;
 	PGconn	   *conn;
@@ -3912,7 +3911,7 @@ Pg_sendquery_prepared(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *C
 
 int
 Pg_set_single_row_mode(ClientData cData, Tcl_Interp *interp, int objc,
-			Tcl_Obj *CONST objv[])
+			Tcl_Obj *const objv[])
 {
 #ifndef HAVE_PQSETSINGLEROWMODE
                 Tcl_SetObjResult(interp, 
@@ -3958,7 +3957,7 @@ Pg_set_single_row_mode(ClientData cData, Tcl_Interp *interp, int objc,
 
 int
 Pg_getresult(ClientData cData, Tcl_Interp *interp, int objc,
-			 Tcl_Obj *CONST objv[])
+			 Tcl_Obj *const objv[])
 {
 	Pg_ConnectionId *connid;
 	PGconn	   *conn;
@@ -4034,7 +4033,7 @@ Pg_getresult(ClientData cData, Tcl_Interp *interp, int objc,
 
 int
 Pg_getdata(ClientData cData, Tcl_Interp *interp, int objc,
-			 Tcl_Obj *CONST objv[])
+			 Tcl_Obj *const objv[])
 {
     Pg_ConnectionId *connid;
     PGconn	    *conn;
@@ -4161,7 +4160,7 @@ Pg_getdata(ClientData cData, Tcl_Interp *interp, int objc,
 
 int
 Pg_isbusy(ClientData cData, Tcl_Interp *interp, int objc,
-		  Tcl_Obj *CONST objv[])
+		  Tcl_Obj *const objv[])
 {
 	Pg_ConnectionId *connid;
 	PGconn	   *conn;
@@ -4206,7 +4205,7 @@ Pg_isbusy(ClientData cData, Tcl_Interp *interp, int objc,
 
 int
 Pg_blocking(ClientData cData, Tcl_Interp *interp, int objc,
-			Tcl_Obj *CONST objv[])
+			Tcl_Obj *const objv[])
 {
 	Pg_ConnectionId *connid;
 	PGconn	   *conn;
@@ -4253,13 +4252,13 @@ Pg_blocking(ClientData cData, Tcl_Interp *interp, int objc,
 
 int
 Pg_null_value_string(ClientData cData, Tcl_Interp *interp, int objc,
-			         Tcl_Obj *CONST objv[])
+			         Tcl_Obj *const objv[])
 {
 	Pg_ConnectionId *connid;
 	PGconn	   *conn;
 	char	   *connString;
 	char       *nullValueString;
-	int			length;
+	Tcl_Size		length;
 
 	if ((objc < 2) || (objc > 3))
 	{
@@ -4310,7 +4309,7 @@ Pg_null_value_string(ClientData cData, Tcl_Interp *interp, int objc,
 
 int
 Pg_cancelrequest(ClientData cData, Tcl_Interp *interp, int objc,
-				 Tcl_Obj *CONST objv[])
+				 Tcl_Obj *const objv[])
 {
 	Pg_ConnectionId *connid;
 	PGconn	   *conn;
@@ -4372,7 +4371,7 @@ Pg_on_connection_loss
 ***********************************/
 int
 Pg_on_connection_loss(ClientData cData, Tcl_Interp *interp, int objc,
-				 Tcl_Obj *CONST objv[])
+				 Tcl_Obj *const objv[])
 {
 	char	   *callback = NULL;
 	Pg_TclNotifies *notifies;
@@ -4396,7 +4395,7 @@ Pg_on_connection_loss(ClientData cData, Tcl_Interp *interp, int objc,
 
 	if (objc > 2)
 	{
-		int         callbackStrLen;
+		Tcl_Size    callbackStrLen;
 		char	   *callbackStr;
 
 		/* there is probably a better way to do this, like incrementing
@@ -4474,11 +4473,11 @@ Pg_on_connection_loss(ClientData cData, Tcl_Interp *interp, int objc,
  */
 int
 Pg_quote (ClientData cData, Tcl_Interp *interp, int objc,
-		  Tcl_Obj *CONST objv[])
+		  Tcl_Obj *const objv[])
 {
 	char	   *fromString = NULL;
 	char	   *toString;
-	int         fromStringLen;
+	Tcl_Size    fromStringLen;
 	int         stringSize;
 	Pg_ConnectionId *connid = NULL;
 	PGconn	   *conn = NULL;
@@ -4662,11 +4661,11 @@ Pg_quote (ClientData cData, Tcl_Interp *interp, int objc,
  */
 int
 Pg_escapeBytea(ClientData cData, Tcl_Interp *interp, int objc,
-                                 Tcl_Obj *CONST objv[])
+                                 Tcl_Obj *const objv[])
 {
         unsigned char    	*from;
         unsigned char           *to;
-        int                      fromLen;
+        Tcl_Size                 fromLen;
         size_t                   toLen;
 	PGconn	                *conn = NULL;
 	char                    *connString;
@@ -4740,11 +4739,11 @@ Pg_escapeBytea(ClientData cData, Tcl_Interp *interp, int objc,
  */
 int
 Pg_unescapeBytea(ClientData cData, Tcl_Interp *interp, int objc,
-                                 Tcl_Obj *CONST objv[])
+                                 Tcl_Obj *const objv[])
 {
     const unsigned char  *from;
     unsigned char        *to;
-    int         fromLen;
+    Tcl_Size    fromLen;
     size_t      toLen;
 
     if (objc != 2)
@@ -4811,7 +4810,7 @@ Pg_unescapeBytea(ClientData cData, Tcl_Interp *interp, int objc,
  */
 int
 Pg_dbinfo(ClientData cData, Tcl_Interp *interp, int objc,
-				 Tcl_Obj *CONST objv[])
+				 Tcl_Obj *const objv[])
 {
     Pg_ConnectionId *connid = NULL;
     char	    *connString = NULL;
@@ -4819,7 +4818,8 @@ Pg_dbinfo(ClientData cData, Tcl_Interp *interp, int objc,
     Tcl_Obj         *listObj;
     Tcl_Obj         *tresult;
     Tcl_Obj         **elemPtrs;
-    int             i, count, optIndex;
+    int             i, optIndex;
+    Tcl_Size        count;
     Tcl_Channel     conn_chan;
     const char      *paramname;
 
@@ -5170,7 +5170,7 @@ Pg_dbinfo(ClientData cData, Tcl_Interp *interp, int objc,
  */
 int
 Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
-				 Tcl_Obj *CONST objv[])
+				 Tcl_Obj *const objv[])
 {
 
     PGconn          *conn;
@@ -5185,7 +5185,8 @@ Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
     Tcl_Obj         **elemPtrs;
     Tcl_Obj         **elembinPtrs;
     int             i=3;
-    int             count=0, countbin=0, optIndex;
+    Tcl_Size        count=0, countbin=0;
+    int             optIndex;
     int             params=0,binparams=0,binresults=0,callback=0,async=0,prepared=0;
     unsigned char   flags = 0;
 
@@ -5398,7 +5399,7 @@ Pg_sql(ClientData cData, Tcl_Interp *interp, int objc,
         }
     } /* end if callback */
 
-    ckfree(execString);
+    ckfree((void *)execString);
     execString = NULL;
 
     PgNotifyTransferEvents(connid);

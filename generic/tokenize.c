@@ -455,16 +455,16 @@ int Pg_sqlite3GetToken(const char *z, enum sqltoken *tokenType){
   return i;
 }
 
-extern int array_to_utf8(Tcl_Interp *interp, const char **paramValues, int *paramLengths, int nParams, const char **bufferPtr);
+extern int array_to_utf8(Tcl_Interp *interp, const char **paramValues, Tcl_Size *paramLengths, int nParams, const char **bufferPtr);
 
-int handle_substitutions(Tcl_Interp *interp, const char *sql, char **newSqlPtr, const char ***replacementArrayPtr, int *replacementArrayLengthPtr, const char **bufferPtr)
+int handle_substitutions(Tcl_Interp *interp, const char *sql, char **newSqlPtr, const char ***replacementArrayPtr, Tcl_Size *replacementArrayLengthPtr, const char **bufferPtr)
 {
 	// Worst possible case, :a mapping to $99999 at the end of a really long string
 	char *newSql = ckalloc(strlen(sql)*3+1);
 	// Worst possible case? the sql is nothing but ":varname" and they're all one character names. This
 	// will still be big enough.
 	const char **replacementArray = (const char **)ckalloc((strlen(sql)/2) * (sizeof *replacementArray));
-	int *lengthArray = (int *)ckalloc((strlen(sql)/2) * sizeof (int));
+	Tcl_Size *lengthArray = (Tcl_Size *)ckalloc((strlen(sql)/2) * sizeof (Tcl_Size));
 
 	const char *p;
 	char *q;
@@ -485,7 +485,7 @@ int handle_substitutions(Tcl_Interp *interp, const char *sql, char **newSqlPtr, 
 			}
 			case TK_TCLVAR: {
 				char *nameBuf = ckalloc(len);
-				int stringLength;
+				Tcl_Size stringLength;
 				Tcl_Obj *varObj = NULL;
 				int i;
 				int skip = 1;

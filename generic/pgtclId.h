@@ -15,6 +15,8 @@
  *-------------------------------------------------------------------------
  */
 
+#include "pgtclCompat.h"
+
 #define RES_HARD_MAX 128
 #define RES_START 16
 
@@ -120,13 +122,13 @@ extern void PgNotifyTransferEvents(Pg_ConnectionId * connid);
 extern void PgConnLossTransferEvents(Pg_ConnectionId * connid);
 extern void PgNotifyInterpDelete(ClientData clientData, Tcl_Interp *interp);
 
-extern int PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+extern int PgConnCmd(ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]);
 extern void PgDelCmdHandle(ClientData cData);
 extern void PgDelResultHandle(ClientData cData);
 
 extern Tcl_ChannelType Pg_ConnType;
 
 extern int Pg_copy_complete(
-  ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+  ClientData cData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]);
 
 extern int PgCheckConnectionState(Pg_ConnectionId *connid);
