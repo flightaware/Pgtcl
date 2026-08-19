@@ -5,6 +5,7 @@
 */
 #include <ctype.h>
 #include <tcl.h>
+#include "pgtclCompat.h"
 
 enum sqltoken {
 TK_BITAND, TK_BITNOT, TK_BITOR, TK_BLOB, TK_COMMA, TK_CONCAT, TK_DOT, TK_EQ, TK_FLOAT, TK_GE,
@@ -14,7 +15,7 @@ TK_CAST, TK_HASH
 };
 
 int Pg_sqlite3GetToken(const char *z, enum sqltoken *tokenType);
-int handle_substitutions(Tcl_Interp *interp, const char *sql, char **newSqlPtr, const char ***replacementArrayPtr, int *replacementArrayLengthPtr, const char **bufferPtr);
+int handle_substitutions(Tcl_Interp *interp, const char *sql, char **newSqlPtr, const char ***replacementArrayPtr, Tcl_Size *replacementArrayLengthPtr, const char **bufferPtr);
 
 #define sqlite3Isdigit(x) isdigit(x)
 #define sqlite3Isspace(x) isspace(x)
