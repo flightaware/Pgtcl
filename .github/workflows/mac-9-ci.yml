@@ -1,0 +1,29 @@
+name: Mac tcl9 CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install dependencies
+      run: |
+        brew update
+        brew install tcl-tk@9 autoconf libpq
+    - name: configure
+      run: |       
+        autoreconf -vi
+        export PG_CONFIG=/opt/homebrew/opt/libpq/bin/pg_config
+        ./configure --with-tcl=/opt/homebrew/opt/tcl-tk@9/lib/ --prefix=/usr/local        
+    - name: make
+      run: make
+    - name: install
+      run: sudo make install
+
