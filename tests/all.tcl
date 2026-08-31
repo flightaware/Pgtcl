@@ -12,12 +12,11 @@ proc tcltest::cleanupTestsHook {} {
 
 ::tcltest::configure -testdir [file dirname [file normalize [info script]]]
 ::tcltest::configure {*}$argv
-::tcltest::runAllTests
+set testResult [::tcltest::runAllTests]
 
-
-if {$exitCode == 1} {
+if {$exitCode == 1 || $testResult == 1} {
 	puts "====== FAIL ====="
-	exit $exitCode
+	exit [expr {$exitCode || $testResult}]
 } else {
 	puts "====== SUCCESS ====="
 }
