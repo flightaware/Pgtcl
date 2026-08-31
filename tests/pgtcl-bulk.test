@@ -335,7 +335,6 @@ test pgtcl-14.1 {comprehensive tests} -body {
 	    return [pg_result $res -error]
 	}
 	pg_result $res -clear
-	puts -nonewline stderr "\r14.1.1 $i       "
     }
     set result 0
     for {set i 0} {$i < 10000} {incr i} {
@@ -386,9 +385,7 @@ test pgtcl-14.1 {comprehensive tests} -body {
 		incr result
 	}
 	pg_result $res -clear
-	puts -nonewline stderr "\r14.1.2 $i $result      "
     }
-    puts stderr "\r[list result $result]         "
     pg_disconnect $conn
 
     list
