@@ -405,3 +405,5 @@ pg_disconnect $conn
 
 
 puts "tests complete"
+
+cleanupTests
