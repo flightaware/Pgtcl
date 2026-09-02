@@ -141,4 +141,4 @@ test pgtcl-sqlite3-1.4 {import postgresql result with multiple keys} -body {
 	expr {$pgtcl_count == $sqlite_count}
 } -result 1
 
-
+cleanupTests

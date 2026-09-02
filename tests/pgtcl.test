@@ -1079,9 +1079,9 @@ test pgtcl-9.3 {dbinfo param} -body {
     lappend res [string equal $val $val2]
     ::pg::disconnect $conn
 
-    set match [regexp {(7|8|9|10|11|12)\.([0-9])\.([0-9])} $val]
+    set match [regexp {(7|8|9|1[0-9])\.([0-9])\.([0-9])} $val]
     if {!$match} {
-	set match [regexp {^(10|11|12)\.[1-9][0-9]* \(.*} $val]
+	set match [regexp {^(1[0-9])\.[1-9][0-9]*} $val]
     }
     lappend res $match
 
@@ -1363,3 +1363,5 @@ test pgtcl-11.3 {using pg_exec with 4-byte unicode positional args} -body {
 
 
 puts "tests complete"
+
+cleanupTests
