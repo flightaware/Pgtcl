@@ -1,4 +1,4 @@
-name: Mac CI
+name: Mac build tcl9
 
 on:
   push:
@@ -16,12 +16,12 @@ jobs:
     - name: Install dependencies
       run: |
         brew update
-        brew install tcl-tk@8 autoconf libpq
+        brew install tcl-tk@9 autoconf libpq
     - name: configure
       run: |       
         autoreconf -vi
         export PG_CONFIG=/opt/homebrew/opt/libpq/bin/pg_config
-        ./configure --with-tcl=/opt/homebrew/opt/tcl-tk@8/lib/ --prefix=/usr/local        
+        ./configure --with-tcl=/opt/homebrew/opt/tcl-tk@9/lib/ --prefix=/usr/local        
     - name: make
       run: make
     - name: install
