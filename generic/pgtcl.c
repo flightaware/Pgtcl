@@ -98,7 +98,7 @@ Pgtcl_Init(Tcl_Interp *interp)
 #endif
 
 #ifdef USE_TCL_STUBS
-	if (Tcl_InitStubs(interp, "8.1", 0) == NULL)
+	if (Tcl_InitStubs(interp, "8.1-", 0) == NULL)
 		return TCL_ERROR;
 #endif
         
