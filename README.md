@@ -53,7 +53,7 @@ Fire up your tclsh:
 ```
 tclsh8.6
 % package require Pgtcl
-2.1.0
+3.3.1
 ```
 
 It's a good idea to switch to using the ``package require`` instead of "load" to pick up Pgtcl, because there will be additional Tcl code shipped in future versions of Pgtcl, and using "package require" will make that code available to your application.  Also it keeps you from hard-coding the path to the library and hard-coding a dependency on a specific version.
